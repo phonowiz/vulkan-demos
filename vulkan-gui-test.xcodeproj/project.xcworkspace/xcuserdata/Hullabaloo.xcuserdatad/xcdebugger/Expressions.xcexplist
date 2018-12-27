@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "_glfwInitVulkan:vulkan.c">
+         <PersistentStrings>
+            <PersistentString
+               value = "ep[i]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "MVKRenderSubpass::getColorAttachmentFormat(unsigned int):MVKRenderPass.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "_renderPass-&gt;_attachments">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "startVulkan():main.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "&amp;device">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>

@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bucket
+   type = "1"
+   version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../Users/Hullabaloo/Downloads/MoltenVK-master/MoltenVK/MoltenVK/GPUObjects/MVKSync.mm"
+            timestampString = "566028355.615581"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "178"
+            endingLineNumber = "178"
+            landmarkName = "MVKFenceSitter::addUnsignaledFence(MVKFence* fence)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../Users/Hullabaloo/Downloads/MoltenVK-master/MoltenVK/MoltenVK/GPUObjects/MVKQueue.mm"
+            timestampString = "567557630.655236"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "125"
+            endingLineNumber = "125"
+            landmarkName = "MVKQueue::waitIdle(MVKCommandUse cmdBuffUse)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../Users/Hullabaloo/Downloads/MoltenVK-master/MoltenVK/MoltenVK/Vulkan/vulkan.mm"
+            timestampString = "566024901.251729"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "1700"
+            endingLineNumber = "1700"
+            landmarkName = "vkQueuePresentKHR( VkQueue queue, const VkPresentInfoKHR* pPresentInfo)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../Users/Hullabaloo/Downloads/MoltenVK-master/MoltenVK/MoltenVK/GPUObjects/MVKQueue.mm"
+            timestampString = "567557630.655588"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "79"
+            endingLineNumber = "79"
+            landmarkName = "MVKQueue::submit(MVKQueueSubmission* qSubmit)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../Users/Hullabaloo/Downloads/MoltenVK-master/MoltenVK/MoltenVK/GPUObjects/MVKQueue.mm"
+            timestampString = "567557630.6558"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "75"
+            endingLineNumber = "75"
+            landmarkName = "MVKQueue::submit(MVKQueueSubmission* qSubmit)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "MVKQueue::submit(MVKQueueSubmission*)"
+                  moduleName = "libMoltenVK.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/Hullabaloo/Downloads/MoltenVK-master/MoltenVK/MoltenVK/GPUObjects/MVKQueue.mm"
+                  timestampString = "566027846.423315"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "75"
+                  endingLineNumber = "75"
+                  offsetFromSymbolStart = "97">
+               </Location>
+               <Location
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "___ZN8MVKQueue6submitEP18MVKQueueSubmission_block_invoke"
+                  moduleName = "libMoltenVK.dylib"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/Hullabaloo/Downloads/MoltenVK-master/MoltenVK/MoltenVK/GPUObjects/MVKQueue.mm"
+                  timestampString = "566027846.426"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "75"
+                  endingLineNumber = "75"
+                  offsetFromSymbolStart = "12">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../Users/Hullabaloo/Downloads/MoltenVK-master/MoltenVK/MoltenVK/GPUObjects/MVKQueue.mm"
+            timestampString = "567557630.656002"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "349"
+            endingLineNumber = "349"
+            landmarkName = "MVKQueuePresentSurfaceSubmission::execute()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../Users/Hullabaloo/Downloads/MoltenVK-master/MoltenVK/MoltenVK/GPUObjects/MVKQueue.mm"
+            timestampString = "567557630.656214"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "73"
+            endingLineNumber = "73"
+            landmarkName = "MVKQueue::submit(MVKQueueSubmission* qSubmit)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../Users/Hullabaloo/Downloads/MoltenVK-master/MoltenVK/MoltenVK/GPUObjects/MVKDevice.mm"
+            timestampString = "566705988.045056"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "1353"
+            endingLineNumber = "1353"
+            landmarkName = "MVKDevice::destroySemaphore(MVKSemaphore* mvkSem4, const VkAllocationCallbacks* pAllocator)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../../Users/Hullabaloo/Downloads/MoltenVK-master/MoltenVK/MoltenVK/Utility/MVKBaseObject.h"
+            timestampString = "567058597.07276"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "62"
+            endingLineNumber = "62"
+            landmarkName = "setConfigurationResult(VkResult vkResult)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
+</Bucket>
