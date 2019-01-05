@@ -7,7 +7,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include "vulkan_utils.h"
-
+#include "easy_image.h"
 
 #include <vector>
 #include <fstream>
@@ -19,9 +19,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
 
-
-
-
+///an excellent summary of vulkan can be found here:
+//https://renderdoc.org/vulkan-in-30-minutes.html
 
 VkInstance instance;
 VkSurfaceKHR surface;
@@ -59,6 +58,8 @@ VkDescriptorSetLayout descriptorSEtLayout;
 VkDescriptorPool descriptorPool;
 VkDescriptorSet descriptorSet;
 
+
+EasyImage shroomImage;
 
 
 class Vertex {
@@ -925,6 +926,20 @@ void copyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size)
 
 }
 
+void loadTexture()
+{
+    std::string baseDir;
+    getBaseDir( baseDir );
+    std::string texture = baseDir + "textures/mario.png";
+    shroomImage.load(texture.c_str());
+    
+    std::cout << shroomImage.getWidth() << std::endl;
+    std::cout << shroomImage.getHeight() << std::endl;
+    std::cout << shroomImage.getChannels() << std::endl;
+    std::cout << shroomImage.getSizeInBytes() << std::endl;
+    
+}
+
 void createVertexBuffer()
 {
     createAndUploadBuffer(device, physicalDevices[0], queue, commandPool,
@@ -1090,6 +1105,7 @@ void startVulkan() {
     createFrameBuffers();
     createCommandPool();
     createCommandBuffers();
+    loadTexture();
     createVertexBuffer();
     createIndexBuffer();
     
@@ -1228,6 +1244,8 @@ void shutdownVulkan() {
     
     vkFreeMemory(device, vertexBufferDeviceMemory, nullptr);
     vkDestroyBuffer(device, vertexBuffer, nullptr);
+    
+    shroomImage.destroy();
     
     vkDestroySemaphore(device, semaphoreImageAvailable, nullptr);
     vkDestroySemaphore(device, semaphoreRenderingDone, nullptr);
