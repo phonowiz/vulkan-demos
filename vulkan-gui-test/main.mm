@@ -526,25 +526,8 @@ void createImageViews()
     
     imageViews = new VkImageView[amountOfImagesInSwapchain];
     for (int i = 0; i < amountOfImagesInSwapchain; i++) {
-        VkImageViewCreateInfo imageViewCreateInfo = {};
-        imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        imageViewCreateInfo.pNext = nullptr;
-        imageViewCreateInfo.flags = 0;
-        imageViewCreateInfo.image = swapchainImages[i];
-        imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        imageViewCreateInfo.format = ourFormat; //TODO civ
-        imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-        imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-        imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-        imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-        imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-        imageViewCreateInfo.subresourceRange.levelCount = 1;
-        imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-        imageViewCreateInfo.subresourceRange.layerCount = 1;
-        
-        result = vkCreateImageView(device, &imageViewCreateInfo, nullptr, &imageViews[i]);
-        ASSERT_VULKAN(result);
+
+        createImageView(device, swapchainImages[i], ourFormat, VK_IMAGE_ASPECT_COLOR_BIT, imageViews[i]);
     }
     delete[] swapchainImages;
 }
@@ -893,27 +876,10 @@ void createCommandBuffers()
     ASSERT_VULKAN(result);
 }
 
-void copyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size)
+void copyBuffer(VkDevice device, VkCommandPool commandPool, VkQueue queue, VkBuffer src, VkBuffer dest, VkDeviceSize size)
 {
-    VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
-    commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    commandBufferAllocateInfo.pNext = nullptr;
-    commandBufferAllocateInfo.commandPool = commandPool;
-    commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    commandBufferAllocateInfo.commandBufferCount = 1;
 
-    VkCommandBuffer commandBuffer = {};
-    VkResult result = vkAllocateCommandBuffers(device, &commandBufferAllocateInfo, &commandBuffer);
-    ASSERT_VULKAN(result);
-
-    VkCommandBufferBeginInfo commandBufferBeginInfo;
-    commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    commandBufferBeginInfo.pNext = nullptr;
-    commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    commandBufferBeginInfo.pInheritanceInfo = nullptr;
-
-    result = vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
-    ASSERT_VULKAN(result);
+    VkCommandBuffer commandBuffer = startSingleTimeCommandBuffer(device, commandPool);
 
     VkBufferCopy bufferCopy = {};
     bufferCopy.dstOffset = 0;
@@ -922,26 +888,7 @@ void copyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size)
     bufferCopy.size = size;
     vkCmdCopyBuffer(commandBuffer, src, dest, 1, &bufferCopy);
 
-    result = vkEndCommandBuffer(commandBuffer);
-    ASSERT_VULKAN(result);
-
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.pNext  = nullptr;
-    submitInfo.waitSemaphoreCount = 0;
-    submitInfo.pWaitSemaphores = nullptr;
-    submitInfo.pWaitDstStageMask = nullptr;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
-    submitInfo.signalSemaphoreCount = 0;
-    submitInfo.pSignalSemaphores = nullptr;
-
-    result = vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE);
-    ASSERT_VULKAN(result);
-
-    vkQueueWaitIdle(queue);
-
-    vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+    endSingleTimeCommandBuffer(device, queue, commandPool, commandBuffer);
 
 }
 

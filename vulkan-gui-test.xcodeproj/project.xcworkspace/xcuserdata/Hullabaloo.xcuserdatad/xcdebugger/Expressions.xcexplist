@@ -3,10 +3,21 @@
    version = "1.0">
    <ContextStates>
       <ContextState
-         contextName = "_glfwInitVulkan:vulkan.c">
+         contextName = "createImage(VkDevice_T*, VkPhysicalDevice_T*, unsigned int, unsigned int, VkFormat, VkImageTiling, unsigned int, unsigned int, VkImage_T*&amp;, VkDeviceMemory_T*&amp;):vulkan_utils.h">
+      </ContextState>
+      <ContextState
+         contextName = "EasyImage::upload(VkDevice_T* const&amp;, VkPhysicalDevice_T*, VkCommandPool_T*, VkQueue_T*):easy_image.h">
          <PersistentStrings>
             <PersistentString
-               value = "ep[i]">
+               value = "int x = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "startVulkan():main.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "&amp;device">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -19,10 +30,10 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "startVulkan():main.mm">
+         contextName = "_glfwInitVulkan:vulkan.c">
          <PersistentStrings>
             <PersistentString
-               value = "&amp;device">
+               value = "ep[i]">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
