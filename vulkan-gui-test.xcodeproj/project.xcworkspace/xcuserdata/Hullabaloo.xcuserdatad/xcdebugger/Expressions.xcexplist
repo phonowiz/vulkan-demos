@@ -3,13 +3,26 @@
    version = "1.0">
    <ContextStates>
       <ContextState
-         contextName = "createImage(VkDevice_T*, VkPhysicalDevice_T*, unsigned int, unsigned int, VkFormat, VkImageTiling, unsigned int, unsigned int, VkImage_T*&amp;, VkDeviceMemory_T*&amp;):vulkan_utils.h">
+         contextName = "_glfwInitVulkan:vulkan.c">
+         <PersistentStrings>
+            <PersistentString
+               value = "ep[i]">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
          contextName = "EasyImage::upload(VkDevice_T* const&amp;, VkPhysicalDevice_T*, VkCommandPool_T*, VkQueue_T*):easy_image.h">
          <PersistentStrings>
             <PersistentString
                value = "int x = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "HelloTriangleApplication::createFramebuffers():main-test.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "swapChainExtent">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -30,12 +43,7 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "_glfwInitVulkan:vulkan.c">
-         <PersistentStrings>
-            <PersistentString
-               value = "ep[i]">
-            </PersistentString>
-         </PersistentStrings>
+         contextName = "createImage(VkDevice_T*, VkPhysicalDevice_T*, unsigned int, unsigned int, VkFormat, VkImageTiling, unsigned int, unsigned int, VkImage_T*&amp;, VkDeviceMemory_T*&amp;):vulkan_utils.h">
       </ContextState>
    </ContextStates>
 </VariablesViewState>

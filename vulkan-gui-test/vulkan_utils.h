@@ -10,8 +10,14 @@
 
 #include "GLFW/glfw3.h"
 
+#include <string>
+#include <fstream>
+#include <iostream>
 #include <assert.h>
 #include <vector>
+
+#include "utils/util_init.hpp"
+
 #define ASSERT_VULKAN(val)\
 if(val != VK_SUCCESS){\
 assert(0);\
@@ -39,6 +45,42 @@ uint32_t findMemoryTypeIndex( VkPhysicalDevice physicalDevice, uint32_t typeFilt
     return result;
 }
 
+bool isFormatSupported(VkPhysicalDevice physicalDevice,  VkFormat format, VkImageTiling tiling, VkFormatFeatureFlags featureFlags)
+{
+    VkFormatProperties formatProperties;
+    vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProperties);
+    
+    if(tiling == VK_IMAGE_TILING_LINEAR &&
+       (formatProperties.linearTilingFeatures & featureFlags) == featureFlags)
+    {
+        return true;
+    }
+    else if( tiling == VK_IMAGE_TILING_OPTIMAL &&
+            (formatProperties.optimalTilingFeatures & featureFlags) == featureFlags)
+    {
+        return true;
+    }
+    return false;
+    
+}
+
+VkFormat findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat>& formats,
+                             VkImageTiling tiling, VkFormatFeatureFlags featureFlags)
+{
+    for( VkFormat format : formats)
+    {
+        if(isFormatSupported(physicalDevice, format, tiling, featureFlags))
+        {
+            return format;
+        }
+    }
+    assert(0 && "no supported format found!");
+    return VK_FORMAT_UNDEFINED;
+}
+bool isStencilFormat(VkFormat format)
+{
+    return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+}
 
 void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize deviceSize, VkBufferUsageFlags bufferUsageFlags, VkBuffer &buffer,
                   VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceMemory &deviceMemory)
@@ -124,7 +166,7 @@ void createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAsp
     imageViewCreateInfo.flags = 0;
     imageViewCreateInfo.image = image;
     imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    imageViewCreateInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+    imageViewCreateInfo.format = format;
     imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
     imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
     imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -239,6 +281,13 @@ void changeImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue queue
         imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
         imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
     }
+    else if( oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
+            newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+    {
+        imageMemoryBarrier.srcAccessMask = 0;
+        imageMemoryBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+                                            VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    }
     else
     {
         assert(0 && "transition not yet supported");
@@ -248,7 +297,20 @@ void changeImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue queue
     imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     imageMemoryBarrier.image = image;
-    imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    if(newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+    {
+        imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+        
+        if( isStencilFormat(format))
+        {
+            imageMemoryBarrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+        }
+    }
+    else
+    {
+        imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    }
+    
     imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
     imageMemoryBarrier.subresourceRange.levelCount = 1;
     imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
@@ -263,5 +325,67 @@ void changeImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue queue
     endSingleTimeCommandBuffer(device, queue, commandPool, commandBuffer);
     
 
+}
+
+void getBaseDir(std::string& baseDir ) {
+    
+#if (defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_MACOS_MVK))
+    baseDir =  "../Resources/";
+#else
+    assert( 0 && "getBaseDir not implemented");
+#endif
+}
+
+
+void readFile(std::string& fileContents, std::string& path)
+{
+    std::ifstream fileStream(path, std::ios::in);
+    if (!fileStream.is_open()) {
+        std::cerr << "Couldn't load compute shader '" + std::string(path) + "'." << std::endl;
+        fileStream.close();
+        assert(false);
+    }
+    std::cout << "Loading kernel source from file " << path << "..." << std::endl;
+    std::string line = "";
+    while (!fileStream.eof()) {
+        std::getline(fileStream, line);
+        fileContents.append(line + "\n");
+    }
+}
+
+
+void init_shaders(VkDevice &device, VkPipelineShaderStageCreateInfo &shaderStage, VkShaderStageFlagBits shaderType, const std::string& shaderText,
+                  const char* name="main")
+{
+    VkResult U_ASSERT_ONLY res;
+    bool U_ASSERT_ONLY retVal;
+    
+    assert(shaderText.empty() == false);
+    
+    init_glslang();
+    
+    std::vector<unsigned int> vtx_spv;
+    shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    shaderStage.pNext = NULL;
+    shaderStage.pSpecializationInfo = NULL;
+    shaderStage.flags = 0;
+    shaderStage.stage = shaderType;
+    shaderStage.pName = name;
+    shaderStage.pSpecializationInfo = nullptr;
+    
+    retVal = GLSLtoSPV(shaderType, shaderText.c_str(), vtx_spv);
+    assert(retVal);
+    VkShaderModuleCreateInfo moduleCreateInfo;
+    moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    moduleCreateInfo.pNext = NULL;
+    moduleCreateInfo.flags = 0;
+    moduleCreateInfo.codeSize = vtx_spv.size() * sizeof(unsigned int);
+    moduleCreateInfo.pCode = vtx_spv.data();
+    
+    
+    res = vkCreateShaderModule(device, &moduleCreateInfo, NULL, &shaderStage.module);
+    assert(res == VK_SUCCESS);
+    
+    finalize_glslang();
 }
 

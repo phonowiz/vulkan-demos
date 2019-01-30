@@ -16,13 +16,13 @@
 		B92627E8219B48D700D1358A /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627E7219B48D700D1358A /* AppKit.framework */; };
 		B92627E9219B48E000D1358A /* AppKit.framework in Resources */ = {isa = PBXBuildFile; fileRef = B92627E7219B48D700D1358A /* AppKit.framework */; };
 		B92627EC219C0CE900D1358A /* shaders in Resources */ = {isa = PBXBuildFile; fileRef = B92627EB219C0CE900D1358A /* shaders */; };
+		B9384E75220171E500565024 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9384E74220171E400565024 /* main.mm */; };
 		B938D04D219534B7004F759E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B938D04C219534B7004F759E /* Assets.xcassets */; };
 		B938D05E21953DE7004F759E /* MoltenVKGLSLToSPIRVConverter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B938D05D21953DE7004F759E /* MoltenVKGLSLToSPIRVConverter.framework */; };
 		B938D06121953E0A004F759E /* MoltenVKGLSLToSPIRVConverter.framework in Resources */ = {isa = PBXBuildFile; fileRef = B938D05D21953DE7004F759E /* MoltenVKGLSLToSPIRVConverter.framework */; };
 		B938D17421953FC1004F759E /* util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B938D06521953FC0004F759E /* util.cpp */; };
 		B938D17621953FC1004F759E /* util_init.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B938D06821953FC0004F759E /* util_init.cpp */; };
 		B938D19621953FC1004F759E /* glm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B938D0BF21953FC0004F759E /* glm.cpp */; };
-		B93A4C1A21BC6CD2000109E9 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = B93A4C1921BC6CD2000109E9 /* main.mm */; };
 		B96B782021E070DD0089A2F7 /* textures in Resources */ = {isa = PBXBuildFile; fileRef = B96B781F21E070DC0089A2F7 /* textures */; };
 		B9DC35F72195681A007B4FD8 /* libMoltenVK.dylib in Resources */ = {isa = PBXBuildFile; fileRef = B938D05F21953DFA004F759E /* libMoltenVK.dylib */; };
 		B9DC35F82195682B007B4FD8 /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B938D05F21953DFA004F759E /* libMoltenVK.dylib */; };
@@ -34,6 +34,7 @@
 		B92627E4219B481700D1358A /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		B92627E7219B48D700D1358A /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		B92627EB219C0CE900D1358A /* shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shaders; path = "vulkan-gui-test/shaders"; sourceTree = "<group>"; };
+		B9384E74220171E400565024 /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		B938D043219534B7004F759E /* vulkan-gui-test.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "vulkan-gui-test.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B938D04C219534B7004F759E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B938D051219534B7004F759E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -306,10 +307,10 @@
 		B938D1E621954FBA004F759E /* MoltenVK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MoltenVK.framework; path = "vulkan-gui-test/vulkansdk-macos-1.1.85.0/MoltenVK/macOS/MoltenVK.framework"; sourceTree = "<group>"; };
 		B938D1EC21955D76004F759E /* glfw3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glfw3.h; sourceTree = "<group>"; };
 		B938D1ED21955D76004F759E /* glfw3native.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glfw3native.h; sourceTree = "<group>"; };
-		B93A4C1921BC6CD2000109E9 /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		B96B781C21E058FC0089A2F7 /* stb_image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
 		B96B781D21E059E40089A2F7 /* easy_image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = easy_image.h; sourceTree = "<group>"; };
 		B96B781F21E070DC0089A2F7 /* textures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = textures; path = "vulkan-gui-test/textures"; sourceTree = "<group>"; };
+		B9A4AF7B21FC0C5B006F398D /* depth_image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = depth_image.h; sourceTree = "<group>"; };
 		B9DC35FA219574C2007B4FD8 /* vk_layer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vk_layer.h; sourceTree = "<group>"; };
 		B9DC35FB219574C2007B4FD8 /* vk_icd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vk_icd.h; sourceTree = "<group>"; };
 		B9DC35FC219574C2007B4FD8 /* vulkan_vi.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = vulkan_vi.h; sourceTree = "<group>"; };
@@ -369,7 +370,7 @@
 		B938D045219534B7004F759E /* vulkan-gui-test */ = {
 			isa = PBXGroup;
 			children = (
-				B93A4C1921BC6CD2000109E9 /* main.mm */,
+				B9384E74220171E400565024 /* main.mm */,
 				B9F6CA8021D4772D0093D5D7 /* vulkan_utils.h */,
 				B9DC35F9219574C2007B4FD8 /* vulkan */,
 				B938D1EB21955D76004F759E /* GLFW */,
@@ -379,6 +380,7 @@
 				B938D054219534B7004F759E /* vulkan_gui_test.entitlements */,
 				B96B781C21E058FC0089A2F7 /* stb_image.h */,
 				B96B781D21E059E40089A2F7 /* easy_image.h */,
+				B9A4AF7B21FC0C5B006F398D /* depth_image.h */,
 			);
 			path = "vulkan-gui-test";
 			sourceTree = "<group>";
@@ -828,7 +830,7 @@
 				B938D19621953FC1004F759E /* glm.cpp in Sources */,
 				B938D17621953FC1004F759E /* util_init.cpp in Sources */,
 				B938D17421953FC1004F759E /* util.cpp in Sources */,
-				B93A4C1A21BC6CD2000109E9 /* main.mm in Sources */,
+				B9384E75220171E500565024 /* main.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
