@@ -60,16 +60,19 @@ public:
     
     void destroy()
     {
-        assert(created);
+        if(created)
+        {
+            
+            vkDestroyImageView(device, imageView, nullptr);
+            vkDestroyImage(device, image, nullptr);
+            vkFreeMemory(device, imageMemory, nullptr);
+            created = false;
+            image = VK_NULL_HANDLE;
+            imageMemory = VK_NULL_HANDLE;
+            imageView = VK_NULL_HANDLE;
+            device = VK_NULL_HANDLE;
+        }
 
-        vkDestroyImageView(device, imageView, nullptr);
-        vkDestroyImage(device, image, nullptr);
-        vkFreeMemory(device, imageMemory, nullptr);
-        created = false;
-        image = VK_NULL_HANDLE;
-        imageMemory = VK_NULL_HANDLE;
-        imageView = VK_NULL_HANDLE;
-        device = VK_NULL_HANDLE;
     }
     
     VkImageView getImageView()
