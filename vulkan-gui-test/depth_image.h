@@ -29,6 +29,15 @@ public:
         
     }
     
+    ~DepthImage()
+    {
+        destroy();
+    }
+    
+    DepthImage(const DepthImage&) = delete;
+    DepthImage(DepthImage&&) = delete;
+    DepthImage& operator=(const DepthImage &) = delete;
+    DepthImage& operator=(DepthImage&&) = delete;
     
     void create(VkDevice device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool, VkQueue queue, uint32_t width, uint32_t height)
     {
