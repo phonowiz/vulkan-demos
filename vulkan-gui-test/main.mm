@@ -56,7 +56,16 @@ uint32_t width = 1024;
 uint32_t height = 768;
 const VkFormat ourFormat = VK_FORMAT_B8G8R8A8_UNORM; //TODO civ
 
-glm::mat4 MVP;
+struct UniformBufferObject
+{
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 projection;
+    glm::vec3 lightPosition;
+};
+
+UniformBufferObject ubo;
+
 VkDescriptorSetLayout descriptorSEtLayout;
 VkDescriptorPool descriptorPool;
 VkDescriptorSet descriptorSet;
@@ -814,7 +823,7 @@ void createIndexBuffer()
 
 void createUniformBuffer()
 {
-    VkDeviceSize bufferSize = sizeof(MVP);
+    VkDeviceSize bufferSize = sizeof(ubo);
     createBuffer(device, physicalDevices[0], bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, uniformBuffer,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBufferMemory);
 }
@@ -863,7 +872,7 @@ void createDescriptorSet()
     VkDescriptorBufferInfo descriptorbufferInfo = {};
     descriptorbufferInfo.buffer = uniformBuffer;
     descriptorbufferInfo.offset = 0;
-    descriptorbufferInfo.range = sizeof(MVP);
+    descriptorbufferInfo.range = sizeof(ubo);
     
     VkWriteDescriptorSet descriptorWrite = {};
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1112,11 +1121,18 @@ void updateMVP()
      If you don't do this, then the image will be rendered upside down.
      */
     projection[1][1] *= -1.0f;
-    MVP = projection * view * model;
+
+    glm::vec4 temp =(glm::rotate(glm::mat4(), timeSinceStart * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
+    ubo.lightPosition.x = temp.x;
+    ubo.lightPosition.y = temp.y;
+    ubo.lightPosition.z = temp.z;
+    ubo.model = model;
+    ubo.view = view;
+    ubo.projection = projection;
     
     void* data = nullptr;
-    vkMapMemory(device, uniformBufferMemory, 0, sizeof(MVP), 0, &data);
-    memcpy(data, &MVP, sizeof(MVP));
+    vkMapMemory(device, uniformBufferMemory, 0, sizeof(ubo), 0, &data);
+    memcpy(data, &ubo, sizeof(ubo));
     vkUnmapMemory(device, uniformBufferMemory);
     
     

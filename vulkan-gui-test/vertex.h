@@ -21,15 +21,17 @@ public:
     glm::vec3 pos;
     glm::vec3 color;
     glm::vec2 uvCoord;
+    glm::vec3 normal;
     
     
-    Vertex(glm::vec3 pos, glm::vec3 color, glm::vec2 uvCoord)
-    : pos(pos), color(color), uvCoord(uvCoord)
+    Vertex(glm::vec3 pos, glm::vec3 color, glm::vec2 uvCoord, glm::vec3 normal)
+    : pos(pos), color(color), uvCoord(uvCoord), normal(normal)
     {}
     
     bool operator==(const Vertex& other) const
     {
-        return pos == other.pos && color == other.color && uvCoord == other.uvCoord;
+        return pos == other.pos && color == other.color && uvCoord == other.uvCoord &&
+        normal == other.normal;
     }
     
     static VkVertexInputBindingDescription getBindingDescription()
@@ -44,7 +46,7 @@ public:
     
     static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions()
     {
-        std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions(3);
+        std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions(4);
         
         vertexInputAttributeDescriptions[0].location = 0;
         vertexInputAttributeDescriptions[0].binding = 0;
@@ -60,6 +62,11 @@ public:
         vertexInputAttributeDescriptions[2].binding = 0;
         vertexInputAttributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
         vertexInputAttributeDescriptions[2].offset = offsetof(Vertex, uvCoord);
+        
+        vertexInputAttributeDescriptions[3].location = 3;
+        vertexInputAttributeDescriptions[3].binding = 0;
+        vertexInputAttributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+        vertexInputAttributeDescriptions[3].offset = offsetof(Vertex, normal);
         
         return vertexInputAttributeDescriptions;
         
