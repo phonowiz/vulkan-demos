@@ -9,6 +9,8 @@
 #include "vulkan_utils.h"
 #include "easy_image.h"
 #include "depth_image.h"
+#include "vertex.h"
+#include "mesh.h"
 
 
 #include <vector>
@@ -62,70 +64,28 @@ VkDescriptorSet descriptorSet;
 
 EasyImage shroomImage;
 DepthImage depthImage;
+Mesh dragonMesh;
 
+//TWO PLANES, FOR TESTING PURPOSES
+//std::vector<Vertex>& vertices;
+//std::vector<Vertex> vertices = {
+//    Vertex({-0.5f, -.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}),
+//    Vertex({0.5f, .5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}),
+//    Vertex({-.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}),
+//    Vertex({0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}),
+//
+//    Vertex({-0.5f, -.5f, -.50f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}),
+//    Vertex({0.5f, .5f, -.50f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}),
+//    Vertex({-.5f, 0.5f, -.50f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}),
+//    Vertex({0.5f, -0.5f, -.50f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f})
+//};
 
-class Vertex {
-public:
-    glm::vec3 pos;
-    glm::vec3 color;
-    glm::vec2 uvCoord;
-    
-    
-    Vertex(glm::vec3 pos, glm::vec3 color, glm::vec2 uvCoord)
-    : pos(pos), color(color), uvCoord(uvCoord)
-    {}
-    
-    static VkVertexInputBindingDescription getBindingDescription()
-    {
-        VkVertexInputBindingDescription vertexInputBindingDescription;
-        vertexInputBindingDescription.binding = 0;
-        vertexInputBindingDescription.stride = sizeof(Vertex);
-        vertexInputBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-        
-        return vertexInputBindingDescription;
-    }
-    
-    static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions()
-    {
-        std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions(3);
-        
-        vertexInputAttributeDescriptions[0].location = 0;
-        vertexInputAttributeDescriptions[0].binding = 0;
-        vertexInputAttributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-        vertexInputAttributeDescriptions[0].offset = offsetof(Vertex, pos);
-        
-        vertexInputAttributeDescriptions[1].location = 1;
-        vertexInputAttributeDescriptions[1].binding = 0;
-        vertexInputAttributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-        vertexInputAttributeDescriptions[1].offset = offsetof(Vertex, color);
-        
-        vertexInputAttributeDescriptions[2].location = 2;
-        vertexInputAttributeDescriptions[2].binding = 0;
-        vertexInputAttributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-        vertexInputAttributeDescriptions[2].offset = offsetof(Vertex, uvCoord);
-        
-        return vertexInputAttributeDescriptions;
-        
-    }
-};
-
-std::vector<Vertex> vertices = {
-    Vertex({-0.5f, -.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}),
-    Vertex({0.5f, .5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}),
-    Vertex({-.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}),
-    Vertex({0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}),
-    
-    Vertex({-0.5f, -.5f, -.50f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}),
-    Vertex({0.5f, .5f, -.50f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}),
-    Vertex({-.5f, 0.5f, -.50f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}),
-    Vertex({0.5f, -0.5f, -.50f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f})
-};
-
-std::vector<uint32_t> indices = {
-//        4,5,6,4,7,5,
-    0,1,2,0,3,1,
-        4,5,6,4,7,5
-};
+//std::vector<uint32_t> indices = {
+////        4,5,6,4,7,5,
+//    0,1,2,0,3,1,
+//        4,5,6,4,7,5
+//};
+//std::vector<uint32_t>& indices;
 
 void printStats(VkPhysicalDevice &device) {
     VkPhysicalDeviceProperties properties;
@@ -832,16 +792,24 @@ void loadTexture()
     
 }
 
+void loadMesh()
+{
+    std::string baseDir;
+    getBaseDir( baseDir );
+    std::string model = baseDir + "models/dragon.obj";
+    dragonMesh.create(model.c_str());
+}
+
 void createVertexBuffer()
 {
     createAndUploadBuffer(device, physicalDevices[0], queue, commandPool,
-                          vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexBuffer, vertexBufferDeviceMemory);
+                          dragonMesh.getVertices(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexBuffer, vertexBufferDeviceMemory);
 }
 
 void createIndexBuffer()
 {
     createAndUploadBuffer(device, physicalDevices[0], queue, commandPool,
-                          indices, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indexBuffer, indexBufferDeviceMemory);
+                          dragonMesh.getIndices(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indexBuffer, indexBufferDeviceMemory);
 }
 
 void createUniformBuffer()
@@ -993,7 +961,7 @@ void recordCommandBuffers()
         vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
         
        // vkCmdDraw(commandBuffers[i], vertices.size(), 1, 0, 0);
-        vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffers[i], static_cast<uint32_t>(dragonMesh.getIndices().size()), 1, 0, 0, 0);
         
         vkCmdEndRenderPass(commandBuffers[i]);
         
@@ -1038,6 +1006,7 @@ void startVulkan() {
     createFrameBuffers();
     createCommandBuffers();
     loadTexture();
+    loadMesh();
     createVertexBuffer();
     createIndexBuffer();
     
@@ -1133,8 +1102,8 @@ void updateMVP()
     std::chrono::time_point frameTime = std::chrono::high_resolution_clock::now();
     float timeSinceStart = std::chrono::duration_cast<std::chrono::milliseconds>( frameTime - gameStartTime ).count()/1000.0f;
     
-    glm::mat4 model = glm::rotate(glm::mat4(), timeSinceStart * glm::radians(30.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 model = glm::rotate(glm::mat4(), timeSinceStart * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), width/(float)height, 0.01f, 10.0f);
     
     /*

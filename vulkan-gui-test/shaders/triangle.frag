@@ -11,8 +11,8 @@ layout(binding = 1 ) uniform sampler2D tex;
 
 void main()
 {
-    //outColor = vec4(fragColor, 1.0f);
-    outColor = texture(tex, fragUVCoord );
+    outColor = vec4(fragColor, .80f);
+    //outColor = texture(tex, fragUVCoord );
     //outColor = vec4( gl_FragCoord.z *.2f, gl_FragCoord.z * .2f, gl_FragCoord.z* .2f, .50f);
 }
 
