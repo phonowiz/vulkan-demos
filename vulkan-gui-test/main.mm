@@ -3,6 +3,10 @@
 
 //#include "stdafx.h"
 #define VK_USE_PLATFORM_MACOS_MVK
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_CTOR_INIT
+#define GLM_FORCE_SILENT_WARNINGS 
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
@@ -16,8 +20,7 @@
 #include <vector>
 #include <array>
 #include <algorithm>
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
@@ -1113,7 +1116,7 @@ void updateMVP()
     std::chrono::time_point frameTime = std::chrono::high_resolution_clock::now();
     float timeSinceStart = std::chrono::duration_cast<std::chrono::milliseconds>( frameTime - gameStartTime ).count()/1000.0f;
     
-    glm::mat4 model = glm::rotate(glm::mat4(), timeSinceStart * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 model = glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), width/(float)height, 0.01f, 10.0f);
     
@@ -1124,7 +1127,7 @@ void updateMVP()
      */
     projection[1][1] *= -1.0f;
 
-    glm::vec4 temp =(glm::rotate(glm::mat4(), timeSinceStart * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
+    glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
     ubo.lightPosition.x = temp.x;
     ubo.lightPosition.y = temp.y;
     ubo.lightPosition.z = temp.z;

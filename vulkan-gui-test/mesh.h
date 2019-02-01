@@ -62,19 +62,19 @@ public:
         {
             for(tinyobj::index_t index : shape.mesh.indices)
             {
-                glm::vec3 pos = {
+                glm::vec3 pos(
                     vertexAttributes.vertices[3 * index.vertex_index + 0],
                     vertexAttributes.vertices[3 * index.vertex_index + 1],
                     vertexAttributes.vertices[3 * index.vertex_index + 2]
-                };
+                );
                 
-                glm::vec3 normal =
-                {
+                glm::vec3 normal
+                (
                     vertexAttributes.normals[3 * index.normal_index + 0],
                     vertexAttributes.normals[3 * index.normal_index + 1],
                     vertexAttributes.normals[3 * index.normal_index + 2]
-                };
-                Vertex vert(pos, glm::vec3{ 0.0f, 1.0f, 0.0f }, glm::vec2{ 0, 0}, normal);
+                );
+                Vertex vert(pos, glm::vec3( 0.0f, 1.0f, 0.0f ), glm::vec2( 0.0f, 0.0f), normal);
                 
                 vertices.push_back(vert);
                 indices.push_back(indices.size());
