@@ -8,8 +8,10 @@ layout(location = 2) in vec3 fragNormal;
 layout(location = 3) in vec3 fragViewVec;
 layout(location = 4) in vec3 fragLightVec;
 
+//this is an attachment in the c++ side
 layout(location = 0) out vec4 outColor;
 
+//this is part of the descriptor set, where binding 1 is for the the combined texture/image binding
 layout(binding = 1 ) uniform sampler2D tex;
 
 void main()

@@ -17,6 +17,9 @@ out gl_PerVertex
 //    vec3(0.0f, 1.0f, 0.0f),
 //    vec3(0.0f, 0.0f, 1.0f)
 //);
+
+
+//these are vertex attributes in the c++ side.  In the pipeline look for "vertex input" structures
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec3 color;
 layout(location = 2) in vec2 inUVCoord;
@@ -28,6 +31,7 @@ layout(location = 2) out vec3 fragNormal;
 layout(location = 3) out vec3 fragViewVec;
 layout(location = 4) out vec3 fragLightVec;
 
+//this is bound using the descriptor set, at binding 0 on the vertex side
 layout(binding = 0) uniform UBO
 {
     mat4 model;

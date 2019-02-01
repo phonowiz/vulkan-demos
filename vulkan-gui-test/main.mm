@@ -520,12 +520,14 @@ void createDescriptorSetLayout()
 {
     VkDescriptorSetLayoutBinding descriptorSetLayoutBinding = {};
     
+    //this is the uniform buffer containing model/view/projection information
     descriptorSetLayoutBinding.binding = 0;
     descriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     descriptorSetLayoutBinding.descriptorCount = 1;
     descriptorSetLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
     descriptorSetLayoutBinding.pImmutableSamplers = nullptr;
     
+    //this is bound to binding=1 at is the texture we sample
     VkDescriptorSetLayoutBinding samplerDescriptorSetLayoutBinding = {};
     samplerDescriptorSetLayoutBinding.binding = 1;
     samplerDescriptorSetLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
