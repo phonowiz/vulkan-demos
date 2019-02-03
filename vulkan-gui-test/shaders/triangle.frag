@@ -11,6 +11,12 @@ layout(location = 4) in vec3 fragLightVec;
 //this is an attachment in the c++ side
 layout(location = 0) out vec4 outColor;
 
+
+layout(push_constant) uniform PushConstants
+{
+    bool usePhong;
+}pushConts;
+
 //this is part of the descriptor set, where binding 1 is for the the combined texture/image binding
 layout(binding = 1 ) uniform sampler2D tex;
 
@@ -23,7 +29,7 @@ void main()
     vec3 N = normalize(fragNormal);
     vec3 L = normalize(fragLightVec);
     vec3 V = normalize( fragViewVec);
-    vec3 R = reflect (L,N);
+    vec3 R = reflect (-L,N);
     
     vec3 ambient = fragColor * 0.1f;
     vec3 diffuse = max(dot(N,L), 0.0f) * fragColor;
