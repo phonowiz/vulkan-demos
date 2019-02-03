@@ -211,7 +211,7 @@ void onWindowResized(GLFWwindow * window, int w, int h)
     {
         
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevices[0], surface, &surfaceCapabilities);
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevices[1], surface, &surfaceCapabilities);
         
         w = std::min(w, static_cast<int>(surfaceCapabilities.maxImageExtent.width));
         h = std::min(h, static_cast<int>(surfaceCapabilities.maxImageExtent.height));
@@ -385,7 +385,7 @@ void createLogicalDevice(std::vector<VkPhysicalDevice>& physicalDevices)
     
     
     //TODO pick "best device" instead of first device
-    VkResult result = vkCreateDevice(physicalDevices[0], &deviceCreateInfo, nullptr, &device);
+    VkResult result = vkCreateDevice(physicalDevices[1], &deviceCreateInfo, nullptr, &device);
     ASSERT_VULKAN(result);
     
 }
@@ -401,7 +401,7 @@ void checkSurfaceSupport()
     //vkGetDeviceQueue(device, 0, 0, &queue);
     
     VkBool32 surfaceSupport = false;
-    VkResult result = vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevices[0], 0, surface, &surfaceSupport);
+    VkResult result = vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevices[1], 0, surface, &surfaceSupport);
     ASSERT_VULKAN(result);
     
     if (!surfaceSupport) {
@@ -472,7 +472,7 @@ void createRenderPass()
     attachmentReference.attachment = 0;
     attachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     
-    VkAttachmentDescription depthAttachment = DepthImage::getDepthAttachment(physicalDevices[0]);
+    VkAttachmentDescription depthAttachment = DepthImage::getDepthAttachment(physicalDevices[1]);
     
     VkAttachmentReference depthAttachmentReference;
     depthAttachmentReference.attachment = 1;
@@ -764,7 +764,7 @@ void createCommandPool()
 
 void createDepthImage()
 {
-    depthImage.create(device, physicalDevices[0], commandPool, queue, width, height);
+    depthImage.create(device, physicalDevices[1], commandPool, queue, width, height);
 }
 void createCommandBuffers()
 {
@@ -802,7 +802,7 @@ void loadTexture()
     getBaseDir( baseDir );
     std::string texture = baseDir + "textures/mario.png";
     shroomImage.load(texture.c_str());
-    shroomImage.upload(device, physicalDevices[0], commandPool, queue);
+    shroomImage.upload(device, physicalDevices[1], commandPool, queue);
     
 }
 
@@ -816,20 +816,20 @@ void loadMesh()
 
 void createVertexBuffer()
 {
-    createAndUploadBuffer(device, physicalDevices[0], queue, commandPool,
+    createAndUploadBuffer(device, physicalDevices[1], queue, commandPool,
                           dragonMesh.getVertices(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, vertexBuffer, vertexBufferDeviceMemory);
 }
 
 void createIndexBuffer()
 {
-    createAndUploadBuffer(device, physicalDevices[0], queue, commandPool,
+    createAndUploadBuffer(device, physicalDevices[1], queue, commandPool,
                           dragonMesh.getIndices(), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, indexBuffer, indexBufferDeviceMemory);
 }
 
 void createUniformBuffer()
 {
     VkDeviceSize bufferSize = sizeof(ubo);
-    createBuffer(device, physicalDevices[0], bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, uniformBuffer,
+    createBuffer(device, physicalDevices[1], bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, uniformBuffer,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBufferMemory);
 }
 
