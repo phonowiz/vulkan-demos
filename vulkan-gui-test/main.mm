@@ -230,7 +230,7 @@ void startGlfw() {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-    //glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
+    glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
     
     window = glfwCreateWindow(width, height, "Vulkan Tutorial", nullptr, nullptr);
     glfwSetWindowSizeCallback(window, onWindowResized);
@@ -591,6 +591,7 @@ void createPipeline()
     inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     inputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
     
+    glfwGetFramebufferSize(window, (int*)&width, (int*)&height);
     VkViewport viewport;
     viewport.x = 0.0f;
     viewport.y = 0.0f;
@@ -729,10 +730,6 @@ void createFrameBuffers()
     
     for (size_t i = 0; i < amountOfImagesInSwapchain; i++)
     {
-//        std::vector<VkImageView> attachmentViews;
-//        attachmentViews.push_back(imageViews[i]);
-//        attachmentViews.push_back(depthImage.getImageView());
-        
         VkImageView depthImageView = depthImage.getImageView();
         std::array<VkImageView, 2> attachmentViews = {imageViews[i], depthImageView};
         
@@ -749,8 +746,6 @@ void createFrameBuffers()
         
         VkResult result = vkCreateFramebuffer(device, &framebufferCreateInfo, nullptr, &(framebuffers[i]));
         ASSERT_VULKAN(result);
-        
-        //attachmentViews.clear();
     }
 }
 
