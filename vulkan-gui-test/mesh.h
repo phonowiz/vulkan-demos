@@ -56,8 +56,8 @@ public:
         
         assert(success && "check errorString variable");
         
-        //TODO: YOU NEED TO USE AN UNORDERED MAP TO ELIMINATE DUPLICATE VERTICES
-        //check the end of this tutorial: https://www.youtube.com/watch?v=KedrqATjoy0&list=PL58qjcU5nk8uH9mmlASm4SFy1yuPzDAH0&index=106
+
+        std::unordered_map<Vertex, uint32_t> map_vertices;
         for(tinyobj::shape_t shape:  shapes)
         {
             for(tinyobj::index_t index : shape.mesh.indices)
@@ -76,8 +76,13 @@ public:
                 );
                 Vertex vert(pos, glm::vec3( 0.0f, 1.0f, 0.0f ), glm::vec2( 0.0f, 0.0f), normal);
                 
-                vertices.push_back(vert);
-                indices.push_back(indices.size());
+                if(map_vertices.count(vert) == 0)
+                {
+                    map_vertices[vert] = map_vertices.size();
+                    vertices.push_back(vert);
+                }
+                
+                indices.push_back(map_vertices[vert]);
             }
         }
     }

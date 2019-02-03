@@ -13,7 +13,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #endif
 
-///#include <glm/gtx/hash.hpp>
+#include <glm/gtx/hash.hpp>
 #include "vulkan_utils.h"
 
 class Vertex {
@@ -79,17 +79,11 @@ namespace std
     {
         size_t operator()(Vertex const &vert) const
         {
-//            size_t h1 = hash<glm::vec3>()(vert.pos);
-//            size_t h2 = hash<glm::vec3>()(vert.color);
-//            size_t h3 = hash<glm::vec2>()(vert.uvCoord);
+            size_t h1 = hash<glm::vec3>()(vert.pos);
+            size_t h2 = hash<glm::vec3>()(vert.color);
+            size_t h3 = hash<glm::vec2>()(vert.uvCoord);
 
-//            return ((h1 ^ (h2 << 1)) >> 1) ^ h3;
-            uint32_t hash = (((uint32_t)vert.pos.x) * 73856093) ^ (((uint32_t)vert.pos.y) * 19349663) ^ (((uint32_t)vert.pos.z) * 83492791);
-            hash += (((uint32_t)vert.color.x) * 73856093) ^ (((uint32_t)vert.color.y) * 19349663) ^ (((uint32_t)vert.color.z) * 83492791);
-            hash += (((uint32_t)vert.uvCoord.x) * 73856093) ^ (((uint32_t)vert.uvCoord.y) * 19349663);
-            
-            
-            return (size_t)hash;
+            return ((h1 ^ (h2 << 1)) >> 1) ^ h3;
         }
     };
 }
