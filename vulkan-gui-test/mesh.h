@@ -44,13 +44,6 @@ public:
         std::string errorString;
         std::string warnString;
         
-    /*
-     bool LoadObj(attrib_t *attrib, std::vector<shape_t> *shapes,
-     std::vector<material_t> *materials, std::string *warn,
-     std::string *err, const char *filename, const char *mtl_basedir,
-     bool trianglulate, bool default_vcols_fallback)
-     
-     */
         bool success = tinyobj::LoadObj(&vertexAttributes, &shapes, &materials, &warnString, &errorString, path);
     
         

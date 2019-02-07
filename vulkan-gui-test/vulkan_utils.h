@@ -23,7 +23,7 @@ if(val != VK_SUCCESS){\
 assert(0);\
 }
 
-
+//vulkan renderer
 uint32_t findMemoryTypeIndex( VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
     //for memory buffer intro go here:
@@ -44,7 +44,7 @@ uint32_t findMemoryTypeIndex( VkPhysicalDevice physicalDevice, uint32_t typeFilt
     assert( result != -1 && "memory property not found");
     return result;
 }
-
+//vulkan renderer
 bool isFormatSupported(VkPhysicalDevice physicalDevice,  VkFormat format, VkImageTiling tiling, VkFormatFeatureFlags featureFlags)
 {
     VkFormatProperties formatProperties;
@@ -63,7 +63,7 @@ bool isFormatSupported(VkPhysicalDevice physicalDevice,  VkFormat format, VkImag
     return false;
     
 }
-
+//vulkan renderer
 VkFormat findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat>& formats,
                              VkImageTiling tiling, VkFormatFeatureFlags featureFlags)
 {
@@ -77,11 +77,13 @@ VkFormat findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<
     assert(0 && "no supported format found!");
     return VK_FORMAT_UNDEFINED;
 }
+//vulkan renderer
 bool isStencilFormat(VkFormat format)
 {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
+//vulkan renderer
 void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize deviceSize, VkBufferUsageFlags bufferUsageFlags, VkBuffer &buffer,
                   VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceMemory &deviceMemory)
 {
@@ -112,7 +114,7 @@ void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize
     vkBindBufferMemory(device, buffer, deviceMemory, 0);
     
 }
-
+//texture class
 void createImage(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
                  VkImageUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags, VkImage &image, VkDeviceMemory &imageMemory)
 
@@ -156,6 +158,7 @@ void createImage(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t widt
 
 }
 
+//texture class
 void createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView &imageView)
 {
     
@@ -182,9 +185,10 @@ void createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAsp
     
 
 }
-
+//////////////////////////////////vulkan renderer
 void copyBuffer(VkDevice device, VkCommandPool commandPool, VkQueue queue, VkBuffer src, VkBuffer dest, VkDeviceSize size);
 
+//vulkan renderer
 VkCommandBuffer startSingleTimeCommandBuffer(VkDevice device, VkCommandPool commandPool)
 {
     VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
@@ -210,6 +214,9 @@ VkCommandBuffer startSingleTimeCommandBuffer(VkDevice device, VkCommandPool comm
     return commandBuffer;
 
 }
+
+
+//vulkan renderer
 void endSingleTimeCommandBuffer( VkDevice device, VkQueue queue, VkCommandPool commandPool, VkCommandBuffer commandBuffer)
 {
     VkResult result = vkEndCommandBuffer(commandBuffer);
@@ -233,6 +240,7 @@ void endSingleTimeCommandBuffer( VkDevice device, VkQueue queue, VkCommandPool c
     
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
+//vulkan renderer
 template<typename T>
 void createAndUploadBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue queue, VkCommandPool commandPool,
                            std::vector<T>& data, VkBufferUsageFlags usage, VkBuffer &buffer, VkDeviceMemory &deviceMemory)
@@ -261,6 +269,8 @@ void createAndUploadBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkQ
     
 }
 
+
+////image class
 void changeImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue queue, VkImage image,
                        VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
@@ -353,7 +363,7 @@ void readFile(std::string& fileContents, std::string& path)
     }
 }
 
-
+//material class
 void init_shaders(VkDevice &device, VkPipelineShaderStageCreateInfo &shaderStage, VkShaderStageFlagBits shaderType, const std::string& shaderText,
                   const char* name="main")
 {
