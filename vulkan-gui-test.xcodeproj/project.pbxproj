@@ -35,6 +35,7 @@
 		B92627E4219B481700D1358A /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		B92627E7219B48D700D1358A /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		B92627EB219C0CE900D1358A /* shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shaders; path = "vulkan-gui-test/shaders"; sourceTree = "<group>"; };
+		B92E81A322096F5300EB57DE /* create_swapchain.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = create_swapchain.hpp; sourceTree = "<group>"; };
 		B9384E74220171E400565024 /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		B9384E762202175300565024 /* tiny_obj_loader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = tiny_obj_loader.h; sourceTree = "<group>"; };
 		B9384E772202178E00565024 /* vertex.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vertex.h; sourceTree = "<group>"; };
@@ -366,6 +367,7 @@
 				B9384E762202175300565024 /* tiny_obj_loader.h */,
 				B9384E772202178E00565024 /* vertex.h */,
 				B9384E782202198100565024 /* mesh.h */,
+				B92E81A322096F5300EB57DE /* create_swapchain.hpp */,
 			);
 			path = "vulkan-gui-test";
 			sourceTree = "<group>";
