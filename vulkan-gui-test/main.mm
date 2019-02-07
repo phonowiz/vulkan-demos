@@ -238,7 +238,10 @@ void createDescriptorSetLayout()
 
 //render target
 void drawFrame(SwapChainData& swapChainData) {
-    uint32_t imageIndex;
+    static uint32_t imageIndex = 0;
+    vkWaitForFences(device, 1, &inFlightFences[imageIndex], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(device, 1, &inFlightFences[imageIndex]);
+    
     vkAcquireNextImageKHR(device, swapChainData.swapChain, std::numeric_limits<uint64_t>::max(), semaphoreImageAvailable, VK_NULL_HANDLE, &imageIndex);
     
     VkSubmitInfo submitInfo;
@@ -253,7 +256,7 @@ void drawFrame(SwapChainData& swapChainData) {
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = &semaphoreRenderingDone;
     
-    VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[imageIndex]);
     ASSERT_VULKAN(result);
     
     VkPresentInfoKHR presentInfo;
@@ -265,7 +268,6 @@ void drawFrame(SwapChainData& swapChainData) {
     presentInfo.pSwapchains = &swapChainData.swapChain;
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
-    vkDeviceWaitIdle(device);
     result = vkQueuePresentKHR(presentQueue, &presentInfo);
     
     ASSERT_VULKAN(result);
@@ -715,7 +717,7 @@ void startVulkan() {
     createDescriptorSet();
     
     recordCommandBuffers();
-    createSemaphores();
+    createSemaphores(swapChainData);
 }
 
 
@@ -756,6 +758,7 @@ void shutdownVulkan() {
     vkDestroyCommandPool(device, commandPool, nullptr);
     
     for (size_t i = 0; i < swapChainData.swapChainFramebuffers.size(); i++) {
+        vkDestroyFence(device, inFlightFences[i], nullptr);
         vkDestroyFramebuffer(device, swapChainData.swapChainFramebuffers[i], nullptr);
     }
     

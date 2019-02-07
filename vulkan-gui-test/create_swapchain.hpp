@@ -417,6 +417,9 @@ VkCommandBuffer *commandBuffers;
 VkRenderPass renderPass;
 VkSemaphore semaphoreImageAvailable;
 VkSemaphore semaphoreRenderingDone;
+
+std::array<VkFence, 20> inFlightFences;
+
 //vulkan render
 VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
     if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
@@ -665,7 +668,7 @@ void createCommandBuffers(SwapChainData& swapChainData)
     ASSERT_VULKAN(result);
 }
 //vulkan render
-void createSemaphores()
+void createSemaphores(SwapChainData& swapChainData)
 {
     VkSemaphoreCreateInfo semaphoreCreateInfo;
     semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -676,6 +679,17 @@ void createSemaphores()
     ASSERT_VULKAN(result);
     result = vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &semaphoreRenderingDone);
     ASSERT_VULKAN(result);
+    
+    VkFenceCreateInfo fenceInfo = {};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    
+    for(int i = 0; i < swapChainData.swapChainImages.size(); ++i)
+    {
+        result = vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]);
+        ASSERT_VULKAN(result);
+    }
 }
 
 
@@ -713,7 +727,7 @@ void recreateSwapchain(VkDevice device)
     createCommandBuffers(swapChainData);
     //render targets will need to record their command buffers again.
     recordCommandBuffers();
-    createSemaphores();
+    createSemaphores(swapChainData);
     
     vkDestroySwapchainKHR(device, oldSwapchain, nullptr);
 }
