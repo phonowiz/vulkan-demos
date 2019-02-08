@@ -188,7 +188,7 @@ void createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAsp
 //////////////////////////////////vulkan renderer
 void copyBuffer(VkDevice device, VkCommandPool commandPool, VkQueue queue, VkBuffer src, VkBuffer dest, VkDeviceSize size);
 
-//vulkan renderer
+//vulkan command
 VkCommandBuffer startSingleTimeCommandBuffer(VkDevice device, VkCommandPool commandPool)
 {
     VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
@@ -216,7 +216,7 @@ VkCommandBuffer startSingleTimeCommandBuffer(VkDevice device, VkCommandPool comm
 }
 
 
-//vulkan renderer
+//vulkan command
 void endSingleTimeCommandBuffer( VkDevice device, VkQueue queue, VkCommandPool commandPool, VkCommandBuffer commandBuffer)
 {
     VkResult result = vkEndCommandBuffer(commandBuffer);

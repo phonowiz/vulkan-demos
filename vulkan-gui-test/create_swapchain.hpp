@@ -396,8 +396,7 @@ VkPhysicalDevice pickPhysicalDevice(VkInstance instance, VkSurfaceKHR surface)
 
 
 ///////////VULKAN_RENDERER FUNCTIONS
-
-//vulkan renderer should contain a device object
+//vulkan swapchain
 struct SwapChainData
 {
     VkSwapchainKHR swapChain = VK_NULL_HANDLE;
@@ -420,7 +419,7 @@ VkSemaphore semaphoreRenderingDone;
 
 std::array<VkFence, 20> inFlightFences;
 
-//vulkan render
+//vulkan swapchain
 VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
     if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
         return{VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
@@ -434,7 +433,7 @@ VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>
     
     return availableFormats[0];
 }
-//vulkan render
+//vulkan swapchain
 VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes)
 {
     VkPresentModeKHR bestMode = VK_PRESENT_MODE_FIFO_KHR;
@@ -449,7 +448,7 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> avail
     
     return bestMode;
 }
-//vulkan render
+//vulkan swapchain
 VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow& window) {
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
@@ -468,7 +467,7 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwi
         return actualExtent;
     }
 }
-//vulkan render
+//vulkan swapchain
 void createSwapChain(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR& surface, GLFWwindow& window, SwapChainData& swapChainData) {
     SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice, surface);
     
@@ -524,7 +523,7 @@ void createSwapChain(VkPhysicalDevice physicalDevice, VkDevice device, VkSurface
     swapChainData.swapChainImageFormat = surfaceFormat.format;
     swapChainData.swapChainExtent = extent;
 }
-//vulkan render
+//vulkan swapchain
 void createSurface( VkInstance instace, GLFWwindow* window, VkSurfaceKHR &surface) {
     if (glfwCreateWindowSurface(instace, window, nullptr, &surface) != VK_SUCCESS) {
         assert( 0 && "couldn't create surface");
@@ -695,7 +694,7 @@ void createSemaphores(SwapChainData& swapChainData)
 
 //this function will be used by render targets to record command buffers again
 void recordCommandBuffers();
-//vulkan render
+//vulkan swapchain
 void recreateSwapchain(VkDevice device)
 {
     vkDeviceWaitIdle(device);

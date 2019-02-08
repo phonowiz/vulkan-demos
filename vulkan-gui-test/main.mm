@@ -229,7 +229,7 @@ void createDescriptorSetLayout()
     descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     descriptorSetLayoutCreateInfo.pNext = nullptr;
     descriptorSetLayoutCreateInfo.flags = 0;
-    descriptorSetLayoutCreateInfo.bindingCount = descriptorSets.size();
+    descriptorSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(descriptorSets.size());
     descriptorSetLayoutCreateInfo.pBindings = descriptorSets.data();
     
     VkResult result = vkCreateDescriptorSetLayout(device, &descriptorSetLayoutCreateInfo, nullptr, &descriptorSEtLayout);
