@@ -15,8 +15,7 @@
 #include <unordered_map>
 
 #include "vertex.h"
-#define TINYOBJLOADER_IMPLEMENTATION
-#include "tiny_obj_loader.h"
+#include "material.h"
 
 
 class Mesh
@@ -25,60 +24,26 @@ private:
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
     
-    VkBuffer vertexBuffer;
-    VkDeviceMemory vertexBufferMemory;
+    VkBuffer _vertexBuffer = VK_NULL_HANDLE;
+    VkBuffer _indexBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
     
     
 public:
     Mesh()
-    {
-        
-    }
+    {};
     
-    void create(const char* path)
-    {
-        tinyobj::attrib_t vertexAttributes;
-        std::vector<tinyobj::shape_t> shapes;
-        std::vector<tinyobj::material_t> materials;
-        
-        std::string errorString;
-        std::string warnString;
-        
-        bool success = tinyobj::LoadObj(&vertexAttributes, &shapes, &materials, &warnString, &errorString, path);
+    void create(const char* path);
     
-        
-        assert(success && "check errorString variable");
-        
-
-        std::unordered_map<Vertex, uint32_t> map_vertices;
-        for(tinyobj::shape_t shape:  shapes)
-        {
-            for(tinyobj::index_t index : shape.mesh.indices)
-            {
-                glm::vec3 pos(
-                    vertexAttributes.vertices[3 * index.vertex_index + 0],
-                    vertexAttributes.vertices[3 * index.vertex_index + 1],
-                    vertexAttributes.vertices[3 * index.vertex_index + 2]
-                );
-                
-                glm::vec3 normal
-                (
-                    vertexAttributes.normals[3 * index.normal_index + 0],
-                    vertexAttributes.normals[3 * index.normal_index + 1],
-                    vertexAttributes.normals[3 * index.normal_index + 2]
-                );
-                Vertex vert(pos, glm::vec3( 0.0f, 1.0f, 0.0f ), glm::vec2( 0.0f, 0.0f), normal);
-                
-                if(map_vertices.count(vert) == 0)
-                {
-                    map_vertices[vert] = map_vertices.size();
-                    vertices.push_back(vert);
-                }
-                
-                indices.push_back(map_vertices[vert]);
-            }
-        }
-    }
+    template<typename T>
+    inline void createAndUploadBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue queue, VkCommandPool commandPool,
+                                      std::vector<T>& data, VkBufferUsageFlags usage, VkBuffer &buffer, VkDeviceMemory &deviceMemory);
+    
+    void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize deviceSize, VkBufferUsageFlags bufferUsageFlags, VkBuffer &buffer,
+                      VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceMemory &deviceMemory);
+    
+    void draw(VkCommandBuffer commandBuffer, VkPipelineLayout pilineLayout, vk::MaterialSharedPtr material);
+    
     std::vector<Vertex>& getVertices()
     {
         return vertices;

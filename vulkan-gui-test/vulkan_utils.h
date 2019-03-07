@@ -24,7 +24,7 @@ assert(0);\
 }
 
 //vulkan renderer
-uint32_t findMemoryTypeIndex( VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+inline uint32_t findMemoryTypeIndex( VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
     //for memory buffer intro go here:
     //https://vulkan-tutorial.com/Vertex_buffers/Vertex_buffer_creation
@@ -45,7 +45,7 @@ uint32_t findMemoryTypeIndex( VkPhysicalDevice physicalDevice, uint32_t typeFilt
     return result;
 }
 //vulkan renderer
-bool isFormatSupported(VkPhysicalDevice physicalDevice,  VkFormat format, VkImageTiling tiling, VkFormatFeatureFlags featureFlags)
+inline bool isFormatSupported(VkPhysicalDevice physicalDevice,  VkFormat format, VkImageTiling tiling, VkFormatFeatureFlags featureFlags)
 {
     VkFormatProperties formatProperties;
     vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProperties);
@@ -64,7 +64,7 @@ bool isFormatSupported(VkPhysicalDevice physicalDevice,  VkFormat format, VkImag
     
 }
 //vulkan renderer
-VkFormat findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat>& formats,
+inline VkFormat findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat>& formats,
                              VkImageTiling tiling, VkFormatFeatureFlags featureFlags)
 {
     for( VkFormat format : formats)
@@ -78,13 +78,13 @@ VkFormat findSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<
     return VK_FORMAT_UNDEFINED;
 }
 //vulkan renderer
-bool isStencilFormat(VkFormat format)
+inline bool isStencilFormat(VkFormat format)
 {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
-//vulkan renderer
-void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize deviceSize, VkBufferUsageFlags bufferUsageFlags, VkBuffer &buffer,
+//vulkan mesh
+inline void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize deviceSize, VkBufferUsageFlags bufferUsageFlags, VkBuffer &buffer,
                   VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceMemory &deviceMemory)
 {
     VkBufferCreateInfo bufferCreateInfo;
@@ -115,7 +115,7 @@ void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize
     
 }
 //texture class
-void createImage(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+inline void createImage(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
                  VkImageUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags, VkImage &image, VkDeviceMemory &imageMemory)
 
 {
@@ -159,7 +159,7 @@ void createImage(VkDevice device, VkPhysicalDevice physicalDevice, uint32_t widt
 }
 
 //texture class
-void createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView &imageView)
+inline void createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView &imageView)
 {
     
     VkImageViewCreateInfo imageViewCreateInfo;
@@ -186,10 +186,10 @@ void createImageView(VkDevice device, VkImage image, VkFormat format, VkImageAsp
 
 }
 //////////////////////////////////vulkan renderer
-void copyBuffer(VkDevice device, VkCommandPool commandPool, VkQueue queue, VkBuffer src, VkBuffer dest, VkDeviceSize size);
+inline void copyBuffer(VkDevice device, VkCommandPool commandPool, VkQueue queue, VkBuffer src, VkBuffer dest, VkDeviceSize size);
 
 //vulkan command
-VkCommandBuffer startSingleTimeCommandBuffer(VkDevice device, VkCommandPool commandPool)
+inline VkCommandBuffer startSingleTimeCommandBuffer(VkDevice device, VkCommandPool commandPool)
 {
     VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -217,7 +217,7 @@ VkCommandBuffer startSingleTimeCommandBuffer(VkDevice device, VkCommandPool comm
 
 
 //vulkan command
-void endSingleTimeCommandBuffer( VkDevice device, VkQueue queue, VkCommandPool commandPool, VkCommandBuffer commandBuffer)
+inline void endSingleTimeCommandBuffer( VkDevice device, VkQueue queue, VkCommandPool commandPool, VkCommandBuffer commandBuffer)
 {
     VkResult result = vkEndCommandBuffer(commandBuffer);
     ASSERT_VULKAN(result);
@@ -240,9 +240,9 @@ void endSingleTimeCommandBuffer( VkDevice device, VkQueue queue, VkCommandPool c
     
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
-//vulkan renderer
+//vulkan mesh
 template<typename T>
-void createAndUploadBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue queue, VkCommandPool commandPool,
+inline void createAndUploadBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkQueue queue, VkCommandPool commandPool,
                            std::vector<T>& data, VkBufferUsageFlags usage, VkBuffer &buffer, VkDeviceMemory &deviceMemory)
 {
     VkDeviceSize bufferSize = sizeof(T) * data.size();
@@ -271,7 +271,7 @@ void createAndUploadBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkQ
 
 
 ////image class
-void changeImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue queue, VkImage image,
+inline void changeImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue queue, VkImage image,
                        VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
     VkCommandBuffer commandBuffer = startSingleTimeCommandBuffer(device, commandPool);
@@ -337,7 +337,7 @@ void changeImageLayout(VkDevice device, VkCommandPool commandPool, VkQueue queue
 
 }
 
-void getBaseDir(std::string& baseDir ) {
+inline void getBaseDir(std::string& baseDir ) {
     
 #if (defined(VK_USE_PLATFORM_IOS_MVK) || defined(VK_USE_PLATFORM_MACOS_MVK))
     baseDir =  "../Resources/";
@@ -347,7 +347,7 @@ void getBaseDir(std::string& baseDir ) {
 }
 
 
-void readFile(std::string& fileContents, std::string& path)
+inline void readFile(std::string& fileContents, std::string& path)
 {
     std::ifstream fileStream(path, std::ios::in);
     if (!fileStream.is_open()) {
@@ -364,7 +364,7 @@ void readFile(std::string& fileContents, std::string& path)
 }
 
 //material class
-void init_shaders(VkDevice &device, VkPipelineShaderStageCreateInfo &shaderStage, VkShaderStageFlagBits shaderType, const std::string& shaderText,
+inline void init_shaders(VkDevice &device, VkPipelineShaderStageCreateInfo &shaderStage, VkShaderStageFlagBits shaderType, const std::string& shaderText,
                   const char* name="main")
 {
     VkResult U_ASSERT_ONLY res;

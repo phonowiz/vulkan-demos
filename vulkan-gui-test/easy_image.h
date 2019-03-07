@@ -7,8 +7,8 @@
 //
 
 #pragma once
-#include "vulkan_utils.h"
-#define STB_IMAGE_IMPLEMENTATION
+//#include "vulkan_utils.h"
+//#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 class EasyImage
@@ -58,6 +58,7 @@ public:
         assert(ppixels != nullptr);
         loaded = true;
     }
+    //todo: upload takes same arguments as "image::create"
     void upload( const VkDevice &device, VkPhysicalDevice physicalDevice, VkCommandPool commandPool,
                 VkQueue queue)
     {

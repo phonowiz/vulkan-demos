@@ -14,7 +14,7 @@
 #include "easy_image.h"
 #include "depth_image.h"
 #include "vertex.h"
-#include "mesh.h"
+#include "./mesh.h"
 #include "create_swapchain.hpp"
 
 
@@ -131,20 +131,20 @@ void startGlfw() {
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
     
     window = glfwCreateWindow(width, height, "Vulkan Tutorial", nullptr, nullptr);
-    glfwSetWindowSizeCallback(window, onWindowResized);
+    //glfwSetWindowSizeCallback(window, onWindowResized);
 }
-//material class
-void createShaderModule(const std::vector<char>& code, VkShaderModule *shaderModule) {
-    VkShaderModuleCreateInfo shaderCreateInfo;
-    shaderCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    shaderCreateInfo.pNext = nullptr;
-    shaderCreateInfo.flags = 0;
-    shaderCreateInfo.codeSize = code.size();
-    shaderCreateInfo.pCode = (uint32_t*)code.data();
-    
-    VkResult result = vkCreateShaderModule(device, &shaderCreateInfo, nullptr, shaderModule);
-    ASSERT_VULKAN(result);
-}
+////material class
+//void createShaderModule(const std::vector<char>& code, VkShaderModule *shaderModule) {
+//    VkShaderModuleCreateInfo shaderCreateInfo;
+//    shaderCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+//    shaderCreateInfo.pNext = nullptr;
+//    shaderCreateInfo.flags = 0;
+//    shaderCreateInfo.codeSize = code.size();
+//    shaderCreateInfo.pCode = (uint32_t*)code.data();
+//
+//    VkResult result = vkCreateShaderModule(device, &shaderCreateInfo, nullptr, shaderModule);
+//    ASSERT_VULKAN(result);
+//}
 
 //vulkan renderer
 void printInstanceLayers()
@@ -186,22 +186,22 @@ void printInstanceExtensions()
 
 
 
-void createGLfwWindowSurface()
-{
-    VkResult result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
-    ASSERT_VULKAN(result);
-}
+//void createGLfwWindowSurface()
+//{
+//    VkResult result = glfwCreateWindowSurface(instance, window, nullptr, &surface);
+//    ASSERT_VULKAN(result);
+//}
 
 //vulkan renderer
-void printStatsOfAllPhysicalDevices(std::vector<VkPhysicalDevice>& physicalDevices)
-{
-    for (int i = 0; i < physicalDevices.size(); i++) {
-        printStats(physicalDevices[i]);
-        std::cout << "-----------------------------" << std::endl;
-    }
-}
+//void printStatsOfAllPhysicalDevices(std::vector<VkPhysicalDevice>& physicalDevices)
+//{
+//    for (int i = 0; i < physicalDevices.size(); i++) {
+//        printStats(physicalDevices[i]);
+//        std::cout << "-----------------------------" << std::endl;
+//    }
+//}
 
-/////////////////////render targets
+//material class
 void createDescriptorSetLayout()
 {
     VkDescriptorSetLayoutBinding descriptorSetLayoutBinding = {};
@@ -256,6 +256,7 @@ void drawFrame(SwapChainData& swapChainData) {
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = &semaphoreRenderingDone;
     
+    VkResult res = vkGetFenceStatus(device, inFlightFences[imageIndex]);
     VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[imageIndex]);
     ASSERT_VULKAN(result);
     
@@ -645,6 +646,7 @@ void createDescriptorSet()
     VkResult result = vkAllocateDescriptorSets(device, &descriptorSetAllocateInfo, &descriptorSet);
     ASSERT_VULKAN(result);
     
+    //uniform buffer descriptor
     VkDescriptorBufferInfo descriptorbufferInfo = {};
     descriptorbufferInfo.buffer = uniformBuffer;
     descriptorbufferInfo.offset = 0;
@@ -655,6 +657,11 @@ void createDescriptorSet()
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrite.pNext = nullptr;
     descriptorWrite.dstSet = descriptorSet;
+//note
+    /*
+        dstBinding must be less than or equal to the maximum value of "binding" of all
+        VkDescriptorSetLayoutBinding structures specified when dstSet’s descriptor set layout was created
+     */
     descriptorWrite.dstBinding = 0;
     descriptorWrite.dstArrayElement = 0;
     descriptorWrite.descriptorCount = 1;
@@ -733,13 +740,18 @@ void gameLoop() {
 void shutdownVulkan() {
     vkDeviceWaitIdle(device);
     
+    //swapchain
     depthImage.destroy();
+    
+    //material
     vkDestroyDescriptorSetLayout(device, descriptorSEtLayout, nullptr);
     vkDestroyDescriptorPool(device, descriptorPool, nullptr);
     
+    //material
     vkFreeMemory(device, uniformBufferMemory, nullptr);
     vkDestroyBuffer(device, uniformBuffer, nullptr);
     
+    //mesh
     vkFreeMemory(device, indexBufferDeviceMemory, nullptr);
     vkDestroyBuffer(device, indexBuffer, nullptr);
     
@@ -749,10 +761,11 @@ void shutdownVulkan() {
     
     shroomImage.destroy();
     
+    //renderer
     vkDestroySemaphore(device, semaphoreImageAvailable, nullptr);
     vkDestroySemaphore(device, semaphoreRenderingDone, nullptr);
     
-    vkFreeCommandBuffers(device, commandPool, swapChainData.swapChainImages.size(), commandBuffers);
+    vkFreeCommandBuffers(device, commandPool, static_cast<uint32_t>(swapChainData.swapChainImages.size()), commandBuffers);
     delete[] commandBuffers;
     
     vkDestroyCommandPool(device, commandPool, nullptr);
@@ -762,17 +775,29 @@ void shutdownVulkan() {
         vkDestroyFramebuffer(device, swapChainData.swapChainFramebuffers[i], nullptr);
     }
     
+    //renderer
     vkDestroyPipeline(device, pipeline, nullptr);
     vkDestroyRenderPass(device, renderPass, nullptr);
+    
+    //swapchain_set
     for (int i = 0; i < swapChainData.swapChainImageViews.size(); i++) {
         vkDestroyImageView(device, swapChainData.swapChainImageViews[i], nullptr);
     }
+    //renderer
     vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+    
+    //material store/ shader class
     vkDestroyShaderModule(device, shaderStages[0].module, nullptr);
     vkDestroyShaderModule(device, shaderStages[1].module, nullptr);
+    
+    //swapchain
     vkDestroySwapchainKHR(device, swapChainData.swapChain, nullptr);
-    vkDestroyDevice(device, nullptr);
+
+    
+    //swapchain
     vkDestroySurfaceKHR(instance, surface, nullptr);
+    //physical device
+    vkDestroyDevice(device, nullptr);
     vkDestroyInstance(instance, nullptr);
 }
 
@@ -783,13 +808,161 @@ void shutdownGlfw() {
 }
 
 
+#include "vulkan_wrapper/physical_device.h"
+#include "vulkan_wrapper/renderer.h"
+#include "vulkan_wrapper/swap_chain.h"
+#include "vulkan_wrapper/material_store.h"
+#include "vulkan_wrapper/mesh.h"
+
+
+vk::MaterialSharedPtr standardMat;
+
+void updateMVP2()
+{
+    //todo: this should work for every mesh
+    std::chrono::time_point frameTime = std::chrono::high_resolution_clock::now();
+    float timeSinceStart = std::chrono::duration_cast<std::chrono::milliseconds>( frameTime - gameStartTime ).count()/1000.0f;
+    
+    glm::mat4 model = glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 projection = glm::perspective(glm::radians(60.0f), width/(float)height, 0.01f, 10.0f);
+    
+    /*
+     GLM was originally designed for OpenGL, where the Y coordinate of the clip coordinates is inverted.
+     The easiest way to compensate for that is to flip the sign on the scaling factor of the Y axis in the projection matrix.
+     If you don't do this, then the image will be rendered upside down.
+     */
+    projection[1][1] *= -1.0f;
+    
+    glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
+    ubo.lightPosition.x = temp.x;
+    ubo.lightPosition.y = temp.y;
+    ubo.lightPosition.z = temp.z;
+    ubo.model = model;
+    ubo.view = view;
+    ubo.projection = projection;
+
+    vk::ShaderParameter::ShaderParamsGroup& fragmentParams = standardMat->getUniformParameters( vk::Material::ParameterStage::FRAGMENT );
+    vk::ShaderParameter::ShaderParamsGroup& vertexParams =   standardMat->getUniformParameters(vk::Material::ParameterStage::VERTEX);
+    
+    vertexParams["model"] = ubo.model;
+    vertexParams["view"] = ubo.view;
+    vertexParams["projection"] = ubo.projection;
+    vertexParams["lightPosition"] = ubo.lightPosition;
+    
+    standardMat->commitParametersToGPU();
+//    void* data = nullptr;
+//    vkMapMemory(device, uniformBufferMemory, 0, sizeof(ubo), 0, &data);
+//    memcpy(data, &ubo, sizeof(ubo));
+//    vkUnmapMemory(device, uniformBufferMemory);
+}
+
+void gameLoop2(vk::Renderer &renderer)
+{
+    while (!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
+        
+        updateMVP2();
+        renderer.draw();
+    }
+}
+
+
+struct App
+{
+    vk::SwapChain* swapchain = nullptr;
+    vk::PhysicalDevice* physical_device = nullptr;
+    vk::Renderer* renderer = nullptr;
+    
+
+    
+};
+
+
+App app;
+
+void onWindowResized2(GLFWwindow * window, int w, int h)
+{
+    if( w != 0 && h != 0)
+    {
+        
+        VkSurfaceCapabilitiesKHR surfaceCapabilities;
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCapabilities);
+        
+        w = std::min(w, static_cast<int>(surfaceCapabilities.maxImageExtent.width));
+        h = std::min(h, static_cast<int>(surfaceCapabilities.maxImageExtent.height));
+        
+        w = std::max(w, static_cast<int>(surfaceCapabilities.minImageExtent.width));
+        h = std::max(h, static_cast<int>(surfaceCapabilities.minImageExtent.height));
+        
+        width = w;
+        height = h;
+        //recreateSwapchain(device);
+        app.renderer->recreateRenderer();
+        
+    }
+}
+
+
 int main()
 {
     startGlfw();
-    startVulkan();
-    gameLoop();
-    shutdownVulkan();
+    
+    bool normalPath = false;
+    if(normalPath)
+    {
+        glfwSetWindowSizeCallback(window, onWindowResized);
+        startVulkan();
+        gameLoop();
+        shutdownVulkan();
+    }
+    else
+    {
+        
+        glfwSetWindowSizeCallback(window, onWindowResized2);
+        
+        vk::PhysicalDevice device;
+        
+        createSurface(device._instance, window, surface);
+        
+        device.createLogicalDevice(surface);
+        
+        vk::SwapChain swapChain(&device, window);
+        vk::MaterialStore materialStore;
+        
+        materialStore.createStore(&device);
+        
+        standardMat = materialStore.GET_MAT<vk::Material>("standard");
+        
+        vk::Mesh mesh( "dragon.obj", &device );
+        
+        updateMVP2();
+        vk::Renderer renderer(&device,window, &swapChain, standardMat);
+        
+        renderer.addMesh(&mesh);
+        renderer.init();
+        
+    
+        app.physical_device = &device;
+        app.swapchain = &swapChain;
+        app.renderer = &renderer;
+        
+
+        
+        gameLoop2(renderer);
+        
+        device.waitForllOperationsToFinish();
+        swapChain.destroy();
+        materialStore.destroy();
+        mesh.destroy();
+        renderer.destroy();
+        device.destroy();
+        
+        
+    }
+    
     shutdownGlfw();
+
     
     return 0;
 }

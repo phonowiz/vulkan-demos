@@ -1,0 +1,357 @@
+//
+//  swap_chain.cpp
+//  vulkan-gui-test
+//
+//  Created by Rafael Sabino on 2/7/19.
+//  Copyright © 2019 Rafael Sabino. All rights reserved.
+//
+
+#include "swap_chain.h"
+
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
+#include <string>
+#include <fstream>
+#include <iostream>
+#include <array>
+
+
+using namespace vk;
+
+
+
+SwapChain::SwapChain(PhysicalDevice* physicalDevice, GLFWwindow* window):
+_depthImage(physicalDevice)
+{
+    _physicalDevice = physicalDevice;
+    _window =  window;
+    _swapChainData.imageSet.setDevice(physicalDevice);
+    
+    //todo: following call must go outside of this class
+    VkResult result = glfwCreateWindowSurface(_physicalDevice->_instance, _window, nullptr, &_surface);
+    ASSERT_VULKAN(result);
+    
+}
+VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+{
+    if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
+        return{VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
+    }
+    
+    for (const auto& availableFormat : availableFormats) {
+        if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            return availableFormat;
+        }
+    }
+    
+    return availableFormats[0];
+}
+
+VkPresentModeKHR SwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes)
+{
+    VkPresentModeKHR bestMode = VK_PRESENT_MODE_FIFO_KHR;
+    
+    for (const auto& availablePresentMode : availablePresentModes) {
+        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+            return availablePresentMode;
+        } else if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
+            bestMode = availablePresentMode;
+        }
+    }
+    
+    return bestMode;
+}
+
+VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow& window)
+{
+    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
+    {
+        return capabilities.currentExtent;
+    }
+    else
+    {
+        //todo: maybe is possible to eliminate the glfw library dependency from the vulkan wrapper
+        int width, height;
+        glfwGetFramebufferSize(&window, &width, &height);
+        
+        VkExtent2D actualExtent = {
+            static_cast<uint32_t>(width),
+            static_cast<uint32_t>(height)
+        };
+        
+        actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
+        actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
+        
+        return actualExtent;
+    }
+}
+
+void SwapChain::destroySwapChain()
+{
+    VkSwapchainKHR oldSwapchain = _swapChainData.swapChain;
+    vkDestroySwapchainKHR(_physicalDevice->_device, oldSwapchain, nullptr);
+}
+
+VkSurfaceFormatKHR SwapChain::getSurfaceFormat()
+{
+    PhysicalDevice::SwapChainSupportDetails swapChainSupport;
+    _physicalDevice->querySwapChainSupport( _physicalDevice->_physicalDevice, _surface, swapChainSupport);
+    
+    VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
+    return surfaceFormat;
+}
+void SwapChain::createSwapChain()
+{
+    PhysicalDevice::SwapChainSupportDetails swapChainSupport;
+    _physicalDevice->querySwapChainSupport( _physicalDevice->_physicalDevice, _surface, swapChainSupport);
+    
+    VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
+    VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
+    VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities, *_window);
+    
+    uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
+    if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
+    {
+        imageCount = swapChainSupport.capabilities.maxImageCount;
+    }
+    
+    VkSwapchainCreateInfoKHR createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    createInfo.surface = _surface;
+    
+    createInfo.minImageCount = imageCount;
+    createInfo.imageFormat = surfaceFormat.format;
+    createInfo.imageColorSpace = surfaceFormat.colorSpace;
+    createInfo.imageExtent = extent;
+    createInfo.imageArrayLayers = 1;
+    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    
+    PhysicalDevice::QueueFamilyIndices indices = _physicalDevice->findQueueFamilies(_physicalDevice->_physicalDevice, _surface);
+    uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+    
+    if (indices.graphicsFamily != indices.presentFamily)
+    {
+        assert(0 && "this path has not been tested, proceed with caution, even after this function runs, make sure depth buffer follows this sharing mode");
+        createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+        createInfo.queueFamilyIndexCount = 2;
+        createInfo.pQueueFamilyIndices = queueFamilyIndices;
+    }
+    else
+    {
+        createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    }
+    
+    createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
+    createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    createInfo.presentMode = presentMode;
+    createInfo.clipped = VK_TRUE;
+    
+    
+    if (vkCreateSwapchainKHR(_physicalDevice->_device, &createInfo, nullptr, &(_swapChainData.swapChain)) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create swap chain!");
+    }
+    
+//    vkGetSwapchainImagesKHR(_physicalDevice->_device, _swapChainData.swapChain, &imageCount, nullptr);
+//    _swapChainData.swapChainImages.resize(imageCount);
+//    vkGetSwapchainImagesKHR(_physicalDevice->_device, _swapChainData.swapChain, &imageCount, _swapChainData.swapChainImages.data());
+    _swapChainData.imageSet.init(_physicalDevice, _swapChainData.swapChain);
+    _swapChainData.imageSet.createImageSet();
+    //_swapChainData.swapChainImageFormat = getSurfaceFormat().format; //surfaceFormat.format;
+    _swapChainData.swapChainExtent = extent;
+}
+
+void SwapChain::createSurface()
+{
+    
+    if (glfwCreateWindowSurface(_physicalDevice->_instance, _window, nullptr, &_surface) != VK_SUCCESS)
+    {
+        assert( 0 && "couldn't create surface");
+    }
+}
+
+//todo: this function should be part of swapchain
+void SwapChain::createImageViews()
+{
+    //todo: get rid of <vector>
+    
+    _swapChainData.imageSet.createImageViews( getSurfaceFormat().format );
+//    _swapChainData.swapChainImageViews.resize(_swapChainData.swapChainImages.size());
+//
+//    for (size_t i = 0; i < _swapChainData.swapChainImages.size(); i++)
+//    {
+//        //assert(0);
+//        //todo: function below belongs in a texture
+//        //createImageView(device, swapChainData.swapChainImages[i], swapChainData.swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, swapChainData.swapChainImageViews[i]);
+//
+//
+//        //_swapChainData.presentTextures.push_back(Texture(_physicalDevice, _swapChainData.swapChainExtent.width, _swapChainData.swapChainExtent.height));
+//        //_swapChainData.presentTextures[i].setDevice(_physicalDevice);
+//        //_swapChainData.presentTextures[i].create(_swapChainData.swapChainExtent.width, _swapChainData.swapChainExtent.height);
+//
+//        //todo: this should be an array
+//        _//swapChainData.swapChainImages.push_back(_swapChainData.presentTextures[i].getImage());
+//        //todo: we only need one depth image for the demo, but there are uses for having more than one depth image
+//        break;
+//    }
+}
+
+void SwapChain::printStats()
+{
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physicalDevice->_physicalDevice, _surface, &surfaceCapabilities);
+    std::cout << "Surface capabilities: " << std::endl;
+    std::cout << "\tminImageCount: " << surfaceCapabilities.minImageCount << std::endl;
+    std::cout << "\tmaxImageCount: " << surfaceCapabilities.maxImageCount << std::endl;
+    std::cout << "\tcurrentExtent: " << surfaceCapabilities.currentExtent.width << "/" << surfaceCapabilities.currentExtent.height << std::endl;
+    std::cout << "\tminImageExtent: " << surfaceCapabilities.minImageExtent.width << "/" << surfaceCapabilities.minImageExtent.height << std::endl;
+    std::cout << "\tmaxImageExtent: " << surfaceCapabilities.maxImageExtent.width << "/" << surfaceCapabilities.maxImageExtent.height << std::endl;
+    std::cout << "\tmaxImageArrayLayers: " << surfaceCapabilities.maxImageArrayLayers << std::endl;
+    std::cout << "\tsupportedTransforms: " << surfaceCapabilities.supportedTransforms << std::endl;
+    std::cout << "\tcurrentTransform: " << surfaceCapabilities.currentTransform << std::endl;
+    std::cout << "\tsupportedCompositeAlpha: " << surfaceCapabilities.supportedCompositeAlpha << std::endl;
+    std::cout << "\tsupportedUsageFlags: " << surfaceCapabilities.supportedUsageFlags << std::endl;
+    
+    uint32_t amountOfFormats = 0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice->_physicalDevice, _surface, &amountOfFormats, nullptr);
+    
+    assert( amountOfFormats < 100);
+    auto surfaceFormats = std::array<VkSurfaceFormatKHR, 100>();//new VkSurfaceFormatKHR[amountOfFormats];
+    vkGetPhysicalDeviceSurfaceFormatsKHR(_physicalDevice->_physicalDevice, _surface, &amountOfFormats, surfaceFormats.data());
+    
+    std::cout << std::endl;
+    std::cout << "Amount of Formats: " << amountOfFormats << std::endl;
+    for (int i = 0; i < amountOfFormats; i++) {
+        std::cout << "Format: " << surfaceFormats[i].format << std::endl;
+        std::cout << "Color Space: " << surfaceFormats[i].colorSpace << std::endl;
+    }
+    
+    uint32_t amountOfPresentationModes = 0;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice->_physicalDevice, _surface, &amountOfPresentationModes, nullptr);
+    assert( amountOfPresentationModes < 100);
+    auto presentModes =std::array<VkPresentModeKHR, 100>(); //new VkPresentModeKHR[amountOfPresentationModes];
+    vkGetPhysicalDeviceSurfacePresentModesKHR(_physicalDevice->_physicalDevice, _surface, &amountOfPresentationModes, presentModes.data());
+    
+    std::cout << std::endl;
+    std::cout << "Amount of Presentation Modes: " << amountOfPresentationModes << std::endl;
+    for (int i = 0; i < amountOfPresentationModes; i++) {
+        std::cout << "Supported presentation mode: " << presentModes[i] << std::endl;
+    }
+    
+}
+
+void SwapChain::createFrameBuffers(VkRenderPass renderPass)
+{
+    //_swapChainData.swapChainFramebuffers.resize(_swapChainData.swapChainImages.size());
+    
+    //TODO: Get rid of the vector class
+    _swapChainData.swapChainFramebuffers.resize(_swapChainData.imageSet.getImageCount());
+
+    for (size_t i = 0; i < _swapChainData.swapChainFramebuffers.size(); i++)
+    {
+        VkImageView depthImageView = _depthImage.getImageView();
+        std::array<VkImageView, 2> attachmentViews = {_swapChainData.imageSet.getImageViews()[i], depthImageView};
+        
+        VkFramebufferCreateInfo framebufferCreateInfo;
+        framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferCreateInfo.pNext = nullptr;
+        framebufferCreateInfo.flags = 0;
+        framebufferCreateInfo.renderPass = renderPass;
+        framebufferCreateInfo.attachmentCount = static_cast<uint32_t>(attachmentViews.size());
+        framebufferCreateInfo.pAttachments = attachmentViews.data();
+        framebufferCreateInfo.width = _swapChainData.swapChainExtent.width;
+        framebufferCreateInfo.height = _swapChainData.swapChainExtent.height;
+        framebufferCreateInfo.layers = 1;
+        
+        VkResult result = vkCreateFramebuffer(_physicalDevice->_device, &framebufferCreateInfo, nullptr, &(_swapChainData.swapChainFramebuffers[i]));
+        ASSERT_VULKAN(result);
+    }
+}
+
+void SwapChain::createDepthImage()
+{
+    _depthImage.create(
+                        _swapChainData.swapChainExtent.width,
+                        _swapChainData.swapChainExtent.height
+                       );
+}
+
+void SwapChain::recreateSwapChain( VkRenderPass renderPass)
+{
+    _physicalDevice->waitForllOperationsToFinish();
+    
+    //    vkDestroySemaphore(device, semaphoreImageAvailable, nullptr);
+    //    vkDestroySemaphore(device, semaphoreRenderingDone, nullptr);
+    
+    //TODO: I THINK THESE ARE IN THE RENDER CLASS
+    //_depthImage.destroy();
+    //vkFreeCommandBuffers(device, commandPool, swapChainData.swapChainImages.size(), commandBuffers);
+    
+    
+    _depthImage.destroy();
+    
+    for (size_t i = 0; i < _swapChainData.swapChainFramebuffers.size(); i++)
+    {
+        vkDestroyFramebuffer(_physicalDevice->_device, _swapChainData.swapChainFramebuffers[i], nullptr);
+    }
+    
+    //TODO: THSE ARE IN RENDER CLASS
+    //vkDestroyRenderPass(device, renderPass, nullptr);
+    
+//    for (int i = 0; i < _swapChainData.swapChainImageViews.size(); i++)
+//    {
+//        vkDestroyImageView(_physicalDevice->_device, _swapChainData.swapChainImageViews[i], nullptr);
+//    }
+    
+    VkSwapchainKHR oldSwapchain = _swapChainData.swapChain;
+
+    createSwapChain();
+    createImageViews();
+    createDepthImage();
+    createFrameBuffers(renderPass);
+
+    //todo: what if oldSwaphchain is null, does it matter?
+    vkDestroySwapchainKHR(_physicalDevice->_device, oldSwapchain, nullptr);
+    
+    //TODO: THESE ARE IN RENDER CLASS
+    //createRenderPass();
+    //createDepthImage();
+    //createFrameBuffers(swapChainData);
+    //createCommandPool();
+    //createCommandBuffers(swapChainData);
+    
+    //render targets will need to record their command buffers again.
+    //recordCommandBuffers();
+    //createSemaphores(swapChainData);
+}
+
+VkAttachmentDescription SwapChain::getDepthAttachment()
+{
+    return _depthImage.getDepthAttachment();
+}
+VkPipelineDepthStencilStateCreateInfo   SwapChain::getDepthStencilStateCreateInfoOpaque()
+{
+    return _depthImage.getDepthStencilStateCreateInfoOpaque();
+}
+
+void SwapChain::destroy()
+{
+    _depthImage.destroy();
+    
+    for (size_t i = 0; i < _swapChainData.swapChainFramebuffers.size(); i++)
+    {
+        vkDestroyFramebuffer(_physicalDevice->_device, _swapChainData.swapChainFramebuffers[i], nullptr);
+        _swapChainData.swapChainFramebuffers[i] = VK_NULL_HANDLE;
+    }
+    
+    _swapChainData.imageSet.destroy();
+    vkDestroySwapchainKHR(_physicalDevice->_device, _swapChainData.swapChain, nullptr);
+    _swapChainData.swapChain = VK_NULL_HANDLE;
+}
+SwapChain::~SwapChain()
+{
+//    for (int i = 0; i < _swapChainData.swapChainImageViews.size(); i++)
+//    {
+//        vkDestroyImageView(_physicalDevice->_device, _swapChainData.swapChainImageViews[i], nullptr);
+//    }
+}
