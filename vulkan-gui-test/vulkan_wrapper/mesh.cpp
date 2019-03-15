@@ -135,22 +135,22 @@ void Mesh::draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, 
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(getIndices().size()), 1, 0, 0, 0);
 }
 
-void Mesh::createVertexBuffer(VkCommandPool commandPool )
+void Mesh::createVertexBuffer()
 {
-    createAndUploadBuffer(commandPool,
+    createAndUploadBuffer(_device->_commandPool,
                           _vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, _vertexBuffer, _vertexBufferDeviceMemory);
 }
 
-void Mesh::createIndexBuffer(VkCommandPool commandPool)
+void Mesh::createIndexBuffer()
 {
-    createAndUploadBuffer( commandPool,
+    createAndUploadBuffer( _device->_commandPool,
                           _indices, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, _indexBuffer, _indexBufferDeviceMemory);
 }
 
-void Mesh::allocateGPUMemory(VkCommandPool commandPool)
+void Mesh::allocateGPUMemory()
 {
-    createVertexBuffer(commandPool);
-    createIndexBuffer(commandPool);
+    createVertexBuffer();
+    createIndexBuffer();
 }
 
 void Mesh::destroy()

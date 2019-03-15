@@ -77,8 +77,9 @@ namespace  vk
         inline VkDescriptorSetLayout* getDesciptorSetLayout(){ return &_descriptorSetLayout; }
         inline VkDescriptorSet* getDescriptorSet(){ return &_descriptorSet; }
         
-        ShaderParameter::ShaderParamsGroup& getUniformParameters(ParameterStage parameterStage);
-        ShaderParameter::ShaderParamsGroup& getImageSamplerParameters(ParameterStage parameterStage);
+        ShaderParameter::ShaderParamsGroup& getUniformParameters(ParameterStage parameterStage, uint32_t binding);
+        //ShaderParameter::ShaderParamsGroup& getImageSamplerParameters(ParameterStage parameterStage, uint32_t binding);
+        void setImageSampler(Texture2D* texture, const char* parameterName, ParameterStage parameterStage, uint32_t binding);
         
         ShaderSharedPtr _vertexShader;
         ShaderSharedPtr _fragmentShader;
@@ -88,15 +89,20 @@ namespace  vk
         VkDescriptorPool      _descriptorPool = VK_NULL_HANDLE;
         VkDescriptorSet       _descriptorSet = VK_NULL_HANDLE;
         
+        //todo: check out the VkPhysicalDeviceLimits structure: https://vulkan.lunarg.com/doc/view/1.0.30.0/linux/vkspec.chunked/ch31s02.html
         static const int BINDING_MAX = 30;
         
         
         tsl::ordered_map<ParameterStage, Resource::BufferInfo>                  _uniformBuffers;
         tsl::ordered_map<ParameterStage, ShaderParameter::ShaderParamsGroup>    _uniformParameters;
 
-        tsl::ordered_map<ParameterStage, std::vector<Resource::BufferInfo>>                  _samplerBuffers;
-        tsl::ordered_map<ParameterStage, std::vector<ShaderParameter::ShaderParamsGroup>>    _samplerParameters;
-        std::array<VkDescriptorSetLayoutBinding, BINDING_MAX>                   _descriptorSets;
+        //todo: these neet  to be arrays because there is a limit of how many samplers you you can bind.
+        tsl::ordered_map<ParameterStage, Resource::BufferInfo>                  _samplerBuffers;
+        
+        typedef tsl::ordered_map< const char*, ShaderParameter>                       SamplerParameter;
+        
+        tsl::ordered_map<ParameterStage, SamplerParameter>                     _samplerParameters;
+        std::array<VkDescriptorSetLayoutBinding, BINDING_MAX>                   _descriptorSetLayoutBindings;
         
         
         const char* _name = nullptr;
@@ -111,8 +117,6 @@ namespace  vk
         
     private:
         
-//        VkBuffer       _uniformBuffer = VK_NULL_HANDLE;
-//        VkDeviceMemory _uniformBufferMemory = VK_NULL_HANDLE;
     };
     
     

@@ -53,7 +53,7 @@ namespace vk
             float   floatValue;
             int     intValue;
             unsigned int    uintValue;
-            Texture*   sampler2D;
+            Texture2D*   sampler2D;
             //        Texture3D*   sampler3D;
             glm::mat4 mat4;
             //        PointLight pointLight;
@@ -113,7 +113,7 @@ namespace vk
                     return sizeof( unsigned int);
                     break;
                 case Type::SAMPLER_2D:
-                    return sizeof (Texture);
+                    return sizeof (Texture2D);
                 case Type::NONE:
                     assert(0);
                     break;
@@ -156,7 +156,7 @@ namespace vk
             return value.vector4;
         }
         
-        inline Texture* getSampler2DValue()
+        inline Texture2D* getSampler2DValue()
         {
             assert(type == Type::SAMPLER_2D);
             return value.sampler2D;
@@ -249,7 +249,7 @@ namespace vk
             return *this;
         }
         
-        inline ShaderParameter& operator=(Texture* sampler)
+        inline ShaderParameter& operator=(Texture2D* sampler)
         {
             assert( type == Type::NONE || type == Type::SAMPLER_2D);
             type = Type::SAMPLER_2D;
@@ -320,7 +320,7 @@ namespace vk
             type = Type::FLOAT;
         }
         
-        ShaderParameter(Texture* _value)
+        ShaderParameter(Texture2D* _value)
         {
             value.sampler2D = _value;
             type = Type::SAMPLER_2D;

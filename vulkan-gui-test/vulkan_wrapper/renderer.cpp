@@ -101,14 +101,6 @@ void Renderer::createRenderPass()
 }
 
 
-//void Renderer::createDepthImage()
-//{
-//    _depthImage.create(
-//                        _commandPool, _physicalDevice->_graphicsQueue, _swapChain->_swapChainData.swapChainExtent.width,
-//                        _swapChain->_swapChainData.swapChainExtent.height);
-//}
-
-
 void Renderer::createCommandBuffers()
 {
     VkCommandBufferAllocateInfo commandBufferAllocateInfo;
@@ -161,7 +153,6 @@ void Renderer::recreateRenderer()
     createRenderPass();
     _swapChain->recreateSwapChain(_renderPass );
     
-    _physicalDevice->createCommnadPool(0);
     createCommandBuffers();
     recordCommandBuffers();
 
@@ -225,15 +216,6 @@ void Renderer::recordCommandBuffers()
         {
             pMesh->draw(_commandBuffers[i], _pipelineLayout, _material);
         }
-//        VkDeviceSize offsets[] = { 0 };
-//        vkCmdBindVertexBuffers(_commandBuffers[i], 0, 1, &vertexBuffer, offsets);
-//        vkCmdBindIndexBuffer(_commandBuffers[i], indexBuffer, 0, VK_INDEX_TYPE_UINT32);
-//
-//        vkCmdBindDescriptorSets(_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
-//
-//        //in the render target, there will be list of registered meshes that will submit their indices
-//        vkCmdDrawIndexed(_commandBuffers[i], static_cast<uint32_t>(dragonMesh.getIndices().size()), 1, 0, 0, 0);
-        
         
         vkCmdEndRenderPass(_commandBuffers[i]);
         
@@ -253,12 +235,9 @@ void Renderer::destroy()
                          static_cast<uint32_t>(_swapChain->_swapChainData.imageSet.getImageCount()), _commandBuffers);
     delete[] _commandBuffers;
     
-//    vkDestroyCommandPool(_physicalDevice->_device, _physicalDevice->_commandPool, nullptr);
-    
     for (size_t i = 0; i < _swapChain->_swapChainData.swapChainFramebuffers.size(); i++)
     {
         vkDestroyFence(_physicalDevice->_device, _inFlightFences[i], nullptr);
-        //vkDestroyFramebuffer(_physicalDevice->_device, _swapChain->_swapChainData.swapChainFramebuffers[i], nullptr);
     }
     
     vkDestroyPipeline(_physicalDevice->_device, _pipeline, nullptr);
@@ -276,24 +255,6 @@ Renderer::~Renderer()
 
 void Renderer::createPipeline()
 {
-    
-    /////BUILD SHADERS
-    
-    //TODO: THESE GO IN MATERIAL STORE CLASS
-//    std::string baseDir;
-//    getBaseDir( baseDir );
-//    std::string vertShader = baseDir + "shaders/triangle.vert";
-//    std::string fileContents;
-//    readFile(fileContents, vertShader);
-//
-//    init_shaders(device, shaderStages[0], VK_SHADER_STAGE_VERTEX_BIT, fileContents.c_str());
-//
-//    fileContents.clear();
-//    std::string fragShader = baseDir + "shaders/triangle.frag";
-//    readFile(fileContents, fragShader);
-//    init_shaders(device, shaderStages[1], VK_SHADER_STAGE_FRAGMENT_BIT, fileContents.c_str());
-    
-    
     auto vertexBindingDescription = Vertex::getBindingDescription();
     auto vertexAttributeDescription = Vertex::getAttributeDescriptions();
     
@@ -303,7 +264,7 @@ void Renderer::createPipeline()
     vertexInputCreateInfo.flags = 0;
     vertexInputCreateInfo.vertexBindingDescriptionCount = 1;
     vertexInputCreateInfo.pVertexBindingDescriptions = &vertexBindingDescription;
-    vertexInputCreateInfo.vertexAttributeDescriptionCount = vertexAttributeDescription.size();
+    vertexInputCreateInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(vertexAttributeDescription.size());
     vertexInputCreateInfo.pVertexAttributeDescriptions = vertexAttributeDescription.data();
     
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo;
@@ -447,9 +408,7 @@ void Renderer::createPipeline()
 void Renderer::init()
 {
     createRenderPass();
-    //createDescriptorSetLayout();
     _material->createDescriptorSetLayout();
-    _physicalDevice->createCommnadPool(0);
     _swapChain->recreateSwapChain(_renderPass);
     createPipeline();
     createSemaphores();
@@ -463,13 +422,10 @@ void Renderer::init()
     
     for(int i = 0; i < _meshes.size(); ++i)
     {
-        _meshes[i]->allocateGPUMemory(_physicalDevice->_commandPool);
+        _meshes[i]->allocateGPUMemory();
     }
     createCommandBuffers();
-    
     recordCommandBuffers();
-    //createDepthImage();
-//    createFrameBuffers(swapChainData);
     
 }
 

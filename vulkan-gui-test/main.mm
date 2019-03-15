@@ -813,9 +813,16 @@ void shutdownGlfw() {
 #include "vulkan_wrapper/swap_chain.h"
 #include "vulkan_wrapper/material_store.h"
 #include "vulkan_wrapper/mesh.h"
+#include "vulkan_wrapper/plane.h"
 
 
 vk::MaterialSharedPtr standardMat;
+vk::Texture2D* texture = nullptr;
+
+void upldateWithOrtho()
+{
+    //make ortho projection based on window size
+}
 
 void updateMVP2()
 {
@@ -842,13 +849,25 @@ void updateMVP2()
     ubo.view = view;
     ubo.projection = projection;
 
-    vk::ShaderParameter::ShaderParamsGroup& fragmentParams = standardMat->getUniformParameters( vk::Material::ParameterStage::FRAGMENT );
-    vk::ShaderParameter::ShaderParamsGroup& vertexParams =   standardMat->getUniformParameters(vk::Material::ParameterStage::VERTEX);
+    //vk::ShaderParameter::ShaderParamsGroup& fragmentParams = standardMat->getUniformParameters( vk::Material::ParameterStage::FRAGMENT );
+    //vk::ShaderParameter::ShaderParamsGroup& fragmentParams = standardMat->getImageSamplerParameters(vk::Material::ParameterStage::FRAGMENT, 1);
+    
+
+    
+    vk::ShaderParameter::ShaderParamsGroup& vertexParams =   standardMat->getUniformParameters(vk::Material::ParameterStage::VERTEX, 0);
     
     vertexParams["model"] = ubo.model;
     vertexParams["view"] = ubo.view;
     vertexParams["projection"] = ubo.projection;
     vertexParams["lightPosition"] = ubo.lightPosition;
+    
+    
+    static bool initted = false;
+    if(initted == false)
+    {
+        initted = true;
+        standardMat->setImageSampler(texture, "tex", vk::Material::ParameterStage::FRAGMENT, 1);
+    }
     
     standardMat->commitParametersToGPU();
 //    void* data = nullptr;
@@ -859,11 +878,12 @@ void updateMVP2()
 
 void gameLoop2(vk::Renderer &renderer)
 {
+    int i = 0;
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-        
         updateMVP2();
         renderer.draw();
+        ++i;
     }
 }
 
@@ -911,6 +931,7 @@ int main()
     bool normalPath = false;
     if(normalPath)
     {
+        //old code path, will be deprecated
         glfwSetWindowSizeCallback(window, onWindowResized);
         startVulkan();
         gameLoop();
@@ -918,7 +939,7 @@ int main()
     }
     else
     {
-        
+        //vulkan render example
         glfwSetWindowSizeCallback(window, onWindowResized2);
         
         vk::PhysicalDevice device;
@@ -933,14 +954,25 @@ int main()
         materialStore.createStore(&device);
         
         standardMat = materialStore.GET_MAT<vk::Material>("standard");
+        //vk::Texture texture(&device, "mario.png");
         
         vk::Mesh mesh( "dragon.obj", &device );
         
+        vk::plane plane(&device);
+        plane.create();
+        
+        //run this function to force intialization of parameters, this is necessary for when we
+        //init the renderer
+        vk::Texture2D empty(&device, 0,0);
+        //vk::Texture2D mario(&device, "mario.png");
+        texture = &empty;
         updateMVP2();
         vk::Renderer renderer(&device,window, &swapChain, standardMat);
         
         renderer.addMesh(&mesh);
         renderer.init();
+        
+
         
     
         app.physical_device = &device;
@@ -955,6 +987,7 @@ int main()
         swapChain.destroy();
         materialStore.destroy();
         mesh.destroy();
+        plane.destroy();
         renderer.destroy();
         device.destroy();
         

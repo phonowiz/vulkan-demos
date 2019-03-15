@@ -43,7 +43,7 @@ namespace vk
             
             //std::vector<VkImageView>    swapChainImageViews;
             std::vector<VkFramebuffer>  swapChainFramebuffers;
-            std::array<Texture, MAX_SWAPCHAIN_IMAGES>        presentTextures;
+            std::array<Texture2D, MAX_SWAPCHAIN_IMAGES>        presentTextures;
         };
         
         PhysicalDevice* _physicalDevice = nullptr;

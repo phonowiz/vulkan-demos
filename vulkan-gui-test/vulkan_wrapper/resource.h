@@ -43,7 +43,8 @@ namespace  vk
             VkBuffer        uniformBuffer =         VK_NULL_HANDLE;
             VkDeviceMemory  uniformBufferMemory =   VK_NULL_HANDLE;
             UsageType       usageType =             UsageType::INVALID;
-            size_t size = 0;
+            uint32_t        binding   =             0;
+            size_t          size      =             0;
         };
 
     };

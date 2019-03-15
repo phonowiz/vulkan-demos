@@ -48,6 +48,7 @@ void PhysicalDevice::createLogicalDevice( VkSurfaceKHR surface)
     }
 
     VkPhysicalDeviceFeatures deviceFeatures = {};
+    deviceFeatures.samplerAnisotropy = VK_TRUE;
 
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -78,6 +79,8 @@ void PhysicalDevice::createLogicalDevice( VkSurfaceKHR surface)
 
     vkGetDeviceQueue(_device, indices.graphicsFamily.value(), 0, &_graphicsQueue);
     vkGetDeviceQueue(_device, indices.presentFamily.value(), 0, &_presentQueue);
+    
+    createCommnadPool(0);
 }
 
 PhysicalDevice::QueueFamilyIndices PhysicalDevice::findQueueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface) {
@@ -347,7 +350,7 @@ void PhysicalDevice::createCommnadPool(uint32_t queueIndex)
     commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     commandPoolCreateInfo.pNext = nullptr;
     commandPoolCreateInfo.flags = 0;
-    commandPoolCreateInfo.queueFamilyIndex = 0; //TODO: FIND OUT WHAT QUEUE WE PUT HERE;
+    commandPoolCreateInfo.queueFamilyIndex = queueIndex; //TODO: FIND OUT WHAT QUEUE WE PUT HERE;
     
     VkResult result = vkCreateCommandPool(_device, &commandPoolCreateInfo, nullptr, &_commandPool);
     ASSERT_VULKAN(result);

@@ -58,30 +58,36 @@ void Material::commitParametersToGPU( )
                 assert(totalWritten == mem.size && "memory written differs from original memory allocated from GPU, have you added/removed new shader parameters?");
                 vkUnmapMemory(_device->_device, mem.uniformBufferMemory);
             }
-            if(mem.usageType == UsageType::COMBINED_IMAGE_SAMPLER)
-            {
-                
-                //todo: textures need to be implemented here
-                assert(0);
-            }
         }
 
     }
 
 }
 
-ShaderParameter::ShaderParamsGroup& Material::getImageSamplerParameters(ParameterStage stage)
+//ShaderParameter::ShaderParamsGroup& Material::getImageSamplerParameters(ParameterStage stage, uint32_t binding)
+//{
+//
+//    BufferInfo &mems = _samplerBuffers[stage];
+//    mems.usageType = UsageType::COMBINED_IMAGE_SAMPLER;
+//    mems.binding = binding;
+//
+//    return _samplerParameters[stage];
+//}
+
+void Material::setImageSampler(Texture2D* texture, const char* parameterName, ParameterStage parameterStage, uint32_t binding)
 {
+    BufferInfo& mem = _samplerBuffers[parameterStage];
+    mem.binding = binding;
+    mem.usageType = UsageType::COMBINED_IMAGE_SAMPLER;
     
-    std::vector<BufferInfo> &mems = _samplerBuffers[stage];
-    
-    assert(0); //no implemnetation as of right now
+    _samplerParameters[parameterStage][parameterName] = texture;
 }
-ShaderParameter::ShaderParamsGroup& Material::getUniformParameters(ParameterStage stage)
+ShaderParameter::ShaderParamsGroup& Material::getUniformParameters(ParameterStage stage, uint32_t binding)
 {
     BufferInfo& mem = _uniformBuffers[stage];
-    
+    mem.binding = binding;
     mem.usageType = UsageType::UNIFORM_BUFFER;
+    
     return _uniformParameters[stage];
     
 }
@@ -97,11 +103,12 @@ void Material::deallocateParameters()
         pair.second.uniformBufferMemory = VK_NULL_HANDLE;
     }
 }
-//todo: this should be a private function?
+//todo: there needs to be away for client to init parameters
 void Material::initShaderParameters()
 {
     size_t totalSize = 0;
     
+    //note: textures don't need to be initialized here because the texture classes take care of that
     for (std::pair<ParameterStage , BufferInfo > pair : _uniformBuffers)
     {
         BufferInfo& mem = _uniformBuffers[pair.first];
@@ -125,6 +132,7 @@ void Material::initShaderParameters()
         
         totalSize = 0;
     }
+    
     createDescriptorPool();
     createDescriptorSetLayout();
     createDescriptorSet();
@@ -152,51 +160,57 @@ void Material::createDescriptorSet()
     
     int count = 0;
     
-    for (std::pair<ParameterStage , Resource::BufferInfo > pair : _uniformBuffers)
+    for(std::pair<ParameterStage, SamplerParameter > pair : _samplerParameters)
     {
-        assert(UsageType::INVALID != pair.second.usageType);
-        if(pair.second.usageType == UsageType::UNIFORM_BUFFER)
+        for( std::pair<const char*, ShaderParameter> pair2 : pair.second)
         {
-            descriptorbufferInfos[count].buffer = pair.second.uniformBuffer;
-            descriptorbufferInfos[count].offset = 0;
-            descriptorbufferInfos[count].range = pair.second.size;
-            
-            writeDescriptorSets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            writeDescriptorSets[count].pNext = nullptr;
-            writeDescriptorSets[count].dstSet = _descriptorSet;
-
-            writeDescriptorSets[count].dstBinding = _descriptorSets[count].binding;
-            writeDescriptorSets[count].dstArrayElement = 0;
-            writeDescriptorSets[count].descriptorCount = 1;
-            writeDescriptorSets[count].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            writeDescriptorSets[count].pImageInfo = nullptr;
-            writeDescriptorSets[count].pBufferInfo = &descriptorbufferInfos[count];
-            writeDescriptorSets[count].pTexelBufferView = nullptr;
-        }
-        else if(pair.second.usageType == UsageType::COMBINED_IMAGE_SAMPLER)
-        {
-
-            /*
-            descriptorImageInfos[count].sampler = shroomImage.getSampler();
-            descriptorImageInfos[count].imageView = shroomImage.getImageView();
+            //TODO: what about sampler 3D?
+            Texture2D* texture = pair2.second.getSampler2DValue();
+            descriptorImageInfos[count].sampler = texture->getSampler();
+            descriptorImageInfos[count].imageView = texture->getImageView();
             descriptorImageInfos[count].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-             */
-            assert(0); //todo: you need to implement this
-            
+
             writeDescriptorSets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             writeDescriptorSets[count].pNext = nullptr;
             writeDescriptorSets[count].dstSet = _descriptorSet;
-            
-            writeDescriptorSets[count].dstBinding = _descriptorSets[count].binding;
+
+            writeDescriptorSets[count].dstBinding = _descriptorSetLayoutBindings[count].binding;
             writeDescriptorSets[count].dstArrayElement = 0;
             writeDescriptorSets[count].descriptorCount = 1;
             writeDescriptorSets[count].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             writeDescriptorSets[count].pImageInfo = &descriptorImageInfos[count];
-            writeDescriptorSets[count].pBufferInfo = nullptr;//&descriptorbufferInfos[count];
+            writeDescriptorSets[count].pBufferInfo = nullptr;
             writeDescriptorSets[count].pTexelBufferView = nullptr;
+
+            ++count;
+
+            assert( count < BINDING_MAX);
         }
+    }
+
+    for (std::pair<ParameterStage , Resource::BufferInfo > pair : _uniformBuffers)
+    {
+        assert(UsageType::INVALID != pair.second.usageType);
+
+        descriptorbufferInfos[count].buffer = pair.second.uniformBuffer;
+        descriptorbufferInfos[count].offset = 0;
+        descriptorbufferInfos[count].range = pair.second.size;
+        
+        writeDescriptorSets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        writeDescriptorSets[count].pNext = nullptr;
+        writeDescriptorSets[count].dstSet = _descriptorSet;
+
+        writeDescriptorSets[count].dstBinding = _descriptorSetLayoutBindings[count].binding;
+        writeDescriptorSets[count].dstArrayElement = 0;
+        writeDescriptorSets[count].descriptorCount = 1;
+        writeDescriptorSets[count].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        writeDescriptorSets[count].pImageInfo = nullptr;
+        writeDescriptorSets[count].pBufferInfo = &descriptorbufferInfos[count];
+        writeDescriptorSets[count].pTexelBufferView = nullptr;
+
 
         ++count;
+        assert( count < BINDING_MAX);
     }
     
     vkUpdateDescriptorSets(_device->_device, count, writeDescriptorSets.data(), 0, nullptr);
@@ -204,27 +218,33 @@ void Material::createDescriptorSet()
 
 void Material::createDescriptorSetLayout()
 {
-    
-    VkDescriptorSetLayoutBinding descriptorSetLayoutBinding = {};
-   
     int count = 0;
-    for (std::pair<ParameterStage , Resource::BufferInfo > pair : _uniformBuffers)
+    //note: always go through the sampler buffers first, then the uniform buffers because
+    //the descriptor bindings will be set up this way.
+    for (std::pair<ParameterStage , Resource::BufferInfo > pair : _samplerBuffers)
     {
-
-        assert(BINDING_MAX > count);
-        
-        //this is the uniform buffer containing model/view/projection information
-        descriptorSetLayoutBinding.binding = static_cast<uint32_t>(count);
-        descriptorSetLayoutBinding.descriptorType = static_cast<VkDescriptorType>(pair.second.usageType);
-        descriptorSetLayoutBinding.descriptorCount = 1;
-        descriptorSetLayoutBinding.stageFlags = static_cast<VkShaderStageFlagBits>(pair.first);
-        descriptorSetLayoutBinding.pImmutableSamplers = nullptr;
-        
-        _descriptorSets[count] = descriptorSetLayoutBinding;
+        _descriptorSetLayoutBindings[count].binding = pair.second.binding;
+        _descriptorSetLayoutBindings[count].descriptorType = static_cast<VkDescriptorType>(pair.second.usageType);
+        _descriptorSetLayoutBindings[count].descriptorCount = 1;
+        _descriptorSetLayoutBindings[count].stageFlags = static_cast<VkShaderStageFlagBits>(pair.first);
+        _descriptorSetLayoutBindings[count].pImmutableSamplers = nullptr;
         
         ++count;
+        assert(BINDING_MAX > count);
     }
     
+    for (std::pair<ParameterStage , Resource::BufferInfo > pair : _uniformBuffers)
+    {
+        _descriptorSetLayoutBindings[count].binding = pair.second.binding;
+        _descriptorSetLayoutBindings[count].descriptorType = static_cast<VkDescriptorType>(pair.second.usageType);
+        _descriptorSetLayoutBindings[count].descriptorCount = 1;
+        _descriptorSetLayoutBindings[count].stageFlags = static_cast<VkShaderStageFlagBits>(pair.first);
+        _descriptorSetLayoutBindings[count].pImmutableSamplers = nullptr;
+        
+        ++count;
+        assert(BINDING_MAX > count);
+    }
+
     VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
     descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     descriptorSetLayoutCreateInfo.pNext = nullptr;
@@ -233,7 +253,7 @@ void Material::createDescriptorSetLayout()
     if(count)
     {
         descriptorSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(count);
-        descriptorSetLayoutCreateInfo.pBindings = _descriptorSets.data();
+        descriptorSetLayoutCreateInfo.pBindings = _descriptorSetLayoutBindings.data();
         VkResult result = vkCreateDescriptorSetLayout(_device->_device, &descriptorSetLayoutCreateInfo, nullptr, &_descriptorSetLayout);
         
         ASSERT_VULKAN(result);
@@ -246,6 +266,16 @@ void Material::createDescriptorPool()
     std::array<VkDescriptorPoolSize, BINDING_MAX> descriptorPoolSizes;
     
     int count = 0;
+    
+    for(std::pair<ParameterStage, Resource::BufferInfo > pair : _samplerBuffers)
+    {
+        descriptorPoolSizes[count].type = static_cast<VkDescriptorType>(pair.second.usageType);
+        descriptorPoolSizes[count].descriptorCount = 1;
+        
+        ++count;
+        assert(count < BINDING_MAX);
+    }
+    
     for (std::pair<ParameterStage , Resource::BufferInfo > pair : _uniformBuffers)
     {
         descriptorPoolSizes[count].type = static_cast<VkDescriptorType>(pair.second.usageType);
@@ -254,6 +284,8 @@ void Material::createDescriptorPool()
         ++count;
         assert(count < BINDING_MAX);
     }
+    
+
     
     if(count)
     {

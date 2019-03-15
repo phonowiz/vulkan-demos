@@ -15,31 +15,33 @@
 using namespace vk;
 
 
+const std::string Texture2D::textureResourcePath =  "/textures/";
 
-Texture::Texture(PhysicalDevice* device, uint32_t width, uint32_t height):
+Texture2D::Texture2D(PhysicalDevice* device, uint32_t width, uint32_t height):
 Image(device)
 {
+    createSampler();
     create(width, height);
 }
 
-Texture::Texture(PhysicalDevice* device,const char* path)
+Texture2D::Texture2D(PhysicalDevice* device,const char* path)
 :Image(device)
 {
-    _path = path;
-    
+    _path = Resource::resourceRoot + Texture2D::textureResourcePath + path;
+    createSampler();
     load();
     create( _width, _height);
 }
 
-void Texture::load( )
+void Texture2D::load( )
 {
     assert(_loaded !=true);
     int w = 0;
     int h = 0;
     int c = 0;
     
-    assert(_path != nullptr);
-    _ppixels = stbi_load(_path, &w,
+    assert(_path.empty() == false);
+    _ppixels = stbi_load(_path.c_str(), &w,
                          &h, &c, STBI_rgb_alpha);
     _width = static_cast<uint32_t>(w);
     _height = static_cast<uint32_t>(h);
@@ -49,45 +51,8 @@ void Texture::load( )
     _loaded = true;
 }
 
-void Texture::create(uint32_t width, uint32_t height)
+void Texture2D::createSampler()
 {
-    VkDeviceSize imageSize = getSizeInBytes();
-    
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
-    
-
-    createBuffer(_device->_device, _device->_physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                 stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferMemory);
-    
-    if(_loaded)
-    {
-        void *data = nullptr;
-        vkMapMemory(_device->_device, stagingBufferMemory, 0, imageSize, 0, &data);
-        memcpy(data, getRaw(), imageSize);
-        vkUnmapMemory(_device->_device, stagingBufferMemory);
-    }
-    
-    createImage(_width,
-                _height,
-                static_cast<VkFormat>(_format),
-                VK_IMAGE_TILING_OPTIMAL,
-                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    
-    
-    changeImageLayout(_device->_commandPool, _device->_graphicsQueue, _image, static_cast<VkFormat>(_format),
-                      VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    writeBufferToImage(_device->_commandPool, _device->_graphicsQueue, stagingBuffer);
-    
-    changeImageLayout(_device->_commandPool, _device->_graphicsQueue, _image, static_cast<VkFormat>(_format),
-                      VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    
-    vkDestroyBuffer(_device->_device, stagingBuffer, nullptr);
-    vkFreeMemory(_device->_device, stagingBufferMemory, nullptr);
-    
-    createImageView(_image, static_cast<VkFormat>(_format), VK_IMAGE_ASPECT_COLOR_BIT, _imageView);
-    
     VkSamplerCreateInfo samplerCreateInfo;
     
     samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -111,9 +76,54 @@ void Texture::create(uint32_t width, uint32_t height)
     
     VkResult result = vkCreateSampler(_device->_device, &samplerCreateInfo, nullptr, &_sampler);
     ASSERT_VULKAN(result);
+}
+void Texture2D::create(uint32_t width, uint32_t height)
+{
+    
+    _width = width;
+    _height = height;
+    VkDeviceSize imageSize = getSizeInBytes();
+
+
+    VkBuffer stagingBuffer;
+    VkDeviceMemory stagingBufferMemory;
+    
+    
+    createBuffer(_device->_device, _device->_physicalDevice, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                 stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferMemory);
+    
+    if(_loaded)
+    {
+        void *data = nullptr;
+        vkMapMemory(_device->_device, stagingBufferMemory, 0, imageSize, 0, &data);
+        memcpy(data, getRaw(), imageSize);
+        vkUnmapMemory(_device->_device, stagingBufferMemory);
+    }
+    
+    createImage(_width,
+                _height,
+                static_cast<VkFormat>(_format),
+                VK_IMAGE_TILING_OPTIMAL,
+                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    
+
+    changeImageLayout(_device->_commandPool, _device->_graphicsQueue, _image, static_cast<VkFormat>(_format),
+                      VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    writeBufferToImage(_device->_commandPool, _device->_graphicsQueue, stagingBuffer);
+    
+    changeImageLayout(_device->_commandPool, _device->_graphicsQueue, _image, static_cast<VkFormat>(_format),
+                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    
+
+    
+    vkDestroyBuffer(_device->_device, stagingBuffer, nullptr);
+    vkFreeMemory(_device->_device, stagingBufferMemory, nullptr);
+    
+    createImageView(_image, static_cast<VkFormat>(_format), VK_IMAGE_ASPECT_COLOR_BIT, _imageView);
     _uploaded = true;
 }
-void Texture::destroy()
+void Texture2D::destroy()
 {
     if(_loaded)
     {

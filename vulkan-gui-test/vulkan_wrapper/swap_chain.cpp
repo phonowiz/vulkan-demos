@@ -152,12 +152,8 @@ void SwapChain::createSwapChain()
         throw std::runtime_error("failed to create swap chain!");
     }
     
-//    vkGetSwapchainImagesKHR(_physicalDevice->_device, _swapChainData.swapChain, &imageCount, nullptr);
-//    _swapChainData.swapChainImages.resize(imageCount);
-//    vkGetSwapchainImagesKHR(_physicalDevice->_device, _swapChainData.swapChain, &imageCount, _swapChainData.swapChainImages.data());
     _swapChainData.imageSet.init(_physicalDevice, _swapChainData.swapChain);
     _swapChainData.imageSet.createImageSet();
-    //_swapChainData.swapChainImageFormat = getSurfaceFormat().format; //surfaceFormat.format;
     _swapChainData.swapChainExtent = extent;
 }
 
@@ -173,27 +169,7 @@ void SwapChain::createSurface()
 //todo: this function should be part of swapchain
 void SwapChain::createImageViews()
 {
-    //todo: get rid of <vector>
-    
     _swapChainData.imageSet.createImageViews( getSurfaceFormat().format );
-//    _swapChainData.swapChainImageViews.resize(_swapChainData.swapChainImages.size());
-//
-//    for (size_t i = 0; i < _swapChainData.swapChainImages.size(); i++)
-//    {
-//        //assert(0);
-//        //todo: function below belongs in a texture
-//        //createImageView(device, swapChainData.swapChainImages[i], swapChainData.swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT, swapChainData.swapChainImageViews[i]);
-//
-//
-//        //_swapChainData.presentTextures.push_back(Texture(_physicalDevice, _swapChainData.swapChainExtent.width, _swapChainData.swapChainExtent.height));
-//        //_swapChainData.presentTextures[i].setDevice(_physicalDevice);
-//        //_swapChainData.presentTextures[i].create(_swapChainData.swapChainExtent.width, _swapChainData.swapChainExtent.height);
-//
-//        //todo: this should be an array
-//        _//swapChainData.swapChainImages.push_back(_swapChainData.presentTextures[i].getImage());
-//        //todo: we only need one depth image for the demo, but there are uses for having more than one depth image
-//        break;
-//    }
 }
 
 void SwapChain::printStats()
@@ -280,28 +256,12 @@ void SwapChain::recreateSwapChain( VkRenderPass renderPass)
 {
     _physicalDevice->waitForllOperationsToFinish();
     
-    //    vkDestroySemaphore(device, semaphoreImageAvailable, nullptr);
-    //    vkDestroySemaphore(device, semaphoreRenderingDone, nullptr);
-    
-    //TODO: I THINK THESE ARE IN THE RENDER CLASS
-    //_depthImage.destroy();
-    //vkFreeCommandBuffers(device, commandPool, swapChainData.swapChainImages.size(), commandBuffers);
-    
-    
     _depthImage.destroy();
     
     for (size_t i = 0; i < _swapChainData.swapChainFramebuffers.size(); i++)
     {
         vkDestroyFramebuffer(_physicalDevice->_device, _swapChainData.swapChainFramebuffers[i], nullptr);
     }
-    
-    //TODO: THSE ARE IN RENDER CLASS
-    //vkDestroyRenderPass(device, renderPass, nullptr);
-    
-//    for (int i = 0; i < _swapChainData.swapChainImageViews.size(); i++)
-//    {
-//        vkDestroyImageView(_physicalDevice->_device, _swapChainData.swapChainImageViews[i], nullptr);
-//    }
     
     VkSwapchainKHR oldSwapchain = _swapChainData.swapChain;
 
@@ -310,19 +270,7 @@ void SwapChain::recreateSwapChain( VkRenderPass renderPass)
     createDepthImage();
     createFrameBuffers(renderPass);
 
-    //todo: what if oldSwaphchain is null, does it matter?
     vkDestroySwapchainKHR(_physicalDevice->_device, oldSwapchain, nullptr);
-    
-    //TODO: THESE ARE IN RENDER CLASS
-    //createRenderPass();
-    //createDepthImage();
-    //createFrameBuffers(swapChainData);
-    //createCommandPool();
-    //createCommandBuffers(swapChainData);
-    
-    //render targets will need to record their command buffers again.
-    //recordCommandBuffers();
-    //createSemaphores(swapChainData);
 }
 
 VkAttachmentDescription SwapChain::getDepthAttachment()

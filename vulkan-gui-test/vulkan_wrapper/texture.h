@@ -17,20 +17,20 @@
 #include "stb_image.h"
 namespace vk
 {
-    class Texture : public Image
+    class Texture2D : public Image
     {
     public:
     
-        Texture(){};
-        Texture(PhysicalDevice* device, uint32_t width, uint32_t height);
-        Texture(PhysicalDevice* device,const char* path = nullptr);
+        Texture2D(){};
+        Texture2D(PhysicalDevice* device, uint32_t width, uint32_t height);
+        Texture2D(PhysicalDevice* device,const char* path = nullptr);
         
         enum class Formats
         {
             RGBA = VK_FORMAT_R8G8B8A8_UNORM
         };
 
-        virtual void create( uint32_t width, uint32_t height) ;
+        virtual void create( uint32_t width, uint32_t height) override;
         virtual void destroy() override;
         
         stbi_uc * getRaw()
@@ -54,8 +54,11 @@ namespace vk
             return getWidth() * getHeight() * getChannels();
         }
         
-        void load( );
+        void load();
+        void createSampler();
+        void setSampler(PhysicalDevice* device){ }
         
+        static const std::string textureResourcePath;
     private:
         
         bool _loaded = false;
@@ -63,12 +66,12 @@ namespace vk
         
         stbi_uc *_ppixels = nullptr;
         VkSampler _sampler = VK_NULL_HANDLE;
-        const char* _path = nullptr;
+        std::string _path;
         
         //TODO: we only support 4 channels at the moment
         uint32_t _channels = 4;
         //TODO: we only support RGBA
-        Texture::Formats _format = Texture::Formats::RGBA;
+        Texture2D::Formats _format = Texture2D::Formats::RGBA;
     };
 }
 

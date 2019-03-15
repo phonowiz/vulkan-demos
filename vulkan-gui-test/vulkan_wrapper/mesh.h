@@ -26,7 +26,7 @@ namespace vk
     
     class Mesh : Resource
     {
-    private:
+    protected:
         std::vector<Vertex>   _vertices;
         std::vector<uint32_t> _indices;
         PhysicalDevice* _device = nullptr;
@@ -36,6 +36,8 @@ namespace vk
         VkBuffer        _indexBuffer = VK_NULL_HANDLE;
         VkDeviceMemory  _indexBufferDeviceMemory = VK_NULL_HANDLE;
         
+    protected:
+        Mesh(){};
     public:
         
         Mesh(const char* path, PhysicalDevice* device)
@@ -51,8 +53,6 @@ namespace vk
         inline void createAndUploadBuffer( VkCommandPool commandPool,
                                           std::vector<T>& data, VkBufferUsageFlags usage, VkBuffer &buffer, VkDeviceMemory &deviceMemory);
         
-//        void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize deviceSize, VkBufferUsageFlags bufferUsageFlags, VkBuffer &buffer,
-//                          VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceMemory &deviceMemory);
         
         static const std::string meshResourcePath;
         
@@ -60,12 +60,12 @@ namespace vk
         void draw(VkCommandBuffer commandBuffer, VkPipelineLayout pilineLayout, MaterialSharedPtr material);
         
         //public
-        void allocateGPUMemory(VkCommandPool commandPool);
+        void allocateGPUMemory();
         virtual void destroy() override;
         
         //private
-        void createVertexBuffer(VkCommandPool commandPool);
-        void createIndexBuffer(VkCommandPool commandPool);
+        void createVertexBuffer();
+        void createIndexBuffer();
         
         std::vector<Vertex>& getVertices()
         {

@@ -16,6 +16,8 @@
 #include <glm/gtx/hash.hpp>
 #include "vulkan_utils.h"
 
+
+//todo: make a copy of this class in vk namespace
 class Vertex {
 public:
     glm::vec3 pos;
