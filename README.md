@@ -11,6 +11,7 @@ This code is not very organized as of now, there is still lots of code moving al
 ```c++
 vk::PhysicalDevice device;
 
+//the surface is OS dependendent, so the client has to come up with a way to create it. 
 createSurface(device._instance, window, surface);
 
 device.createLogicalDevice(surface);
@@ -34,9 +35,13 @@ vk::Renderer renderer(&device,window, &swapChain, standardMat);
 renderer.addMesh(&mesh);
 renderer.init();
 
+//once all the assets have been created and renderer initialized, the client runs the game loop
 gameLoop(renderer);
 
 device.waitForllOperationsToFinish();
+
+//destruction has to happen in a certain order, therefore we manually do it to make sure it happens
+//the right way. 
 swapChain.destroy();
 materialStore.destroy();
 mesh.destroy();
