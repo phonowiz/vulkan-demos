@@ -27,8 +27,6 @@ vk::Mesh mesh( "dragon.obj", &device );
 vk::plane plane(&device);
 plane.create();
 
-//run this function to force intialization of parameters, this is necessary for when we
-//init the renderer
 vk::Texture2D mario(&device, "mario.png");
 
 vk::Renderer renderer(&device,window, &swapChain, standardMat);
@@ -51,5 +49,5 @@ The naming style is still not consistent, but you get the idea.  Here is a scree
 
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/dragon.png">
 
-At 1024x768 resolution and about 800,000 polygons, this sample app can run at around 150 frames a second, more than twice is fast as what OpenGL can do on my MacBook Pro with the same scene.  That is amazing! 
+At 1024x768 resolution and about 800,000 polygons, this sample app can run at around 150 frames a second, more than twice as fast as what OpenGL can do on my MacBook Pro 2015 with the same scene.  That is amazing! 
 
