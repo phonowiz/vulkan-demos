@@ -29,7 +29,7 @@
 		B96B782021E070DD0089A2F7 /* textures in Resources */ = {isa = PBXBuildFile; fileRef = B96B781F21E070DC0089A2F7 /* textures */; };
 		B976F9BA222A723200CD2F78 /* libMoltenVK.dylib in Resources */ = {isa = PBXBuildFile; fileRef = B976F9B9222A723200CD2F78 /* libMoltenVK.dylib */; };
 		B976F9BB222A731800CD2F78 /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B976F9B9222A723200CD2F78 /* libMoltenVK.dylib */; };
-		B984C7FC2238CD18002327DE /* plane.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B984C7FA2238CD18002327DE /* plane.cpp */; };
+		B984C7FC2238CD18002327DE /* display_plane.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B984C7FA2238CD18002327DE /* display_plane.cpp */; };
 		B9C7CD99222E482000AA173A /* object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9C7CD97222E482000AA173A /* object.cpp */; };
 		B9CD5A472202CB01006D4C39 /* models in Resources */ = {isa = PBXBuildFile; fileRef = B9CD5A462202CB01006D4C39 /* models */; };
 		B9E1EED12213F341006DBA67 /* material_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9E1EECF2213F341006DBA67 /* material_store.cpp */; };
@@ -85,8 +85,8 @@
 		B94E2958221BB490005859E8 /* Mesh.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Mesh.h; sourceTree = "<group>"; };
 		B96B781F21E070DC0089A2F7 /* textures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = textures; path = "vulkan-gui-test/textures"; sourceTree = "<group>"; };
 		B976F9B9222A723200CD2F78 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = "vulkan-gui-test/vulkansdk-macos-1.1.85.0/MoltenVK/macOS/libMoltenVK.dylib"; sourceTree = "<group>"; };
-		B984C7FA2238CD18002327DE /* plane.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = plane.cpp; sourceTree = "<group>"; };
-		B984C7FB2238CD18002327DE /* plane.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = plane.h; sourceTree = "<group>"; };
+		B984C7FA2238CD18002327DE /* display_plane.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = display_plane.cpp; sourceTree = "<group>"; };
+		B984C7FB2238CD18002327DE /* display_plane.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = display_plane.h; sourceTree = "<group>"; };
 		B9A4AF7B21FC0C5B006F398D /* depth_image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = depth_image.h; sourceTree = "<group>"; };
 		B9C7CD97222E482000AA173A /* object.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = object.cpp; sourceTree = "<group>"; };
 		B9C7CD98222E482000AA173A /* object.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = object.h; sourceTree = "<group>"; };
@@ -271,8 +271,8 @@
 		B9E92BC9220D4A990060F755 /* vulkan_wrapper */ = {
 			isa = PBXGroup;
 			children = (
-				B984C7FA2238CD18002327DE /* plane.cpp */,
-				B984C7FB2238CD18002327DE /* plane.h */,
+				B984C7FA2238CD18002327DE /* display_plane.cpp */,
+				B984C7FB2238CD18002327DE /* display_plane.h */,
 				B9384E782202198100565024 /* mesh.h */,
 				B924E0B62211E7C500157385 /* mesh.cpp */,
 				B9E92BCA220D4AD20060F755 /* swap_chain.cpp */,
@@ -395,7 +395,7 @@
 				B9C7CD99222E482000AA173A /* object.cpp in Sources */,
 				B938D17421953FC1004F759E /* util.cpp in Sources */,
 				B9384E75220171E500565024 /* main.mm in Sources */,
-				B984C7FC2238CD18002327DE /* plane.cpp in Sources */,
+				B984C7FC2238CD18002327DE /* display_plane.cpp in Sources */,
 				B9E1EED42213F6B0006DBA67 /* shader.cpp in Sources */,
 				B9E92BD8221114D00060F755 /* texture.cpp in Sources */,
 				B91D19932228BBD7007CA202 /* swapchain_image_set.cpp in Sources */,

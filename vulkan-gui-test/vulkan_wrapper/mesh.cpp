@@ -92,37 +92,6 @@ void Mesh::createAndUploadBuffer(VkCommandPool commandPool,
     
 }
 
-//void Mesh::createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize deviceSize, VkBufferUsageFlags bufferUsageFlags, VkBuffer &buffer,
-//                  VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceMemory &deviceMemory)
-//{
-//    VkBufferCreateInfo bufferCreateInfo;
-//
-//    bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-//    bufferCreateInfo.pNext = nullptr;
-//    bufferCreateInfo.flags = 0;
-//    bufferCreateInfo.size = deviceSize;
-//    bufferCreateInfo.usage = bufferUsageFlags;
-//    bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-//    bufferCreateInfo.queueFamilyIndexCount = 0;
-//    bufferCreateInfo.pQueueFamilyIndices = nullptr;
-//
-//    VkResult result = vkCreateBuffer(device, &bufferCreateInfo, nullptr, &buffer);
-//    ASSERT_VULKAN(result);
-//    VkMemoryRequirements memoryRequirements;
-//    vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
-//
-//    VkMemoryAllocateInfo memoryAllocateInfo;
-//    memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-//    memoryAllocateInfo.pNext = nullptr;
-//    memoryAllocateInfo.allocationSize = memoryRequirements.size;
-//    memoryAllocateInfo.memoryTypeIndex = findMemoryTypeIndex(physicalDevice,memoryRequirements.memoryTypeBits, memoryPropertyFlags);
-//
-//    result = vkAllocateMemory(device, &memoryAllocateInfo, nullptr, &deviceMemory);
-//    ASSERT_VULKAN(result);
-//    vkBindBufferMemory(device, buffer, deviceMemory, 0);
-//
-//}
-
 void Mesh::draw(VkCommandBuffer commandBuffer, VkPipelineLayout pipelineLayout, MaterialSharedPtr material)
 {
     VkDeviceSize offsets[] = { 0 };

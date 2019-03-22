@@ -13,10 +13,10 @@
 
 namespace vk
 {
-    class plane : private Mesh
+    class display_plane : public Mesh
     {
     public:
-        plane(PhysicalDevice* device)
+        display_plane(PhysicalDevice* device)
         {
             _device = device;
         }
@@ -24,5 +24,8 @@ namespace vk
         using Mesh::allocateGPUMemory;
         using Mesh::destroy;
         void create();
+        
+    private:
+        //todo: a lot of the mesh functions don't apply to this class, we'll need to make them private
     };
 }

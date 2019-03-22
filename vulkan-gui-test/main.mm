@@ -813,16 +813,13 @@ void shutdownGlfw() {
 #include "vulkan_wrapper/swap_chain.h"
 #include "vulkan_wrapper/material_store.h"
 #include "vulkan_wrapper/mesh.h"
-#include "vulkan_wrapper/plane.h"
+#include "vulkan_wrapper/display_plane.h"
 
 
 vk::MaterialSharedPtr standardMat;
-vk::Texture2D* texture = nullptr;
+vk::MaterialSharedPtr displayMat;
 
-void upldateWithOrtho()
-{
-    //make ortho projection based on window size
-}
+vk::Texture2D* texture = nullptr;
 
 void updateMVP2()
 {
@@ -893,9 +890,6 @@ struct App
     vk::SwapChain* swapchain = nullptr;
     vk::PhysicalDevice* physical_device = nullptr;
     vk::Renderer* renderer = nullptr;
-    
-
-    
 };
 
 
@@ -917,12 +911,38 @@ void onWindowResized2(GLFWwindow * window, int w, int h)
         
         width = w;
         height = h;
-        //recreateSwapchain(device);
         app.renderer->recreateRenderer();
         
     }
 }
 
+
+
+void updateWithOrtho()
+{
+
+    vk::ShaderParameter::ShaderParamsGroup& vertexParams = displayMat->getUniformParameters(vk::Material::ParameterStage::VERTEX, 0);
+    vertexParams["width"] = width;
+    vertexParams["height"] = height;
+    
+    
+    displayMat->setImageSampler(texture, "tex", vk::Material::ParameterStage::FRAGMENT, 1);
+    
+    displayMat->commitParametersToGPU();
+    
+}
+
+void gameLoop3(vk::Renderer &renderer)
+{
+    int i = 0;
+    while (!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
+        //updateMVP2();
+        updateWithOrtho();
+        renderer.draw();
+        ++i;
+    }
+}
 
 int main()
 {
@@ -954,34 +974,32 @@ int main()
         materialStore.createStore(&device);
         
         standardMat = materialStore.GET_MAT<vk::Material>("standard");
+        displayMat = materialStore.GET_MAT<vk::Material>("display");
         //vk::Texture texture(&device, "mario.png");
         
         vk::Mesh mesh( "dragon.obj", &device );
         
-        vk::plane plane(&device);
+        vk::display_plane plane(&device);
         plane.create();
         
         //run this function to force intialization of parameters, this is necessary for when we
         //init the renderer
-        vk::Texture2D empty(&device, 0,0);
-        //vk::Texture2D mario(&device, "mario.png");
-        texture = &empty;
-        updateMVP2();
-        vk::Renderer renderer(&device,window, &swapChain, standardMat);
+        vk::Texture2D mario(&device, "mario.png");
+        texture = &mario;
+        //updateMVP2();
         
-        renderer.addMesh(&mesh);
+        updateWithOrtho();
+        vk::Renderer renderer(&device,window, &swapChain, displayMat);
+        
+        renderer.addMesh(&plane);
         renderer.init();
         
-
-        
-    
         app.physical_device = &device;
         app.swapchain = &swapChain;
         app.renderer = &renderer;
         
-
-        
-        gameLoop2(renderer);
+        //gameLoop2(renderer);
+        gameLoop3(renderer);
         
         device.waitForllOperationsToFinish();
         swapChain.destroy();

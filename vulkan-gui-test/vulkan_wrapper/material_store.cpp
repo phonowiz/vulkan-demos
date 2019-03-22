@@ -28,8 +28,14 @@ void MaterialStore::createStore(PhysicalDevice* device)
     ShaderSharedPtr standardVert = AddShader( "triangle.vert", Shader::ShaderType::VERTEX );
     ShaderSharedPtr standardFrag = AddShader( "triangle.frag", Shader::ShaderType::FRAGMENT);
     
+    ShaderSharedPtr displayVert = AddShader("display_plane.vert", Shader::ShaderType::VERTEX);
+    ShaderSharedPtr displayFrag = AddShader("display_plane.frag", Shader::ShaderType::FRAGMENT);
+    
     MaterialSharedPtr standardMat = CREATE_MAT<Material>("standard", standardVert, standardFrag, device);
     AddMaterial(standardMat);
+    
+    MaterialSharedPtr displayMat = CREATE_MAT<Material>("display", displayVert, displayFrag, device);
+    AddMaterial(displayMat);
 }
 
 void MaterialStore::AddMaterial( MaterialSharedPtr material)

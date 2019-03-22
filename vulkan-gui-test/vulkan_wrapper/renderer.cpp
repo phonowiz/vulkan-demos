@@ -306,7 +306,8 @@ void Renderer::createPipeline()
     rasterizationCreateInfo.depthClampEnable = VK_FALSE;
     rasterizationCreateInfo.rasterizerDiscardEnable = VK_FALSE;
     rasterizationCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterizationCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+    //rasterizationCreateInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+    rasterizationCreateInfo.cullMode = VK_CULL_MODE_NONE;//VK_CULL_MODE_BACK_BIT;
     rasterizationCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizationCreateInfo.depthBiasEnable = VK_FALSE;
     rasterizationCreateInfo.depthBiasConstantFactor = 0.0f;
