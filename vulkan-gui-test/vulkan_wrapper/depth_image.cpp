@@ -14,7 +14,7 @@ void depth_image::create(uint32_t width, uint32_t height)
 {
     assert(!_created);
     
-    VkFormat depthFormat = _device->findDepthFormat( );
+    VkFormat depthFormat = _device->find_depth_format( );
     
     _width = width;
     _height = height;
@@ -51,7 +51,7 @@ VkAttachmentDescription depth_image::getDepthAttachment()
     VkAttachmentDescription depthAttachment = {};
     
     depthAttachment.flags = 0;
-    depthAttachment.format =_device->findDepthFormat();
+    depthAttachment.format =_device->find_depth_format();
     depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;

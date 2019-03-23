@@ -189,7 +189,7 @@ int main()
     VkResult res = glfwCreateWindowSurface(device._instance, window, nullptr, &surface);
     assert(res == VK_SUCCESS);
     
-    device.createLogicalDevice(surface);
+    device.create_logical_device(surface);
     
     vk::swapchain swapChain(&device, window);
     vk::material_store materialStore;
@@ -223,7 +223,7 @@ int main()
     gameLoop2(renderer);
     //gameLoop3(renderer);
     
-    device.waitForllOperationsToFinish();
+    device.wait_for_all_operations_to_finish();
     swapChain.destroy();
     materialStore.destroy();
     mesh.destroy();

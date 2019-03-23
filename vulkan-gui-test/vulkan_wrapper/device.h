@@ -25,23 +25,23 @@ namespace vk {
     {
     public:
         
-        struct QueueFamilyIndices {
-            std::optional<uint32_t> graphicsFamily;
-            std::optional<uint32_t> presentFamily;
+        struct queue_family_indices {
+            std::optional<uint32_t> graphics_family;
+            std::optional<uint32_t> present_family;
             
-            bool isComplete() {
-                return graphicsFamily.has_value() && presentFamily.has_value();
+            bool is_complete() {
+                return graphics_family.has_value() && present_family.has_value();
             }
         };
         
-        struct SwapChainSupportDetails {
+        struct swapchain_support_details {
             VkSurfaceCapabilitiesKHR capabilities;
             std::vector<VkSurfaceFormatKHR> formats;
             std::vector<VkPresentModeKHR> presentModes;
         };
         
-        void createLogicalDevice(VkSurfaceKHR surface);
-        QueueFamilyIndices findQueueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface);
+        void create_logical_device(VkSurfaceKHR surface);
+        queue_family_indices findQueueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface);
         
         
 #ifndef __APPLE__
@@ -50,35 +50,35 @@ namespace vk {
         const bool enableValidationLayers = false;
 #endif
         
-        const std::vector<const char*> deviceExtensions = {
+        const std::vector<const char*> device_extensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME
         };
         
-        bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+        bool check_device_extension_support(VkPhysicalDevice device);
         
         //todo: there should be another version of this function which doesn't take a device argument and queries the chosen physical devie
-        void querySwapChainSupport( VkPhysicalDevice device, VkSurfaceKHR surface, SwapChainSupportDetails& swapChainSupportDetails);
-        void createInstance();
-        void printStats();
-        void printInstanceLayers();
-        void printInstanceExtensions();
-        VkFormat findDepthFormat();
-        bool isDeviceSuitable( VkPhysicalDevice device, VkSurfaceKHR surface);
+        void query_swapchain_support( VkPhysicalDevice device, VkSurfaceKHR surface, swapchain_support_details& swapChainSupportDetails);
+        void create_instance();
+        void print_stats();
+        void print_instance_layers();
+        void print_instance_extensions();
+        VkFormat find_depth_format();
+        bool is_device_suitable( VkPhysicalDevice device, VkSurfaceKHR surface);
         
-        VkFormat findSupportedFormat( const std::vector<VkFormat>& formats,
+        VkFormat find_support_format( const std::vector<VkFormat>& formats,
                                      VkImageTiling tiling, VkFormatFeatureFlags featureFlags);
         
-        bool isFormatSupported( VkFormat format,
+        bool is_format_supported( VkFormat format,
                                VkImageTiling tiling, VkFormatFeatureFlags featureFlags);
         
-        void pickPhysicalDevice(VkSurfaceKHR surface);
+        void pick_physical_device(VkSurfaceKHR surface);
         
-        VkCommandBuffer startSingleTimeCommandBuffer( VkCommandPool commandPool);
-        void endSingleTimeCommandBuffer(VkQueue queue, VkCommandPool commandPool, VkCommandBuffer commandBuffer);
+        VkCommandBuffer start_single_time_command_buffer( VkCommandPool commandPool);
+        void end_single_time_command_buffer(VkQueue queue, VkCommandPool commandPool, VkCommandBuffer commandBuffer);
         
-        void copyBuffer( VkCommandPool commandPool, VkQueue queue, VkBuffer src, VkBuffer dest, VkDeviceSize size);
-        void createCommnadPool(uint32_t queueIndex);
-        void waitForllOperationsToFinish();
+        void copy_buffer( VkCommandPool commandPool, VkQueue queue, VkBuffer src, VkBuffer dest, VkDeviceSize size);
+        void create_command_pool(uint32_t queueIndex);
+        void wait_for_all_operations_to_finish();
         
         virtual void destroy() override;
         device();
@@ -94,6 +94,4 @@ namespace vk {
     private:
         
     };
-    
-    using PhysicalDeviceSharedPtr = std::shared_ptr<device>;
 }

@@ -50,7 +50,7 @@ namespace vk
         swapchain(device* physicalDevice, GLFWwindow* window);
         
         void setPhysicalDevice(device* physicalDevice){ _physicalDevice = physicalDevice; }
-        void getSwapchainSupportDetails(device::SwapChainSupportDetails& details);
+        void getSwapchainSupportDetails(device::swapchain_support_details& details);
         VkSurfaceFormatKHR getSurfaceFormat();
         void printStats();
         
@@ -65,7 +65,7 @@ namespace vk
         VkPresentModeKHR    chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
         VkExtent2D          chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow& window);
         void                createSwapChain( );
-        void                querySwapChainSupport( device::SwapChainSupportDetails& );
+        void                querySwapChainSupport( device::swapchain_support_details& );
         void                createSurface( );
         void                createImageViews();
         void                destroySwapChain();

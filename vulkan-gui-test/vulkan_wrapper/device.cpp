@@ -26,16 +26,16 @@ using namespace vk;
 
 device::device()
 {
-    createInstance();
+    create_instance();
 }
 
-void device::createLogicalDevice( VkSurfaceKHR surface)
+void device::create_logical_device( VkSurfaceKHR surface)
 {
-    pickPhysicalDevice(surface);
-    device::QueueFamilyIndices indices = findQueueFamilies(_physical_device, surface);
+    pick_physical_device(surface);
+    device::queue_family_indices indices = findQueueFamilies(_physical_device, surface);
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+    std::set<uint32_t> uniqueQueueFamilies = {indices.graphics_family.value(), indices.present_family.value()};
 
     float queuePriority = 1.0f;
     for (uint32_t queueFamily : uniqueQueueFamilies) {
@@ -58,8 +58,8 @@ void device::createLogicalDevice( VkSurfaceKHR surface)
 
     createInfo.pEnabledFeatures = &deviceFeatures;
 
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(device::deviceExtensions.size());
-    createInfo.ppEnabledExtensionNames = device::deviceExtensions.data();
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(device::device_extensions.size());
+    createInfo.ppEnabledExtensionNames = device::device_extensions.data();
 
     if (device::enableValidationLayers)
     {
@@ -77,14 +77,14 @@ void device::createLogicalDevice( VkSurfaceKHR surface)
         throw std::runtime_error("failed to create logical device!");
     }
 
-    vkGetDeviceQueue(_logical_device, indices.graphicsFamily.value(), 0, &_graphics_queue);
-    vkGetDeviceQueue(_logical_device, indices.presentFamily.value(), 0, &_presentQueue);
+    vkGetDeviceQueue(_logical_device, indices.graphics_family.value(), 0, &_graphics_queue);
+    vkGetDeviceQueue(_logical_device, indices.present_family.value(), 0, &_presentQueue);
     
-    createCommnadPool(0);
+    create_command_pool(0);
 }
 
-device::QueueFamilyIndices device::findQueueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface) {
-    device::QueueFamilyIndices indices;
+device::queue_family_indices device::findQueueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface) {
+    device::queue_family_indices indices;
     
     uint32_t queueFamilyCount = 0;
     
@@ -97,17 +97,17 @@ device::QueueFamilyIndices device::findQueueFamilies( VkPhysicalDevice device, V
     int i = 0;
     for (const auto& queueFamily : queueFamilies) {
         if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            indices.graphicsFamily = i;
+            indices.graphics_family = i;
         }
         
         VkBool32 presentSupport = false;
         vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
         
         if (queueFamily.queueCount > 0 && presentSupport) {
-            indices.presentFamily = i;
+            indices.present_family = i;
         }
         
-        if (indices.isComplete()) {
+        if (indices.is_complete()) {
             break;
         }
         
@@ -117,7 +117,7 @@ device::QueueFamilyIndices device::findQueueFamilies( VkPhysicalDevice device, V
     return indices;
 }
 
-bool device::checkDeviceExtensionSupport(VkPhysicalDevice device)
+bool device::check_device_extension_support(VkPhysicalDevice device)
 {
     
     uint32_t extensionCount;
@@ -126,7 +126,7 @@ bool device::checkDeviceExtensionSupport(VkPhysicalDevice device)
     std::vector<VkExtensionProperties> availableExtensions(extensionCount);
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
     
-    std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+    std::set<std::string> requiredExtensions(device_extensions.begin(), device_extensions.end());
     
     for (const VkExtensionProperties& extension : availableExtensions)
     {
@@ -136,7 +136,7 @@ bool device::checkDeviceExtensionSupport(VkPhysicalDevice device)
     return requiredExtensions.empty();
 }
 
-void device::querySwapChainSupport( VkPhysicalDevice device, VkSurfaceKHR surface, device::SwapChainSupportDetails& details)
+void device::query_swapchain_support( VkPhysicalDevice device, VkSurfaceKHR surface, device::swapchain_support_details& details)
 {
     
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
@@ -159,7 +159,7 @@ void device::querySwapChainSupport( VkPhysicalDevice device, VkSurfaceKHR surfac
     }
 }
 
-void device::printStats()
+void device::print_stats()
 {
     VkPhysicalDeviceProperties properties;
     vkGetPhysicalDeviceProperties(_physical_device, &properties);
@@ -206,7 +206,7 @@ void device::printStats()
     std::cout << std::endl;
     delete[] familyProperties;
 }
-void device::createInstance()
+void device::create_instance()
 {
     VkApplicationInfo appInfo;
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -245,7 +245,7 @@ void device::createInstance()
 }
 
 //vulkan renderer
-void device::printInstanceLayers()
+void device::print_instance_layers()
 {
     uint32_t amountOfLayers = 0;
     vkEnumerateInstanceLayerProperties(&amountOfLayers, nullptr);
@@ -264,7 +264,7 @@ void device::printInstanceLayers()
 }
 
 //vulkan renderer
-void device::printInstanceExtensions()
+void device::print_instance_extensions()
 {
     uint32_t amountOfExtensions = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &amountOfExtensions, nullptr);
@@ -282,7 +282,7 @@ void device::printInstanceExtensions()
     delete[] extensions;
 }
 
-bool device::isFormatSupported( VkFormat format,
+bool device::is_format_supported( VkFormat format,
                                        VkImageTiling tiling, VkFormatFeatureFlags featureFlags)
 {
     VkFormatProperties formatProperties;
@@ -302,12 +302,12 @@ bool device::isFormatSupported( VkFormat format,
     
 }
 
-VkFormat device::findSupportedFormat(const std::vector<VkFormat>& formats,
+VkFormat device::find_support_format(const std::vector<VkFormat>& formats,
                                     VkImageTiling tiling, VkFormatFeatureFlags featureFlags)
 {
     for( VkFormat format : formats)
     {
-        if(isFormatSupported( format, tiling, featureFlags))
+        if(is_format_supported( format, tiling, featureFlags))
         {
             return format;
         }
@@ -318,7 +318,7 @@ VkFormat device::findSupportedFormat(const std::vector<VkFormat>& formats,
 
 
 //vulkan command
-VkCommandBuffer device::startSingleTimeCommandBuffer( VkCommandPool commandPool)
+VkCommandBuffer device::start_single_time_command_buffer( VkCommandPool commandPool)
 {
     VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -344,7 +344,7 @@ VkCommandBuffer device::startSingleTimeCommandBuffer( VkCommandPool commandPool)
     
 }
 
-void device::createCommnadPool(uint32_t queueIndex)
+void device::create_command_pool(uint32_t queueIndex)
 {
     VkCommandPoolCreateInfo commandPoolCreateInfo;
     commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -358,7 +358,7 @@ void device::createCommnadPool(uint32_t queueIndex)
 
 
 //vulkan command
-void device::endSingleTimeCommandBuffer( VkQueue queue, VkCommandPool commandPool, VkCommandBuffer commandBuffer)
+void device::end_single_time_command_buffer( VkQueue queue, VkCommandPool commandPool, VkCommandBuffer commandBuffer)
 {
     VkResult result = vkEndCommandBuffer(commandBuffer);
     ASSERT_VULKAN(result);
@@ -382,7 +382,7 @@ void device::endSingleTimeCommandBuffer( VkQueue queue, VkCommandPool commandPoo
     vkFreeCommandBuffers(_logical_device, commandPool, 1, &commandBuffer);
 }
 
-VkFormat device::findDepthFormat()
+VkFormat device::find_depth_format()
 {
     //the order here matters as the "findsupportedformat" function returns the first one that is supported
     //here we have the 32 bits depth with 8 bits of stencil
@@ -392,12 +392,12 @@ VkFormat device::findDepthFormat()
         VK_FORMAT_D24_UNORM_S8_UINT
     };
     
-    return findSupportedFormat( possibleFormats, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    return find_support_format( possibleFormats, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
 
 //device function
-void device::pickPhysicalDevice(VkSurfaceKHR surface)
+void device::pick_physical_device(VkSurfaceKHR surface)
 {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(_instance, &deviceCount, nullptr);
@@ -412,7 +412,7 @@ void device::pickPhysicalDevice(VkSurfaceKHR surface)
         VkPhysicalDeviceProperties properties;
         vkGetPhysicalDeviceProperties(device, &properties);
         
-        if (isDeviceSuitable(device, surface))
+        if (is_device_suitable(device, surface))
         {
             
             if(properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
@@ -446,23 +446,23 @@ void device::pickPhysicalDevice(VkSurfaceKHR surface)
     }
 }
 
-bool device::isDeviceSuitable( VkPhysicalDevice device, VkSurfaceKHR surface)
+bool device::is_device_suitable( VkPhysicalDevice device, VkSurfaceKHR surface)
 {
-    device::QueueFamilyIndices indices = findQueueFamilies(device, surface);
+    device::queue_family_indices indices = findQueueFamilies(device, surface);
     
-    bool extensionsSupported = checkDeviceExtensionSupport(device);
+    bool extensionsSupported = check_device_extension_support(device);
     
     bool swapChainAdequate = false;
     if (extensionsSupported) {
-        device::SwapChainSupportDetails swapChainSupport;
-        querySwapChainSupport(device, surface, swapChainSupport);
+        device::swapchain_support_details swapChainSupport;
+        query_swapchain_support(device, surface, swapChainSupport);
         swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
     
-    return indices.isComplete() && extensionsSupported && swapChainAdequate;
+    return indices.is_complete() && extensionsSupported && swapChainAdequate;
 }
 
-void device::waitForllOperationsToFinish()
+void device::wait_for_all_operations_to_finish()
 {
     vkDeviceWaitIdle(_logical_device);
 }
@@ -479,10 +479,10 @@ void device::destroy()
 }
 
 
-void device::copyBuffer( VkCommandPool commandPool, VkQueue queue, VkBuffer src, VkBuffer dest, VkDeviceSize size)
+void device::copy_buffer( VkCommandPool commandPool, VkQueue queue, VkBuffer src, VkBuffer dest, VkDeviceSize size)
 {
     
-    VkCommandBuffer commandBuffer = startSingleTimeCommandBuffer( commandPool);
+    VkCommandBuffer commandBuffer = start_single_time_command_buffer( commandPool);
     
     VkBufferCopy bufferCopy = {};
     bufferCopy.dstOffset = 0;
@@ -491,7 +491,7 @@ void device::copyBuffer( VkCommandPool commandPool, VkQueue queue, VkBuffer src,
     bufferCopy.size = size;
     vkCmdCopyBuffer(commandBuffer, src, dest, 1, &bufferCopy);
     
-    endSingleTimeCommandBuffer( queue, commandPool, commandBuffer);
+    end_single_time_command_buffer( queue, commandPool, commandBuffer);
     
 }
 

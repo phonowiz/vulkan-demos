@@ -87,7 +87,7 @@ void mesh::createAndUploadBuffer(VkCommandPool commandPool,
     createBuffer(_device->_logical_device, _device->_physical_device, bufferSize, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT, buffer,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, deviceMemory);
     
-    _device->copyBuffer(commandPool, _device->_graphics_queue, stagingBuffer, buffer, bufferSize);
+    _device->copy_buffer(commandPool, _device->_graphics_queue, stagingBuffer, buffer, bufferSize);
     vkDestroyBuffer(_device->_logical_device, stagingBuffer, nullptr);
     vkFreeMemory(_device->_logical_device, statingBufferMemory, nullptr);
     

@@ -20,7 +20,7 @@ namespace vk {
     public:
         
         depth_image(){};
-        depth_image(device* physicalDevice):image(physicalDevice){}
+        depth_image(vk::device* device):image(device){}
         
         virtual void create(uint32_t width, uint32_t height) override;
         virtual void destroy() override;

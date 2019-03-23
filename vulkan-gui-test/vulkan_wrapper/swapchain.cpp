@@ -95,16 +95,16 @@ void swapchain::destroySwapChain()
 
 VkSurfaceFormatKHR swapchain::getSurfaceFormat()
 {
-    device::SwapChainSupportDetails swapChainSupport;
-    _physicalDevice->querySwapChainSupport( _physicalDevice->_physical_device, _surface, swapChainSupport);
+    device::swapchain_support_details swapChainSupport;
+    _physicalDevice->query_swapchain_support( _physicalDevice->_physical_device, _surface, swapChainSupport);
     
     VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
     return surfaceFormat;
 }
 void swapchain::createSwapChain()
 {
-    device::SwapChainSupportDetails swapChainSupport;
-    _physicalDevice->querySwapChainSupport( _physicalDevice->_physical_device, _surface, swapChainSupport);
+    device::swapchain_support_details swapChainSupport;
+    _physicalDevice->query_swapchain_support( _physicalDevice->_physical_device, _surface, swapChainSupport);
     
     VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
     VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
@@ -127,10 +127,10 @@ void swapchain::createSwapChain()
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     
-    device::QueueFamilyIndices indices = _physicalDevice->findQueueFamilies(_physicalDevice->_physical_device, _surface);
-    uint32_t queueFamilyIndices[] = {indices.graphicsFamily.value(), indices.presentFamily.value()};
+    device::queue_family_indices indices = _physicalDevice->findQueueFamilies(_physicalDevice->_physical_device, _surface);
+    uint32_t queueFamilyIndices[] = {indices.graphics_family.value(), indices.present_family.value()};
     
-    if (indices.graphicsFamily != indices.presentFamily)
+    if (indices.graphics_family != indices.present_family)
     {
         assert(0 && "this path has not been tested, proceed with caution, even after this function runs, make sure depth buffer follows this sharing mode");
         createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
@@ -254,7 +254,7 @@ void swapchain::createDepthImage()
 
 void swapchain::recreateSwapChain( VkRenderPass renderPass)
 {
-    _physicalDevice->waitForllOperationsToFinish();
+    _physicalDevice->wait_for_all_operations_to_finish();
     
     _depthImage.destroy();
     

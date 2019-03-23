@@ -147,7 +147,7 @@ void Renderer::createSemaphores()
 void Renderer::recreateRenderer()
 {
 
-    _physicalDevice->waitForllOperationsToFinish();
+    _physicalDevice->wait_for_all_operations_to_finish();
 
     vkDestroyRenderPass(_physicalDevice->_logical_device, _renderPass, nullptr);
 

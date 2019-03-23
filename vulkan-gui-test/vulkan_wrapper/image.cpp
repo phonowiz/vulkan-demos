@@ -86,7 +86,7 @@ void image::createImageView(VkImage image, VkFormat format, VkImageAspectFlags a
 void image::changeImageLayout(VkCommandPool commandPool, VkQueue queue, VkImage image,
                               VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
-    VkCommandBuffer commandBuffer = _device->startSingleTimeCommandBuffer( commandPool);
+    VkCommandBuffer commandBuffer = _device->start_single_time_command_buffer( commandPool);
     
     VkImageMemoryBarrier imageMemoryBarrier;
     imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -144,7 +144,7 @@ void image::changeImageLayout(VkCommandPool commandPool, VkQueue queue, VkImage 
                          0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
     
     
-    _device->endSingleTimeCommandBuffer( queue, commandPool, commandBuffer);
+    _device->end_single_time_command_buffer( queue, commandPool, commandBuffer);
     
     
 }
@@ -156,7 +156,7 @@ bool image::isStencilFormat(VkFormat format)
 void image::writeBufferToImage(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer)
 {
     
-    VkCommandBuffer commandBuffer = _device->startSingleTimeCommandBuffer( commandPool);
+    VkCommandBuffer commandBuffer = _device->start_single_time_command_buffer( commandPool);
     
     
     VkBufferImageCopy bufferImageCopy;
@@ -177,7 +177,7 @@ void image::writeBufferToImage(VkCommandPool commandPool, VkQueue queue, VkBuffe
                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferImageCopy);
     
     
-    _device->endSingleTimeCommandBuffer(queue, commandPool, commandBuffer);
+    _device->end_single_time_command_buffer(queue, commandPool, commandBuffer);
 }
 
 
