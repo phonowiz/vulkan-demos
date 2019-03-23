@@ -478,6 +478,23 @@ void PhysicalDevice::destroy()
     _instance = VK_NULL_HANDLE;
 }
 
+
+void PhysicalDevice::copyBuffer( VkCommandPool commandPool, VkQueue queue, VkBuffer src, VkBuffer dest, VkDeviceSize size)
+{
+    
+    VkCommandBuffer commandBuffer = startSingleTimeCommandBuffer( commandPool);
+    
+    VkBufferCopy bufferCopy = {};
+    bufferCopy.dstOffset = 0;
+    bufferCopy.srcOffset = 0;
+    bufferCopy.srcOffset = 0;
+    bufferCopy.size = size;
+    vkCmdCopyBuffer(commandBuffer, src, dest, 1, &bufferCopy);
+    
+    endSingleTimeCommandBuffer( queue, commandPool, commandBuffer);
+    
+}
+
 PhysicalDevice::~PhysicalDevice()
 {
     

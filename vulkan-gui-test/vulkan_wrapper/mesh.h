@@ -27,7 +27,7 @@ namespace vk
     class Mesh : Resource
     {
     protected:
-        std::vector<Vertex>   _vertices;
+        std::vector<vertex>   _vertices;
         std::vector<uint32_t> _indices;
         PhysicalDevice* _device = nullptr;
         
@@ -67,7 +67,7 @@ namespace vk
         void createVertexBuffer();
         void createIndexBuffer();
         
-        std::vector<Vertex>& getVertices()
+        std::vector<vertex>& getVertices()
         {
             return _vertices;
         }

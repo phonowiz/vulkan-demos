@@ -74,7 +74,7 @@ VkPipelineDepthStencilStateCreateInfo DepthImage::getDepthStencilStateCreateInfo
     depthStencilStateCreateInfo.depthWriteEnable = VK_TRUE;
     depthStencilStateCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS;
     
-    //depth bounds uses the min/max depth bounds below to see if the fragment is within the bounding box
+    //todo:depth bounds uses the min/max depth bounds below to see if the fragment is within the bounding box
     //we are currently not using this feature
     depthStencilStateCreateInfo.depthBoundsTestEnable = VK_FALSE;
     depthStencilStateCreateInfo.stencilTestEnable = VK_FALSE;

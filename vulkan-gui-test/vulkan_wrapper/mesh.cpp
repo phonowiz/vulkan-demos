@@ -11,6 +11,7 @@
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
+#include "vertex.h"
 #include "material.h"
 
 using namespace vk;
@@ -34,7 +35,7 @@ void Mesh::create(const char* path)
     assert(success && "check errorString variable");
     
     
-    std::unordered_map<Vertex, uint32_t> map_vertices;
+    std::unordered_map<vertex, uint32_t> map_vertices;
     for(tinyobj::shape_t shape:  shapes)
     {
         for(tinyobj::index_t index : shape.mesh.indices)
@@ -51,7 +52,7 @@ void Mesh::create(const char* path)
              vertexAttributes.normals[3 * index.normal_index + 1],
              vertexAttributes.normals[3 * index.normal_index + 2]
              );
-            Vertex vert(pos, glm::vec3( 0.0f, 1.0f, 0.0f ), glm::vec2( 0.0f, 0.0f), normal);
+            vertex vert(pos, glm::vec3( 0.0f, 1.0f, 0.0f ), glm::vec2( 0.0f, 0.0f), normal);
             
             if(map_vertices.count(vert) == 0)
             {
@@ -86,7 +87,7 @@ void Mesh::createAndUploadBuffer(VkCommandPool commandPool,
     createBuffer(_device->_device, _device->_physicalDevice, bufferSize, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT, buffer,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, deviceMemory);
     
-    copyBuffer(_device->_device, commandPool, _device->_graphicsQueue, stagingBuffer, buffer, bufferSize);
+    _device->copyBuffer(commandPool, _device->_graphicsQueue, stagingBuffer, buffer, bufferSize);
     vkDestroyBuffer(_device->_device, stagingBuffer, nullptr);
     vkFreeMemory(_device->_device, statingBufferMemory, nullptr);
     

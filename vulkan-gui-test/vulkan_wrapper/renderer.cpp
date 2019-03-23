@@ -255,8 +255,8 @@ Renderer::~Renderer()
 
 void Renderer::createPipeline()
 {
-    auto vertexBindingDescription = Vertex::getBindingDescription();
-    auto vertexAttributeDescription = Vertex::getAttributeDescriptions();
+    auto vertexBindingDescription = vertex::getBindingDescription();
+    auto vertexAttributeDescription = vertex::getAttributeDescriptions();
     
     VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo;
     vertexInputCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -274,7 +274,6 @@ void Renderer::createPipeline()
     inputAssemblyCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     inputAssemblyCreateInfo.primitiveRestartEnable = VK_FALSE;
     
-    //glfwGetFramebufferSize(window, (int*)&width, (int*)&height);
     uint32_t width = _swapChain->_swapChainData.swapChainExtent.width;
     uint32_t height = _swapChain->_swapChainData.swapChainExtent.height;
     
@@ -325,6 +324,9 @@ void Renderer::createPipeline()
     multisampleCreateInfo.pSampleMask = nullptr;
     multisampleCreateInfo.alphaToCoverageEnable = VK_FALSE;
     multisampleCreateInfo.alphaToOneEnable = VK_FALSE;
+    
+    
+
     
     VkPipelineDepthStencilStateCreateInfo dephtStencilStateCreateInfo = _swapChain->getDepthStencilStateCreateInfoOpaque();
     

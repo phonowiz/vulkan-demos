@@ -23,13 +23,8 @@ layout(binding = 0) uniform Dimensions
 } dimensions;
 
 
-//based off of: https://stackoverflow.com/questions/41332007/opengl-2d-orthographic-rendering-for-gui-the-modern-way
 void main()
 {
-    //vec2 viewport = vec2(dimensions.width, dimensions.height);
-    //vec2 viewport = vec2(1024.0f, 768.0f);
-    //todo: the division could be a constant
-    //gl_Position = vec4(2 * pos.xy / viewport.xy - 1.0f, 0.0f, 1.0f);
     gl_Position = vec4(pos,1.0f);
     fragColor = vec3(0.0f, 0.0f, 0.0f);
     fragUVCoord = inUVCoord;

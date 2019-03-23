@@ -76,6 +76,7 @@ namespace vk {
         VkCommandBuffer startSingleTimeCommandBuffer( VkCommandPool commandPool);
         void endSingleTimeCommandBuffer(VkQueue queue, VkCommandPool commandPool, VkCommandBuffer commandBuffer);
         
+        void copyBuffer( VkCommandPool commandPool, VkQueue queue, VkBuffer src, VkBuffer dest, VkDeviceSize size);
         void createCommnadPool(uint32_t queueIndex);
         void waitForllOperationsToFinish();
         

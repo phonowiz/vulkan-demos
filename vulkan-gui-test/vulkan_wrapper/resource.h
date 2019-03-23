@@ -28,7 +28,7 @@ namespace  vk
                      VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceMemory &deviceMemory);
         
         uint32_t findMemoryTypeIndex( VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
-        
+    
         
         enum class UsageType
         {
