@@ -7,7 +7,7 @@
 //
 
 #include "material_store.h"
-#include "physical_device.h"
+#include "device.h"
 #include <unordered_map>
 
 
@@ -17,40 +17,40 @@ using namespace vk;
 static std::unordered_map<const char*,  ShaderSharedPtr> shaderDatabase;
 static std::unordered_map<const char*,  MaterialSharedPtr > materialDatabase;
 
-MaterialStore::MaterialStore()
+material_store::material_store()
 {}
 
-void MaterialStore::createStore(PhysicalDevice* device)
+void material_store::createStore(device* device)
 {
     _device = device;
     assert(_device != nullptr && "call setDevice() on the store object");
     
-    ShaderSharedPtr standardVert = AddShader( "triangle.vert", Shader::ShaderType::VERTEX );
-    ShaderSharedPtr standardFrag = AddShader( "triangle.frag", Shader::ShaderType::FRAGMENT);
+    ShaderSharedPtr standardVert = AddShader( "triangle.vert", shader::ShaderType::VERTEX );
+    ShaderSharedPtr standardFrag = AddShader( "triangle.frag", shader::ShaderType::FRAGMENT);
     
-    ShaderSharedPtr displayVert = AddShader("display_plane.vert", Shader::ShaderType::VERTEX);
-    ShaderSharedPtr displayFrag = AddShader("display_plane.frag", Shader::ShaderType::FRAGMENT);
+    ShaderSharedPtr displayVert = AddShader("display_plane.vert", shader::ShaderType::VERTEX);
+    ShaderSharedPtr displayFrag = AddShader("display_plane.frag", shader::ShaderType::FRAGMENT);
     
-    MaterialSharedPtr standardMat = CREATE_MAT<Material>("standard", standardVert, standardFrag, device);
+    MaterialSharedPtr standardMat = CREATE_MAT<material>("standard", standardVert, standardFrag, device);
     AddMaterial(standardMat);
     
-    MaterialSharedPtr displayMat = CREATE_MAT<Material>("display", displayVert, displayFrag, device);
+    MaterialSharedPtr displayMat = CREATE_MAT<material>("display", displayVert, displayFrag, device);
     AddMaterial(displayMat);
 }
 
-void MaterialStore::AddMaterial( MaterialSharedPtr material)
+void material_store::AddMaterial( MaterialSharedPtr material)
 {
     materialDatabase[material->_name] = material;
 }
 
 
-ShaderSharedPtr MaterialStore::AddShader(const char *shaderPath, Shader::ShaderType shaderType)
+ShaderSharedPtr material_store::AddShader(const char *shaderPath, shader::ShaderType shaderType)
 {
     
     ShaderSharedPtr result = nullptr;
     if(shaderDatabase.count(shaderPath) == 0)
     {
-        result = std::make_shared<Shader>(_device, shaderPath, shaderType);
+        result = std::make_shared<shader>(_device, shaderPath, shaderType);
         shaderDatabase[shaderPath] = result;
     }
     else
@@ -61,25 +61,25 @@ ShaderSharedPtr MaterialStore::AddShader(const char *shaderPath, Shader::ShaderT
     return result;
 }
 
-MaterialSharedPtr MaterialStore::getMaterial(const char* name) const
+MaterialSharedPtr material_store::getMaterial(const char* name) const
 {
     assert(materialDatabase.count(name) != 0);
     return materialDatabase[name];
 }
 
-ShaderSharedPtr const   MaterialStore::findShaderUsingPath(const char* path)const
+ShaderSharedPtr const   material_store::findShaderUsingPath(const char* path)const
 {
     assert(shaderDatabase.count(path) != 0);
     return shaderDatabase[path];
 }
 
-MaterialStore const & MaterialStore::getInstance()
+material_store const & material_store::getInstance()
 {
-    static MaterialStore instance;
+    static material_store instance;
     return instance;
 }
 
-void MaterialStore::destroy()
+void material_store::destroy()
 {
     for (std::pair<const char* , ShaderSharedPtr> pair : shaderDatabase)
     {
@@ -91,6 +91,6 @@ void MaterialStore::destroy()
         pair.second->destroy();
     }
 }
-MaterialStore::~MaterialStore()
+material_store::~material_store()
 {
 }

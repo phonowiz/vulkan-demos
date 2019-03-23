@@ -9,10 +9,3 @@
 #include "shader_parameter.h"
 
 
-//void ShaderParameter::AddToGroup(ShaderParamsGroup& group, KeyValue keyValue)
-//{
-//    if(group.count(keyValue.first) == 0)
-//    {
-//        group.insert(keyValue);
-//    }
-//}

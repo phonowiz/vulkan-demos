@@ -13,26 +13,26 @@
 
 namespace vk {
     
-    class PhysicalDevice;
+    class device;
     
-    class DepthImage : public Image
+    class depth_image : public image
     {
     public:
         
-        DepthImage(){};
-        DepthImage(PhysicalDevice* physicalDevice):Image(physicalDevice){}
+        depth_image(){};
+        depth_image(device* physicalDevice):image(physicalDevice){}
         
-        virtual void create(uint32_t width, uint32_t height);
+        virtual void create(uint32_t width, uint32_t height) override;
         virtual void destroy() override;
         VkAttachmentDescription getDepthAttachment();
         
         bool _created = false;
         
         
-        DepthImage(const DepthImage&) = delete;
-        DepthImage(DepthImage&&) = delete;
-        DepthImage& operator=(const DepthImage &) = delete;
-        DepthImage& operator=(DepthImage&&) = delete;
+        depth_image(const depth_image&) = delete;
+        depth_image(depth_image&&) = delete;
+        depth_image& operator=(const depth_image &) = delete;
+        depth_image& operator=(depth_image&&) = delete;
     };
 }
 

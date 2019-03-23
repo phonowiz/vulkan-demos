@@ -12,10 +12,10 @@
 #include <vulkan/vulkan_core.h>
 #include <array>
 
-#include "physical_device.h"
+#include "device.h"
 #include <vector>
 #include "depth_image.h"
-#include "texture.h"
+#include "texture_2d.h"
 #include "swapchain_image_set.h"
 
 #define GLFW_INCLUDE_VULKAN
@@ -27,7 +27,7 @@ struct GLFWwindow;
 
 namespace vk
 {
-    class SwapChain : public object
+    class swapchain : public object
     {
         
     public:
@@ -36,22 +36,21 @@ namespace vk
         struct SwapChainData
         {
             VkSwapchainKHR          swapChain = VK_NULL_HANDLE;
-            //std::vector<VkImage>    swapChainImages;
-            SwapchainImageSet       imageSet;
-            //VkFormat                swapChainImageFormat;
+
+            swapchain_image_set       imageSet;
+
             VkExtent2D              swapChainExtent;
             
-            //std::vector<VkImageView>    swapChainImageViews;
             std::vector<VkFramebuffer>  swapChainFramebuffers;
-            std::array<Texture2D, MAX_SWAPCHAIN_IMAGES>        presentTextures;
+            std::array<texture_2d, MAX_SWAPCHAIN_IMAGES>        presentTextures;
         };
         
-        PhysicalDevice* _physicalDevice = nullptr;
+        device* _physicalDevice = nullptr;
         
-        SwapChain(PhysicalDevice* physicalDevice, GLFWwindow* window);
+        swapchain(device* physicalDevice, GLFWwindow* window);
         
-        void setPhysicalDevice(PhysicalDevice* physicalDevice){ _physicalDevice = physicalDevice; }
-        void getSwapchainSupportDetails(PhysicalDevice::SwapChainSupportDetails& details);
+        void setPhysicalDevice(device* physicalDevice){ _physicalDevice = physicalDevice; }
+        void getSwapchainSupportDetails(device::SwapChainSupportDetails& details);
         VkSurfaceFormatKHR getSurfaceFormat();
         void printStats();
         
@@ -60,13 +59,13 @@ namespace vk
         GLFWwindow*   _window = nullptr;
         VkSurfaceKHR  _surface = VK_NULL_HANDLE;
         
-        DepthImage          _depthImage;
+        depth_image          _depthImage;
         
         VkSurfaceFormatKHR  chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
         VkPresentModeKHR    chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
         VkExtent2D          chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow& window);
         void                createSwapChain( );
-        void                querySwapChainSupport( PhysicalDevice::SwapChainSupportDetails& );
+        void                querySwapChainSupport( device::SwapChainSupportDetails& );
         void                createSurface( );
         void                createImageViews();
         void                destroySwapChain();
@@ -76,7 +75,7 @@ namespace vk
         VkAttachmentDescription                 getDepthAttachment();
         
         virtual void  destroy() override;
-        ~SwapChain();
+        ~swapchain();
         
     private:
     };

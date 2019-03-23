@@ -144,7 +144,7 @@ void pipeline::create( VkRenderPass render_pass, uint32_t viewport_width, uint32
     pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
     pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
     
-    VkResult result = vkCreatePipelineLayout(_device->_device, &pipelineLayoutCreateInfo, nullptr, &_pipelineLayout);
+    VkResult result = vkCreatePipelineLayout(_device->_logical_device, &pipelineLayoutCreateInfo, nullptr, &_pipelineLayout);
     ASSERT_VULKAN(result);
     
     
@@ -181,13 +181,13 @@ void pipeline::create( VkRenderPass render_pass, uint32_t viewport_width, uint32
     pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
     pipelineCreateInfo.basePipelineIndex = -1;
     
-    result = vkCreateGraphicsPipelines(_device->_device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &_pipeline);
+    result = vkCreateGraphicsPipelines(_device->_logical_device, VK_NULL_HANDLE, 1, &pipelineCreateInfo, nullptr, &_pipeline);
 }
 
 void pipeline::destroy()
 {
-    vkDestroyPipeline(_device->_device, _pipeline, nullptr);
-    vkDestroyPipelineLayout(_device->_device, _pipelineLayout, nullptr);
+    vkDestroyPipeline(_device->_logical_device, _pipeline, nullptr);
+    vkDestroyPipelineLayout(_device->_logical_device, _pipelineLayout, nullptr);
     _pipeline = VK_NULL_HANDLE;
     _pipelineLayout = VK_NULL_HANDLE;
 }

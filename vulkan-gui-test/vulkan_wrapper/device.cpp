@@ -6,7 +6,7 @@
 //  Copyright © 2019 Rafael Sabino. All rights reserved.
 //
 
-#include "physical_device.h"
+#include "device.h"
 
 #include <vector>
 #include <array>
@@ -17,22 +17,22 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
-#include "physical_device.h"
+#include "device.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
 using namespace vk;
 
-PhysicalDevice::PhysicalDevice()
+device::device()
 {
     createInstance();
 }
 
-void PhysicalDevice::createLogicalDevice( VkSurfaceKHR surface)
+void device::createLogicalDevice( VkSurfaceKHR surface)
 {
     pickPhysicalDevice(surface);
-    PhysicalDevice::QueueFamilyIndices indices = findQueueFamilies(_physicalDevice, surface);
+    device::QueueFamilyIndices indices = findQueueFamilies(_physical_device, surface);
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
@@ -58,10 +58,10 @@ void PhysicalDevice::createLogicalDevice( VkSurfaceKHR surface)
 
     createInfo.pEnabledFeatures = &deviceFeatures;
 
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(PhysicalDevice::deviceExtensions.size());
-    createInfo.ppEnabledExtensionNames = PhysicalDevice::deviceExtensions.data();
+    createInfo.enabledExtensionCount = static_cast<uint32_t>(device::deviceExtensions.size());
+    createInfo.ppEnabledExtensionNames = device::deviceExtensions.data();
 
-    if (PhysicalDevice::enableValidationLayers)
+    if (device::enableValidationLayers)
     {
     #ifndef __APPLE__
         createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
@@ -73,18 +73,18 @@ void PhysicalDevice::createLogicalDevice( VkSurfaceKHR surface)
         createInfo.enabledLayerCount = 0;
     }
 
-    if (vkCreateDevice(_physicalDevice, &createInfo, nullptr, &_device) != VK_SUCCESS) {
+    if (vkCreateDevice(_physical_device, &createInfo, nullptr, &_logical_device) != VK_SUCCESS) {
         throw std::runtime_error("failed to create logical device!");
     }
 
-    vkGetDeviceQueue(_device, indices.graphicsFamily.value(), 0, &_graphicsQueue);
-    vkGetDeviceQueue(_device, indices.presentFamily.value(), 0, &_presentQueue);
+    vkGetDeviceQueue(_logical_device, indices.graphicsFamily.value(), 0, &_graphics_queue);
+    vkGetDeviceQueue(_logical_device, indices.presentFamily.value(), 0, &_presentQueue);
     
     createCommnadPool(0);
 }
 
-PhysicalDevice::QueueFamilyIndices PhysicalDevice::findQueueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface) {
-    PhysicalDevice::QueueFamilyIndices indices;
+device::QueueFamilyIndices device::findQueueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface) {
+    device::QueueFamilyIndices indices;
     
     uint32_t queueFamilyCount = 0;
     
@@ -117,7 +117,7 @@ PhysicalDevice::QueueFamilyIndices PhysicalDevice::findQueueFamilies( VkPhysical
     return indices;
 }
 
-bool PhysicalDevice::checkDeviceExtensionSupport(VkPhysicalDevice device)
+bool device::checkDeviceExtensionSupport(VkPhysicalDevice device)
 {
     
     uint32_t extensionCount;
@@ -136,7 +136,7 @@ bool PhysicalDevice::checkDeviceExtensionSupport(VkPhysicalDevice device)
     return requiredExtensions.empty();
 }
 
-void PhysicalDevice::querySwapChainSupport( VkPhysicalDevice device, VkSurfaceKHR surface, PhysicalDevice::SwapChainSupportDetails& details)
+void device::querySwapChainSupport( VkPhysicalDevice device, VkSurfaceKHR surface, device::SwapChainSupportDetails& details)
 {
     
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
@@ -159,10 +159,10 @@ void PhysicalDevice::querySwapChainSupport( VkPhysicalDevice device, VkSurfaceKH
     }
 }
 
-void PhysicalDevice::printStats()
+void device::printStats()
 {
     VkPhysicalDeviceProperties properties;
-    vkGetPhysicalDeviceProperties(_physicalDevice, &properties);
+    vkGetPhysicalDeviceProperties(_physical_device, &properties);
     
     std::cout << "Name:                     " << properties.deviceName << std::endl;
     uint32_t apiVer = properties.apiVersion;
@@ -175,16 +175,16 @@ void PhysicalDevice::printStats()
     
     VkPhysicalDeviceFeatures features;
     
-    vkGetPhysicalDeviceFeatures(_physicalDevice, &features);
+    vkGetPhysicalDeviceFeatures(_physical_device, &features);
     std::cout << "Geometry Shader:          " << features.geometryShader << std::endl;
     
     VkPhysicalDeviceMemoryProperties memProp;
-    vkGetPhysicalDeviceMemoryProperties(_physicalDevice, &memProp);
+    vkGetPhysicalDeviceMemoryProperties(_physical_device, &memProp);
     
     uint32_t amountOfQueueFamilies = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &amountOfQueueFamilies, nullptr);
+    vkGetPhysicalDeviceQueueFamilyProperties(_physical_device, &amountOfQueueFamilies, nullptr);
     VkQueueFamilyProperties *familyProperties = new VkQueueFamilyProperties[amountOfQueueFamilies];
-    vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &amountOfQueueFamilies, familyProperties);
+    vkGetPhysicalDeviceQueueFamilyProperties(_physical_device, &amountOfQueueFamilies, familyProperties);
     
     std::cout << "Amount of Queue Families: " << amountOfQueueFamilies << std::endl;
     
@@ -206,7 +206,7 @@ void PhysicalDevice::printStats()
     std::cout << std::endl;
     delete[] familyProperties;
 }
-void PhysicalDevice::createInstance()
+void device::createInstance()
 {
     VkApplicationInfo appInfo;
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -245,7 +245,7 @@ void PhysicalDevice::createInstance()
 }
 
 //vulkan renderer
-void PhysicalDevice::printInstanceLayers()
+void device::printInstanceLayers()
 {
     uint32_t amountOfLayers = 0;
     vkEnumerateInstanceLayerProperties(&amountOfLayers, nullptr);
@@ -264,7 +264,7 @@ void PhysicalDevice::printInstanceLayers()
 }
 
 //vulkan renderer
-void PhysicalDevice::printInstanceExtensions()
+void device::printInstanceExtensions()
 {
     uint32_t amountOfExtensions = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &amountOfExtensions, nullptr);
@@ -282,11 +282,11 @@ void PhysicalDevice::printInstanceExtensions()
     delete[] extensions;
 }
 
-bool PhysicalDevice::isFormatSupported( VkFormat format,
+bool device::isFormatSupported( VkFormat format,
                                        VkImageTiling tiling, VkFormatFeatureFlags featureFlags)
 {
     VkFormatProperties formatProperties;
-    vkGetPhysicalDeviceFormatProperties(_physicalDevice, format, &formatProperties);
+    vkGetPhysicalDeviceFormatProperties(_physical_device, format, &formatProperties);
     
     if(tiling == VK_IMAGE_TILING_LINEAR &&
        (formatProperties.linearTilingFeatures & featureFlags) == featureFlags)
@@ -302,7 +302,7 @@ bool PhysicalDevice::isFormatSupported( VkFormat format,
     
 }
 
-VkFormat PhysicalDevice::findSupportedFormat(const std::vector<VkFormat>& formats,
+VkFormat device::findSupportedFormat(const std::vector<VkFormat>& formats,
                                     VkImageTiling tiling, VkFormatFeatureFlags featureFlags)
 {
     for( VkFormat format : formats)
@@ -318,7 +318,7 @@ VkFormat PhysicalDevice::findSupportedFormat(const std::vector<VkFormat>& format
 
 
 //vulkan command
-VkCommandBuffer PhysicalDevice::startSingleTimeCommandBuffer( VkCommandPool commandPool)
+VkCommandBuffer device::startSingleTimeCommandBuffer( VkCommandPool commandPool)
 {
     VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -328,7 +328,7 @@ VkCommandBuffer PhysicalDevice::startSingleTimeCommandBuffer( VkCommandPool comm
     commandBufferAllocateInfo.commandBufferCount = 1;
     
     VkCommandBuffer commandBuffer = {};
-    VkResult result = vkAllocateCommandBuffers(_device, &commandBufferAllocateInfo, &commandBuffer);
+    VkResult result = vkAllocateCommandBuffers(_logical_device, &commandBufferAllocateInfo, &commandBuffer);
     ASSERT_VULKAN(result);
     
     VkCommandBufferBeginInfo commandBufferBeginInfo;
@@ -344,7 +344,7 @@ VkCommandBuffer PhysicalDevice::startSingleTimeCommandBuffer( VkCommandPool comm
     
 }
 
-void PhysicalDevice::createCommnadPool(uint32_t queueIndex)
+void device::createCommnadPool(uint32_t queueIndex)
 {
     VkCommandPoolCreateInfo commandPoolCreateInfo;
     commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -352,13 +352,13 @@ void PhysicalDevice::createCommnadPool(uint32_t queueIndex)
     commandPoolCreateInfo.flags = 0;
     commandPoolCreateInfo.queueFamilyIndex = queueIndex; //TODO: FIND OUT WHAT QUEUE WE PUT HERE;
     
-    VkResult result = vkCreateCommandPool(_device, &commandPoolCreateInfo, nullptr, &_commandPool);
+    VkResult result = vkCreateCommandPool(_logical_device, &commandPoolCreateInfo, nullptr, &_commandPool);
     ASSERT_VULKAN(result);
 }
 
 
 //vulkan command
-void PhysicalDevice::endSingleTimeCommandBuffer( VkQueue queue, VkCommandPool commandPool, VkCommandBuffer commandBuffer)
+void device::endSingleTimeCommandBuffer( VkQueue queue, VkCommandPool commandPool, VkCommandBuffer commandBuffer)
 {
     VkResult result = vkEndCommandBuffer(commandBuffer);
     ASSERT_VULKAN(result);
@@ -379,10 +379,10 @@ void PhysicalDevice::endSingleTimeCommandBuffer( VkQueue queue, VkCommandPool co
     
     vkQueueWaitIdle(queue);
     
-    vkFreeCommandBuffers(_device, commandPool, 1, &commandBuffer);
+    vkFreeCommandBuffers(_logical_device, commandPool, 1, &commandBuffer);
 }
 
-VkFormat PhysicalDevice::findDepthFormat()
+VkFormat device::findDepthFormat()
 {
     //the order here matters as the "findsupportedformat" function returns the first one that is supported
     //here we have the 32 bits depth with 8 bits of stencil
@@ -397,7 +397,7 @@ VkFormat PhysicalDevice::findDepthFormat()
 
 
 //device function
-void PhysicalDevice::pickPhysicalDevice(VkSurfaceKHR surface)
+void device::pickPhysicalDevice(VkSurfaceKHR surface)
 {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(_instance, &deviceCount, nullptr);
@@ -418,7 +418,7 @@ void PhysicalDevice::pickPhysicalDevice(VkSurfaceKHR surface)
             if(properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
             {
                 
-                _physicalDevice = device;
+                _physical_device = device;
 #ifdef __APPLE__
                 //For my macbook pro, the integrated device runs much better than the discrete gpu,
                 //I cannot explain why this happens.
@@ -429,7 +429,7 @@ void PhysicalDevice::pickPhysicalDevice(VkSurfaceKHR surface)
             }
             else if( properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
             {
-                _physicalDevice = device;
+                _physical_device = device;
 #ifdef __APPLE__
                 continue;
 #else
@@ -438,7 +438,7 @@ void PhysicalDevice::pickPhysicalDevice(VkSurfaceKHR surface)
             }
             else
             {
-                _physicalDevice = device;
+                _physical_device = device;
                 continue;
             }
             
@@ -446,15 +446,15 @@ void PhysicalDevice::pickPhysicalDevice(VkSurfaceKHR surface)
     }
 }
 
-bool PhysicalDevice::isDeviceSuitable( VkPhysicalDevice device, VkSurfaceKHR surface)
+bool device::isDeviceSuitable( VkPhysicalDevice device, VkSurfaceKHR surface)
 {
-    PhysicalDevice::QueueFamilyIndices indices = findQueueFamilies(device, surface);
+    device::QueueFamilyIndices indices = findQueueFamilies(device, surface);
     
     bool extensionsSupported = checkDeviceExtensionSupport(device);
     
     bool swapChainAdequate = false;
     if (extensionsSupported) {
-        PhysicalDevice::SwapChainSupportDetails swapChainSupport;
+        device::SwapChainSupportDetails swapChainSupport;
         querySwapChainSupport(device, surface, swapChainSupport);
         swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
@@ -462,24 +462,24 @@ bool PhysicalDevice::isDeviceSuitable( VkPhysicalDevice device, VkSurfaceKHR sur
     return indices.isComplete() && extensionsSupported && swapChainAdequate;
 }
 
-void PhysicalDevice::waitForllOperationsToFinish()
+void device::waitForllOperationsToFinish()
 {
-    vkDeviceWaitIdle(_device);
+    vkDeviceWaitIdle(_logical_device);
 }
 
-void PhysicalDevice::destroy()
+void device::destroy()
 {
-    vkDestroyCommandPool(_device, _commandPool, nullptr);
+    vkDestroyCommandPool(_logical_device, _commandPool, nullptr);
     
-    vkDestroyDevice(_device, nullptr);
+    vkDestroyDevice(_logical_device, nullptr);
     vkDestroyInstance(_instance, nullptr);
     
-    _device = VK_NULL_HANDLE;
+    _logical_device = VK_NULL_HANDLE;
     _instance = VK_NULL_HANDLE;
 }
 
 
-void PhysicalDevice::copyBuffer( VkCommandPool commandPool, VkQueue queue, VkBuffer src, VkBuffer dest, VkDeviceSize size)
+void device::copyBuffer( VkCommandPool commandPool, VkQueue queue, VkBuffer src, VkBuffer dest, VkDeviceSize size)
 {
     
     VkCommandBuffer commandBuffer = startSingleTimeCommandBuffer( commandPool);
@@ -495,7 +495,7 @@ void PhysicalDevice::copyBuffer( VkCommandPool commandPool, VkQueue queue, VkBuf
     
 }
 
-PhysicalDevice::~PhysicalDevice()
+device::~device()
 {
     
 }

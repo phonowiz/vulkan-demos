@@ -10,16 +10,16 @@
 
 #include "image.h"
 #include "resource.h"
-#include "physical_device.h"
+#include "device.h"
 
 namespace vk
 {
-    class Image : public Resource
+    class image : public resource
     {
     public:
         
-        Image(){}
-        Image( PhysicalDevice* device){ _device = device; }
+        image(){}
+        image( device* device){ _device = device; }
         void createImage( uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
                          VkImageUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags);
         
@@ -31,9 +31,9 @@ namespace vk
         
         bool isStencilFormat(VkFormat format);
         
-        virtual ~Image(){}
+        virtual ~image(){}
         
-        void setDevice(PhysicalDevice* device){ _device = device;}
+        void setDevice(device* device){ _device = device;}
         VkImage getImage()
         {
             return _image;
@@ -51,7 +51,7 @@ namespace vk
 //        Image& operator=(const Image &) = delete;
 //        Image& operator=(Image &&) = delete;
         
-        PhysicalDevice* _device = nullptr;
+        device* _device = nullptr;
         VkImage         _image = VK_NULL_HANDLE;
         VkDeviceMemory  _imageMemory = VK_NULL_HANDLE;
         VkImageView     _imageView = VK_NULL_HANDLE;

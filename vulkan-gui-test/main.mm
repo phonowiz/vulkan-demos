@@ -24,9 +24,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
 
-#include "vulkan_wrapper/physical_device.h"
+#include "vulkan_wrapper/device.h"
 #include "vulkan_wrapper/renderer.h"
-#include "vulkan_wrapper/swap_chain.h"
+#include "vulkan_wrapper/swapchain.h"
 #include "vulkan_wrapper/material_store.h"
 #include "vulkan_wrapper/mesh.h"
 #include "vulkan_wrapper/display_plane.h"
@@ -66,7 +66,7 @@ vk::MaterialSharedPtr displayMat;
 
 
 
-vk::Texture2D* texture = nullptr;
+vk::texture_2d* texture = nullptr;
 
 void updateMVP2()
 {
@@ -87,7 +87,7 @@ void updateMVP2()
     
     glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
 
-    vk::ShaderParameter::ShaderParamsGroup& vertexParams =   standardMat->getUniformParameters(vk::Material::ParameterStage::VERTEX, 0);
+    vk::ShaderParameter::ShaderParamsGroup& vertexParams =   standardMat->getUniformParameters(vk::material::ParameterStage::VERTEX, 0);
     
     vertexParams["model"] = model;
     vertexParams["view"] = view;
@@ -99,7 +99,7 @@ void updateMVP2()
     if(initted == false)
     {
         initted = true;
-        standardMat->setImageSampler(texture, "tex", vk::Material::ParameterStage::FRAGMENT, 1);
+        standardMat->setImageSampler(texture, "tex", vk::material::ParameterStage::FRAGMENT, 1);
     }
     
     standardMat->commitParametersToGPU();
@@ -119,8 +119,8 @@ void gameLoop2(vk::Renderer &renderer)
 
 struct App
 {
-    vk::SwapChain* swapchain = nullptr;
-    vk::PhysicalDevice* physical_device = nullptr;
+    vk::swapchain* swapchain = nullptr;
+    vk::device* physical_device = nullptr;
     vk::Renderer* renderer = nullptr;
 };
 
@@ -133,7 +133,7 @@ void onWindowResized2(GLFWwindow * window, int w, int h)
     {
         
         VkSurfaceCapabilitiesKHR surfaceCapabilities;
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(app.physical_device->_physicalDevice, surface, &surfaceCapabilities);
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(app.physical_device->_physical_device, surface, &surfaceCapabilities);
         
         w = std::min(w, static_cast<int>(surfaceCapabilities.maxImageExtent.width));
         h = std::min(h, static_cast<int>(surfaceCapabilities.maxImageExtent.height));
@@ -153,12 +153,12 @@ void onWindowResized2(GLFWwindow * window, int w, int h)
 void updateWithOrtho()
 {
 
-    vk::ShaderParameter::ShaderParamsGroup& vertexParams = displayMat->getUniformParameters(vk::Material::ParameterStage::VERTEX, 0);
+    vk::ShaderParameter::ShaderParamsGroup& vertexParams = displayMat->getUniformParameters(vk::material::ParameterStage::VERTEX, 0);
     vertexParams["width"] = width;
     vertexParams["height"] = height;
     
     
-    displayMat->setImageSampler(texture, "tex", vk::Material::ParameterStage::FRAGMENT, 1);
+    displayMat->setImageSampler(texture, "tex", vk::material::ParameterStage::FRAGMENT, 1);
     
     displayMat->commitParametersToGPU();
     
@@ -183,7 +183,7 @@ int main()
     //vulkan render example
     glfwSetWindowSizeCallback(window, onWindowResized2);
     
-    vk::PhysicalDevice device;
+    vk::device device;
     
     //createSurface(device._instance, window, surface);
     VkResult res = glfwCreateWindowSurface(device._instance, window, nullptr, &surface);
@@ -191,21 +191,21 @@ int main()
     
     device.createLogicalDevice(surface);
     
-    vk::SwapChain swapChain(&device, window);
-    vk::MaterialStore materialStore;
+    vk::swapchain swapChain(&device, window);
+    vk::material_store materialStore;
     
     materialStore.createStore(&device);
     
-    standardMat = materialStore.GET_MAT<vk::Material>("standard");
-    displayMat = materialStore.GET_MAT<vk::Material>("display");
+    standardMat = materialStore.GET_MAT<vk::material>("standard");
+    displayMat = materialStore.GET_MAT<vk::material>("display");
     //vk::Texture texture(&device, "mario.png");
     
-    vk::Mesh mesh( "dragon.obj", &device );
+    vk::mesh mesh( "dragon.obj", &device );
     
     vk::display_plane plane(&device);
     plane.create();
     
-    vk::Texture2D mario(&device, "mario.png");
+    vk::texture_2d mario(&device, "mario.png");
     texture = &mario;
     updateMVP2();
     

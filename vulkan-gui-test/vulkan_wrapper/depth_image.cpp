@@ -10,7 +10,7 @@
 
 using namespace vk;
 
-void DepthImage::create(uint32_t width, uint32_t height)
+void depth_image::create(uint32_t width, uint32_t height)
 {
     assert(!_created);
     
@@ -25,20 +25,20 @@ void DepthImage::create(uint32_t width, uint32_t height)
     
     createImageView( _image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, _imageView);
     
-    changeImageLayout(_device->_commandPool, _device->_graphicsQueue, _image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+    changeImageLayout(_device->_commandPool, _device->_graphics_queue, _image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
                       VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
     
     _created = true;
 }
 
-void DepthImage::destroy()
+void depth_image::destroy()
 {
     if(_created)
     {
         
-        vkDestroyImageView(_device->_device, _imageView, nullptr);
-        vkDestroyImage(_device->_device, _image, nullptr);
-        vkFreeMemory(_device->_device, _imageMemory, nullptr);
+        vkDestroyImageView(_device->_logical_device, _imageView, nullptr);
+        vkDestroyImage(_device->_logical_device, _image, nullptr);
+        vkFreeMemory(_device->_logical_device, _imageMemory, nullptr);
         _created = false;
         _image = VK_NULL_HANDLE;
         _imageMemory = VK_NULL_HANDLE;
@@ -46,7 +46,7 @@ void DepthImage::destroy()
     }
 }
 
-VkAttachmentDescription DepthImage::getDepthAttachment()
+VkAttachmentDescription depth_image::getDepthAttachment()
 {
     VkAttachmentDescription depthAttachment = {};
     

@@ -21,7 +21,7 @@ assert(0);\
 
 namespace vk {
     
-    class PhysicalDevice : public object
+    class device : public object
     {
     public:
         
@@ -81,13 +81,13 @@ namespace vk {
         void waitForllOperationsToFinish();
         
         virtual void destroy() override;
-        PhysicalDevice();
-        ~PhysicalDevice();
+        device();
+        ~device();
         
-        VkPhysicalDevice    _physicalDevice = VK_NULL_HANDLE;
-        VkDevice            _device = VK_NULL_HANDLE;
+        VkPhysicalDevice    _physical_device = VK_NULL_HANDLE;
+        VkDevice            _logical_device = VK_NULL_HANDLE;
         VkInstance          _instance = VK_NULL_HANDLE;
-        VkQueue             _graphicsQueue = VK_NULL_HANDLE;
+        VkQueue             _graphics_queue = VK_NULL_HANDLE;
         VkQueue             _presentQueue = VK_NULL_HANDLE;
         VkCommandPool       _commandPool = VK_NULL_HANDLE;
 
@@ -95,5 +95,5 @@ namespace vk {
         
     };
     
-    using PhysicalDeviceSharedPtr = std::shared_ptr<PhysicalDevice>;
+    using PhysicalDeviceSharedPtr = std::shared_ptr<device>;
 }

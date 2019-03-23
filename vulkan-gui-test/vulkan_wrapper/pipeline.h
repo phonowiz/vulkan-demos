@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "physical_device.h"
+#include "device.h"
 #include "material.h"
 
 namespace vk
@@ -31,7 +31,7 @@ namespace vk
         };
         
         
-        pipeline(PhysicalDevice* device, MaterialSharedPtr material ){ _device = device; _material = material; };
+        pipeline(device* device, MaterialSharedPtr material ){ _device = device; _material = material; };
         
         void create( VkRenderPass render_pass, uint32_t viewport_width, uint32_t viewport_height );
         
@@ -54,7 +54,7 @@ namespace vk
         VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
         MaterialSharedPtr _material = nullptr;
         
-        PhysicalDevice* _device = nullptr;
+        device* _device = nullptr;
         
     };
 }

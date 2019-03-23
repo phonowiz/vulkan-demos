@@ -16,24 +16,24 @@
 
 namespace vk
 {
-    class PhysicalDevice;
+    class device;
     
-    class MaterialStore : public object
+    class material_store : public object
     {
-        using MaterialStoreSharedPtr = std::shared_ptr<MaterialStore>;
+        using MaterialStoreSharedPtr = std::shared_ptr<material_store>;
         
     public:
-        static MaterialStore const& getInstance();
+        static material_store const& getInstance();
         
-        ~MaterialStore();
+        ~material_store();
         template <typename T>
         inline static std::shared_ptr<T> GET_MAT(const char* materialName)
         {
-            return std::static_pointer_cast<T>(MaterialStore::getInstance().getMaterial(materialName));
+            return std::static_pointer_cast<T>(material_store::getInstance().getMaterial(materialName));
         }
         
-        MaterialStore();
-        void createStore(PhysicalDevice* device);
+        material_store();
+        void createStore(device* device);
         virtual void destroy() override;
         
     private:
@@ -41,25 +41,25 @@ namespace vk
         inline static MaterialSharedPtr CREATE_MAT( ARGS... args)
         {
             std::shared_ptr<T> pointer = std::make_shared<T> (args...);
-            return std::static_pointer_cast<Material>(pointer);
+            return std::static_pointer_cast<material>(pointer);
         }
         
         MaterialSharedPtr getMaterial(const char* name) const;
         inline ShaderSharedPtr const  findShaderUsingPath(const char* path)const ;
-        ShaderSharedPtr AddShader(const char* shaderPath, Shader::ShaderType shaderType);
-        void AddMaterial( std::shared_ptr<Material> material);
+        ShaderSharedPtr AddShader(const char* shaderPath, shader::ShaderType shaderType);
+        void AddMaterial( std::shared_ptr<material> material);
         
-        void setDevice(PhysicalDevice* device){ _device = device; };
+        void setDevice(device* device){ _device = device; };
 
         void InitShaders();
         void InitMaterials();
 
         
-        PhysicalDevice* _device;
+        device* _device;
         
         
-        MaterialStore(MaterialStore const &) = delete;
-        void operator=(MaterialStore const &) = delete;
+        material_store(material_store const &) = delete;
+        void operator=(material_store const &) = delete;
         
         
     };

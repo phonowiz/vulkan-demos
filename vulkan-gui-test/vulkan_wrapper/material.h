@@ -12,7 +12,7 @@
 #include <vulkan/vulkan_core.h>
 #include <array>
 
-#include "physical_device.h"
+#include "device.h"
 #include "shader.h"
 #include "shader_parameter.h"
 #include "tsl/ordered_map.h"
@@ -21,10 +21,10 @@
 
 namespace  vk
 {
-    class Material : public Resource
+    class material : public resource
     {
     public:
-        Material(const char* name, ShaderSharedPtr vertexShader, ShaderSharedPtr fragmentShader, PhysicalDevice* device );
+        material(const char* name, ShaderSharedPtr vertexShader, ShaderSharedPtr fragmentShader, device* device );
         
         //currently we oly support 3 shader stages max: vertex, pixel, and compute. geometry is not supported on macs.
         //compute pipeline is not yet implemented in this code.
@@ -79,7 +79,7 @@ namespace  vk
         
         ShaderParameter::ShaderParamsGroup& getUniformParameters(ParameterStage parameterStage, uint32_t binding);
         //ShaderParameter::ShaderParamsGroup& getImageSamplerParameters(ParameterStage parameterStage, uint32_t binding);
-        void setImageSampler(Texture2D* texture, const char* parameterName, ParameterStage parameterStage, uint32_t binding);
+        void setImageSampler(texture_2d* texture, const char* parameterName, ParameterStage parameterStage, uint32_t binding);
         
         ShaderSharedPtr _vertexShader;
         ShaderSharedPtr _fragmentShader;
@@ -93,11 +93,11 @@ namespace  vk
         static const int BINDING_MAX = 30;
         
         
-        tsl::ordered_map<ParameterStage, Resource::BufferInfo>                  _uniformBuffers;
+        tsl::ordered_map<ParameterStage, resource::BufferInfo>                  _uniformBuffers;
         tsl::ordered_map<ParameterStage, ShaderParameter::ShaderParamsGroup>    _uniformParameters;
 
         //todo: these neet  to be arrays because there is a limit of how many samplers you you can bind.
-        tsl::ordered_map<ParameterStage, Resource::BufferInfo>                  _samplerBuffers;
+        tsl::ordered_map<ParameterStage, resource::BufferInfo>                  _samplerBuffers;
         
         typedef tsl::ordered_map< const char*, ShaderParameter>                       SamplerParameter;
         
@@ -107,11 +107,11 @@ namespace  vk
         
         const char* _name = nullptr;
         
-        PhysicalDevice *_device = nullptr;
+        device *_device = nullptr;
         
         
         bool initialized = false;
-        ~Material();
+        ~material();
         
 
         
@@ -120,5 +120,5 @@ namespace  vk
     };
     
     
-    using MaterialSharedPtr = std::shared_ptr<Material>;
+    using MaterialSharedPtr = std::shared_ptr<material>;
 }

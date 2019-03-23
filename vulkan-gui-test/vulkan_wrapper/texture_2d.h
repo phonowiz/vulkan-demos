@@ -17,13 +17,13 @@
 #include "stb_image.h"
 namespace vk
 {
-    class Texture2D : public Image
+    class texture_2d : public image
     {
     public:
     
-        Texture2D(){};
-        Texture2D(PhysicalDevice* device, uint32_t width, uint32_t height);
-        Texture2D(PhysicalDevice* device,const char* path = nullptr);
+        texture_2d(){};
+        texture_2d(device* device, uint32_t width, uint32_t height);
+        texture_2d(device* device,const char* path = nullptr);
         
         enum class Formats
         {
@@ -56,7 +56,7 @@ namespace vk
         
         void load();
         void createSampler();
-        void setSampler(PhysicalDevice* device){ }
+        void setSampler(device* device){ }
         
         static const std::string textureResourcePath;
     private:
@@ -71,7 +71,7 @@ namespace vk
         //TODO: we only support 4 channels at the moment
         uint32_t _channels = 4;
         //TODO: we only support RGBA
-        Texture2D::Formats _format = Texture2D::Formats::RGBA;
+        texture_2d::Formats _format = texture_2d::Formats::RGBA;
     };
 }
 

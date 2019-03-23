@@ -11,16 +11,16 @@
 #include <fstream>
 #include <iostream>
 
-#include "physical_device.h"
+#include "device.h"
 using namespace vk;
 #if __APPLE__
-const std::string Resource::resourceRoot = "../Resources";
+const std::string resource::resourceRoot = "../Resources";
 #else
 const std::string Resource::resourceRoot = ".";
 #endif
 
 
-void Resource::readFile(std::string& fileContents, std::string& path)
+void resource::readFile(std::string& fileContents, std::string& path)
 {
     std::ifstream fileStream(path, std::ios::in);
     if (!fileStream.is_open()) {
@@ -36,7 +36,7 @@ void Resource::readFile(std::string& fileContents, std::string& path)
     }
 }
 
-void Resource::createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize deviceSize, VkBufferUsageFlags bufferUsageFlags, VkBuffer &buffer,
+void resource::createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize deviceSize, VkBufferUsageFlags bufferUsageFlags, VkBuffer &buffer,
                          VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceMemory &deviceMemory)
 {
     VkBufferCreateInfo bufferCreateInfo;
@@ -67,7 +67,7 @@ void Resource::createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, Vk
     
 }
 
-uint32_t Resource::findMemoryTypeIndex( VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+uint32_t resource::findMemoryTypeIndex( VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
     //for memory buffer intro go here:
     //https://vulkan-tutorial.com/Vertex_buffers/Vertex_buffer_creation

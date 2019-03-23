@@ -9,20 +9,20 @@
 #pragma once
 
 #include "mesh.h"
-#include "physical_device.h"
+#include "device.h"
 
 namespace vk
 {
-    class display_plane : public Mesh
+    class display_plane : public mesh
     {
     public:
-        display_plane(PhysicalDevice* device)
+        display_plane(device* device)
         {
             _device = device;
         }
         
-        using Mesh::allocateGPUMemory;
-        using Mesh::destroy;
+        using mesh::allocateGPUMemory;
+        using mesh::destroy;
         void create();
         
     private:

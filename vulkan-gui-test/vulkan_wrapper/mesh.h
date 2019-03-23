@@ -25,12 +25,12 @@
 namespace vk
 {
     
-    class Mesh : Resource
+    class mesh : resource
     {
     protected:
         std::vector<vertex>   _vertices;
         std::vector<uint32_t> _indices;
-        PhysicalDevice* _device = nullptr;
+        device* _device = nullptr;
         
         VkBuffer        _vertexBuffer = VK_NULL_HANDLE;
         VkDeviceMemory  _vertexBufferDeviceMemory = VK_NULL_HANDLE;
@@ -38,16 +38,16 @@ namespace vk
         VkDeviceMemory  _indexBufferDeviceMemory = VK_NULL_HANDLE;
         
     protected:
-        Mesh(){};
+        mesh(){};
     public:
         
-        Mesh(const char* path, PhysicalDevice* device)
+        mesh(const char* path, device* device)
         {
             create(path);
             _device = device;
         };
         
-        ~Mesh();
+        ~mesh();
         void create(const char* path);
         
         template<typename T>

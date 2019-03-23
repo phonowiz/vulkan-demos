@@ -14,17 +14,17 @@
 namespace vk
 {
     
-    class SwapchainImageSet : private Image
+    class swapchain_image_set : private image
     {
     public:
         
-        SwapchainImageSet(){};
+        swapchain_image_set(){};
         
-        void init(PhysicalDevice* device, VkSwapchainKHR swapChain) { _device = device; _swapChain = swapChain; }
+        void init(device* device, VkSwapchainKHR swapChain) { _device = device; _swapChain = swapChain; }
         void createImageSet();
         void createImageViews(VkFormat format);
         
-        using Image::setDevice;
+        using image::setDevice;
         using object::destroy;
         
         inline uint32_t getImageCount(){ return _imageCount; }

@@ -12,13 +12,13 @@
 
 using namespace vk;
 
-void SwapchainImageSet::createImageSet()
+void swapchain_image_set::createImageSet()
 {
-    vkGetSwapchainImagesKHR(_device->_device, _swapChain, &_imageCount, nullptr);
-    vkGetSwapchainImagesKHR(_device->_device, _swapChain, &_imageCount, _images.data());
+    vkGetSwapchainImagesKHR(_device->_logical_device, _swapChain, &_imageCount, nullptr);
+    vkGetSwapchainImagesKHR(_device->_logical_device, _swapChain, &_imageCount, _images.data());
 }
 
-void SwapchainImageSet::createImageViews(VkFormat format)
+void swapchain_image_set::createImageViews(VkFormat format)
 {
     for(int i = 0; i < _imageCount; ++i)
     {
@@ -26,11 +26,11 @@ void SwapchainImageSet::createImageViews(VkFormat format)
     }
 }
 
-void SwapchainImageSet::destroy()
+void swapchain_image_set::destroy()
 {
     for (int i = 0; i < _imageCount; ++i)
     {
-        vkDestroyImageView(_device->_device, _imageViews[i], nullptr);
+        vkDestroyImageView(_device->_logical_device, _imageViews[i], nullptr);
         _imageViews[i] = VK_NULL_HANDLE;
     }
 }

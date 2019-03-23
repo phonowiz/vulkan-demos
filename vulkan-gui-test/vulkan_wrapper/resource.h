@@ -15,12 +15,12 @@
 
 namespace  vk
 {
-    class Resource : public object
+    class resource : public object
     {
     public:
         static const std::string resourceRoot;
         
-        virtual ~Resource(){}
+        virtual ~resource(){}
         
         void readFile(std::string& fileContents, std::string& path);
         

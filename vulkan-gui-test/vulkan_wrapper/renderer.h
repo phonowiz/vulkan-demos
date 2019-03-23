@@ -18,21 +18,20 @@
 #include "depth_image.h"
 #include "pipeline.h"
 
-class Mesh;
 
 
 namespace vk
 {
-    class PhysicalDevice;
-    class SwapChain;
-    class DepthImage;
-    class Mesh;
+    class device;
+    class swapchain;
+    class depth_image;
+    class mesh;
     
     class Renderer : public object
     {
     public:
         
-        Renderer(PhysicalDevice* physicalDevice, GLFWwindow* window, SwapChain* swapChain, MaterialSharedPtr material);
+        Renderer(device* physicalDevice, GLFWwindow* window, swapchain* swapChain, MaterialSharedPtr material);
         
         void createRenderPass();
         void createCommandBuffers();
@@ -40,21 +39,21 @@ namespace vk
         void recreateRenderer();
         void recordCommandBuffers();
         void createPipeline();
-        void addMesh(Mesh* pMesh){ _meshes.push_back(pMesh); };
-        void clearMeshes(Mesh* pMesh){ _meshes.clear();}
+        void addMesh(mesh* pMesh){ _meshes.push_back(pMesh); };
+        void clearMeshes(mesh* pMesh){ _meshes.clear();}
         void clearMesh();
         void draw();
         pipeline& getPipeline() { return _pipeline;}
         
         void init();
 
-        PhysicalDevice*     _physicalDevice = nullptr;
+        device*     _physicalDevice = nullptr;
         GLFWwindow*         _window = nullptr;
         VkRenderPass        _renderPass = VK_NULL_HANDLE;
 
         VkSemaphore _semaphoreImageAvailable = VK_NULL_HANDLE;
         VkSemaphore _semaphoreRenderingDone = VK_NULL_HANDLE;
-        SwapChain*  _swapChain = nullptr;
+        swapchain*  _swapChain = nullptr;
 
         std::array<VkFence, 20> _inFlightFences;
         VkCommandBuffer* _commandBuffers = nullptr;
@@ -62,7 +61,7 @@ namespace vk
 
         MaterialSharedPtr _material;
 
-        std::vector<Mesh*> _meshes;
+        std::vector<mesh*> _meshes;
         virtual void destroy() override;
         ~Renderer();
         

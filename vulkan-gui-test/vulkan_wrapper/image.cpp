@@ -10,7 +10,7 @@
 
 using namespace vk;
 
-void Image::createImage( uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+void image::createImage( uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
                           VkImageUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags)
 {
     
@@ -33,32 +33,32 @@ void Image::createImage( uint32_t width, uint32_t height, VkFormat format, VkIma
     imageCreateInfo.tiling = tiling;
     imageCreateInfo.usage = usageFlags;
     //the following assignment depends on this assumption:
-    assert(_device->_presentQueue == _device->_graphicsQueue);
+    assert(_device->_presentQueue == _device->_graphics_queue);
     imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     imageCreateInfo.queueFamilyIndexCount = 0;
     imageCreateInfo.pQueueFamilyIndices = nullptr;
     imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
     
-    VkResult result = vkCreateImage(_device->_device, &imageCreateInfo, nullptr, &_image);
+    VkResult result = vkCreateImage(_device->_logical_device, &imageCreateInfo, nullptr, &_image);
     ASSERT_VULKAN(result);
     VkMemoryRequirements memoryRequirements;
-    vkGetImageMemoryRequirements(_device->_device, _image, &memoryRequirements);
+    vkGetImageMemoryRequirements(_device->_logical_device, _image, &memoryRequirements);
     
     VkMemoryAllocateInfo memoryAllocateInfo;
     memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memoryAllocateInfo.pNext = nullptr;
     memoryAllocateInfo.allocationSize = memoryRequirements.size;
-    memoryAllocateInfo.memoryTypeIndex = findMemoryTypeIndex(_device->_physicalDevice, memoryRequirements.memoryTypeBits,
+    memoryAllocateInfo.memoryTypeIndex = findMemoryTypeIndex(_device->_physical_device, memoryRequirements.memoryTypeBits,
                                                              propertyFlags);
-    result = vkAllocateMemory(_device->_device, &memoryAllocateInfo, nullptr, &_imageMemory);
+    result = vkAllocateMemory(_device->_logical_device, &memoryAllocateInfo, nullptr, &_imageMemory);
     
     ASSERT_VULKAN(result);
     
-    vkBindImageMemory(_device->_device, _image, _imageMemory, 0);
+    vkBindImageMemory(_device->_logical_device, _image, _imageMemory, 0);
     
 }
 
-void Image::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView &imageView)
+void image::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView &imageView)
 {
     
     VkImageViewCreateInfo imageViewCreateInfo;
@@ -79,11 +79,11 @@ void Image::createImageView(VkImage image, VkFormat format, VkImageAspectFlags a
     imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
     imageViewCreateInfo.subresourceRange.layerCount = 1;
     
-    VkResult result = vkCreateImageView(_device->_device, &imageViewCreateInfo, nullptr, &imageView);
+    VkResult result = vkCreateImageView(_device->_logical_device, &imageViewCreateInfo, nullptr, &imageView);
     ASSERT_VULKAN(result);
 }
 
-void Image::changeImageLayout(VkCommandPool commandPool, VkQueue queue, VkImage image,
+void image::changeImageLayout(VkCommandPool commandPool, VkQueue queue, VkImage image,
                               VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
     VkCommandBuffer commandBuffer = _device->startSingleTimeCommandBuffer( commandPool);
@@ -148,12 +148,12 @@ void Image::changeImageLayout(VkCommandPool commandPool, VkQueue queue, VkImage 
     
     
 }
-bool Image::isStencilFormat(VkFormat format)
+bool image::isStencilFormat(VkFormat format)
 {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
-void Image::writeBufferToImage(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer)
+void image::writeBufferToImage(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer)
 {
     
     VkCommandBuffer commandBuffer = _device->startSingleTimeCommandBuffer( commandPool);

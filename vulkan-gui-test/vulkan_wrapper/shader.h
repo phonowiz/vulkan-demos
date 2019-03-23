@@ -12,13 +12,13 @@
 
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
-#include "physical_device.h"
+#include "device.h"
 
 namespace  vk
 {
-    class PhysicalDevice;
+    class device;
     
-    class Shader : public Resource
+    class shader : public resource
     {
     public:
         
@@ -32,9 +32,9 @@ namespace  vk
             GEOMETRY = VK_SHADER_STAGE_GEOMETRY_BIT
         };
         
-        Shader(PhysicalDevice* physicalDevice, const char* shaderPath, Shader::ShaderType shaderType);
+        shader(device* physicalDevice, const char* shaderPath, shader::ShaderType shaderType);
         
-        PhysicalDevice* _physicalDevice;
+        device* _physicalDevice;
         static const std::string shaderResourcePath;
         
 
@@ -45,13 +45,13 @@ namespace  vk
         void initGLSLang();
         void finalizeGLSLang();
         virtual void destroy() override;
-        ~Shader();
+        ~shader();
         
         VkPipelineShaderStageCreateInfo _pipelineShaderStage = {};
     
     };
     
-    using ShaderSharedPtr = std::shared_ptr<Shader>;
+    using ShaderSharedPtr = std::shared_ptr<shader>;
 };
 
 

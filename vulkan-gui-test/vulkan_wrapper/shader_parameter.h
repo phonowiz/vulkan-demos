@@ -11,7 +11,7 @@
 
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/glm.hpp"
-#include "texture.h"
+#include "texture_2d.h"
 
 #include <map>
 
@@ -53,7 +53,7 @@ namespace vk
             float   floatValue;
             int     intValue;
             unsigned int    uintValue;
-            Texture2D*   sampler2D;
+            texture_2d*   sampler2D;
             //        Texture3D*   sampler3D;
             glm::mat4 mat4;
             //        PointLight pointLight;
@@ -113,7 +113,7 @@ namespace vk
                     return sizeof( unsigned int);
                     break;
                 case Type::SAMPLER_2D:
-                    return sizeof (Texture2D);
+                    return sizeof (texture_2d);
                 case Type::NONE:
                     assert(0);
                     break;
@@ -156,7 +156,7 @@ namespace vk
             return value.vector4;
         }
         
-        inline Texture2D* getSampler2DValue()
+        inline texture_2d* getSampler2DValue()
         {
             assert(type == Type::SAMPLER_2D);
             return value.sampler2D;
@@ -249,7 +249,7 @@ namespace vk
             return *this;
         }
         
-        inline ShaderParameter& operator=(Texture2D* sampler)
+        inline ShaderParameter& operator=(texture_2d* sampler)
         {
             assert( type == Type::NONE || type == Type::SAMPLER_2D);
             type = Type::SAMPLER_2D;
@@ -320,7 +320,7 @@ namespace vk
             type = Type::FLOAT;
         }
         
-        ShaderParameter(Texture2D* _value)
+        ShaderParameter(texture_2d* _value)
         {
             value.sampler2D = _value;
             type = Type::SAMPLER_2D;

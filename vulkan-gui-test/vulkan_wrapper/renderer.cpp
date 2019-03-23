@@ -12,13 +12,13 @@
 #include <vulkan/vulkan_core.h>
 
 #include "renderer.h"
-#include "physical_device.h"
-#include "swap_chain.h"
+#include "device.h"
+#include "swapchain.h"
 #include "depth_image.h"
 #include "vertex.h"
 #include "vulkan_wrapper/mesh.h"
 #include "shader.h"
-#include "physical_device.h"
+#include "device.h"
 #include <chrono>
 #include <algorithm>
 
@@ -26,7 +26,7 @@
 using namespace vk;
 
 
-Renderer::Renderer(PhysicalDevice* physicalDevice, GLFWwindow* window, SwapChain* swapChain, MaterialSharedPtr material):
+Renderer::Renderer(device* physicalDevice, GLFWwindow* window, swapchain* swapChain, MaterialSharedPtr material):
 _pipeline(physicalDevice, material)
 {
     _physicalDevice = physicalDevice;
@@ -96,7 +96,7 @@ void Renderer::createRenderPass()
     renderPassCreateInfo.dependencyCount = 1;
     renderPassCreateInfo.pDependencies = &subpassDependency;
     
-    VkResult result = vkCreateRenderPass(_physicalDevice->_device, &renderPassCreateInfo, nullptr, &_renderPass);
+    VkResult result = vkCreateRenderPass(_physicalDevice->_logical_device, &renderPassCreateInfo, nullptr, &_renderPass);
 
     ASSERT_VULKAN(result);
 }
@@ -113,7 +113,7 @@ void Renderer::createCommandBuffers()
     
     //todo: remove "new"
     _commandBuffers = new VkCommandBuffer[_swapChain->_swapChainData.imageSet.getImageCount()];
-    VkResult result = vkAllocateCommandBuffers(_physicalDevice->_device, &commandBufferAllocateInfo, _commandBuffers);
+    VkResult result = vkAllocateCommandBuffers(_physicalDevice->_logical_device, &commandBufferAllocateInfo, _commandBuffers);
    ASSERT_VULKAN(result);
 }
 
@@ -127,9 +127,9 @@ void Renderer::createSemaphores()
     semaphoreCreateInfo.pNext = nullptr;
     semaphoreCreateInfo.flags = 0;
     
-    VkResult result = vkCreateSemaphore(_physicalDevice->_device, &semaphoreCreateInfo, nullptr, &_semaphoreImageAvailable);
+    VkResult result = vkCreateSemaphore(_physicalDevice->_logical_device, &semaphoreCreateInfo, nullptr, &_semaphoreImageAvailable);
     ASSERT_VULKAN(result);
-    result = vkCreateSemaphore(_physicalDevice->_device, &semaphoreCreateInfo, nullptr, &_semaphoreRenderingDone);
+    result = vkCreateSemaphore(_physicalDevice->_logical_device, &semaphoreCreateInfo, nullptr, &_semaphoreRenderingDone);
     ASSERT_VULKAN(result);
     
     VkFenceCreateInfo fenceInfo = {};
@@ -139,7 +139,7 @@ void Renderer::createSemaphores()
     
     for(int i = 0; i < _swapChain->_swapChainData.imageSet.getImageCount(); ++i)
     {
-        result = vkCreateFence(_physicalDevice->_device, &fenceInfo, nullptr, &_inFlightFences[i]);
+        result = vkCreateFence(_physicalDevice->_logical_device, &fenceInfo, nullptr, &_inFlightFences[i]);
         ASSERT_VULKAN(result);
     }
 }
@@ -149,7 +149,7 @@ void Renderer::recreateRenderer()
 
     _physicalDevice->waitForllOperationsToFinish();
 
-    vkDestroyRenderPass(_physicalDevice->_device, _renderPass, nullptr);
+    vkDestroyRenderPass(_physicalDevice->_logical_device, _renderPass, nullptr);
 
     createRenderPass();
     _swapChain->recreateSwapChain(_renderPass );
@@ -210,7 +210,7 @@ void Renderer::recordCommandBuffers()
         vkCmdSetScissor(_commandBuffers[i], 0, 1, &scissor);
 
         
-        for( vk::Mesh* pMesh : _meshes)
+        for( vk::mesh* pMesh : _meshes)
         {
             pMesh->draw(_commandBuffers[i], _pipeline);
         }
@@ -224,22 +224,22 @@ void Renderer::recordCommandBuffers()
 
 void Renderer::destroy()
 {
-    vkDestroySemaphore(_physicalDevice->_device, _semaphoreImageAvailable, nullptr);
-    vkDestroySemaphore(_physicalDevice->_device, _semaphoreRenderingDone, nullptr);
+    vkDestroySemaphore(_physicalDevice->_logical_device, _semaphoreImageAvailable, nullptr);
+    vkDestroySemaphore(_physicalDevice->_logical_device, _semaphoreRenderingDone, nullptr);
     _semaphoreImageAvailable = VK_NULL_HANDLE;
     _semaphoreRenderingDone = VK_NULL_HANDLE;
     
-    vkFreeCommandBuffers(_physicalDevice->_device, _physicalDevice->_commandPool,
+    vkFreeCommandBuffers(_physicalDevice->_logical_device, _physicalDevice->_commandPool,
                          static_cast<uint32_t>(_swapChain->_swapChainData.imageSet.getImageCount()), _commandBuffers);
     delete[] _commandBuffers;
     
     for (size_t i = 0; i < _swapChain->_swapChainData.swapChainFramebuffers.size(); i++)
     {
-        vkDestroyFence(_physicalDevice->_device, _inFlightFences[i], nullptr);
+        vkDestroyFence(_physicalDevice->_logical_device, _inFlightFences[i], nullptr);
     }
     
     _pipeline.destroy();
-    vkDestroyRenderPass(_physicalDevice->_device, _renderPass, nullptr);
+    vkDestroyRenderPass(_physicalDevice->_logical_device, _renderPass, nullptr);
     _renderPass = VK_NULL_HANDLE;
 }
 
@@ -279,10 +279,10 @@ void Renderer::init()
 void Renderer::draw()
 {
     static uint32_t imageIndex = 0;
-    vkWaitForFences(_physicalDevice->_device, 1, &_inFlightFences[imageIndex], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_physicalDevice->_device, 1, &_inFlightFences[imageIndex]);
+    vkWaitForFences(_physicalDevice->_logical_device, 1, &_inFlightFences[imageIndex], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(_physicalDevice->_logical_device, 1, &_inFlightFences[imageIndex]);
     
-    vkAcquireNextImageKHR(_physicalDevice->_device, _swapChain->_swapChainData.swapChain, std::numeric_limits<uint64_t>::max(), _semaphoreImageAvailable, VK_NULL_HANDLE, &imageIndex);
+    vkAcquireNextImageKHR(_physicalDevice->_logical_device, _swapChain->_swapChainData.swapChain, std::numeric_limits<uint64_t>::max(), _semaphoreImageAvailable, VK_NULL_HANDLE, &imageIndex);
     
     VkSubmitInfo submitInfo;
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -296,7 +296,7 @@ void Renderer::draw()
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = &_semaphoreRenderingDone;
     
-    VkResult result = vkQueueSubmit(_physicalDevice->_graphicsQueue, 1, &submitInfo, _inFlightFences[imageIndex]);
+    VkResult result = vkQueueSubmit(_physicalDevice->_graphics_queue, 1, &submitInfo, _inFlightFences[imageIndex]);
     ASSERT_VULKAN(result);
     
     VkPresentInfoKHR presentInfo;

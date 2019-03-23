@@ -7,7 +7,7 @@
 //
 
 #include "shader.h"
-#include "physical_device.h"
+#include "device.h"
 #include <vector>
 
 
@@ -55,11 +55,11 @@ static android_app *Android_application = nullptr;
 
 using namespace vk;
 
-const std::string Shader::shaderResourcePath =  "/shaders/";
+const std::string shader::shaderResourcePath =  "/shaders/";
 
-Shader::Shader(PhysicalDevice* physicalDevice, const char* filePath, Shader::ShaderType shaderType)
+shader::shader(device* physicalDevice, const char* filePath, shader::ShaderType shaderType)
 {
-    std::string  path = Resource::resourceRoot + Shader::shaderResourcePath + filePath;
+    std::string  path = resource::resourceRoot + shader::shaderResourcePath + filePath;
     _physicalDevice = physicalDevice;
     
     std::string shader;
@@ -68,7 +68,7 @@ Shader::Shader(PhysicalDevice* physicalDevice, const char* filePath, Shader::Sha
     initShader(shader.c_str(), shaderType);
 }
 
-void Shader::initShader(const char *shaderText, Shader::ShaderType shaderType, const char *entryPoint)
+void shader::initShader(const char *shaderText, shader::ShaderType shaderType, const char *entryPoint)
 {
     VkResult  res;
     bool retVal = false;
@@ -95,14 +95,14 @@ void Shader::initShader(const char *shaderText, Shader::ShaderType shaderType, c
     moduleCreateInfo.flags = 0;
     moduleCreateInfo.codeSize = vtx_spv.size() * sizeof(unsigned int);
     moduleCreateInfo.pCode = vtx_spv.data();
-    res = vkCreateShaderModule(_physicalDevice->_device, &moduleCreateInfo, NULL, &_pipelineShaderStage.module);
+    res = vkCreateShaderModule(_physicalDevice->_logical_device, &moduleCreateInfo, NULL, &_pipelineShaderStage.module);
     assert(res == VK_SUCCESS);
     
     
     finalizeGLSLang();
 }
 
-void Shader::initGLSLang()
+void shader::initGLSLang()
 {
 #if !defined( __ANDROID__) && !defined(__APPLE__)
     glslang::InitializeProcess();
@@ -110,14 +110,14 @@ void Shader::initGLSLang()
 }
 
 
-void Shader::finalizeGLSLang()
+void shader::finalizeGLSLang()
 {
 #if !defined(__ANDROID__) && !defined(__APPLE__)
     glslang::FinalizeProcess();
 #endif
 }
 
-bool Shader::GLSLtoSPV(const Shader::ShaderType shader_type, const char *pshader, std::vector<unsigned int> &spirv)
+bool shader::GLSLtoSPV(const shader::ShaderType shader_type, const char *pshader, std::vector<unsigned int> &spirv)
 {
     MVKShaderStage shaderStage;
     VkShaderStageFlagBits type = static_cast<VkShaderStageFlagBits>(shader_type);
@@ -159,13 +159,13 @@ bool Shader::GLSLtoSPV(const Shader::ShaderType shader_type, const char *pshader
     return wasConverted;
 }
 
-void Shader::destroy()
+void shader::destroy()
 {
-    vkDestroyShaderModule(_physicalDevice->_device, _pipelineShaderStage.module, nullptr);
+    vkDestroyShaderModule(_physicalDevice->_logical_device, _pipelineShaderStage.module, nullptr);
     _pipelineShaderStage.module = VK_NULL_HANDLE;
 }
 
-Shader::~Shader()
+shader::~shader()
 {
 }
 
