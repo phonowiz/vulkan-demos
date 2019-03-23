@@ -14,12 +14,6 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-//#include "easy_image.h"
-//#include "depth_image.h"
-//#include "vertex.h"
-
-//#include "create_swapchain.hpp"
-
 
 #include <assert.h>
 #include <vector>
@@ -29,6 +23,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <chrono>
+
+#include "vulkan_wrapper/physical_device.h"
+#include "vulkan_wrapper/renderer.h"
+#include "vulkan_wrapper/swap_chain.h"
+#include "vulkan_wrapper/material_store.h"
+#include "vulkan_wrapper/mesh.h"
+#include "vulkan_wrapper/display_plane.h"
 
 ///an excellent summary of vulkan can be found here:
 //https://renderdoc.org/vulkan-in-30-minutes.html
@@ -47,7 +48,6 @@ void startGlfw() {
     glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
     
     window = glfwCreateWindow(width, height, "Vulkan Tutorial", nullptr, nullptr);
-    //glfwSetWindowSizeCallback(window, onWindowResized);
 }
 
 //render target
@@ -57,17 +57,8 @@ std::chrono::time_point gameStartTime = std::chrono::high_resolution_clock::now(
 
 void shutdownGlfw() {
     glfwDestroyWindow(window);
-    
     glfwTerminate();
 }
-
-
-#include "vulkan_wrapper/physical_device.h"
-#include "vulkan_wrapper/renderer.h"
-#include "vulkan_wrapper/swap_chain.h"
-#include "vulkan_wrapper/material_store.h"
-#include "vulkan_wrapper/mesh.h"
-#include "vulkan_wrapper/display_plane.h"
 
 
 vk::MaterialSharedPtr standardMat;
@@ -216,20 +207,21 @@ int main()
     
     vk::Texture2D mario(&device, "mario.png");
     texture = &mario;
-    //updateMVP2();
+    updateMVP2();
     
-    updateWithOrtho();
-    vk::Renderer renderer(&device,window, &swapChain, displayMat);
+    //updateWithOrtho();
+    vk::Renderer renderer(&device,window, &swapChain, standardMat);
     
-    renderer.addMesh(&plane);
+    //renderer.addMesh(&plane);
+    renderer.addMesh(&mesh);
     renderer.init();
     
     app.physical_device = &device;
     app.swapchain = &swapChain;
     app.renderer = &renderer;
     
-    //gameLoop2(renderer);
-    gameLoop3(renderer);
+    gameLoop2(renderer);
+    //gameLoop3(renderer);
     
     device.waitForllOperationsToFinish();
     swapChain.destroy();

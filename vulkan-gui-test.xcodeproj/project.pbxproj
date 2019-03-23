@@ -119,7 +119,6 @@
 		B9E92BD42210DBAE0060F755 /* material.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = material.h; sourceTree = "<group>"; };
 		B9E92BD6221114D00060F755 /* texture.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = texture.cpp; sourceTree = "<group>"; };
 		B9E92BD7221114D00060F755 /* texture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = texture.h; sourceTree = "<group>"; };
-		B9F6CA8021D4772D0093D5D7 /* vulkan_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vulkan_utils.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -164,7 +163,6 @@
 			children = (
 				B9E92BC9220D4A990060F755 /* vulkan_wrapper */,
 				B9384E74220171E400565024 /* main.mm */,
-				B9F6CA8021D4772D0093D5D7 /* vulkan_utils.h */,
 				B9DC35F9219574C2007B4FD8 /* vulkan */,
 				B938D06421953FC0004F759E /* utils */,
 				B938D04C219534B7004F759E /* Assets.xcassets */,
@@ -248,38 +246,38 @@
 		B9E92BC9220D4A990060F755 /* vulkan_wrapper */ = {
 			isa = PBXGroup;
 			children = (
+				B94E2954221A1C1B005859E8 /* depth_image.cpp */,
+				B94E2955221A1C1B005859E8 /* depth_image.h */,
 				B984C7FA2238CD18002327DE /* display_plane.cpp */,
 				B984C7FB2238CD18002327DE /* display_plane.h */,
-				B9384E782202198100565024 /* mesh.h */,
-				B924E0B62211E7C500157385 /* mesh.cpp */,
-				B9E92BCA220D4AD20060F755 /* swap_chain.cpp */,
-				B9E92BCB220D4AD20060F755 /* swap_chain.h */,
-				B9E92BCD220D545B0060F755 /* physical_device.cpp */,
-				B9E92BCE220D545B0060F755 /* physical_device.h */,
-				B9E92BD0220D69FB0060F755 /* renderer.cpp */,
-				B9E92BD1220D69FB0060F755 /* renderer.h */,
-				B9E92BD32210DBAE0060F755 /* material.cpp */,
-				B9E92BD42210DBAE0060F755 /* material.h */,
+				B9E1EEEF2217C357006DBA67 /* image.cpp */,
+				B9E1EEF02217C357006DBA67 /* image.h */,
 				B9E1EECF2213F341006DBA67 /* material_store.cpp */,
 				B9E1EED02213F341006DBA67 /* material_store.h */,
-				B9E1EED22213F6B0006DBA67 /* shader.cpp */,
-				B9E1EED32213F6B0006DBA67 /* shader.h */,
+				B9E92BD32210DBAE0060F755 /* material.cpp */,
+				B9E92BD42210DBAE0060F755 /* material.h */,
+				B924E0B62211E7C500157385 /* mesh.cpp */,
+				B9384E782202198100565024 /* mesh.h */,
+				B9C7CD97222E482000AA173A /* object.cpp */,
+				B9C7CD98222E482000AA173A /* object.h */,
+				B9E92BCD220D545B0060F755 /* physical_device.cpp */,
+				B9E92BCE220D545B0060F755 /* physical_device.h */,
+				B9AE757B2244C9AD00A219A3 /* pipeline.cpp */,
+				B9AE757C2244C9AD00A219A3 /* pipeline.h */,
+				B9E92BD0220D69FB0060F755 /* renderer.cpp */,
+				B9E92BD1220D69FB0060F755 /* renderer.h */,
 				B9E1EED52213F723006DBA67 /* resource.cpp */,
 				B9E1EED62213F723006DBA67 /* resource.h */,
 				B9E1EEEB22166AC4006DBA67 /* shader_parameter.cpp */,
 				B9E1EEEC22166AC4006DBA67 /* shader_parameter.h */,
-				B9E1EEEF2217C357006DBA67 /* image.cpp */,
-				B9E1EEF02217C357006DBA67 /* image.h */,
-				B9E92BD6221114D00060F755 /* texture.cpp */,
-				B9E92BD7221114D00060F755 /* texture.h */,
-				B94E2954221A1C1B005859E8 /* depth_image.cpp */,
-				B94E2955221A1C1B005859E8 /* depth_image.h */,
+				B9E1EED22213F6B0006DBA67 /* shader.cpp */,
+				B9E1EED32213F6B0006DBA67 /* shader.h */,
+				B9E92BCA220D4AD20060F755 /* swap_chain.cpp */,
+				B9E92BCB220D4AD20060F755 /* swap_chain.h */,
 				B91D19912228BBD7007CA202 /* swapchain_image_set.cpp */,
 				B91D19922228BBD7007CA202 /* swapchain_image_set.h */,
-				B9C7CD97222E482000AA173A /* object.cpp */,
-				B9C7CD98222E482000AA173A /* object.h */,
-				B9AE757B2244C9AD00A219A3 /* pipeline.cpp */,
-				B9AE757C2244C9AD00A219A3 /* pipeline.h */,
+				B9E92BD6221114D00060F755 /* texture.cpp */,
+				B9E92BD7221114D00060F755 /* texture.h */,
 				B91A50F62246C9EF00E9D0CA /* vertex.cpp */,
 				B91A50F72246C9EF00E9D0CA /* vertex.h */,
 			);

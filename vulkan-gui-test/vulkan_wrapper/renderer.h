@@ -16,6 +16,7 @@
 #include <vector>
 #include "material.h"
 #include "depth_image.h"
+#include "pipeline.h"
 
 class Mesh;
 
@@ -43,6 +44,7 @@ namespace vk
         void clearMeshes(Mesh* pMesh){ _meshes.clear();}
         void clearMesh();
         void draw();
+        pipeline& getPipeline() { return _pipeline;}
         
         void init();
 
@@ -56,8 +58,7 @@ namespace vk
 
         std::array<VkFence, 20> _inFlightFences;
         VkCommandBuffer* _commandBuffers = nullptr;
-        VkPipelineLayout _pipelineLayout;
-        VkPipeline       _pipeline  = VK_NULL_HANDLE;
+        pipeline _pipeline;
 
         MaterialSharedPtr _material;
 

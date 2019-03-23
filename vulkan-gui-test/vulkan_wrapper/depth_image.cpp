@@ -63,25 +63,3 @@ VkAttachmentDescription DepthImage::getDepthAttachment()
     return depthAttachment;
 }
 
-VkPipelineDepthStencilStateCreateInfo DepthImage::getDepthStencilStateCreateInfoOpaque()
-{
-    VkPipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo = {};
-    
-    depthStencilStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-    depthStencilStateCreateInfo.pNext = nullptr;
-    depthStencilStateCreateInfo.flags = 0;
-    depthStencilStateCreateInfo.depthTestEnable = VK_TRUE;
-    depthStencilStateCreateInfo.depthWriteEnable = VK_TRUE;
-    depthStencilStateCreateInfo.depthCompareOp = VK_COMPARE_OP_LESS;
-    
-    //todo:depth bounds uses the min/max depth bounds below to see if the fragment is within the bounding box
-    //we are currently not using this feature
-    depthStencilStateCreateInfo.depthBoundsTestEnable = VK_FALSE;
-    depthStencilStateCreateInfo.stencilTestEnable = VK_FALSE;
-    depthStencilStateCreateInfo.front = {};
-    depthStencilStateCreateInfo.back = {};
-    depthStencilStateCreateInfo.minDepthBounds = 0.0f;
-    depthStencilStateCreateInfo.maxDepthBounds = 1.0f;
-    
-    return depthStencilStateCreateInfo;
-}

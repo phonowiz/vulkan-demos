@@ -277,10 +277,6 @@ VkAttachmentDescription SwapChain::getDepthAttachment()
 {
     return _depthImage.getDepthAttachment();
 }
-VkPipelineDepthStencilStateCreateInfo   SwapChain::getDepthStencilStateCreateInfoOpaque()
-{
-    return _depthImage.getDepthStencilStateCreateInfoOpaque();
-}
 
 void SwapChain::destroy()
 {
@@ -298,8 +294,4 @@ void SwapChain::destroy()
 }
 SwapChain::~SwapChain()
 {
-//    for (int i = 0; i < _swapChainData.swapChainImageViews.size(); i++)
-//    {
-//        vkDestroyImageView(_physicalDevice->_device, _swapChainData.swapChainImageViews[i], nullptr);
-//    }
 }

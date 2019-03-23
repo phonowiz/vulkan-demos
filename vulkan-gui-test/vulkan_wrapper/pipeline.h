@@ -31,9 +31,9 @@ namespace vk
         };
         
         
-        pipeline(PhysicalDevice* device ){ _device = device; };
+        pipeline(PhysicalDevice* device, MaterialSharedPtr material ){ _device = device; _material = material; };
         
-        void create( VkRenderPass render_pass );
+        void create( VkRenderPass render_pass, uint32_t viewport_width, uint32_t viewport_height );
         
         void set_viewport(uint32_t width, uint32_t height){ _width = width; _height = height;};
         void set_cullmode(cull_mode mode){ _cull_mode = mode; };

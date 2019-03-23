@@ -74,7 +74,6 @@ namespace vk
         void                createDepthImage( );
         void                createFrameBuffers(VkRenderPass renderPass);
         VkAttachmentDescription                 getDepthAttachment();
-        VkPipelineDepthStencilStateCreateInfo   getDepthStencilStateCreateInfoOpaque();
         
         virtual void  destroy() override;
         ~SwapChain();

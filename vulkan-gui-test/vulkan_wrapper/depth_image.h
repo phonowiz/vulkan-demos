@@ -25,7 +25,6 @@ namespace vk {
         virtual void create(uint32_t width, uint32_t height);
         virtual void destroy() override;
         VkAttachmentDescription getDepthAttachment();
-        VkPipelineDepthStencilStateCreateInfo getDepthStencilStateCreateInfoOpaque();
         
         bool _created = false;
         

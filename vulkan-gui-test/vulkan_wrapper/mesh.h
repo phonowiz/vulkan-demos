@@ -16,6 +16,7 @@
 
 #include "vertex.h"
 #include "material.h"
+#include "pipeline.h"
 
 
 //todo: move this class to  vk namespace
@@ -57,7 +58,7 @@ namespace vk
         static const std::string meshResourcePath;
         
         //public
-        void draw(VkCommandBuffer commandBuffer, VkPipelineLayout pilineLayout, MaterialSharedPtr material);
+        void draw(VkCommandBuffer commandBuffer, vk::pipeline& pipeline);
         
         //public
         void allocateGPUMemory();

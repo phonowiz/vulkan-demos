@@ -12,10 +12,11 @@
 using namespace vk;
 
 
-void pipeline::create( VkRenderPass render_pass)
+void pipeline::create( VkRenderPass render_pass, uint32_t viewport_width, uint32_t viewport_height)
 {
     assert(_material != nullptr);
-    assert( _width != 0 && _height != 0);
+    _width = viewport_width;
+    _height = viewport_height;
     
     
     auto vertexBindingDescription = vertex::getBindingDescription();
@@ -104,8 +105,7 @@ void pipeline::create( VkRenderPass render_pass)
     depthStencilStateCreateInfo.back = {};
     depthStencilStateCreateInfo.minDepthBounds = 0.0f;
     depthStencilStateCreateInfo.maxDepthBounds = 1.0f;
-    
-    //VkPipelineDepthStencilStateCreateInfo dephtStencilStateCreateInfo = _swapChain->getDepthStencilStateCreateInfoOpaque();
+
     
     VkPipelineColorBlendAttachmentState colorBlendAttachment;
     colorBlendAttachment.blendEnable = VK_TRUE;
@@ -188,4 +188,6 @@ void pipeline::destroy()
 {
     vkDestroyPipeline(_device->_device, _pipeline, nullptr);
     vkDestroyPipelineLayout(_device->_device, _pipelineLayout, nullptr);
+    _pipeline = VK_NULL_HANDLE;
+    _pipelineLayout = VK_NULL_HANDLE;
 }
