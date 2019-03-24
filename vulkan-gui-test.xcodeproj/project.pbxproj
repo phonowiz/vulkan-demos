@@ -69,6 +69,7 @@
 		B938D1E621954FBA004F759E /* MoltenVK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MoltenVK.framework; path = "vulkan-gui-test/vulkansdk-macos-1.1.85.0/MoltenVK/macOS/MoltenVK.framework"; sourceTree = "<group>"; };
 		B94CEB972246FA7C001AEDEE /* shader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shader.h; sourceTree = "<group>"; };
 		B94CEB982248243F001AEDEE /* tiny_obj_loader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tiny_obj_loader.h; sourceTree = "<group>"; };
+		B94CEB9922482516001AEDEE /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
 		B94E29512218DB48005859E8 /* ordered_set.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ordered_set.h; sourceTree = "<group>"; };
 		B94E29522218DB48005859E8 /* ordered_hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ordered_hash.h; sourceTree = "<group>"; };
 		B94E29532218DB48005859E8 /* ordered_map.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ordered_map.h; sourceTree = "<group>"; };
@@ -190,6 +191,7 @@
 		B938D06421953FC0004F759E /* utils */ = {
 			isa = PBXGroup;
 			children = (
+				B94CEB9922482516001AEDEE /* stb_image.h */,
 				B94CEB982248243F001AEDEE /* tiny_obj_loader.h */,
 				B94E29502218DB48005859E8 /* tsl */,
 				B938D06A21953FC0004F759E /* MoltenVKGLSLToSPIRVConverter */,
