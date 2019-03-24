@@ -20,36 +20,32 @@ namespace vk
         
         image(){}
         image( device* device){ _device = device; }
-        void createImage( uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+        void create_image( uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
                          VkImageUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags);
         
-        void changeImageLayout(VkCommandPool commandPool, VkQueue queue, VkImage image,
+        void change_image_layout(VkCommandPool commandPool, VkQueue queue, VkImage image,
                                VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
         
-        void createImageView( VkImage image, VkFormat format,
+        void create_image_view( VkImage image, VkFormat format,
                                     VkImageAspectFlags aspectFlags, VkImageView &imageView);
         
-        bool isStencilFormat(VkFormat format);
+        bool is_stencil_format(VkFormat format);
         
         virtual ~image(){}
         
-        void setDevice(device* device){ _device = device;}
-        VkImage getImage()
+        void set_device(device* device){ _device = device;}
+        VkImage get_image()
         {
             return _image;
         }
-        VkImageView getImageView()
+        VkImageView get_image_view()
         {
             //assert(loaded);
             return _imageView;
         }
         
-        void writeBufferToImage(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer);
+        void write_buffer_to_image(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer);
         
-//        Image(const Image &) = delete;
-//        Image(Image &&) = delete;
-//        Image& operator=(const Image &) = delete;
-//        Image& operator=(Image &&) = delete;
         
         device* _device = nullptr;
         VkImage         _image = VK_NULL_HANDLE;
@@ -58,12 +54,12 @@ namespace vk
         
         virtual void create(uint32_t width, uint32_t height) = 0;
         
-        int getWidth()
+        int get_width()
         {
             return _width;
         }
         
-        int getHeight()
+        int get_height()
         {
             return _height;
         }

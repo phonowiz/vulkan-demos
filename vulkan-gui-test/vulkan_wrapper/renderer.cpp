@@ -26,7 +26,7 @@
 using namespace vk;
 
 
-Renderer::Renderer(device* physicalDevice, GLFWwindow* window, swapchain* swapChain, MaterialSharedPtr material):
+Renderer::Renderer(device* physicalDevice, GLFWwindow* window, swapchain* swapChain, material_shared_ptr material):
 _pipeline(physicalDevice, material)
 {
     _physicalDevice = physicalDevice;
@@ -255,7 +255,7 @@ void Renderer::createPipeline()
 void Renderer::init()
 {
     createRenderPass();
-    _material->createDescriptorSetLayout();
+    _material->create_descriptor_set_layout();
     _swapChain->recreateSwapChain(_renderPass);
     createPipeline();
     createSemaphores();

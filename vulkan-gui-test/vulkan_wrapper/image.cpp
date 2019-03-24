@@ -10,7 +10,7 @@
 
 using namespace vk;
 
-void image::createImage( uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+void image::create_image( uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
                           VkImageUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags)
 {
     
@@ -58,7 +58,7 @@ void image::createImage( uint32_t width, uint32_t height, VkFormat format, VkIma
     
 }
 
-void image::createImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView &imageView)
+void image::create_image_view(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView &imageView)
 {
     
     VkImageViewCreateInfo imageViewCreateInfo;
@@ -83,7 +83,7 @@ void image::createImageView(VkImage image, VkFormat format, VkImageAspectFlags a
     ASSERT_VULKAN(result);
 }
 
-void image::changeImageLayout(VkCommandPool commandPool, VkQueue queue, VkImage image,
+void image::change_image_layout(VkCommandPool commandPool, VkQueue queue, VkImage image,
                               VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
     VkCommandBuffer commandBuffer = _device->start_single_time_command_buffer( commandPool);
@@ -123,7 +123,7 @@ void image::changeImageLayout(VkCommandPool commandPool, VkQueue queue, VkImage 
     {
         imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
         
-        if( isStencilFormat(format))
+        if( is_stencil_format(format))
         {
             imageMemoryBarrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
         }
@@ -148,12 +148,12 @@ void image::changeImageLayout(VkCommandPool commandPool, VkQueue queue, VkImage 
     
     
 }
-bool image::isStencilFormat(VkFormat format)
+bool image::is_stencil_format(VkFormat format)
 {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
-void image::writeBufferToImage(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer)
+void image::write_buffer_to_image(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer)
 {
     
     VkCommandBuffer commandBuffer = _device->start_single_time_command_buffer( commandPool);
@@ -169,8 +169,8 @@ void image::writeBufferToImage(VkCommandPool commandPool, VkQueue queue, VkBuffe
     bufferImageCopy.imageSubresource.baseArrayLayer = 0;
     bufferImageCopy.imageSubresource.layerCount = 1;
     bufferImageCopy.imageOffset = { 0, 0, 0};
-    bufferImageCopy.imageExtent = { static_cast<uint32_t>(getWidth()),
-        static_cast<uint32_t>(getHeight()),
+    bufferImageCopy.imageExtent = { static_cast<uint32_t>(get_width()),
+        static_cast<uint32_t>(get_height()),
         1};
     
     vkCmdCopyBufferToImage(commandBuffer, buffer, _image,

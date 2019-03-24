@@ -31,13 +31,13 @@ namespace vk
         };
         
         
-        pipeline(device* device, MaterialSharedPtr material ){ _device = device; _material = material; };
+        pipeline(device* device, material_shared_ptr material ){ _device = device; _material = material; };
         
         void create( VkRenderPass render_pass, uint32_t viewport_width, uint32_t viewport_height );
         
         void set_viewport(uint32_t width, uint32_t height){ _width = width; _height = height;};
         void set_cullmode(cull_mode mode){ _cull_mode = mode; };
-        void set_material(MaterialSharedPtr material ) { _material = material; }
+        void set_material(material_shared_ptr material ) { _material = material; }
         
         //note: there is a ton of stuff that could be exposed through this class, but I will keep it to just what I need as of now
         
@@ -52,7 +52,7 @@ namespace vk
         
         VkPipeline _pipeline = VK_NULL_HANDLE;
         VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
-        MaterialSharedPtr _material = nullptr;
+        material_shared_ptr _material = nullptr;
         
         device* _device = nullptr;
         

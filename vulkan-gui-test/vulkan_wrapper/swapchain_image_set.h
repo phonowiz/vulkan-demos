@@ -24,7 +24,7 @@ namespace vk
         void createImageSet();
         void createImageViews(VkFormat format);
         
-        using image::setDevice;
+        using image::set_device;
         using object::destroy;
         
         inline uint32_t getImageCount(){ return _imageCount; }

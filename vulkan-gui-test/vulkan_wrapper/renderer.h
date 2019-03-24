@@ -31,7 +31,7 @@ namespace vk
     {
     public:
         
-        Renderer(device* physicalDevice, GLFWwindow* window, swapchain* swapChain, MaterialSharedPtr material);
+        Renderer(device* physicalDevice, GLFWwindow* window, swapchain* swapChain, material_shared_ptr material);
         
         void createRenderPass();
         void createCommandBuffers();
@@ -59,7 +59,7 @@ namespace vk
         VkCommandBuffer* _commandBuffers = nullptr;
         pipeline _pipeline;
 
-        MaterialSharedPtr _material;
+        material_shared_ptr _material;
 
         std::vector<mesh*> _meshes;
         virtual void destroy() override;

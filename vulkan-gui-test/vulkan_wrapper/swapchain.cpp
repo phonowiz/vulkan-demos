@@ -26,7 +26,7 @@ _depthImage(physicalDevice)
 {
     _physicalDevice = physicalDevice;
     _window =  window;
-    _swapChainData.imageSet.setDevice(physicalDevice);
+    _swapChainData.imageSet.set_device(physicalDevice);
     
     //todo: following call must go outside of this class
     VkResult result = glfwCreateWindowSurface(_physicalDevice->_instance, _window, nullptr, &_surface);
@@ -225,7 +225,7 @@ void swapchain::createFrameBuffers(VkRenderPass renderPass)
 
     for (size_t i = 0; i < _swapChainData.swapChainFramebuffers.size(); i++)
     {
-        VkImageView depthImageView = _depthImage.getImageView();
+        VkImageView depthImageView = _depthImage.get_image_view();
         std::array<VkImageView, 2> attachmentViews = {_swapChainData.imageSet.getImageViews()[i], depthImageView};
         
         VkFramebufferCreateInfo framebufferCreateInfo;

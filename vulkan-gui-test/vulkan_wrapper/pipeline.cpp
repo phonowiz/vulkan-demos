@@ -140,7 +140,7 @@ void pipeline::create( VkRenderPass render_pass, uint32_t viewport_width, uint32
     pipelineLayoutCreateInfo.pNext = nullptr;
     pipelineLayoutCreateInfo.flags = 0;
     pipelineLayoutCreateInfo.setLayoutCount = 1;
-    pipelineLayoutCreateInfo.pSetLayouts = _material->getDesciptorSetLayout();
+    pipelineLayoutCreateInfo.pSetLayouts = _material->get_descriptor_set_layout();
     pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
     pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
     
@@ -164,8 +164,8 @@ void pipeline::create( VkRenderPass render_pass, uint32_t viewport_width, uint32
     pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineCreateInfo.pNext = nullptr;
     pipelineCreateInfo.flags = 0;
-    pipelineCreateInfo.stageCount = static_cast<uint32_t>(_material->getShaderStages().size());
-    pipelineCreateInfo.pStages = _material->getShaderStages().data();
+    pipelineCreateInfo.stageCount = static_cast<uint32_t>(_material->get_shader_stages().size());
+    pipelineCreateInfo.pStages = _material->get_shader_stages().data();
     pipelineCreateInfo.pVertexInputState = &vertexInputCreateInfo;
     pipelineCreateInfo.pInputAssemblyState = &inputAssemblyCreateInfo;
     pipelineCreateInfo.pTessellationState = nullptr;

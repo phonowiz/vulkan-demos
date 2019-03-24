@@ -29,7 +29,7 @@ namespace vk
         template <typename T>
         inline static std::shared_ptr<T> GET_MAT(const char* materialName)
         {
-            return std::static_pointer_cast<T>(material_store::getInstance().getMaterial(materialName));
+            return std::static_pointer_cast<T>(material_store::getInstance().get_material(materialName));
         }
         
         material_store();
@@ -38,24 +38,18 @@ namespace vk
         
     private:
         template <typename T, typename ...ARGS>
-        inline static MaterialSharedPtr CREATE_MAT( ARGS... args)
+        inline static material_shared_ptr CREATE_MAT( ARGS... args)
         {
             std::shared_ptr<T> pointer = std::make_shared<T> (args...);
             return std::static_pointer_cast<material>(pointer);
         }
         
-        MaterialSharedPtr getMaterial(const char* name) const;
-        inline ShaderSharedPtr const  findShaderUsingPath(const char* path)const ;
-        ShaderSharedPtr AddShader(const char* shaderPath, shader::ShaderType shaderType);
-        void AddMaterial( std::shared_ptr<material> material);
+        material_shared_ptr get_material(const char* name) const;
+        inline ShaderSharedPtr const  find_shader_using_path(const char* path)const ;
+        ShaderSharedPtr add_shader(const char* shaderPath, shader::ShaderType shaderType);
+        void add_material( std::shared_ptr<material> material);
         
-        void setDevice(device* device){ _device = device; };
-
-        void InitShaders();
-        void InitMaterials();
-
-        
-        device* _device;
+        device* _device = nullptr;
         
         
         material_store(material_store const &) = delete;

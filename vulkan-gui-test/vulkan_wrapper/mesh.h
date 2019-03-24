@@ -18,10 +18,6 @@
 #include "material.h"
 #include "pipeline.h"
 
-
-//todo: move this class to  vk namespace
-
-
 namespace vk
 {
     

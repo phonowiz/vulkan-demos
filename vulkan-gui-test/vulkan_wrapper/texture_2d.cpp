@@ -100,7 +100,7 @@ void texture_2d::create(uint32_t width, uint32_t height)
         vkUnmapMemory(_device->_logical_device, stagingBufferMemory);
     }
     
-    createImage(_width,
+    create_image(_width,
                 _height,
                 static_cast<VkFormat>(_format),
                 VK_IMAGE_TILING_OPTIMAL,
@@ -108,11 +108,11 @@ void texture_2d::create(uint32_t width, uint32_t height)
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     
 
-    changeImageLayout(_device->_commandPool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
+    change_image_layout(_device->_commandPool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
                       VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    writeBufferToImage(_device->_commandPool, _device->_graphics_queue, stagingBuffer);
+    write_buffer_to_image(_device->_commandPool, _device->_graphics_queue, stagingBuffer);
     
-    changeImageLayout(_device->_commandPool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
+    change_image_layout(_device->_commandPool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     
 
@@ -120,7 +120,7 @@ void texture_2d::create(uint32_t width, uint32_t height)
     vkDestroyBuffer(_device->_logical_device, stagingBuffer, nullptr);
     vkFreeMemory(_device->_logical_device, stagingBufferMemory, nullptr);
     
-    createImageView(_image, static_cast<VkFormat>(_format), VK_IMAGE_ASPECT_COLOR_BIT, _imageView);
+    create_image_view(_image, static_cast<VkFormat>(_format), VK_IMAGE_ASPECT_COLOR_BIT, _imageView);
     _uploaded = true;
 }
 void texture_2d::destroy()

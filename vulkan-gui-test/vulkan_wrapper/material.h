@@ -28,97 +28,74 @@ namespace  vk
         
         //currently we oly support 3 shader stages max: vertex, pixel, and compute. geometry is not supported on macs.
         //compute pipeline is not yet implemented in this code.
-        std::array<VkPipelineShaderStageCreateInfo,2> getShaderStages()
+        std::array<VkPipelineShaderStageCreateInfo,2> get_shader_stages()
         {
             std::array<VkPipelineShaderStageCreateInfo, 2> stages;
-            stages[0] = _vertexShader->_pipelineShaderStage;
-            stages[1] = _fragmentShader->_pipelineShaderStage;
+            stages[0] = _vertex_shader->_pipelineShaderStage;
+            stages[1] = _fragment_shader->_pipelineShaderStage;
             
             return stages;
         }
         
-        enum class ParameterStage
+        enum class parameter_stage
         {
             VERTEX = VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT,
             FRAGMENT = VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT,
             COMPUTE = VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT
         };
         
-//        int SetParameteri(const char* parameterName, int const value);
-//        int SetParameterui(const char* parameterName, unsigned int const value);
-//        int SetParameterv4(const char* parameterName, const glm::vec4 &value);
-//        int SetParameterv3(const char* parameterName, const glm::vec3 & value);
-//        int SetParameterv2(const char* parameterName, const glm::vec2 & value);
-//        int SetParameterf(const char* parameterName, float const value);
-//        int SetParamatermat4(const char *parameterName, const glm::mat4 &value);
-//        int SetParameterSampler2D(const GLchar* parameterName, Texture2D* sampler);
-//        int SetParameterSampler3D(const GLchar* parameterName, Texture3D* sampler);
-//        int SetPointLight(const char* parameterName,  const PointLight& light  );
-//        int SetMatrix(const char* parameterName, const glm::mat4& mat);
-//        int SetParameterBool(const char* parameterName, bool value);
-        
-//        int ActivateTexture2D(const GLchar* samplerName, const int textureName, const int textureUnit);
-//        int ActivateTexture3D(const GLchar* samplerName, const int textureName, const int textureUnit);
-//        int ActivateTexture2D(const GLchar* samplerName, const Texture2D* texture, const int textureUnit);
-//        int ActivateTexture3D(const GLchar* samplerName, const Texture3D* texture, const int textureUnit);
-        
-        
-        void initShaderParameters();
-        void commitParametersToGPU();
+        void init_shader_parameters();
+        void commit_parameters_to_gpu();
         
         //todo: maybe this should be called setupParameterBinding, because the layout describes the type of data that is
         //bound to the shader
-        void createDescriptorSetLayout();
-        void createDescriptorPool();
-        void createDescriptorSet();
-        void deallocateParameters();
+        void create_descriptor_set_layout();
+        void create_descriptor_pool();
+        void create_descriptor_set();
+        void deallocate_parameters();
         virtual void destroy() override;
         
-        inline VkDescriptorSetLayout* getDesciptorSetLayout(){ return &_descriptorSetLayout; }
-        inline VkDescriptorSet* getDescriptorSet(){ return &_descriptorSet; }
+        inline VkDescriptorSetLayout* get_descriptor_set_layout(){ return &_descriptor_set_layout; }
+        inline VkDescriptorSet* get_descriptor_set(){ return &_descriptor_set; }
         
-        ShaderParameter::ShaderParamsGroup& getUniformParameters(ParameterStage parameterStage, uint32_t binding);
-        //ShaderParameter::ShaderParamsGroup& getImageSamplerParameters(ParameterStage parameterStage, uint32_t binding);
-        void setImageSampler(texture_2d* texture, const char* parameterName, ParameterStage parameterStage, uint32_t binding);
+        shader_parameter::shader_params_group& get_uniform_parameters(parameter_stage parameterStage, uint32_t binding);
+        void set_image_sampler(texture_2d* texture, const char* parameterName, parameter_stage parameterStage, uint32_t binding);
         
-        ShaderSharedPtr _vertexShader;
-        ShaderSharedPtr _fragmentShader;
+        ShaderSharedPtr _vertex_shader;
+        ShaderSharedPtr _fragment_shader;
         
         
-        VkDescriptorSetLayout _descriptorSetLayout = VK_NULL_HANDLE;
-        VkDescriptorPool      _descriptorPool = VK_NULL_HANDLE;
-        VkDescriptorSet       _descriptorSet = VK_NULL_HANDLE;
+        VkDescriptorSetLayout _descriptor_set_layout = VK_NULL_HANDLE;
+        VkDescriptorPool      _descriptor_pool = VK_NULL_HANDLE;
+        VkDescriptorSet       _descriptor_set = VK_NULL_HANDLE;
         
         //todo: check out the VkPhysicalDeviceLimits structure: https://vulkan.lunarg.com/doc/view/1.0.30.0/linux/vkspec.chunked/ch31s02.html
         static const int BINDING_MAX = 30;
         
         
-        tsl::ordered_map<ParameterStage, resource::BufferInfo>                  _uniformBuffers;
-        tsl::ordered_map<ParameterStage, ShaderParameter::ShaderParamsGroup>    _uniformParameters;
+        tsl::ordered_map<parameter_stage, resource::buffer_info>                  _uniform_buffers;
+        tsl::ordered_map<parameter_stage, shader_parameter::shader_params_group>    _uniform_parameters;
 
-        //todo: these neet  to be arrays because there is a limit of how many samplers you you can bind.
-        tsl::ordered_map<ParameterStage, resource::BufferInfo>                  _samplerBuffers;
+
+        tsl::ordered_map<parameter_stage, resource::buffer_info>                  _sampler_buffers;
         
-        typedef tsl::ordered_map< const char*, ShaderParameter>                       SamplerParameter;
+        typedef tsl::ordered_map< const char*, shader_parameter>                  sampler_parameter;
         
-        tsl::ordered_map<ParameterStage, SamplerParameter>                     _samplerParameters;
-        std::array<VkDescriptorSetLayoutBinding, BINDING_MAX>                   _descriptorSetLayoutBindings;
+        tsl::ordered_map<parameter_stage, sampler_parameter>                     _sampler_parameters;
+        std::array<VkDescriptorSetLayoutBinding, BINDING_MAX>                    _descriptor_set_layout_bindings;
         
         
         const char* _name = nullptr;
         
         device *_device = nullptr;
         
-        
         bool initialized = false;
         ~material();
-        
-
-        
+    
     private:
         
     };
     
     
-    using MaterialSharedPtr = std::shared_ptr<material>;
+    using material_shared_ptr = std::shared_ptr<material>;
 }

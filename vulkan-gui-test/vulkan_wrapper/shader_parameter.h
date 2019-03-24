@@ -22,7 +22,7 @@
 namespace vk
 {
     //TODO: LET'S TRY IMPLEMENTING THIS WITH TEMPLATE CLASSES
-    class ShaderParameter
+    class shader_parameter
     {
         
     public:
@@ -77,10 +77,10 @@ namespace vk
         
         
         
-        using ShaderParamsGroup =  tsl::ordered_map<const char* ,ShaderParameter>;
-        using KeyValue = std::pair<const char*, ShaderParameter> ;
+        using shader_params_group =  tsl::ordered_map<const char* ,shader_parameter>;
+        using KeyValue = std::pair<const char*, shader_parameter> ;
         
-        ShaderParameter():value(),type(Type::NONE)
+        shader_parameter():value(),type(Type::NONE)
         {
             
         }
@@ -186,7 +186,7 @@ namespace vk
             return value.boolean;
         }
         
-        inline ShaderParameter& operator=(const glm::mat4 &value)
+        inline shader_parameter& operator=(const glm::mat4 &value)
         {
             assert( type == Type::NONE || type == Type::MAT4);
             type = Type::MAT4;
@@ -195,7 +195,7 @@ namespace vk
             return *this;
         }
         
-        inline ShaderParameter& operator=(const float &value)
+        inline shader_parameter& operator=(const float &value)
         {
             assert( type == Type::NONE || type == Type::FLOAT);
             type = Type::FLOAT;
@@ -204,7 +204,7 @@ namespace vk
             return *this;
         }
         
-        inline ShaderParameter& operator=(const glm::vec4 &value)
+        inline shader_parameter& operator=(const glm::vec4 &value)
         {
             assert( type == Type::NONE || type == Type::VEC4);
             type = Type::VEC4;
@@ -213,7 +213,7 @@ namespace vk
             return *this;
         }
         
-        inline ShaderParameter& operator=(const glm::vec3 &value)
+        inline shader_parameter& operator=(const glm::vec3 &value)
         {
             assert( type == Type::NONE || type == Type::VEC3);
             type = Type::VEC3;
@@ -222,7 +222,7 @@ namespace vk
             return *this;
         }
         
-        inline ShaderParameter& operator=(const glm::vec2 &value)
+        inline shader_parameter& operator=(const glm::vec2 &value)
         {
             assert( type == Type::NONE || type == Type::VEC2);
             type = Type::VEC2;
@@ -231,7 +231,7 @@ namespace vk
             return *this;
         }
         
-        inline ShaderParameter& operator=(const int &value)
+        inline shader_parameter& operator=(const int &value)
         {
             assert( type == Type::NONE || type == Type::INT);
             type = Type::INT;
@@ -240,7 +240,7 @@ namespace vk
             return *this;
         }
         
-        inline ShaderParameter& operator=(const unsigned int &value)
+        inline shader_parameter& operator=(const unsigned int &value)
         {
             assert( type == Type::NONE || type == Type::UINT);
             type = Type::UINT;
@@ -249,7 +249,7 @@ namespace vk
             return *this;
         }
         
-        inline ShaderParameter& operator=(texture_2d* sampler)
+        inline shader_parameter& operator=(texture_2d* sampler)
         {
             assert( type == Type::NONE || type == Type::SAMPLER_2D);
             type = Type::SAMPLER_2D;
@@ -272,55 +272,55 @@ namespace vk
         //        return *this;
         //    }
         //
-        inline ShaderParameter& operator=(const bool value)
+        inline shader_parameter& operator=(const bool value)
         {
             type = Type::BOOLEAN;
             this->value.boolean = value;
             return *this;
         }
         
-        ShaderParameter(glm::mat4 _value)
+        shader_parameter(glm::mat4 _value)
         {
             value.mat4 = _value;
             type = Type::MAT4;
         }
         
-        ShaderParameter(glm::vec4 _value)
+        shader_parameter(glm::vec4 _value)
         {
             value.vector4 = _value;
             type = Type::VEC4;
         }
         
-        ShaderParameter(glm::vec3 _value)
+        shader_parameter(glm::vec3 _value)
         {
             value.vector3 = _value;
             type = Type::VEC3;
         }
         
-        ShaderParameter(glm::vec2 _value)
+        shader_parameter(glm::vec2 _value)
         {
             value.vector2 = _value;
             type = Type::VEC2;
         }
         
-        ShaderParameter(int _value)
+        shader_parameter(int _value)
         {
             value.intValue = _value;
             type = Type::INT;
         }
-        ShaderParameter(unsigned int _value)
+        shader_parameter(unsigned int _value)
         {
             value.uintValue = _value;
             type = Type::UINT;
         }
         
-        ShaderParameter(float _value)
+        shader_parameter(float _value)
         {
             value.floatValue= _value;
             type = Type::FLOAT;
         }
         
-        ShaderParameter(texture_2d* _value)
+        shader_parameter(texture_2d* _value)
         {
             value.sampler2D = _value;
             type = Type::SAMPLER_2D;
@@ -334,7 +334,7 @@ namespace vk
         
     private:
         
-        static void AddToGroup(ShaderParamsGroup& group, KeyValue value);
+        static void AddToGroup(shader_params_group& group, KeyValue value);
     };
 
 }

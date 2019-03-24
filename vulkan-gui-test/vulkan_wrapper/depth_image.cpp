@@ -19,13 +19,13 @@ void depth_image::create(uint32_t width, uint32_t height)
     _width = width;
     _height = height;
     
-    createImage( width, height, depthFormat,
+    create_image( width, height, depthFormat,
                 VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     
-    createImageView( _image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, _imageView);
+    create_image_view( _image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, _imageView);
     
-    changeImageLayout(_device->_commandPool, _device->_graphics_queue, _image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+    change_image_layout(_device->_commandPool, _device->_graphics_queue, _image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
                       VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
     
     _created = true;

@@ -38,7 +38,7 @@ namespace  vk
         };
         
         //todo: this should be protected
-        struct BufferInfo
+        struct buffer_info
         {
             VkBuffer        uniformBuffer =         VK_NULL_HANDLE;
             VkDeviceMemory  uniformBufferMemory =   VK_NULL_HANDLE;

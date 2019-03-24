@@ -51,7 +51,7 @@ namespace vk
         
         int getSizeInBytes()
         {
-            return getWidth() * getHeight() * getChannels();
+            return get_width() * get_height() * getChannels();
         }
         
         void load();

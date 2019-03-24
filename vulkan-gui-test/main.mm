@@ -61,8 +61,8 @@ void shutdownGlfw() {
 }
 
 
-vk::MaterialSharedPtr standardMat;
-vk::MaterialSharedPtr displayMat;
+vk::material_shared_ptr standardMat;
+vk::material_shared_ptr displayMat;
 
 
 
@@ -87,7 +87,7 @@ void updateMVP2()
     
     glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
 
-    vk::ShaderParameter::ShaderParamsGroup& vertexParams =   standardMat->getUniformParameters(vk::material::ParameterStage::VERTEX, 0);
+    vk::shader_parameter::shader_params_group& vertexParams =   standardMat->get_uniform_parameters(vk::material::parameter_stage::VERTEX, 0);
     
     vertexParams["model"] = model;
     vertexParams["view"] = view;
@@ -99,10 +99,10 @@ void updateMVP2()
     if(initted == false)
     {
         initted = true;
-        standardMat->setImageSampler(texture, "tex", vk::material::ParameterStage::FRAGMENT, 1);
+        standardMat->set_image_sampler(texture, "tex", vk::material::parameter_stage::FRAGMENT, 1);
     }
     
-    standardMat->commitParametersToGPU();
+    standardMat->commit_parameters_to_gpu();
 }
 
 void gameLoop2(vk::Renderer &renderer)
@@ -153,14 +153,14 @@ void onWindowResized2(GLFWwindow * window, int w, int h)
 void updateWithOrtho()
 {
 
-    vk::ShaderParameter::ShaderParamsGroup& vertexParams = displayMat->getUniformParameters(vk::material::ParameterStage::VERTEX, 0);
+    vk::shader_parameter::shader_params_group& vertexParams = displayMat->get_uniform_parameters(vk::material::parameter_stage::VERTEX, 0);
     vertexParams["width"] = width;
     vertexParams["height"] = height;
     
     
-    displayMat->setImageSampler(texture, "tex", vk::material::ParameterStage::FRAGMENT, 1);
+    displayMat->set_image_sampler(texture, "tex", vk::material::parameter_stage::FRAGMENT, 1);
     
-    displayMat->commitParametersToGPU();
+    displayMat->commit_parameters_to_gpu();
     
 }
 
