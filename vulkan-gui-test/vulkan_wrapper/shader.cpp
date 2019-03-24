@@ -65,17 +65,17 @@ shader::shader(device* device, const char* filePath, shader::ShaderType shaderTy
     std::string shader;
     read_file(shader, path);
     
-    initShader(shader.c_str(), shaderType);
+    init(shader.c_str(), shaderType);
 }
 
-void shader::initShader(const char *shaderText, shader::ShaderType shaderType, const char *entryPoint)
+void shader::init(const char *shaderText, shader::ShaderType shaderType, const char *entryPoint)
 {
     VkResult  res;
     bool retVal = false;
     
     assert(shaderText != nullptr);
     
-    initGLSLang();
+    init_glsl_lang();
     VkShaderModuleCreateInfo moduleCreateInfo;
     
     
@@ -87,7 +87,7 @@ void shader::initShader(const char *shaderText, shader::ShaderType shaderType, c
     _pipelineShaderStage.stage = static_cast<VkShaderStageFlagBits>( shaderType );
     _pipelineShaderStage.pName = entryPoint;
     
-    retVal = GLSLtoSPV(shaderType, shaderText, vtx_spv);
+    retVal = glsls_to_spv(shaderType, shaderText, vtx_spv);
     assert(retVal);
     
     moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -99,10 +99,10 @@ void shader::initShader(const char *shaderText, shader::ShaderType shaderType, c
     assert(res == VK_SUCCESS);
     
     
-    finalizeGLSLang();
+    finalize_glsl_lang();
 }
 
-void shader::initGLSLang()
+void shader::init_glsl_lang()
 {
 #if !defined( __ANDROID__) && !defined(__APPLE__)
     glslang::InitializeProcess();
@@ -110,14 +110,14 @@ void shader::initGLSLang()
 }
 
 
-void shader::finalizeGLSLang()
+void shader::finalize_glsl_lang()
 {
 #if !defined(__ANDROID__) && !defined(__APPLE__)
     glslang::FinalizeProcess();
 #endif
 }
 
-bool shader::GLSLtoSPV(const shader::ShaderType shader_type, const char *pshader, std::vector<unsigned int> &spirv)
+bool shader::glsls_to_spv(const shader::ShaderType shader_type, const char *pshader, std::vector<unsigned int> &spirv)
 {
     MVKShaderStage shaderStage;
     VkShaderStageFlagBits type = static_cast<VkShaderStageFlagBits>(shader_type);

@@ -39,11 +39,11 @@ namespace  vk
         
 
         
-        void initShader( const char *shaderText, ShaderType shaderType, const char *entryPoint = "main");
-        bool GLSLtoSPV(const ShaderType shaderType, const char *pshader, std::vector<unsigned int> &spirv);
+        void init( const char *shaderText, ShaderType shaderType, const char *entryPoint = "main");
+        bool glsls_to_spv(const ShaderType shaderType, const char *pshader, std::vector<unsigned int> &spirv);
         
-        void initGLSLang();
-        void finalizeGLSLang();
+        void init_glsl_lang();
+        void finalize_glsl_lang();
         virtual void destroy() override;
         ~shader();
         
