@@ -40,7 +40,7 @@ namespace  vk
 
         
         void init( const char *shaderText, ShaderType shaderType, const char *entryPoint = "main");
-        bool glsls_to_spv(const ShaderType shaderType, const char *pshader, std::vector<unsigned int> &spirv);
+        bool glsl_to_spv(const ShaderType shaderType, const char *pshader, std::vector<unsigned int> &spirv);
         
         void init_glsl_lang();
         void finalize_glsl_lang();

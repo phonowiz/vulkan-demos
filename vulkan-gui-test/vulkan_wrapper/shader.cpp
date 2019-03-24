@@ -87,7 +87,7 @@ void shader::init(const char *shaderText, shader::ShaderType shaderType, const c
     _pipelineShaderStage.stage = static_cast<VkShaderStageFlagBits>( shaderType );
     _pipelineShaderStage.pName = entryPoint;
     
-    retVal = glsls_to_spv(shaderType, shaderText, vtx_spv);
+    retVal = glsl_to_spv(shaderType, shaderText, vtx_spv);
     assert(retVal);
     
     moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -117,7 +117,7 @@ void shader::finalize_glsl_lang()
 #endif
 }
 
-bool shader::glsls_to_spv(const shader::ShaderType shader_type, const char *pshader, std::vector<unsigned int> &spirv)
+bool shader::glsl_to_spv(const shader::ShaderType shader_type, const char *pshader, std::vector<unsigned int> &spirv)
 {
     MVKShaderStage shaderStage;
     VkShaderStageFlagBits type = static_cast<VkShaderStageFlagBits>(shader_type);
