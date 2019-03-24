@@ -38,8 +38,8 @@ For an example of how I think the renderer api will work, check this out:
     gameLoop(renderer);
     
     device.wait_for_all_operations_to_finish();
-    swapChain.destroy();
-    materialStore.destroy();
+    swapchain.destroy();
+    material_store.destroy();
     mesh.destroy();
     plane.destroy();
     renderer.destroy();
