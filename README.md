@@ -72,6 +72,10 @@ Here is an example of how you would update shader parameters every frame:
     standard_mat->commit_parameters_to_gpu();
 
 ```
+If you have ever used vulkan api directly to do all of this, you know there is a ton of of stuff that goes on to make this snippet happen, I've managed to boil it down to less than 10 lines.
+
+My philosophy is to make something that satisfies my needs specifically and only expose exactly what I need from Vulkan, the rest can stay hidden with default values. As my development gets more sophisticated, I'll keep exposing more and more of the API, just enough to get what I need done.  It keeps things simpler. 
+
 
 Here is a screenshot of my first Vulkan scene:
 
