@@ -70,7 +70,6 @@ vk::texture_2d* texture = nullptr;
 
 void updateMVP2()
 {
-    //todo: this should work for every mesh
     std::chrono::time_point frameTime = std::chrono::high_resolution_clock::now();
     float timeSinceStart = std::chrono::duration_cast<std::chrono::milliseconds>( frameTime - gameStartTime ).count()/1000.0f;
     
@@ -93,14 +92,10 @@ void updateMVP2()
     vertexParams["view"] = view;
     vertexParams["projection"] = projection;
     vertexParams["lightPosition"] = temp;
+
+
+    standardMat->set_image_sampler(texture, "tex", vk::material::parameter_stage::FRAGMENT, 1);
     
-    
-    static bool initted = false;
-    if(initted == false)
-    {
-        initted = true;
-        standardMat->set_image_sampler(texture, "tex", vk::material::parameter_stage::FRAGMENT, 1);
-    }
     
     standardMat->commit_parameters_to_gpu();
 }
