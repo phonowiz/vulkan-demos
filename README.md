@@ -59,7 +59,7 @@ Here is an example of how you would update shader parameters every frame:
     vk::shader_parameter::shader_params_group& vertex_params =   
         standard_mat->get_uniform_parameters(vk::material::parameter_stage::VERTEX, binding);
     
-    //the parameters need to be listed in the same order they are listed in the shader
+    //the parameters need to be listed in the same order they are listed in the shader struct that declares them.
     vertex_params["model"] = model;
     vertex_params["view"] = view;
     vertex_params["projection"] = projection;
