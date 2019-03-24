@@ -14,48 +14,39 @@ For an example of how I think the renderer api will work, check this out:
 
 
 ```c++
-vk::PhysicalDevice device;
+    vk::device device;
+    
+    VkResult res = glfwCreateWindowSurface(device._instance, window, nullptr, &surface);
+    assert(res == VK_SUCCESS);
+    
+    device.create_logical_device(surface);
+    
+    vk::swapchain swapchain(&device, window, surface);
+    vk::material_store material_store;
+    
+    material_store.create(&device);
+    
+    standard_mat = material_store.GET_MAT<vk::material>("standard");
 
-//the surface is OS dependendent, so the client has to come up with a way to create it. 
-createSurface(device._instance, window, surface);
+    vk::mesh mesh( "dragon.obj", &device );
+    
+    vk::renderer renderer(&device,window, &swapchain, standard_mat);
 
-device.createLogicalDevice(surface);
-
-vk::SwapChain swapChain(&device, window);
-vk::MaterialStore materialStore;
-
-materialStore.createStore(&device);
-
-standardMat = materialStore.GET_MAT<vk::Material>("standard");
-
-vk::Mesh mesh( "dragon.obj", &device );
-
-vk::plane plane(&device);
-plane.create();
-
-vk::Texture2D mario(&device, "mario.png");
-
-vk::Renderer renderer(&device,window, &swapChain, standardMat);
-
-renderer.addMesh(&mesh);
-renderer.init();
-
-//once all the assets have been created and renderer initialized, the client runs the game loop
-gameLoop(renderer);
-
-device.waitForllOperationsToFinish();
-
-//destruction has to happen in a certain order, therefore we manually do it to make sure it happens
-//the right way. 
-swapChain.destroy();
-materialStore.destroy();
-mesh.destroy();
-plane.destroy();
-renderer.destroy();
-device.destroy();
+    renderer.add_mesh(&mesh);
+    renderer.init();
+    
+    gameLoop(renderer);
+    
+    device.wait_for_all_operations_to_finish();
+    swapChain.destroy();
+    materialStore.destroy();
+    mesh.destroy();
+    plane.destroy();
+    renderer.destroy();
+    device.destroy();
 ```
 
-The naming style is still not consistent, but you get the idea.  Here is a screenshot of my first Vulkan scene:
+Here is a screenshot of my first Vulkan scene:
 
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/dragon.png">
 
