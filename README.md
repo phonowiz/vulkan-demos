@@ -64,10 +64,10 @@ Here is an example of how you would update shader parameters every frame:
     vertex_params["projection"] = projection;
     vertex_params["lightPosition"] = light_pos;
 
-
-    standard_mat->set_image_sampler(texture, "tex", vk::material::parameter_stage::FRAGMENT, 1);
     
-    
+    //texture variable is of type vk::texture_2d
+    int binding = 1;
+    standard_mat->set_image_sampler(texture, "tex", vk::material::parameter_stage::FRAGMENT, binding);
     standard_mat->commit_parameters_to_gpu();
 
 ```
