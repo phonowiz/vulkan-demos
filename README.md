@@ -55,7 +55,8 @@ Here is an example of how you would update shader parameters every frame:
     
     glm::vec4 light_pos = //code that updates light position
 
-    vk::shader_parameter::shader_params_group& vertex_params =   standard_mat->get_uniform_parameters(vk::material::parameter_stage::VERTEX, 0);
+    vk::shader_parameter::shader_params_group& vertex_params =   
+        standard_mat->get_uniform_parameters(vk::material::parameter_stage::VERTEX, 0);
     
     //the parameters need to be listed in the same order they are listed in the shader
     vertex_params["model"] = model;
