@@ -37,7 +37,7 @@ void material::commit_parameters_to_gpu( )
         shader_parameter::shader_params_group& group = _uniform_parameters[pair.first];
         if(mem.uniformBufferMemory != VK_NULL_HANDLE)
         {
-            if(mem.usageType == UsageType::UNIFORM_BUFFER)
+            if(mem.usageType == usage_type::UNIFORM_BUFFER)
             {
                 void* data = nullptr;
                 vkMapMemory(_device->_logical_device, mem.uniformBufferMemory, 0, mem.size, 0, &data);
@@ -48,9 +48,9 @@ void material::commit_parameters_to_gpu( )
                 //appear in the group
                 for (std::pair<const char* , shader_parameter > pair : group)
                 {
-                    assert(pair.second.getByteSize() != 0 && "Empty parameter, probably means you've left a parameter unassigned");
-                    memcpy(byteData + totalWritten, pair.second.getStoredValueMemory(), pair.second.getByteSize() );
-                    totalWritten += pair.second.getByteSize();
+                    assert(pair.second.get_size_in_bytes() != 0 && "Empty parameter, probably means you've left a parameter unassigned");
+                    memcpy(byteData + totalWritten, pair.second.get_stored_value_memory(), pair.second.get_size_in_bytes() );
+                    totalWritten += pair.second.get_size_in_bytes();
                     
                     assert(totalWritten <= mem.size && "trying to write more memory than that allocated from GPU ");
                 }
@@ -78,7 +78,7 @@ void material::set_image_sampler(texture_2d* texture, const char* parameterName,
 {
     buffer_info& mem = _sampler_buffers[parameterStage];
     mem.binding = binding;
-    mem.usageType = UsageType::COMBINED_IMAGE_SAMPLER;
+    mem.usageType = usage_type::COMBINED_IMAGE_SAMPLER;
     
     _sampler_parameters[parameterStage][parameterName] = texture;
 }
@@ -86,7 +86,7 @@ shader_parameter::shader_params_group& material::get_uniform_parameters(paramete
 {
     buffer_info& mem = _uniform_buffers[stage];
     mem.binding = binding;
-    mem.usageType = UsageType::UNIFORM_BUFFER;
+    mem.usageType = usage_type::UNIFORM_BUFFER;
     
     return _uniform_parameters[stage];
     
@@ -117,7 +117,7 @@ void material::init_shader_parameters()
         {
             //const char* name = pair.first;
             shader_parameter setting = pair.second;
-            totalSize += setting.getByteSize();
+            totalSize += setting.get_size_in_bytes();
         }
         
         _uniform_buffers[pair.first].size = totalSize;
@@ -125,7 +125,7 @@ void material::init_shader_parameters()
         if(totalSize != 0)
         {
             assert(mem.uniformBufferMemory == VK_NULL_HANDLE && mem.uniformBuffer == VK_NULL_HANDLE);
-            createBuffer(_device->_logical_device, _device->_physical_device, totalSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, mem.uniformBuffer,
+            create_buffer(_device->_logical_device, _device->_physical_device, totalSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, mem.uniformBuffer,
                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mem.uniformBufferMemory);
         }
 
@@ -165,8 +165,8 @@ void material::create_descriptor_set()
         for( std::pair<const char*, shader_parameter> pair2 : pair.second)
         {
             //TODO: what about sampler 3D?
-            texture_2d* texture = pair2.second.getSampler2DValue();
-            descriptorImageInfos[count].sampler = texture->getSampler();
+            texture_2d* texture = pair2.second.get_texture_2d();
+            descriptorImageInfos[count].sampler = texture->get_sampler();
             descriptorImageInfos[count].imageView = texture->get_image_view();
             descriptorImageInfos[count].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
@@ -190,7 +190,7 @@ void material::create_descriptor_set()
 
     for (std::pair<parameter_stage , resource::buffer_info > pair : _uniform_buffers)
     {
-        assert(UsageType::INVALID != pair.second.usageType);
+        assert(usage_type::INVALID != pair.second.usageType);
 
         descriptorbufferInfos[count].buffer = pair.second.uniformBuffer;
         descriptorbufferInfos[count].offset = 0;

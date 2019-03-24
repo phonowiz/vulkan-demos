@@ -32,9 +32,9 @@ namespace  vk
             GEOMETRY = VK_SHADER_STAGE_GEOMETRY_BIT
         };
         
-        shader(device* physicalDevice, const char* shaderPath, shader::ShaderType shaderType);
+        shader(device* device, const char* shader_path, shader::ShaderType shader_type);
         
-        device* _physicalDevice;
+        device* _device;
         static const std::string shaderResourcePath;
         
 

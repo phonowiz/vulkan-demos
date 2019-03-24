@@ -26,23 +26,23 @@ namespace vk {
     class vertex
     {
     public:
-        glm::vec3 pos;
-        glm::vec3 color;
-        glm::vec2 uvCoord;
-        glm::vec3 normal;
+        glm::vec3 _pos;
+        glm::vec3 _color;
+        glm::vec2 _uv_coord;
+        glm::vec3 _normal;
         
         
         vertex(glm::vec3 pos, glm::vec3 color, glm::vec2 uvCoord, glm::vec3 normal)
-        : pos(pos), color(color), uvCoord(uvCoord), normal(normal)
+        : _pos(pos), _color(color), _uv_coord(uvCoord), _normal(normal)
         {}
         
         bool operator==(const vertex& other) const
         {
-            return pos == other.pos && color == other.color && uvCoord == other.uvCoord &&
-            normal == other.normal;
+            return _pos == other._pos && _color == other._color && _uv_coord == other._uv_coord &&
+            _normal == other._normal;
         }
         
-        static VkVertexInputBindingDescription getBindingDescription()
+        static VkVertexInputBindingDescription get_binding_description()
         {
             VkVertexInputBindingDescription vertexInputBindingDescription;
             vertexInputBindingDescription.binding = 0;
@@ -52,29 +52,29 @@ namespace vk {
             return vertexInputBindingDescription;
         }
         
-        static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions()
+        static std::vector<VkVertexInputAttributeDescription> get_attribute_descriptions()
         {
             std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions(4);
             
             vertexInputAttributeDescriptions[0].location = 0;
             vertexInputAttributeDescriptions[0].binding = 0;
             vertexInputAttributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-            vertexInputAttributeDescriptions[0].offset = offsetof(vertex, pos);
+            vertexInputAttributeDescriptions[0].offset = offsetof(vertex, _pos);
             
             vertexInputAttributeDescriptions[1].location = 1;
             vertexInputAttributeDescriptions[1].binding = 0;
             vertexInputAttributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-            vertexInputAttributeDescriptions[1].offset = offsetof(vertex, color);
+            vertexInputAttributeDescriptions[1].offset = offsetof(vertex, _color);
             
             vertexInputAttributeDescriptions[2].location = 2;
             vertexInputAttributeDescriptions[2].binding = 0;
             vertexInputAttributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-            vertexInputAttributeDescriptions[2].offset = offsetof(vertex, uvCoord);
+            vertexInputAttributeDescriptions[2].offset = offsetof(vertex, _uv_coord);
             
             vertexInputAttributeDescriptions[3].location = 3;
             vertexInputAttributeDescriptions[3].binding = 0;
             vertexInputAttributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
-            vertexInputAttributeDescriptions[3].offset = offsetof(vertex, normal);
+            vertexInputAttributeDescriptions[3].offset = offsetof(vertex, _normal);
             
             return vertexInputAttributeDescriptions;
             
@@ -89,9 +89,9 @@ namespace std
     {
         size_t operator()(vk::vertex const &vert) const
         {
-            size_t h1 = hash<glm::vec3>()(vert.pos);
-            size_t h2 = hash<glm::vec3>()(vert.color);
-            size_t h3 = hash<glm::vec2>()(vert.uvCoord);
+            size_t h1 = hash<glm::vec3>()(vert._pos);
+            size_t h2 = hash<glm::vec3>()(vert._color);
+            size_t h3 = hash<glm::vec2>()(vert._uv_coord);
             
             return ((h1 ^ (h2 << 1)) >> 1) ^ h3;
         }

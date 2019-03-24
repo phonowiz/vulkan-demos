@@ -20,15 +20,15 @@ const std::string texture_2d::textureResourcePath =  "/textures/";
 texture_2d::texture_2d(device* device, uint32_t width, uint32_t height):
 image(device)
 {
-    createSampler();
+    create_sampler();
     create(width, height);
 }
 
 texture_2d::texture_2d(device* device,const char* path)
 :image(device)
 {
-    _path = resource::resourceRoot + texture_2d::textureResourcePath + path;
-    createSampler();
+    _path = resource::resource_root + texture_2d::textureResourcePath + path;
+    create_sampler();
     load();
     create( _width, _height);
 }
@@ -51,7 +51,7 @@ void texture_2d::load( )
     _loaded = true;
 }
 
-void texture_2d::createSampler()
+void texture_2d::create_sampler()
 {
     VkSamplerCreateInfo samplerCreateInfo;
     
@@ -82,21 +82,21 @@ void texture_2d::create(uint32_t width, uint32_t height)
     
     _width = width;
     _height = height;
-    VkDeviceSize imageSize = getSizeInBytes();
+    VkDeviceSize imageSize = get_size_in_bytes();
 
 
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
     
     
-    createBuffer(_device->_logical_device, _device->_physical_device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+    create_buffer(_device->_logical_device, _device->_physical_device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                  stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferMemory);
     
     if(_loaded)
     {
         void *data = nullptr;
         vkMapMemory(_device->_logical_device, stagingBufferMemory, 0, imageSize, 0, &data);
-        memcpy(data, getRaw(), imageSize);
+        memcpy(data, get_raw(), imageSize);
         vkUnmapMemory(_device->_logical_device, stagingBufferMemory);
     }
     

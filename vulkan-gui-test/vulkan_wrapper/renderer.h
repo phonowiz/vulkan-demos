@@ -27,43 +27,42 @@ namespace vk
     class depth_image;
     class mesh;
     
-    class Renderer : public object
+    class renderer : public object
     {
     public:
         
-        Renderer(device* physicalDevice, GLFWwindow* window, swapchain* swapChain, material_shared_ptr material);
+        renderer(device* physicalDevice, GLFWwindow* window, swapchain* swapChain, material_shared_ptr material);
         
-        void createRenderPass();
-        void createCommandBuffers();
-        void createSemaphores();
-        void recreateRenderer();
-        void recordCommandBuffers();
-        void createPipeline();
-        void addMesh(mesh* pMesh){ _meshes.push_back(pMesh); };
-        void clearMeshes(mesh* pMesh){ _meshes.clear();}
-        void clearMesh();
+        void create_render_pass();
+        void create_command_buffer();
+        void create_semaphores();
+        void recreate_renderer();
+        void record_command_buffers();
+        void create_pipeline();
+        void add_mesh(mesh* pMesh){ _meshes.push_back(pMesh); };
+        void clear_meshes(mesh* pMesh){ _meshes.clear();}
         void draw();
-        pipeline& getPipeline() { return _pipeline;}
+        pipeline& get_pipeline() { return _pipeline;}
         
         void init();
 
-        device*     _physicalDevice = nullptr;
+        device*     _device = nullptr;
         GLFWwindow*         _window = nullptr;
-        VkRenderPass        _renderPass = VK_NULL_HANDLE;
+        VkRenderPass        _render_pass = VK_NULL_HANDLE;
 
-        VkSemaphore _semaphoreImageAvailable = VK_NULL_HANDLE;
-        VkSemaphore _semaphoreRenderingDone = VK_NULL_HANDLE;
-        swapchain*  _swapChain = nullptr;
+        VkSemaphore _semaphore_image_available = VK_NULL_HANDLE;
+        VkSemaphore _semaphore_rendering_done = VK_NULL_HANDLE;
+        swapchain*  _swapchain = nullptr;
 
-        std::array<VkFence, 20> _inFlightFences;
-        VkCommandBuffer* _commandBuffers = nullptr;
+        std::array<VkFence, 20> _inflight_fences;
+        VkCommandBuffer* _command_buffers = nullptr;
         pipeline _pipeline;
 
         material_shared_ptr _material;
 
         std::vector<mesh*> _meshes;
         virtual void destroy() override;
-        ~Renderer();
+        ~renderer();
         
     private:
     };

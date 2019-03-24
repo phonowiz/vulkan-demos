@@ -45,7 +45,7 @@ namespace vk
         
     private:
         
-        union SettingValue
+        union setting_value
         {
             glm::vec4 vector4;
             glm::vec3 vector3;
@@ -59,21 +59,21 @@ namespace vk
             //        PointLight pointLight;
             bool     boolean;
             
-            SettingValue()
+            setting_value()
             {
                 mat4 = glm::mat4(0);
             }
             
         };
         
-        SettingValue value;
+        setting_value value;
         Type type;
         const char* name = nullptr;
         
     public:
         
-        inline Type getType(){return type;}
-        inline SettingValue* getStoredValueMemory(){ return &value; }
+        inline Type get_type(){return type;}
+        inline setting_value* get_stored_value_memory(){ return &value; }
         
         
         
@@ -84,7 +84,7 @@ namespace vk
         {
             
         }
-        inline size_t getByteSize()
+        inline size_t get_size_in_bytes()
         {
             switch( type )
             {
@@ -121,70 +121,73 @@ namespace vk
             
             return 0;
         }
-        inline int getIntValue()
-        {
-            assert(type == Type::INT);
-            return value.intValue;
-        }
         
-        inline unsigned int getUnsignedInt()
-        {
-            assert(type == Type::UINT);
-            return value.uintValue;
-        }
-        inline float getFloatValue()
-        {
-            assert(type == Type::FLOAT);
-            return value.floatValue;
-        }
+// TODO: do i really need these functions?  they used to be useful in opengl, in vulkan get_stored_value_memory might be good enough
         
-        inline glm::vec2 getVec2Value()
-        {
-            assert( type == Type::VEC2);
-            return value.vector2;
-        }
-        
-        inline glm::vec3 getVec3Value()
-        {
-            assert( type == Type::VEC3);
-            return value.vector3;
-        }
-        
-        inline glm::vec4 getVec4Value()
-        {
-            assert(type == Type::VEC4);
-            return value.vector4;
-        }
-        
-        inline texture_2d* getSampler2DValue()
+//        inline int get_int_value()
+//        {
+//            assert(type == Type::INT);
+//            return value.intValue;
+//        }
+//        
+//        inline unsigned int get_unsigned_int()
+//        {
+//            assert(type == Type::UINT);
+//            return value.uintValue;
+//        }
+//        inline float getFloatValue()
+//        {
+//            assert(type == Type::FLOAT);
+//            return value.floatValue;
+//        }
+//        
+//        inline glm::vec2 getVec2Value()
+//        {
+//            assert( type == Type::VEC2);
+//            return value.vector2;
+//        }
+//        
+//        inline glm::vec3 getVec3Value()
+//        {
+//            assert( type == Type::VEC3);
+//            return value.vector3;
+//        }
+//        
+//        inline glm::vec4 getVec4Value()
+//        {
+//            assert(type == Type::VEC4);
+//            return value.vector4;
+//        }
+//        
+        inline texture_2d* get_texture_2d()
         {
             assert(type == Type::SAMPLER_2D);
             return value.sampler2D;
         }
-        //
-        //    inline Texture3D* getSampler3DValue()
-        //    {
-        //        assert(type == Type::SAMPLER_3D);
-        //        return value.sampler3D;
-        //    }
-        
-        inline glm::mat4 getMat4Value()
-        {
-            assert(type == Type::MAT4);
-            return value.mat4;
-        }
-        
-        //    inline PointLight& getPointLightValue()
-        //    {
-        //        assert(type == Type::POINT_LIGHT);
-        //        return value.pointLight;
-        //    }
-        
-        inline bool getBoolValue()
-        {
-            assert(type == Type::BOOLEAN);
-            return value.boolean;
-        }
+//        //
+//        //    inline Texture3D* getSampler3DValue()
+//        //    {
+//        //        assert(type == Type::SAMPLER_3D);
+//        //        return value.sampler3D;
+//        //    }
+//        
+//        inline glm::mat4 getMat4Value()
+//        {
+//            assert(type == Type::MAT4);
+//            return value.mat4;
+//        }
+//        
+//        //    inline PointLight& getPointLightValue()
+//        //    {
+//        //        assert(type == Type::POINT_LIGHT);
+//        //        return value.pointLight;
+//        //    }
+//        
+//        inline bool getBoolValue()
+//        {
+//            assert(type == Type::BOOLEAN);
+//            return value.boolean;
+//        }
         
         inline shader_parameter& operator=(const glm::mat4 &value)
         {
@@ -334,7 +337,6 @@ namespace vk
         
     private:
         
-        static void AddToGroup(shader_params_group& group, KeyValue value);
     };
 
 }

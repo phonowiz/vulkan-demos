@@ -18,19 +18,19 @@ namespace  vk
     class resource : public object
     {
     public:
-        static const std::string resourceRoot;
+        static const std::string resource_root;
         
         virtual ~resource(){}
         
-        void readFile(std::string& fileContents, std::string& path);
+        void read_file(std::string& fileContents, std::string& path);
         
-        void createBuffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize deviceSize, VkBufferUsageFlags bufferUsageFlags, VkBuffer &buffer,
+        void create_buffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize deviceSize, VkBufferUsageFlags bufferUsageFlags, VkBuffer &buffer,
                      VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceMemory &deviceMemory);
         
-        uint32_t findMemoryTypeIndex( VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
+        uint32_t find_memory_type_index( VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
     
         
-        enum class UsageType
+        enum class usage_type
         {
             COMBINED_IMAGE_SAMPLER = VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
             UNIFORM_BUFFER = VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
@@ -42,7 +42,7 @@ namespace  vk
         {
             VkBuffer        uniformBuffer =         VK_NULL_HANDLE;
             VkDeviceMemory  uniformBufferMemory =   VK_NULL_HANDLE;
-            UsageType       usageType =             UsageType::INVALID;
+            usage_type       usageType =             usage_type::INVALID;
             uint32_t        binding   =             0;
             size_t          size      =             0;
         };

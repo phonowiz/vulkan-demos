@@ -105,7 +105,7 @@ void updateMVP2()
     standardMat->commit_parameters_to_gpu();
 }
 
-void gameLoop2(vk::Renderer &renderer)
+void gameLoop2(vk::renderer &renderer)
 {
     int i = 0;
     while (!glfwWindowShouldClose(window)) {
@@ -121,7 +121,7 @@ struct App
 {
     vk::swapchain* swapchain = nullptr;
     vk::device* physical_device = nullptr;
-    vk::Renderer* renderer = nullptr;
+    vk::renderer* renderer = nullptr;
 };
 
 
@@ -143,7 +143,7 @@ void onWindowResized2(GLFWwindow * window, int w, int h)
         
         width = w;
         height = h;
-        app.renderer->recreateRenderer();
+        app.renderer->recreate_renderer();
         
     }
 }
@@ -164,7 +164,7 @@ void updateWithOrtho()
     
 }
 
-void gameLoop3(vk::Renderer &renderer)
+void gameLoop3(vk::renderer &renderer)
 {
     int i = 0;
     while (!glfwWindowShouldClose(window)) {
@@ -185,13 +185,12 @@ int main()
     
     vk::device device;
     
-    //createSurface(device._instance, window, surface);
     VkResult res = glfwCreateWindowSurface(device._instance, window, nullptr, &surface);
     assert(res == VK_SUCCESS);
     
     device.create_logical_device(surface);
     
-    vk::swapchain swapChain(&device, window);
+    vk::swapchain swapChain(&device, window, surface);
     vk::material_store materialStore;
     
     materialStore.createStore(&device);
@@ -210,10 +209,10 @@ int main()
     updateMVP2();
     
     //updateWithOrtho();
-    vk::Renderer renderer(&device,window, &swapChain, standardMat);
+    vk::renderer renderer(&device,window, &swapChain, standardMat);
     
     //renderer.addMesh(&plane);
-    renderer.addMesh(&mesh);
+    renderer.add_mesh(&mesh);
     renderer.init();
     
     app.physical_device = &device;

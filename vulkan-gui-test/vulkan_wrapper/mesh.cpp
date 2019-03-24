@@ -16,7 +16,7 @@
 
 using namespace vk;
 
-const std::string mesh::meshResourcePath =  "/models/";
+const std::string mesh::_mesh_resource_path =  "/models/";
 
 void mesh::create(const char* path)
 {
@@ -27,7 +27,7 @@ void mesh::create(const char* path)
     std::string errorString;
     std::string warnString;
     
-    std::string  fullPath = resource::resourceRoot + mesh::meshResourcePath + path;
+    std::string  fullPath = resource::resource_root + mesh::_mesh_resource_path + path;
     
     bool success = tinyobj::LoadObj(&vertexAttributes, &shapes, &materials, &warnString, &errorString, fullPath.c_str());
     
@@ -66,7 +66,7 @@ void mesh::create(const char* path)
 }
 
 template<typename T>
-void mesh::createAndUploadBuffer(VkCommandPool commandPool,
+void mesh::create_and_upload_buffer(VkCommandPool commandPool,
                                   std::vector<T>& data, VkBufferUsageFlags usage, VkBuffer &buffer, VkDeviceMemory &deviceMemory)
 {
     VkDeviceSize bufferSize = sizeof(T) * data.size();
@@ -74,7 +74,7 @@ void mesh::createAndUploadBuffer(VkCommandPool commandPool,
     VkBuffer stagingBuffer;
     VkDeviceMemory statingBufferMemory;
     
-    createBuffer(_device->_logical_device, _device->_physical_device, bufferSize,  VK_BUFFER_USAGE_TRANSFER_SRC_BIT, stagingBuffer,
+    create_buffer(_device->_logical_device, _device->_physical_device, bufferSize,  VK_BUFFER_USAGE_TRANSFER_SRC_BIT, stagingBuffer,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, statingBufferMemory);
     
     void* rawData= nullptr;
@@ -84,7 +84,7 @@ void mesh::createAndUploadBuffer(VkCommandPool commandPool,
     vkUnmapMemory(_device->_logical_device, statingBufferMemory);
     
     
-    createBuffer(_device->_logical_device, _device->_physical_device, bufferSize, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT, buffer,
+    create_buffer(_device->_logical_device, _device->_physical_device, bufferSize, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT, buffer,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, deviceMemory);
     
     _device->copy_buffer(commandPool, _device->_graphics_queue, stagingBuffer, buffer, bufferSize);
@@ -96,46 +96,46 @@ void mesh::createAndUploadBuffer(VkCommandPool commandPool,
 void mesh::draw(VkCommandBuffer commandBuffer, vk::pipeline& pipeline)
 {
     VkDeviceSize offsets[] = { 0 };
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &_vertexBuffer, offsets);
-    vkCmdBindIndexBuffer(commandBuffer, _indexBuffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &_vertex_buffer, offsets);
+    vkCmdBindIndexBuffer(commandBuffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
     
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._pipelineLayout, 0, 1, pipeline._material->get_descriptor_set(), 0, nullptr);
     
     //in the render target, there will be list of registered meshes that will submit their indices
-    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(getIndices().size()), 1, 0, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(get_indices().size()), 1, 0, 0, 0);
 }
 
-void mesh::createVertexBuffer()
+void mesh::create_vertex_buffer()
 {
-    createAndUploadBuffer(_device->_commandPool,
-                          _vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, _vertexBuffer, _vertexBufferDeviceMemory);
+    create_and_upload_buffer(_device->_commandPool,
+                          _vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, _vertex_buffer, _vertex_buffer_device_memory);
 }
 
-void mesh::createIndexBuffer()
+void mesh::create_index_buffer()
 {
-    createAndUploadBuffer( _device->_commandPool,
-                          _indices, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, _indexBuffer, _indexBufferDeviceMemory);
+    create_and_upload_buffer( _device->_commandPool,
+                          _indices, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, _index_buffer, _index_buffer_device_memory);
 }
 
-void mesh::allocateGPUMemory()
+void mesh::allocate_gpu_memory()
 {
-    createVertexBuffer();
-    createIndexBuffer();
+    create_vertex_buffer();
+    create_index_buffer();
 }
 
 void mesh::destroy()
 {
-    vkFreeMemory(_device->_logical_device, _indexBufferDeviceMemory, nullptr);
-    vkDestroyBuffer(_device->_logical_device, _indexBuffer, nullptr);
+    vkFreeMemory(_device->_logical_device, _index_buffer_device_memory, nullptr);
+    vkDestroyBuffer(_device->_logical_device, _index_buffer, nullptr);
     
-    _indexBufferDeviceMemory = VK_NULL_HANDLE;
-    _indexBuffer = VK_NULL_HANDLE;
+    _index_buffer_device_memory = VK_NULL_HANDLE;
+    _index_buffer = VK_NULL_HANDLE;
     
-    vkFreeMemory(_device->_logical_device, _vertexBufferDeviceMemory, nullptr);
-    vkDestroyBuffer(_device->_logical_device, _vertexBuffer, nullptr);
+    vkFreeMemory(_device->_logical_device, _vertex_buffer_device_memory, nullptr);
+    vkDestroyBuffer(_device->_logical_device, _vertex_buffer, nullptr);
     
-    _vertexBufferDeviceMemory = VK_NULL_HANDLE;
-    _vertexBuffer = VK_NULL_HANDLE;
+    _vertex_buffer_device_memory = VK_NULL_HANDLE;
+    _vertex_buffer = VK_NULL_HANDLE;
 }
 mesh::~mesh()
 {

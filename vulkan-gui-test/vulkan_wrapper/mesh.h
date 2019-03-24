@@ -28,10 +28,10 @@ namespace vk
         std::vector<uint32_t> _indices;
         device* _device = nullptr;
         
-        VkBuffer        _vertexBuffer = VK_NULL_HANDLE;
-        VkDeviceMemory  _vertexBufferDeviceMemory = VK_NULL_HANDLE;
-        VkBuffer        _indexBuffer = VK_NULL_HANDLE;
-        VkDeviceMemory  _indexBufferDeviceMemory = VK_NULL_HANDLE;
+        VkBuffer        _vertex_buffer = VK_NULL_HANDLE;
+        VkDeviceMemory  _vertex_buffer_device_memory = VK_NULL_HANDLE;
+        VkBuffer        _index_buffer = VK_NULL_HANDLE;
+        VkDeviceMemory  _index_buffer_device_memory = VK_NULL_HANDLE;
         
     protected:
         mesh(){};
@@ -47,28 +47,28 @@ namespace vk
         void create(const char* path);
         
         template<typename T>
-        inline void createAndUploadBuffer( VkCommandPool commandPool,
+        inline void create_and_upload_buffer( VkCommandPool commandPool,
                                           std::vector<T>& data, VkBufferUsageFlags usage, VkBuffer &buffer, VkDeviceMemory &deviceMemory);
         
         
-        static const std::string meshResourcePath;
+        static const std::string _mesh_resource_path;
         
         //public
         void draw(VkCommandBuffer commandBuffer, vk::pipeline& pipeline);
         
         //public
-        void allocateGPUMemory();
+        void allocate_gpu_memory();
         virtual void destroy() override;
         
         //private
-        void createVertexBuffer();
-        void createIndexBuffer();
+        void create_vertex_buffer();
+        void create_index_buffer();
         
-        std::vector<vertex>& getVertices()
+        std::vector<vertex>& get_vertices()
         {
             return _vertices;
         }
-        std::vector<uint32_t>& getIndices()
+        std::vector<uint32_t>& get_indices()
         {
             return _indices;
         }

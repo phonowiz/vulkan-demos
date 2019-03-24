@@ -21,15 +21,15 @@ namespace vk
         swapchain_image_set(){};
         
         void init(device* device, VkSwapchainKHR swapChain) { _device = device; _swapChain = swapChain; }
-        void createImageSet();
-        void createImageViews(VkFormat format);
+        void create_image_set();
+        void create_image_views(VkFormat format);
         
         using image::set_device;
         using object::destroy;
         
-        inline uint32_t getImageCount(){ return _imageCount; }
-        inline VkImageView* getImageViews(){ return _imageViews.data() ;}
-        inline VkImage*     getImages(){ return _images.data(); }
+        inline uint32_t get_image_count(){ return _imageCount; }
+        inline VkImageView* get_image_views(){ return _imageViews.data() ;}
+        inline VkImage*     get_images(){ return _images.data(); }
         
         //todo: the following two should be private
         virtual void create(uint32_t width, uint32_t height) override {};

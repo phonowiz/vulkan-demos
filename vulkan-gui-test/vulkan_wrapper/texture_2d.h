@@ -25,7 +25,7 @@ namespace vk
         texture_2d(device* device, uint32_t width, uint32_t height);
         texture_2d(device* device,const char* path = nullptr);
         
-        enum class Formats
+        enum class formats
         {
             RGBA = VK_FORMAT_R8G8B8A8_UNORM
         };
@@ -33,30 +33,30 @@ namespace vk
         virtual void create( uint32_t width, uint32_t height) override;
         virtual void destroy() override;
         
-        stbi_uc * getRaw()
+        stbi_uc * get_raw()
         {
             return _ppixels;
         }
         
-        VkSampler getSampler()
+        VkSampler get_sampler()
         {
             return _sampler;
         }
         
-        int getChannels()
+        int get_channels()
         {
             assert(_channels == 4);
             return _channels;
         }
         
-        int getSizeInBytes()
+        int get_size_in_bytes()
         {
-            return get_width() * get_height() * getChannels();
+            return get_width() * get_height() * get_channels();
         }
         
         void load();
-        void createSampler();
-        void setSampler(device* device){ }
+        void create_sampler();
+        void set_sampler(device* device){ }
         
         static const std::string textureResourcePath;
     private:
@@ -71,7 +71,7 @@ namespace vk
         //TODO: we only support 4 channels at the moment
         uint32_t _channels = 4;
         //TODO: we only support RGBA
-        texture_2d::Formats _format = texture_2d::Formats::RGBA;
+        texture_2d::formats _format = texture_2d::formats::RGBA;
     };
 }
 

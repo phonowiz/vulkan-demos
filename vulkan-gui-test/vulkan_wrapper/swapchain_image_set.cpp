@@ -12,13 +12,13 @@
 
 using namespace vk;
 
-void swapchain_image_set::createImageSet()
+void swapchain_image_set::create_image_set()
 {
     vkGetSwapchainImagesKHR(_device->_logical_device, _swapChain, &_imageCount, nullptr);
     vkGetSwapchainImagesKHR(_device->_logical_device, _swapChain, &_imageCount, _images.data());
 }
 
-void swapchain_image_set::createImageViews(VkFormat format)
+void swapchain_image_set::create_image_views(VkFormat format)
 {
     for(int i = 0; i < _imageCount; ++i)
     {

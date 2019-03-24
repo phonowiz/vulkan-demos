@@ -57,13 +57,13 @@ using namespace vk;
 
 const std::string shader::shaderResourcePath =  "/shaders/";
 
-shader::shader(device* physicalDevice, const char* filePath, shader::ShaderType shaderType)
+shader::shader(device* device, const char* filePath, shader::ShaderType shaderType)
 {
-    std::string  path = resource::resourceRoot + shader::shaderResourcePath + filePath;
-    _physicalDevice = physicalDevice;
+    std::string  path = resource::resource_root + shader::shaderResourcePath + filePath;
+    _device = device;
     
     std::string shader;
-    readFile(shader, path);
+    read_file(shader, path);
     
     initShader(shader.c_str(), shaderType);
 }
@@ -95,7 +95,7 @@ void shader::initShader(const char *shaderText, shader::ShaderType shaderType, c
     moduleCreateInfo.flags = 0;
     moduleCreateInfo.codeSize = vtx_spv.size() * sizeof(unsigned int);
     moduleCreateInfo.pCode = vtx_spv.data();
-    res = vkCreateShaderModule(_physicalDevice->_logical_device, &moduleCreateInfo, NULL, &_pipelineShaderStage.module);
+    res = vkCreateShaderModule(_device->_logical_device, &moduleCreateInfo, NULL, &_pipelineShaderStage.module);
     assert(res == VK_SUCCESS);
     
     
@@ -161,7 +161,7 @@ bool shader::GLSLtoSPV(const shader::ShaderType shader_type, const char *pshader
 
 void shader::destroy()
 {
-    vkDestroyShaderModule(_physicalDevice->_logical_device, _pipelineShaderStage.module, nullptr);
+    vkDestroyShaderModule(_device->_logical_device, _pipelineShaderStage.module, nullptr);
     _pipelineShaderStage.module = VK_NULL_HANDLE;
 }
 

@@ -19,8 +19,8 @@ void pipeline::create( VkRenderPass render_pass, uint32_t viewport_width, uint32
     _height = viewport_height;
     
     
-    auto vertexBindingDescription = vertex::getBindingDescription();
-    auto vertexAttributeDescription = vertex::getAttributeDescriptions();
+    auto vertexBindingDescription = vertex::get_binding_description();
+    auto vertexAttributeDescription = vertex::get_attribute_descriptions();
     
     
     VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo;

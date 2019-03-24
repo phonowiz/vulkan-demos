@@ -33,46 +33,42 @@ namespace vk
     public:
         
         static const int MAX_SWAPCHAIN_IMAGES = 5;
-        struct SwapChainData
+        struct swapchain_data
         {
-            VkSwapchainKHR          swapChain = VK_NULL_HANDLE;
+            VkSwapchainKHR          swapchain = VK_NULL_HANDLE;
 
-            swapchain_image_set       imageSet;
+            swapchain_image_set       image_set;
 
-            VkExtent2D              swapChainExtent;
+            VkExtent2D              swapchain_extent;
             
-            std::vector<VkFramebuffer>  swapChainFramebuffers;
-            std::array<texture_2d, MAX_SWAPCHAIN_IMAGES>        presentTextures;
+            std::vector<VkFramebuffer>  swapchain_frame_buffers;
         };
         
-        device* _physicalDevice = nullptr;
+        device* _device = nullptr;
         
-        swapchain(device* physicalDevice, GLFWwindow* window);
+        swapchain(device* device, GLFWwindow* window, VkSurfaceKHR surface);
         
-        void setPhysicalDevice(device* physicalDevice){ _physicalDevice = physicalDevice; }
-        void getSwapchainSupportDetails(device::swapchain_support_details& details);
-        VkSurfaceFormatKHR getSurfaceFormat();
-        void printStats();
+        VkSurfaceFormatKHR get_surface_format();
+        void print_stats();
         
         
-        SwapChainData _swapChainData;
+        swapchain_data _swapchain_data;
         GLFWwindow*   _window = nullptr;
         VkSurfaceKHR  _surface = VK_NULL_HANDLE;
         
-        depth_image          _depthImage;
+        depth_image          _depth_image;
         
-        VkSurfaceFormatKHR  chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-        VkPresentModeKHR    chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-        VkExtent2D          chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow& window);
-        void                createSwapChain( );
-        void                querySwapChainSupport( device::swapchain_support_details& );
-        void                createSurface( );
-        void                createImageViews();
-        void                destroySwapChain();
-        void                recreateSwapChain(VkRenderPass renderPass);
-        void                createDepthImage( );
-        void                createFrameBuffers(VkRenderPass renderPass);
-        VkAttachmentDescription                 getDepthAttachment();
+        VkSurfaceFormatKHR  choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+        VkPresentModeKHR    choose_swap_present_mode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+        VkExtent2D          choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow& window);
+        void                create_swapchain( );
+        void                query_swapchain_support( device::swapchain_support_details& );
+        void                create_image_views();
+        void                destroy_swapchain();
+        void                recreate_swapchain(VkRenderPass renderPass);
+        void                create_depth_image( );
+        void                create_frame_buffers(VkRenderPass renderPass);
+        VkAttachmentDescription                 get_depth_attachment();
         
         virtual void  destroy() override;
         ~swapchain();

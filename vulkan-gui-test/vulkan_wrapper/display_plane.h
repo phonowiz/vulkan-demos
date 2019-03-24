@@ -21,7 +21,7 @@ namespace vk
             _device = device;
         }
         
-        using mesh::allocateGPUMemory;
+        using mesh::allocate_gpu_memory;
         using mesh::destroy;
         void create();
         

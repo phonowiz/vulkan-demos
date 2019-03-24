@@ -48,7 +48,7 @@ void image::create_image( uint32_t width, uint32_t height, VkFormat format, VkIm
     memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     memoryAllocateInfo.pNext = nullptr;
     memoryAllocateInfo.allocationSize = memoryRequirements.size;
-    memoryAllocateInfo.memoryTypeIndex = findMemoryTypeIndex(_device->_physical_device, memoryRequirements.memoryTypeBits,
+    memoryAllocateInfo.memoryTypeIndex = find_memory_type_index(_device->_physical_device, memoryRequirements.memoryTypeBits,
                                                              propertyFlags);
     result = vkAllocateMemory(_device->_logical_device, &memoryAllocateInfo, nullptr, &_imageMemory);
     

@@ -26,21 +26,21 @@
 using namespace vk;
 
 
-Renderer::Renderer(device* physicalDevice, GLFWwindow* window, swapchain* swapChain, material_shared_ptr material):
-_pipeline(physicalDevice, material)
+renderer::renderer(device* device, GLFWwindow* window, swapchain* swapChain, material_shared_ptr material):
+_pipeline(device, material)
 {
-    _physicalDevice = physicalDevice;
+    _device = device;
     _window = window;
-    _swapChain = swapChain;
+    _swapchain = swapChain;
     _material = material;
 }
 
-void Renderer::createRenderPass()
+void renderer::create_render_pass()
 {
     
     VkAttachmentDescription attachmentDescription;
     attachmentDescription.flags = 0;
-    attachmentDescription.format = _swapChain->getSurfaceFormat().format;
+    attachmentDescription.format = _swapchain->get_surface_format().format;
     attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
     attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -53,7 +53,7 @@ void Renderer::createRenderPass()
     attachmentReference.attachment = 0;
     attachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     
-    VkAttachmentDescription depthAttachment = _swapChain->getDepthAttachment();
+    VkAttachmentDescription depthAttachment = _swapchain->get_depth_attachment();
     
     VkAttachmentReference depthAttachmentReference;
     depthAttachmentReference.attachment = 1;
@@ -96,40 +96,40 @@ void Renderer::createRenderPass()
     renderPassCreateInfo.dependencyCount = 1;
     renderPassCreateInfo.pDependencies = &subpassDependency;
     
-    VkResult result = vkCreateRenderPass(_physicalDevice->_logical_device, &renderPassCreateInfo, nullptr, &_renderPass);
+    VkResult result = vkCreateRenderPass(_device->_logical_device, &renderPassCreateInfo, nullptr, &_render_pass);
 
     ASSERT_VULKAN(result);
 }
 
 
-void Renderer::createCommandBuffers()
+void renderer::create_command_buffer()
 {
     VkCommandBufferAllocateInfo commandBufferAllocateInfo;
     commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     commandBufferAllocateInfo.pNext = nullptr;
-    commandBufferAllocateInfo.commandPool = _physicalDevice->_commandPool;
+    commandBufferAllocateInfo.commandPool = _device->_commandPool;
     commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(_swapChain->_swapChainData.imageSet.getImageCount());
+    commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count());
     
     //todo: remove "new"
-    _commandBuffers = new VkCommandBuffer[_swapChain->_swapChainData.imageSet.getImageCount()];
-    VkResult result = vkAllocateCommandBuffers(_physicalDevice->_logical_device, &commandBufferAllocateInfo, _commandBuffers);
+    _command_buffers = new VkCommandBuffer[_swapchain->_swapchain_data.image_set.get_image_count()];
+    VkResult result = vkAllocateCommandBuffers(_device->_logical_device, &commandBufferAllocateInfo, _command_buffers);
    ASSERT_VULKAN(result);
 }
 
 
 
 
-void Renderer::createSemaphores()
+void renderer::create_semaphores()
 {
     VkSemaphoreCreateInfo semaphoreCreateInfo;
     semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphoreCreateInfo.pNext = nullptr;
     semaphoreCreateInfo.flags = 0;
     
-    VkResult result = vkCreateSemaphore(_physicalDevice->_logical_device, &semaphoreCreateInfo, nullptr, &_semaphoreImageAvailable);
+    VkResult result = vkCreateSemaphore(_device->_logical_device, &semaphoreCreateInfo, nullptr, &_semaphore_image_available);
     ASSERT_VULKAN(result);
-    result = vkCreateSemaphore(_physicalDevice->_logical_device, &semaphoreCreateInfo, nullptr, &_semaphoreRenderingDone);
+    result = vkCreateSemaphore(_device->_logical_device, &semaphoreCreateInfo, nullptr, &_semaphore_rendering_done);
     ASSERT_VULKAN(result);
     
     VkFenceCreateInfo fenceInfo = {};
@@ -137,29 +137,29 @@ void Renderer::createSemaphores()
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
     
     
-    for(int i = 0; i < _swapChain->_swapChainData.imageSet.getImageCount(); ++i)
+    for(int i = 0; i < _swapchain->_swapchain_data.image_set.get_image_count(); ++i)
     {
-        result = vkCreateFence(_physicalDevice->_logical_device, &fenceInfo, nullptr, &_inFlightFences[i]);
+        result = vkCreateFence(_device->_logical_device, &fenceInfo, nullptr, &_inflight_fences[i]);
         ASSERT_VULKAN(result);
     }
 }
 
-void Renderer::recreateRenderer()
+void renderer::recreate_renderer()
 {
 
-    _physicalDevice->wait_for_all_operations_to_finish();
+    _device->wait_for_all_operations_to_finish();
 
-    vkDestroyRenderPass(_physicalDevice->_logical_device, _renderPass, nullptr);
+    vkDestroyRenderPass(_device->_logical_device, _render_pass, nullptr);
 
-    createRenderPass();
-    _swapChain->recreateSwapChain(_renderPass );
+    create_render_pass();
+    _swapchain->recreate_swapchain(_render_pass );
     
-    createCommandBuffers();
-    recordCommandBuffers();
+    create_command_buffer();
+    record_command_buffers();
 
 }
 
-void Renderer::recordCommandBuffers()
+void renderer::record_command_buffers()
 {
     VkCommandBufferBeginInfo commandBufferBeginInfo;
     commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -169,18 +169,18 @@ void Renderer::recordCommandBuffers()
     
     
     
-    for (size_t i = 0; i < _swapChain->_swapChainData.imageSet.getImageCount(); i++)
+    for (size_t i = 0; i < _swapchain->_swapchain_data.image_set.get_image_count(); i++)
     {
-        VkResult result = vkBeginCommandBuffer(_commandBuffers[i], &commandBufferBeginInfo);
+        VkResult result = vkBeginCommandBuffer(_command_buffers[i], &commandBufferBeginInfo);
         ASSERT_VULKAN(result);
         
         VkRenderPassBeginInfo renderPassBeginInfo;
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassBeginInfo.pNext = nullptr;
-        renderPassBeginInfo.renderPass = _renderPass;
-        renderPassBeginInfo.framebuffer = _swapChain->_swapChainData.swapChainFramebuffers[i];//framebuffers[i];
+        renderPassBeginInfo.renderPass = _render_pass;
+        renderPassBeginInfo.framebuffer = _swapchain->_swapchain_data.swapchain_frame_buffers[i];//framebuffers[i];
         renderPassBeginInfo.renderArea.offset = { 0, 0 };
-        renderPassBeginInfo.renderArea.extent = { _swapChain->_swapChainData.swapChainExtent.width, _swapChain->_swapChainData.swapChainExtent.height };
+        renderPassBeginInfo.renderArea.extent = { _swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height };
         VkClearValue clearValue = {0.0f, 0.0f, 0.0f, 1.0f};
         VkClearValue depthClearValue = {1.0f, 0.0f};
         
@@ -192,75 +192,75 @@ void Renderer::recordCommandBuffers()
         renderPassBeginInfo.pClearValues = clearValues.data();
         
         
-        vkCmdBeginRenderPass(_commandBuffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline._pipeline);
+        vkCmdBeginRenderPass(_command_buffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBindPipeline(_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline._pipeline);
         
         VkViewport viewport;
         viewport.x = 0.0f;
         viewport.y = 0.0f;
-        viewport.width = _swapChain->_swapChainData.swapChainExtent.width;
-        viewport.height = _swapChain->_swapChainData.swapChainExtent.height;
+        viewport.width = _swapchain->_swapchain_data.swapchain_extent.width;
+        viewport.height = _swapchain->_swapchain_data.swapchain_extent.height;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(_commandBuffers[i], 0, 1, &viewport);
+        vkCmdSetViewport(_command_buffers[i], 0, 1, &viewport);
         
         VkRect2D scissor;
         scissor.offset = { 0, 0};
-        scissor.extent = { _swapChain->_swapChainData.swapChainExtent.width, _swapChain->_swapChainData.swapChainExtent.height};
-        vkCmdSetScissor(_commandBuffers[i], 0, 1, &scissor);
+        scissor.extent = { _swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height};
+        vkCmdSetScissor(_command_buffers[i], 0, 1, &scissor);
 
         
         for( vk::mesh* pMesh : _meshes)
         {
-            pMesh->draw(_commandBuffers[i], _pipeline);
+            pMesh->draw(_command_buffers[i], _pipeline);
         }
         
-        vkCmdEndRenderPass(_commandBuffers[i]);
+        vkCmdEndRenderPass(_command_buffers[i]);
         
-        result = vkEndCommandBuffer(_commandBuffers[i]);
+        result = vkEndCommandBuffer(_command_buffers[i]);
         ASSERT_VULKAN(result);
     }
 }
 
-void Renderer::destroy()
+void renderer::destroy()
 {
-    vkDestroySemaphore(_physicalDevice->_logical_device, _semaphoreImageAvailable, nullptr);
-    vkDestroySemaphore(_physicalDevice->_logical_device, _semaphoreRenderingDone, nullptr);
-    _semaphoreImageAvailable = VK_NULL_HANDLE;
-    _semaphoreRenderingDone = VK_NULL_HANDLE;
+    vkDestroySemaphore(_device->_logical_device, _semaphore_image_available, nullptr);
+    vkDestroySemaphore(_device->_logical_device, _semaphore_rendering_done, nullptr);
+    _semaphore_image_available = VK_NULL_HANDLE;
+    _semaphore_rendering_done = VK_NULL_HANDLE;
     
-    vkFreeCommandBuffers(_physicalDevice->_logical_device, _physicalDevice->_commandPool,
-                         static_cast<uint32_t>(_swapChain->_swapChainData.imageSet.getImageCount()), _commandBuffers);
-    delete[] _commandBuffers;
+    vkFreeCommandBuffers(_device->_logical_device, _device->_commandPool,
+                         static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _command_buffers);
+    delete[] _command_buffers;
     
-    for (size_t i = 0; i < _swapChain->_swapChainData.swapChainFramebuffers.size(); i++)
+    for (size_t i = 0; i < _swapchain->_swapchain_data.swapchain_frame_buffers.size(); i++)
     {
-        vkDestroyFence(_physicalDevice->_logical_device, _inFlightFences[i], nullptr);
+        vkDestroyFence(_device->_logical_device, _inflight_fences[i], nullptr);
     }
     
     _pipeline.destroy();
-    vkDestroyRenderPass(_physicalDevice->_logical_device, _renderPass, nullptr);
-    _renderPass = VK_NULL_HANDLE;
+    vkDestroyRenderPass(_device->_logical_device, _render_pass, nullptr);
+    _render_pass = VK_NULL_HANDLE;
 }
 
-Renderer::~Renderer()
+renderer::~renderer()
 {
 }
 
-void Renderer::createPipeline()
+void renderer::create_pipeline()
 {
-    _pipeline.create(_renderPass, _swapChain->_swapChainData.swapChainExtent.width, _swapChain->_swapChainData.swapChainExtent.height);
+    _pipeline.create(_render_pass, _swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height);
 }
 
-void Renderer::init()
+void renderer::init()
 {
-    createRenderPass();
+    create_render_pass();
     _material->create_descriptor_set_layout();
-    _swapChain->recreateSwapChain(_renderPass);
-    createPipeline();
-    createSemaphores();
+    _swapchain->recreate_swapchain(_render_pass);
+    create_pipeline();
+    create_semaphores();
 
-    createCommandBuffers();
+    create_command_buffer();
 
 
     //we only support 1 mesh at the moment
@@ -269,46 +269,46 @@ void Renderer::init()
     
     for(int i = 0; i < _meshes.size(); ++i)
     {
-        _meshes[i]->allocateGPUMemory();
+        _meshes[i]->allocate_gpu_memory();
     }
-    createCommandBuffers();
-    recordCommandBuffers();
+    create_command_buffer();
+    record_command_buffers();
     
 }
 
-void Renderer::draw()
+void renderer::draw()
 {
     static uint32_t imageIndex = 0;
-    vkWaitForFences(_physicalDevice->_logical_device, 1, &_inFlightFences[imageIndex], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_physicalDevice->_logical_device, 1, &_inFlightFences[imageIndex]);
+    vkWaitForFences(_device->_logical_device, 1, &_inflight_fences[imageIndex], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(_device->_logical_device, 1, &_inflight_fences[imageIndex]);
     
-    vkAcquireNextImageKHR(_physicalDevice->_logical_device, _swapChain->_swapChainData.swapChain, std::numeric_limits<uint64_t>::max(), _semaphoreImageAvailable, VK_NULL_HANDLE, &imageIndex);
+    vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain, std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &imageIndex);
     
     VkSubmitInfo submitInfo;
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.pNext = nullptr;
     submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = &_semaphoreImageAvailable;
+    submitInfo.pWaitSemaphores = &_semaphore_image_available;
     VkPipelineStageFlags waitStageMask[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submitInfo.pWaitDstStageMask = waitStageMask;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &(_commandBuffers[imageIndex]);
+    submitInfo.pCommandBuffers = &(_command_buffers[imageIndex]);
     submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &_semaphoreRenderingDone;
+    submitInfo.pSignalSemaphores = &_semaphore_rendering_done;
     
-    VkResult result = vkQueueSubmit(_physicalDevice->_graphics_queue, 1, &submitInfo, _inFlightFences[imageIndex]);
+    VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submitInfo, _inflight_fences[imageIndex]);
     ASSERT_VULKAN(result);
     
     VkPresentInfoKHR presentInfo;
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.pNext = nullptr;
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = &_semaphoreRenderingDone;
+    presentInfo.pWaitSemaphores = &_semaphore_rendering_done;
     presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = &_swapChain->_swapChainData.swapChain;
+    presentInfo.pSwapchains = &_swapchain->_swapchain_data.swapchain;
     presentInfo.pImageIndices = &imageIndex;
     presentInfo.pResults = nullptr;
-    result = vkQueuePresentKHR(_physicalDevice->_presentQueue, &presentInfo);
+    result = vkQueuePresentKHR(_device->_presentQueue, &presentInfo);
     
     ASSERT_VULKAN(result);
 }
