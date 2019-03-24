@@ -33,7 +33,7 @@ namespace vk
         }
         
         material_store();
-        void createStore(device* device);
+        void create(device* device);
         virtual void destroy() override;
         
     private:

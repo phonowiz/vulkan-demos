@@ -193,7 +193,7 @@ int main()
     vk::swapchain swapChain(&device, window, surface);
     vk::material_store materialStore;
     
-    materialStore.createStore(&device);
+    materialStore.create(&device);
     
     standardMat = materialStore.GET_MAT<vk::material>("standard");
     displayMat = materialStore.GET_MAT<vk::material>("display");

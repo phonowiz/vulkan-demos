@@ -20,7 +20,7 @@ static std::unordered_map<const char*,  material_shared_ptr > materialDatabase;
 material_store::material_store()
 {}
 
-void material_store::createStore(device* device)
+void material_store::create(device* device)
 {
     _device = device;
     assert(_device != nullptr && "call setDevice() on the store object");
