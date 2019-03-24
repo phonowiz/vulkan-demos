@@ -49,23 +49,18 @@ For an example of how I think the renderer api will work, check this out:
 Here is an example of how you would update shader parameters every frame:
 
 ```c++
-    std::chrono::time_point frameTime = std::chrono::high_resolution_clock::now();
-    float timeSinceStart = std::chrono::duration_cast<std::chrono::milliseconds>( frameTime - gameStartTime ).count()/1000.0f;
+
+    glm::mat4 projection = //code that updates projection matrix...
     
-    glm::mat4 model = glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 projection = glm::perspective(glm::radians(60.0f), width/(float)height, 0.01f, 10.0f);
     
-    projection[1][1] *= -1.0f;
-    
-    glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
+    glm::vec4 light_pos = //code that updates light position
 
     vk::shader_parameter::shader_params_group& vertexParams =   standardMat->get_uniform_parameters(vk::material::parameter_stage::VERTEX, 0);
     
     vertexParams["model"] = model;
     vertexParams["view"] = view;
     vertexParams["projection"] = projection;
-    vertexParams["lightPosition"] = temp;
+    vertexParams["lightPosition"] = light_pos;
 
 
     standardMat->set_image_sampler(texture, "tex", vk::material::parameter_stage::FRAGMENT, 1);
