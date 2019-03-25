@@ -51,7 +51,7 @@ namespace  vk
         //bound to the shader
         void create_descriptor_set_layout();
         void create_descriptor_pool();
-        void create_descriptor_set();
+        void create_descriptor_sets();
         void deallocate_parameters();
         virtual void destroy() override;
         

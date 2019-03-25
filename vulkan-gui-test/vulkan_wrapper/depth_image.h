@@ -24,7 +24,7 @@ namespace vk {
         
         virtual void create(uint32_t width, uint32_t height) override;
         virtual void destroy() override;
-        VkAttachmentDescription getDepthAttachment();
+        VkAttachmentDescription get_depth_attachment();
         
         bool _created = false;
         

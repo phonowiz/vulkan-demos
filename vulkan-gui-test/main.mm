@@ -61,8 +61,8 @@ void shutdownGlfw() {
 }
 
 
-vk::material_shared_ptr standardMat;
-vk::material_shared_ptr displayMat;
+vk::material_shared_ptr standard_mat;
+vk::material_shared_ptr display_mat;
 
 
 
@@ -86,7 +86,7 @@ void updateMVP2()
     
     glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
 
-    vk::shader_parameter::shader_params_group& vertexParams =   standardMat->get_uniform_parameters(vk::material::parameter_stage::VERTEX, 0);
+    vk::shader_parameter::shader_params_group& vertexParams =   standard_mat->get_uniform_parameters(vk::material::parameter_stage::VERTEX, 0);
     
     vertexParams["model"] = model;
     vertexParams["view"] = view;
@@ -94,10 +94,10 @@ void updateMVP2()
     vertexParams["lightPosition"] = temp;
 
 
-    standardMat->set_image_sampler(texture, "tex", vk::material::parameter_stage::FRAGMENT, 1);
+    standard_mat->set_image_sampler(texture, "tex", vk::material::parameter_stage::FRAGMENT, 1);
     
     
-    standardMat->commit_parameters_to_gpu();
+    standard_mat->commit_parameters_to_gpu();
 }
 
 void gameLoop2(vk::renderer &renderer)
@@ -148,14 +148,14 @@ void onWindowResized2(GLFWwindow * window, int w, int h)
 void updateWithOrtho()
 {
 
-    vk::shader_parameter::shader_params_group& vertexParams = displayMat->get_uniform_parameters(vk::material::parameter_stage::VERTEX, 0);
+    vk::shader_parameter::shader_params_group& vertexParams = display_mat->get_uniform_parameters(vk::material::parameter_stage::VERTEX, 0);
     vertexParams["width"] = width;
     vertexParams["height"] = height;
     
     
-    displayMat->set_image_sampler(texture, "tex", vk::material::parameter_stage::FRAGMENT, 1);
+    display_mat->set_image_sampler(texture, "tex", vk::material::parameter_stage::FRAGMENT, 1);
     
-    displayMat->commit_parameters_to_gpu();
+    display_mat->commit_parameters_to_gpu();
     
 }
 
@@ -185,41 +185,60 @@ int main()
     
     device.create_logical_device(surface);
     
-    vk::swapchain swapChain(&device, window, surface);
-    vk::material_store materialStore;
+    vk::swapchain swapchain(&device, window, surface);
+    vk::material_store material_store;
     
-    materialStore.create(&device);
-    
-    standardMat = materialStore.GET_MAT<vk::material>("standard");
-    displayMat = materialStore.GET_MAT<vk::material>("display");
-    //vk::Texture texture(&device, "mario.png");
+    material_store.create(&device);
     
     vk::mesh mesh( "dragon.obj", &device );
     
     vk::display_plane plane(&device);
-    plane.create();
+    bool deferred = false;
     
-    vk::texture_2d mario(&device, "mario.png");
-    texture = &mario;
-    updateMVP2();
+    standard_mat = material_store.GET_MAT<vk::material>("standard");
+    display_mat = material_store.GET_MAT<vk::material>("display");
     
-    //updateWithOrtho();
-    vk::renderer renderer(&device,window, &swapChain, standardMat);
+    vk::renderer renderer(&device,window, &swapchain, standard_mat);
     
-    //renderer.addMesh(&plane);
-    renderer.add_mesh(&mesh);
-    renderer.init();
-    
-    app.physical_device = &device;
-    app.swapchain = &swapChain;
-    app.renderer = &renderer;
-    
-    gameLoop2(renderer);
-    //gameLoop3(renderer);
+    if(!deferred)
+    {
+
+        //vk::Texture texture(&device, "mario.png");
+        
+
+        plane.create();
+        
+        vk::texture_2d mario(&device, "mario.png");
+        texture = &mario;
+        updateMVP2();
+        
+        //updateWithOrtho();
+
+        
+        //renderer.addMesh(&plane);
+        renderer.add_mesh(&mesh);
+        renderer.init();
+        
+        app.physical_device = &device;
+        app.swapchain = &swapchain;
+        app.renderer = &renderer;
+        
+        gameLoop2(renderer);
+        //gameLoop3(renderer);
+    }
+    else
+    {
+        vk::texture_2d position(&device, swapchain._swapchain_data.swapchain_extent.width, swapchain._swapchain_data.swapchain_extent.height);
+        vk::texture_2d albedo(&device, swapchain._swapchain_data.swapchain_extent.width, swapchain._swapchain_data.swapchain_extent.height);
+        vk::texture_2d depth(&device, swapchain._swapchain_data.swapchain_extent.width, swapchain._swapchain_data.swapchain_extent.height);
+        
+        
+    }
+
     
     device.wait_for_all_operations_to_finish();
-    swapChain.destroy();
-    materialStore.destroy();
+    swapchain.destroy();
+    material_store.destroy();
     mesh.destroy();
     plane.destroy();
     renderer.destroy();

@@ -46,7 +46,7 @@ void depth_image::destroy()
     }
 }
 
-VkAttachmentDescription depth_image::getDepthAttachment()
+VkAttachmentDescription depth_image::get_depth_attachment()
 {
     VkAttachmentDescription depthAttachment = {};
     

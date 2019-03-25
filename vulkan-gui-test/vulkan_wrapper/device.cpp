@@ -32,7 +32,7 @@ device::device()
 void device::create_logical_device( VkSurfaceKHR surface)
 {
     pick_physical_device(surface);
-    device::queue_family_indices indices = findQueueFamilies(_physical_device, surface);
+    device::queue_family_indices indices = find_queue_families(_physical_device, surface);
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = {indices.graphics_family.value(), indices.present_family.value()};
@@ -83,7 +83,7 @@ void device::create_logical_device( VkSurfaceKHR surface)
     create_command_pool(0);
 }
 
-device::queue_family_indices device::findQueueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface) {
+device::queue_family_indices device::find_queue_families( VkPhysicalDevice device, VkSurfaceKHR surface) {
     device::queue_family_indices indices;
     
     uint32_t queueFamilyCount = 0;
@@ -448,7 +448,7 @@ void device::pick_physical_device(VkSurfaceKHR surface)
 
 bool device::is_device_suitable( VkPhysicalDevice device, VkSurfaceKHR surface)
 {
-    device::queue_family_indices indices = findQueueFamilies(device, surface);
+    device::queue_family_indices indices = find_queue_families(device, surface);
     
     bool extensionsSupported = check_device_extension_support(device);
     

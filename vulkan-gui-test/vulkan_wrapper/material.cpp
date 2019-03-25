@@ -103,7 +103,7 @@ void material::deallocate_parameters()
         pair.second.uniformBufferMemory = VK_NULL_HANDLE;
     }
 }
-//todo: there needs to be away for client to init parameters
+
 void material::init_shader_parameters()
 {
     size_t totalSize = 0;
@@ -135,13 +135,13 @@ void material::init_shader_parameters()
     
     create_descriptor_pool();
     create_descriptor_set_layout();
-    create_descriptor_set();
+    create_descriptor_sets();
  
     
     initialized = true;
 }
 
-void material::create_descriptor_set()
+void material::create_descriptor_sets()
 {
     VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
     
@@ -153,10 +153,10 @@ void material::create_descriptor_set()
     
     VkResult result = vkAllocateDescriptorSets(_device->_logical_device, &descriptorSetAllocateInfo, &_descriptor_set);
     ASSERT_VULKAN(result);
-    std::array<VkWriteDescriptorSet,BINDING_MAX> writeDescriptorSets;
+    std::array<VkWriteDescriptorSet,BINDING_MAX> write_descriptor_sets;
 
-    std::array<VkDescriptorBufferInfo, BINDING_MAX> descriptorbufferInfos;
-    std::array<VkDescriptorImageInfo, BINDING_MAX>  descriptorImageInfos;
+    std::array<VkDescriptorBufferInfo, BINDING_MAX> descriptor_buffer_infos;
+    std::array<VkDescriptorImageInfo, BINDING_MAX>  descriptor_image_infos;
     
     int count = 0;
     
@@ -166,21 +166,21 @@ void material::create_descriptor_set()
         {
             //TODO: what about sampler 3D?
             texture_2d* texture = pair2.second.get_texture_2d();
-            descriptorImageInfos[count].sampler = texture->get_sampler();
-            descriptorImageInfos[count].imageView = texture->get_image_view();
-            descriptorImageInfos[count].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            descriptor_image_infos[count].sampler = texture->get_sampler();
+            descriptor_image_infos[count].imageView = texture->get_image_view();
+            descriptor_image_infos[count].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-            writeDescriptorSets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            writeDescriptorSets[count].pNext = nullptr;
-            writeDescriptorSets[count].dstSet = _descriptor_set;
+            write_descriptor_sets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            write_descriptor_sets[count].pNext = nullptr;
+            write_descriptor_sets[count].dstSet = _descriptor_set;
 
-            writeDescriptorSets[count].dstBinding = _descriptor_set_layout_bindings[count].binding;
-            writeDescriptorSets[count].dstArrayElement = 0;
-            writeDescriptorSets[count].descriptorCount = 1;
-            writeDescriptorSets[count].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            writeDescriptorSets[count].pImageInfo = &descriptorImageInfos[count];
-            writeDescriptorSets[count].pBufferInfo = nullptr;
-            writeDescriptorSets[count].pTexelBufferView = nullptr;
+            write_descriptor_sets[count].dstBinding = _descriptor_set_layout_bindings[count].binding;
+            write_descriptor_sets[count].dstArrayElement = 0;
+            write_descriptor_sets[count].descriptorCount = 1;
+            write_descriptor_sets[count].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            write_descriptor_sets[count].pImageInfo = &descriptor_image_infos[count];
+            write_descriptor_sets[count].pBufferInfo = nullptr;
+            write_descriptor_sets[count].pTexelBufferView = nullptr;
 
             ++count;
 
@@ -192,28 +192,28 @@ void material::create_descriptor_set()
     {
         assert(usage_type::INVALID != pair.second.usageType);
 
-        descriptorbufferInfos[count].buffer = pair.second.uniformBuffer;
-        descriptorbufferInfos[count].offset = 0;
-        descriptorbufferInfos[count].range = pair.second.size;
+        descriptor_buffer_infos[count].buffer = pair.second.uniformBuffer;
+        descriptor_buffer_infos[count].offset = 0;
+        descriptor_buffer_infos[count].range = pair.second.size;
         
-        writeDescriptorSets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        writeDescriptorSets[count].pNext = nullptr;
-        writeDescriptorSets[count].dstSet = _descriptor_set;
+        write_descriptor_sets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        write_descriptor_sets[count].pNext = nullptr;
+        write_descriptor_sets[count].dstSet = _descriptor_set;
 
-        writeDescriptorSets[count].dstBinding = _descriptor_set_layout_bindings[count].binding;
-        writeDescriptorSets[count].dstArrayElement = 0;
-        writeDescriptorSets[count].descriptorCount = 1;
-        writeDescriptorSets[count].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        writeDescriptorSets[count].pImageInfo = nullptr;
-        writeDescriptorSets[count].pBufferInfo = &descriptorbufferInfos[count];
-        writeDescriptorSets[count].pTexelBufferView = nullptr;
+        write_descriptor_sets[count].dstBinding = _descriptor_set_layout_bindings[count].binding;
+        write_descriptor_sets[count].dstArrayElement = 0;
+        write_descriptor_sets[count].descriptorCount = 1;
+        write_descriptor_sets[count].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        write_descriptor_sets[count].pImageInfo = nullptr;
+        write_descriptor_sets[count].pBufferInfo = &descriptor_buffer_infos[count];
+        write_descriptor_sets[count].pTexelBufferView = nullptr;
 
 
         ++count;
         assert( count < BINDING_MAX);
     }
     
-    vkUpdateDescriptorSets(_device->_logical_device, count, writeDescriptorSets.data(), 0, nullptr);
+    vkUpdateDescriptorSets(_device->_logical_device, count, write_descriptor_sets.data(), 0, nullptr);
 }
 
 void material::create_descriptor_set_layout()

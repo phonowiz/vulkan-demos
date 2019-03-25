@@ -36,12 +36,8 @@ namespace vk
         struct swapchain_data
         {
             VkSwapchainKHR          swapchain = VK_NULL_HANDLE;
-
-            swapchain_image_set       image_set;
-
+            swapchain_image_set     image_set;
             VkExtent2D              swapchain_extent;
-            
-            std::vector<VkFramebuffer>  swapchain_frame_buffers;
         };
         
         device* _device = nullptr;
@@ -56,19 +52,14 @@ namespace vk
         GLFWwindow*   _window = nullptr;
         VkSurfaceKHR  _surface = VK_NULL_HANDLE;
         
-        depth_image          _depth_image;
-        
         VkSurfaceFormatKHR  choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& availableFormats);
         VkPresentModeKHR    choose_swap_present_mode(const std::vector<VkPresentModeKHR>& availablePresentModes);
         VkExtent2D          choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow& window);
-        void                create_swapchain( );
+        void                create_swapchain();
         void                query_swapchain_support( device::swapchain_support_details& );
         void                create_image_views();
         void                destroy_swapchain();
-        void                recreate_swapchain(VkRenderPass renderPass);
-        void                create_depth_image( );
-        void                create_frame_buffers(VkRenderPass renderPass);
-        VkAttachmentDescription                 get_depth_attachment();
+        void                recreate_swapchain();
         
         virtual void  destroy() override;
         ~swapchain();

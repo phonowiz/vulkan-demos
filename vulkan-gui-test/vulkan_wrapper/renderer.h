@@ -41,6 +41,7 @@ namespace vk
         void create_pipeline();
         void add_mesh(mesh* pMesh){ _meshes.push_back(pMesh); };
         void clear_meshes(mesh* pMesh){ _meshes.clear();}
+        void create_frame_buffers();
         void draw();
         pipeline& get_pipeline() { return _pipeline;}
         
@@ -58,12 +59,16 @@ namespace vk
         VkCommandBuffer* _command_buffers = nullptr;
         pipeline _pipeline;
 
-        material_shared_ptr _material;
-
+        material_shared_ptr         _material;
+        std::vector<VkFramebuffer>  _swapchain_frame_buffers;
+        
         std::vector<mesh*> _meshes;
         virtual void destroy() override;
         ~renderer();
         
     private:
+        
+        depth_image _depth_image;
+        void destroy_framebuffers();
     };
 }

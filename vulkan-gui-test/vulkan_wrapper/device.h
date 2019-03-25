@@ -41,7 +41,7 @@ namespace vk {
         };
         
         void create_logical_device(VkSurfaceKHR surface);
-        queue_family_indices findQueueFamilies( VkPhysicalDevice device, VkSurfaceKHR surface);
+        queue_family_indices find_queue_families( VkPhysicalDevice device, VkSurfaceKHR surface);
         
         
 #ifndef __APPLE__

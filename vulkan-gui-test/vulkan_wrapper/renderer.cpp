@@ -27,6 +27,7 @@ using namespace vk;
 
 
 renderer::renderer(device* device, GLFWwindow* window, swapchain* swapChain, material_shared_ptr material):
+_depth_image(device),
 _pipeline(device, material)
 {
     _device = device;
@@ -38,65 +39,65 @@ _pipeline(device, material)
 void renderer::create_render_pass()
 {
     
-    VkAttachmentDescription attachmentDescription;
-    attachmentDescription.flags = 0;
-    attachmentDescription.format = _swapchain->get_surface_format().format;
-    attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
-    attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    attachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    attachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    VkAttachmentDescription attachment_description;
+    attachment_description.flags = 0;
+    attachment_description.format = _swapchain->get_surface_format().format;
+    attachment_description.samples = VK_SAMPLE_COUNT_1_BIT;
+    attachment_description.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachment_description.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attachment_description.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    attachment_description.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachment_description.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    attachment_description.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     
-    VkAttachmentReference attachmentReference;
-    attachmentReference.attachment = 0;
-    attachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    VkAttachmentReference attachment_reference;
+    attachment_reference.attachment = 0;
+    attachment_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     
-    VkAttachmentDescription depthAttachment = _swapchain->get_depth_attachment();
+    VkAttachmentDescription depth_attachment = _depth_image.get_depth_attachment();//_swapchain->get_depth_attachment();
     
-    VkAttachmentReference depthAttachmentReference;
-    depthAttachmentReference.attachment = 1;
-    depthAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    VkAttachmentReference depth_attachment_reference;
+    depth_attachment_reference.attachment = 1;
+    depth_attachment_reference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     
     
-    VkSubpassDescription subpassDescription;
-    subpassDescription.flags = 0;
-    subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpassDescription.inputAttachmentCount = 0;
-    subpassDescription.pInputAttachments = nullptr;
-    subpassDescription.colorAttachmentCount = 1;
-    subpassDescription.pColorAttachments = &attachmentReference;
-    subpassDescription.pResolveAttachments = nullptr;
-    subpassDescription.pDepthStencilAttachment = &depthAttachmentReference;
-    subpassDescription.preserveAttachmentCount = 0;
-    subpassDescription.pPreserveAttachments = nullptr;
+    VkSubpassDescription subpass_description;
+    subpass_description.flags = 0;
+    subpass_description.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass_description.inputAttachmentCount = 0;
+    subpass_description.pInputAttachments = nullptr;
+    subpass_description.colorAttachmentCount = 1;
+    subpass_description.pColorAttachments = &attachment_reference;
+    subpass_description.pResolveAttachments = nullptr;
+    subpass_description.pDepthStencilAttachment = &depth_attachment_reference;
+    subpass_description.preserveAttachmentCount = 0;
+    subpass_description.pPreserveAttachments = nullptr;
     
-    VkSubpassDependency subpassDependency;
-    subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    subpassDependency.dstSubpass = 0;
-    subpassDependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    subpassDependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    subpassDependency.srcAccessMask = 0;
-    subpassDependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    subpassDependency.dependencyFlags = 0;
+    VkSubpassDependency subpass_dependency;
+    subpass_dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    subpass_dependency.dstSubpass = 0;
+    subpass_dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpass_dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpass_dependency.srcAccessMask = 0;
+    subpass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    subpass_dependency.dependencyFlags = 0;
     
     std::array<VkAttachmentDescription,2> attachments;
-    attachments[0] = (attachmentDescription);
-    attachments[1] = (depthAttachment);
+    attachments[0] = (attachment_description);
+    attachments[1] = (depth_attachment);
     
-    VkRenderPassCreateInfo renderPassCreateInfo;
-    renderPassCreateInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassCreateInfo.pNext = nullptr;
-    renderPassCreateInfo.flags = 0;
-    renderPassCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-    renderPassCreateInfo.pAttachments = attachments.data();
-    renderPassCreateInfo.subpassCount = 1;
-    renderPassCreateInfo.pSubpasses = &subpassDescription;
-    renderPassCreateInfo.dependencyCount = 1;
-    renderPassCreateInfo.pDependencies = &subpassDependency;
+    VkRenderPassCreateInfo render_pass_create_info;
+    render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    render_pass_create_info.pNext = nullptr;
+    render_pass_create_info.flags = 0;
+    render_pass_create_info.attachmentCount = static_cast<uint32_t>(attachments.size());
+    render_pass_create_info.pAttachments = attachments.data();
+    render_pass_create_info.subpassCount = 1;
+    render_pass_create_info.pSubpasses = &subpass_description;
+    render_pass_create_info.dependencyCount = 1;
+    render_pass_create_info.pDependencies = &subpass_dependency;
     
-    VkResult result = vkCreateRenderPass(_device->_logical_device, &renderPassCreateInfo, nullptr, &_render_pass);
+    VkResult result = vkCreateRenderPass(_device->_logical_device, &render_pass_create_info, nullptr, &_render_pass);
 
     ASSERT_VULKAN(result);
 }
@@ -104,16 +105,16 @@ void renderer::create_render_pass()
 
 void renderer::create_command_buffer()
 {
-    VkCommandBufferAllocateInfo commandBufferAllocateInfo;
-    commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    commandBufferAllocateInfo.pNext = nullptr;
-    commandBufferAllocateInfo.commandPool = _device->_commandPool;
-    commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count());
+    VkCommandBufferAllocateInfo command_buffer_allocate_info;
+    command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    command_buffer_allocate_info.pNext = nullptr;
+    command_buffer_allocate_info.commandPool = _device->_commandPool;
+    command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    command_buffer_allocate_info.commandBufferCount = static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count());
     
     //todo: remove "new"
     _command_buffers = new VkCommandBuffer[_swapchain->_swapchain_data.image_set.get_image_count()];
-    VkResult result = vkAllocateCommandBuffers(_device->_logical_device, &commandBufferAllocateInfo, _command_buffers);
+    VkResult result = vkAllocateCommandBuffers(_device->_logical_device, &command_buffer_allocate_info, _command_buffers);
    ASSERT_VULKAN(result);
 }
 
@@ -122,14 +123,14 @@ void renderer::create_command_buffer()
 
 void renderer::create_semaphores()
 {
-    VkSemaphoreCreateInfo semaphoreCreateInfo;
-    semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-    semaphoreCreateInfo.pNext = nullptr;
-    semaphoreCreateInfo.flags = 0;
+    VkSemaphoreCreateInfo semaphore_create_info;
+    semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    semaphore_create_info.pNext = nullptr;
+    semaphore_create_info.flags = 0;
     
-    VkResult result = vkCreateSemaphore(_device->_logical_device, &semaphoreCreateInfo, nullptr, &_semaphore_image_available);
+    VkResult result = vkCreateSemaphore(_device->_logical_device, &semaphore_create_info, nullptr, &_semaphore_image_available);
     ASSERT_VULKAN(result);
-    result = vkCreateSemaphore(_device->_logical_device, &semaphoreCreateInfo, nullptr, &_semaphore_rendering_done);
+    result = vkCreateSemaphore(_device->_logical_device, &semaphore_create_info, nullptr, &_semaphore_rendering_done);
     ASSERT_VULKAN(result);
     
     VkFenceCreateInfo fenceInfo = {};
@@ -151,8 +152,13 @@ void renderer::recreate_renderer()
 
     vkDestroyRenderPass(_device->_logical_device, _render_pass, nullptr);
 
+    _depth_image.destroy();
+
     create_render_pass();
-    _swapchain->recreate_swapchain(_render_pass );
+    destroy_framebuffers();
+    _swapchain->recreate_swapchain( );
+    _depth_image.create(_swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height);
+    create_frame_buffers();
     
     create_command_buffer();
     record_command_buffers();
@@ -174,25 +180,25 @@ void renderer::record_command_buffers()
         VkResult result = vkBeginCommandBuffer(_command_buffers[i], &commandBufferBeginInfo);
         ASSERT_VULKAN(result);
         
-        VkRenderPassBeginInfo renderPassBeginInfo;
-        renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassBeginInfo.pNext = nullptr;
-        renderPassBeginInfo.renderPass = _render_pass;
-        renderPassBeginInfo.framebuffer = _swapchain->_swapchain_data.swapchain_frame_buffers[i];//framebuffers[i];
-        renderPassBeginInfo.renderArea.offset = { 0, 0 };
-        renderPassBeginInfo.renderArea.extent = { _swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height };
+        VkRenderPassBeginInfo render_pass_create_info;
+        render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        render_pass_create_info.pNext = nullptr;
+        render_pass_create_info.renderPass = _render_pass;
+        render_pass_create_info.framebuffer = _swapchain_frame_buffers[i];
+        render_pass_create_info.renderArea.offset = { 0, 0 };
+        render_pass_create_info.renderArea.extent = { _swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height };
         VkClearValue clearValue = {0.0f, 0.0f, 0.0f, 1.0f};
         VkClearValue depthClearValue = {1.0f, 0.0f};
         
-        std::array<VkClearValue,2> clearValues;
-        clearValues[0] = clearValue;
-        clearValues[1] = depthClearValue;
+        std::array<VkClearValue,2> clear_values;
+        clear_values[0] = clearValue;
+        clear_values[1] = depthClearValue;
         
-        renderPassBeginInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-        renderPassBeginInfo.pClearValues = clearValues.data();
+        render_pass_create_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
+        render_pass_create_info.pClearValues = clear_values.data();
         
         
-        vkCmdBeginRenderPass(_command_buffers[i], &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(_command_buffers[i], &render_pass_create_info, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline._pipeline);
         
         VkViewport viewport;
@@ -222,6 +228,14 @@ void renderer::record_command_buffers()
     }
 }
 
+void renderer::destroy_framebuffers()
+{
+    for (size_t i = 0; i < _swapchain_frame_buffers.size(); i++)
+    {
+        vkDestroyFramebuffer(_device->_logical_device, _swapchain_frame_buffers[i], nullptr);
+        _swapchain_frame_buffers[i] = VK_NULL_HANDLE;
+    }
+}
 void renderer::destroy()
 {
     vkDestroySemaphore(_device->_logical_device, _semaphore_image_available, nullptr);
@@ -233,9 +247,13 @@ void renderer::destroy()
                          static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _command_buffers);
     delete[] _command_buffers;
     
-    for (size_t i = 0; i < _swapchain->_swapchain_data.swapchain_frame_buffers.size(); i++)
+    destroy_framebuffers();
+    _depth_image.destroy();
+
+    for (size_t i = 0; i < _swapchain_frame_buffers.size(); i++)
     {
         vkDestroyFence(_device->_logical_device, _inflight_fences[i], nullptr);
+        _inflight_fences[i] = VK_NULL_HANDLE;
     }
     
     _pipeline.destroy();
@@ -247,6 +265,32 @@ renderer::~renderer()
 {
 }
 
+void renderer::create_frame_buffers()
+{
+    //TODO: Get rid of the vector class
+    _swapchain_frame_buffers.resize(_swapchain->_swapchain_data.image_set.get_image_count());
+    
+    for (size_t i = 0; i < _swapchain_frame_buffers.size(); i++)
+    {
+        VkImageView depth_image_view = _depth_image.get_image_view();
+        assert(depth_image_view != VK_NULL_HANDLE);
+        std::array<VkImageView, 2> attachment_views = {_swapchain->_swapchain_data.image_set.get_image_views()[i], depth_image_view};
+        
+        VkFramebufferCreateInfo framebuffer_create_info;
+        framebuffer_create_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebuffer_create_info.pNext = nullptr;
+        framebuffer_create_info.flags = 0;
+        framebuffer_create_info.renderPass = _render_pass;
+        framebuffer_create_info.attachmentCount = static_cast<uint32_t>(attachment_views.size());
+        framebuffer_create_info.pAttachments = attachment_views.data();
+        framebuffer_create_info.width = _swapchain->_swapchain_data.swapchain_extent.width;
+        framebuffer_create_info.height = _swapchain->_swapchain_data.swapchain_extent.height;
+        framebuffer_create_info.layers = 1;
+        
+        VkResult result = vkCreateFramebuffer(_device->_logical_device, &framebuffer_create_info, nullptr, &(_swapchain_frame_buffers[i]));
+        ASSERT_VULKAN(result);
+    }
+}
 void renderer::create_pipeline()
 {
     _pipeline.create(_render_pass, _swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height);
@@ -256,7 +300,15 @@ void renderer::init()
 {
     create_render_pass();
     _material->create_descriptor_set_layout();
-    _swapchain->recreate_swapchain(_render_pass);
+    _swapchain->recreate_swapchain();
+
+    _depth_image.create(
+                        _swapchain->_swapchain_data.swapchain_extent.width,
+                        _swapchain->_swapchain_data.swapchain_extent.height
+                        );
+    
+    create_frame_buffers();
+
     create_pipeline();
     create_semaphores();
 
@@ -278,37 +330,38 @@ void renderer::init()
 
 void renderer::draw()
 {
-    static uint32_t imageIndex = 0;
-    vkWaitForFences(_device->_logical_device, 1, &_inflight_fences[imageIndex], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_device->_logical_device, 1, &_inflight_fences[imageIndex]);
+    static uint32_t image_index = 0;
+    vkWaitForFences(_device->_logical_device, 1, &_inflight_fences[image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(_device->_logical_device, 1, &_inflight_fences[image_index]);
     
-    vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain, std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &imageIndex);
+    vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain,
+                          std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &image_index);
     
-    VkSubmitInfo submitInfo;
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.pNext = nullptr;
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = &_semaphore_image_available;
-    VkPipelineStageFlags waitStageMask[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    submitInfo.pWaitDstStageMask = waitStageMask;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &(_command_buffers[imageIndex]);
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &_semaphore_rendering_done;
+    VkSubmitInfo submit_info;
+    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info.pNext = nullptr;
+    submit_info.waitSemaphoreCount = 1;
+    submit_info.pWaitSemaphores = &_semaphore_image_available;
+    VkPipelineStageFlags wait_stage_mask[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    submit_info.pWaitDstStageMask = wait_stage_mask;
+    submit_info.commandBufferCount = 1;
+    submit_info.pCommandBuffers = &(_command_buffers[image_index]);
+    submit_info.signalSemaphoreCount = 1;
+    submit_info.pSignalSemaphores = &_semaphore_rendering_done;
     
-    VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submitInfo, _inflight_fences[imageIndex]);
+    VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _inflight_fences[image_index]);
     ASSERT_VULKAN(result);
     
-    VkPresentInfoKHR presentInfo;
-    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    presentInfo.pNext = nullptr;
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = &_semaphore_rendering_done;
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = &_swapchain->_swapchain_data.swapchain;
-    presentInfo.pImageIndices = &imageIndex;
-    presentInfo.pResults = nullptr;
-    result = vkQueuePresentKHR(_device->_presentQueue, &presentInfo);
+    VkPresentInfoKHR present_info;
+    present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    present_info.pNext = nullptr;
+    present_info.waitSemaphoreCount = 1;
+    present_info.pWaitSemaphores = &_semaphore_rendering_done;
+    present_info.swapchainCount = 1;
+    present_info.pSwapchains = &_swapchain->_swapchain_data.swapchain;
+    present_info.pImageIndices = &image_index;
+    present_info.pResults = nullptr;
+    result = vkQueuePresentKHR(_device->_presentQueue, &present_info);
     
     ASSERT_VULKAN(result);
 }

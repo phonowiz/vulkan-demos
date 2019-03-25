@@ -53,28 +53,28 @@ void texture_2d::load( )
 
 void texture_2d::create_sampler()
 {
-    VkSamplerCreateInfo samplerCreateInfo;
+    VkSamplerCreateInfo sampler_create_info;
     
-    samplerCreateInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-    samplerCreateInfo.pNext = nullptr;
-    samplerCreateInfo.flags = 0;
-    samplerCreateInfo.magFilter = VK_FILTER_LINEAR;
-    samplerCreateInfo.minFilter = VK_FILTER_LINEAR;
-    samplerCreateInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    samplerCreateInfo.addressModeU  = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerCreateInfo.addressModeV =  VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerCreateInfo.addressModeW =  VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    samplerCreateInfo.mipLodBias = 0.0f;
-    samplerCreateInfo.anisotropyEnable = VK_TRUE;
-    samplerCreateInfo.maxAnisotropy = 16;
-    samplerCreateInfo.compareEnable = VK_FALSE;
-    samplerCreateInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-    samplerCreateInfo.minLod = 0.0f;
-    samplerCreateInfo.maxLod = 0.0f;
-    samplerCreateInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-    samplerCreateInfo.unnormalizedCoordinates = VK_FALSE;
+    sampler_create_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    sampler_create_info.pNext = nullptr;
+    sampler_create_info.flags = 0;
+    sampler_create_info.magFilter = VK_FILTER_LINEAR;
+    sampler_create_info.minFilter = VK_FILTER_LINEAR;
+    sampler_create_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    sampler_create_info.addressModeU  = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    sampler_create_info.addressModeV =  VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    sampler_create_info.addressModeW =  VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    sampler_create_info.mipLodBias = 0.0f;
+    sampler_create_info.anisotropyEnable = VK_TRUE;
+    sampler_create_info.maxAnisotropy = 16;
+    sampler_create_info.compareEnable = VK_FALSE;
+    sampler_create_info.compareOp = VK_COMPARE_OP_ALWAYS;
+    sampler_create_info.minLod = 0.0f;
+    sampler_create_info.maxLod = 0.0f;
+    sampler_create_info.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    sampler_create_info.unnormalizedCoordinates = VK_FALSE;
     
-    VkResult result = vkCreateSampler(_device->_logical_device, &samplerCreateInfo, nullptr, &_sampler);
+    VkResult result = vkCreateSampler(_device->_logical_device, &sampler_create_info, nullptr, &_sampler);
     ASSERT_VULKAN(result);
 }
 void texture_2d::create(uint32_t width, uint32_t height)
@@ -82,22 +82,22 @@ void texture_2d::create(uint32_t width, uint32_t height)
     
     _width = width;
     _height = height;
-    VkDeviceSize imageSize = get_size_in_bytes();
+    VkDeviceSize image_size = get_size_in_bytes();
 
 
-    VkBuffer stagingBuffer;
-    VkDeviceMemory stagingBufferMemory;
+    VkBuffer staging_buffer;
+    VkDeviceMemory staging_buffer_memory;
     
     
-    create_buffer(_device->_logical_device, _device->_physical_device, imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                 stagingBuffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferMemory);
+    create_buffer(_device->_logical_device, _device->_physical_device, image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                 staging_buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, staging_buffer_memory);
     
     if(_loaded)
     {
         void *data = nullptr;
-        vkMapMemory(_device->_logical_device, stagingBufferMemory, 0, imageSize, 0, &data);
-        memcpy(data, get_raw(), imageSize);
-        vkUnmapMemory(_device->_logical_device, stagingBufferMemory);
+        vkMapMemory(_device->_logical_device, staging_buffer_memory, 0, image_size, 0, &data);
+        memcpy(data, get_raw(), image_size);
+        vkUnmapMemory(_device->_logical_device, staging_buffer_memory);
     }
     
     create_image(_width,
@@ -110,15 +110,15 @@ void texture_2d::create(uint32_t width, uint32_t height)
 
     change_image_layout(_device->_commandPool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
                       VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    write_buffer_to_image(_device->_commandPool, _device->_graphics_queue, stagingBuffer);
+    write_buffer_to_image(_device->_commandPool, _device->_graphics_queue, staging_buffer);
     
     change_image_layout(_device->_commandPool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     
 
     
-    vkDestroyBuffer(_device->_logical_device, stagingBuffer, nullptr);
-    vkFreeMemory(_device->_logical_device, stagingBufferMemory, nullptr);
+    vkDestroyBuffer(_device->_logical_device, staging_buffer, nullptr);
+    vkFreeMemory(_device->_logical_device, staging_buffer_memory, nullptr);
     
     create_image_view(_image, static_cast<VkFormat>(_format), VK_IMAGE_ASPECT_COLOR_BIT, _imageView);
     _uploaded = true;
