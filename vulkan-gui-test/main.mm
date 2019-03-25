@@ -230,7 +230,11 @@ int main()
     {
         vk::texture_2d position(&device, swapchain._swapchain_data.swapchain_extent.width, swapchain._swapchain_data.swapchain_extent.height);
         vk::texture_2d albedo(&device, swapchain._swapchain_data.swapchain_extent.width, swapchain._swapchain_data.swapchain_extent.height);
-        vk::texture_2d depth(&device, swapchain._swapchain_data.swapchain_extent.width, swapchain._swapchain_data.swapchain_extent.height);
+        //vk::texture_2d depth(&device, swapchain._swapchain_data.swapchain_extent.width, swapchain._swapchain_data.swapchain_extent.height);
+        
+        renderer.add_attachment(&position, 0);
+        renderer.add_attachment(&albedo, 1);
+        //renderer.add_attachment(&depth, 2);
         
         
     }

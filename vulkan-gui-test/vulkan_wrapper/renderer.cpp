@@ -21,7 +21,7 @@
 #include "device.h"
 #include <chrono>
 #include <algorithm>
-
+#include <stdio.h>
 
 using namespace vk;
 
@@ -30,6 +30,7 @@ renderer::renderer(device* device, GLFWwindow* window, swapchain* swapChain, mat
 _depth_image(device),
 _pipeline(device, material)
 {
+    memset(_attachments.data(), NULL, _attachments.size() * sizeof(texture_2d*));
     _device = device;
     _window = window;
     _swapchain = swapChain;
@@ -39,22 +40,42 @@ _pipeline(device, material)
 void renderer::create_render_pass()
 {
     
-    VkAttachmentDescription attachment_description;
-    attachment_description.flags = 0;
-    attachment_description.format = _swapchain->get_surface_format().format;
-    attachment_description.samples = VK_SAMPLE_COUNT_1_BIT;
-    attachment_description.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    attachment_description.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    attachment_description.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    attachment_description.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    attachment_description.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    attachment_description.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    uint32_t num_attachments = 1;
+    std::array<VkAttachmentDescription, MAX_ATTACHMENTS> attachment_descriptions;
+    attachment_descriptions[0].flags = 0;
+    attachment_descriptions[0].format = _swapchain->get_surface_format().format;
+    attachment_descriptions[0].samples = VK_SAMPLE_COUNT_1_BIT;
+    attachment_descriptions[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachment_descriptions[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attachment_descriptions[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    attachment_descriptions[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachment_descriptions[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    attachment_descriptions[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    
+    for( int i = 0; i < MAX_ATTACHMENTS; ++i)
+    {
+        if(_attachments[i - 1] != nullptr)
+        {
+            attachment_descriptions[i].flags = 0;
+            attachment_descriptions[i].format = static_cast<VkFormat>(_attachments[i - 1]->_format);
+            attachment_descriptions[i].samples = VK_SAMPLE_COUNT_1_BIT;
+            attachment_descriptions[i].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            attachment_descriptions[i].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            attachment_descriptions[i].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            attachment_descriptions[i].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            attachment_descriptions[i].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            attachment_descriptions[i].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            
+            ++num_attachments;
+        }
+    }
+    
+    attachment_descriptions[num_attachments] = _depth_image.get_depth_attachment();
+    ++num_attachments;
     
     VkAttachmentReference attachment_reference;
     attachment_reference.attachment = 0;
     attachment_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    
-    VkAttachmentDescription depth_attachment = _depth_image.get_depth_attachment();//_swapchain->get_depth_attachment();
     
     VkAttachmentReference depth_attachment_reference;
     depth_attachment_reference.attachment = 1;
@@ -82,16 +103,13 @@ void renderer::create_render_pass()
     subpass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
     subpass_dependency.dependencyFlags = 0;
     
-    std::array<VkAttachmentDescription,2> attachments;
-    attachments[0] = (attachment_description);
-    attachments[1] = (depth_attachment);
-    
+
     VkRenderPassCreateInfo render_pass_create_info;
     render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     render_pass_create_info.pNext = nullptr;
     render_pass_create_info.flags = 0;
-    render_pass_create_info.attachmentCount = static_cast<uint32_t>(attachments.size());
-    render_pass_create_info.pAttachments = attachments.data();
+    render_pass_create_info.attachmentCount = num_attachments;//static_cast<uint32_t>(_attachments.size());
+    render_pass_create_info.pAttachments = attachment_descriptions.data();
     render_pass_create_info.subpassCount = 1;
     render_pass_create_info.pSubpasses = &subpass_description;
     render_pass_create_info.dependencyCount = 1;
@@ -152,12 +170,9 @@ void renderer::recreate_renderer()
 
     vkDestroyRenderPass(_device->_logical_device, _render_pass, nullptr);
 
-    _depth_image.destroy();
-
     create_render_pass();
     destroy_framebuffers();
     _swapchain->recreate_swapchain( );
-    _depth_image.create(_swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height);
     create_frame_buffers();
     
     create_command_buffer();
@@ -167,17 +182,17 @@ void renderer::recreate_renderer()
 
 void renderer::record_command_buffers()
 {
-    VkCommandBufferBeginInfo commandBufferBeginInfo;
-    commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    commandBufferBeginInfo.pNext = nullptr;
-    commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-    commandBufferBeginInfo.pInheritanceInfo = nullptr;
+    VkCommandBufferBeginInfo command_buffer_begin_info;
+    command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    command_buffer_begin_info.pNext = nullptr;
+    command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+    command_buffer_begin_info.pInheritanceInfo = nullptr;
     
     
     
     for (size_t i = 0; i < _swapchain->_swapchain_data.image_set.get_image_count(); i++)
     {
-        VkResult result = vkBeginCommandBuffer(_command_buffers[i], &commandBufferBeginInfo);
+        VkResult result = vkBeginCommandBuffer(_command_buffers[i], &command_buffer_begin_info);
         ASSERT_VULKAN(result);
         
         VkRenderPassBeginInfo render_pass_create_info;
@@ -261,12 +276,10 @@ void renderer::destroy()
     _render_pass = VK_NULL_HANDLE;
 }
 
-renderer::~renderer()
-{
-}
-
 void renderer::create_frame_buffers()
 {
+    _depth_image.destroy();
+    _depth_image.create(_swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height);
     //TODO: Get rid of the vector class
     _swapchain_frame_buffers.resize(_swapchain->_swapchain_data.image_set.get_image_count());
     
@@ -301,20 +314,12 @@ void renderer::init()
     create_render_pass();
     _material->create_descriptor_set_layout();
     _swapchain->recreate_swapchain();
-
-    _depth_image.create(
-                        _swapchain->_swapchain_data.swapchain_extent.width,
-                        _swapchain->_swapchain_data.swapchain_extent.height
-                        );
     
     create_frame_buffers();
-
     create_pipeline();
     create_semaphores();
-
     create_command_buffer();
-
-
+    
     //we only support 1 mesh at the moment
     assert(_meshes.size() == 1);
     assert(_meshes.size() != 0);
@@ -366,3 +371,6 @@ void renderer::draw()
     ASSERT_VULKAN(result);
 }
 
+renderer::~renderer()
+{
+}

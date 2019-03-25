@@ -58,7 +58,9 @@ namespace vk
         void create_sampler();
         void set_sampler(device* device){ }
         
-        static const std::string textureResourcePath;
+        texture_2d::formats _format = texture_2d::formats::RGBA;
+        
+        static const std::string texture_resource_path;
     private:
         
         bool _loaded = false;
@@ -71,7 +73,7 @@ namespace vk
         //TODO: we only support 4 channels at the moment
         uint32_t _channels = 4;
         //TODO: we only support RGBA
-        texture_2d::formats _format = texture_2d::formats::RGBA;
+
     };
 }
 

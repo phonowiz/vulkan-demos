@@ -15,7 +15,7 @@
 using namespace vk;
 
 
-const std::string texture_2d::textureResourcePath =  "/textures/";
+const std::string texture_2d::texture_resource_path =  "/textures/";
 
 texture_2d::texture_2d(device* device, uint32_t width, uint32_t height):
 image(device)
@@ -27,7 +27,7 @@ image(device)
 texture_2d::texture_2d(device* device,const char* path)
 :image(device)
 {
-    _path = resource::resource_root + texture_2d::textureResourcePath + path;
+    _path = resource::resource_root + texture_2d::texture_resource_path + path;
     create_sampler();
     load();
     create( _width, _height);
