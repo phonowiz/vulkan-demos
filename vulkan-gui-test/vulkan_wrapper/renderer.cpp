@@ -40,6 +40,10 @@ _pipeline(device, material)
 void renderer::create_render_pass()
 {
     
+    
+    //note: color attachments go first, then depth attachment.
+    //note: VkAttachmentDescription  are  used to create the renderpass, while the
+    //VkAttachmentReference are used to create the subpass itself
     uint32_t num_attachments = 1;
     std::array<VkAttachmentDescription, MAX_ATTACHMENTS> attachment_descriptions;
     attachment_descriptions[0].flags = 0;
@@ -52,18 +56,20 @@ void renderer::create_render_pass()
     attachment_descriptions[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     attachment_descriptions[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
     
-    for( int i = 0; i < MAX_ATTACHMENTS; ++i)
+    for( int i = num_attachments; i < MAX_ATTACHMENTS; ++i)
     {
-        if(_attachments[i - 1] != nullptr)
+        if(_attachments[i] != nullptr)
         {
             attachment_descriptions[i].flags = 0;
-            attachment_descriptions[i].format = static_cast<VkFormat>(_attachments[i - 1]->_format);
+            attachment_descriptions[i].format = static_cast<VkFormat>(_attachments[i]->_format);
             attachment_descriptions[i].samples = VK_SAMPLE_COUNT_1_BIT;
             attachment_descriptions[i].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             attachment_descriptions[i].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             attachment_descriptions[i].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             attachment_descriptions[i].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            //initial layout is the layout the image is in just before the renderpass/subpass starts
             attachment_descriptions[i].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            //this is the layout the image will be transitioned to after the renderpass/subpass happens
             attachment_descriptions[i].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             
             ++num_attachments;
@@ -73,47 +79,71 @@ void renderer::create_render_pass()
     attachment_descriptions[num_attachments] = _depth_image.get_depth_attachment();
     ++num_attachments;
     
-    VkAttachmentReference attachment_reference;
-    attachment_reference.attachment = 0;
-    attachment_reference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    //an excellent explanation of what the heck are these attachment references:
+    //https://stackoverflow.com/questions/49652207/what-is-the-purpose-of-vkattachmentreference
+    std::array<VkAttachmentReference, MAX_ATTACHMENTS> attachment_references;
+    for( int i = 0; i < num_attachments-1; ++i)
+    {
+        attachment_references[i].attachment = i;
+        //this is the layout the attahment will be used during the subpass.  The driver decides if there should be a
+        //transition or not given the 'initialLayout' specified in the attachment description
+        attachment_references[i].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    }
     
     VkAttachmentReference depth_attachment_reference;
-    depth_attachment_reference.attachment = 1;
+    depth_attachment_reference.attachment = num_attachments-1;
     depth_attachment_reference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     
     
+    assert(num_attachments >= 2);
     VkSubpassDescription subpass_description;
     subpass_description.flags = 0;
     subpass_description.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass_description.inputAttachmentCount = 0;
     subpass_description.pInputAttachments = nullptr;
-    subpass_description.colorAttachmentCount = 1;
-    subpass_description.pColorAttachments = &attachment_reference;
+    subpass_description.colorAttachmentCount = num_attachments-1;
+    subpass_description.pColorAttachments = attachment_references.data();
     subpass_description.pResolveAttachments = nullptr;
     subpass_description.pDepthStencilAttachment = &depth_attachment_reference;
     subpass_description.preserveAttachmentCount = 0;
     subpass_description.pPreserveAttachments = nullptr;
+
+    //Use subpass dependencies for attachment layput transitions.
+    //Based off of this example: https://github.com/SaschaWillems/Vulkan/blob/master/examples/deferred/deferred.cpp
+    std::array<VkSubpassDependency, 2> subpass_dependencies;
+
+    //note: for a great explanation of VK_SUBPASS_EXTERNAL:
+    //https://stackoverflow.com/questions/53984863/what-exactly-is-vk-subpass-external?rq=1
+    subpass_dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+    subpass_dependencies[0].dstSubpass = 0;
+    subpass_dependencies[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpass_dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpass_dependencies[0].srcAccessMask = 0;
+    subpass_dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    subpass_dependencies[0].dependencyFlags = 0;
     
-    VkSubpassDependency subpass_dependency;
-    subpass_dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    subpass_dependency.dstSubpass = 0;
-    subpass_dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    subpass_dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    subpass_dependency.srcAccessMask = 0;
-    subpass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    subpass_dependency.dependencyFlags = 0;
     
+    subpass_dependencies[1].srcSubpass = 0;
+    subpass_dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+    subpass_dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    subpass_dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+    subpass_dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    subpass_dependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    subpass_dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+    
+    //note: because we state the images initial layout upon entering the renderpass and the layouts the subpasses
+    //need for them to do their work, transitions are implicit and will happen automatically as the renderpass excecutes.
 
     VkRenderPassCreateInfo render_pass_create_info;
     render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     render_pass_create_info.pNext = nullptr;
     render_pass_create_info.flags = 0;
-    render_pass_create_info.attachmentCount = num_attachments;//static_cast<uint32_t>(_attachments.size());
+    render_pass_create_info.attachmentCount = num_attachments;
     render_pass_create_info.pAttachments = attachment_descriptions.data();
     render_pass_create_info.subpassCount = 1;
     render_pass_create_info.pSubpasses = &subpass_description;
-    render_pass_create_info.dependencyCount = 1;
-    render_pass_create_info.pDependencies = &subpass_dependency;
+    render_pass_create_info.dependencyCount = 2;
+    render_pass_create_info.pDependencies = subpass_dependencies.data();
     
     VkResult result = vkCreateRenderPass(_device->_logical_device, &render_pass_create_info, nullptr, &_render_pass);
 
