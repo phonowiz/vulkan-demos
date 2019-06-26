@@ -25,17 +25,33 @@ void material_store::create(device* device)
     _device = device;
     assert(_device != nullptr && "call setDevice() on the store object");
     
-    ShaderSharedPtr standardVert = add_shader( "triangle.vert", shader::ShaderType::VERTEX );
-    ShaderSharedPtr standardFrag = add_shader( "triangle.frag", shader::ShaderType::FRAGMENT);
+    ShaderSharedPtr standard_vert = add_shader( "triangle.vert", shader::ShaderType::VERTEX );
+    ShaderSharedPtr standard_frag = add_shader( "triangle.frag", shader::ShaderType::FRAGMENT);
     
-    ShaderSharedPtr displayVert = add_shader("display_plane.vert", shader::ShaderType::VERTEX);
-    ShaderSharedPtr displayFrag = add_shader("display_plane.frag", shader::ShaderType::FRAGMENT);
+    ShaderSharedPtr display_vert = add_shader("display_plane.vert", shader::ShaderType::VERTEX);
+    ShaderSharedPtr display_farg = add_shader("display_plane.frag", shader::ShaderType::FRAGMENT);
     
-    material_shared_ptr standardMat = CREATE_MAT<material>("standard", standardVert, standardFrag, device);
-    add_material(standardMat);
+    ShaderSharedPtr mrt_vert = add_shader("mrt.vert", shader::ShaderType::VERTEX);
+    ShaderSharedPtr mrt_frag = add_shader("mrt.frag", shader::ShaderType::FRAGMENT);
     
-    material_shared_ptr displayMat = CREATE_MAT<material>("display", displayVert, displayFrag, device);
-    add_material(displayMat);
+    ShaderSharedPtr deferred_output_vert = add_shader("deferred_output.vert", shader::ShaderType::VERTEX);
+    ShaderSharedPtr deferred_output_frag = add_shader("deferred_output.frag", shader::ShaderType::FRAGMENT);
+    
+    
+    
+    material_shared_ptr standard_mat = CREATE_MAT<material>("standard", standard_vert, standard_frag, device);
+    add_material(standard_mat);
+    
+    material_shared_ptr display_mat = CREATE_MAT<material>("display", display_vert, display_farg, device);
+    add_material(display_mat);
+    
+    material_shared_ptr mrt_mat = CREATE_MAT<material>("mrt", mrt_vert, mrt_frag, device);
+    add_material(mrt_mat);
+    
+    material_shared_ptr deferred_output_mat = CREATE_MAT<material>("deferred_output",
+                                                                   deferred_output_vert, deferred_output_frag, device);
+    add_material(deferred_output_mat);
+    
 }
 
 void material_store::add_material( material_shared_ptr material)

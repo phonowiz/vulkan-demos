@@ -31,7 +31,6 @@ void mesh::create(const char* path)
     
     bool success = tinyobj::LoadObj(&vertexAttributes, &shapes, &materials, &warnString, &errorString, fullPath.c_str());
     
-    
     assert(success && "check errorString variable");
     
     
@@ -63,6 +62,8 @@ void mesh::create(const char* path)
             _indices.push_back(map_vertices[vert]);
         }
     }
+    
+    allocate_gpu_memory();
 }
 
 template<typename T>
@@ -96,6 +97,8 @@ void mesh::create_and_upload_buffer(VkCommandPool commandPool,
 void mesh::draw(VkCommandBuffer commandBuffer, vk::pipeline& pipeline)
 {
     VkDeviceSize offsets[] = { 0 };
+    assert(_vertex_buffer != nullptr);
+    
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, &_vertex_buffer, offsets);
     vkCmdBindIndexBuffer(commandBuffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
     

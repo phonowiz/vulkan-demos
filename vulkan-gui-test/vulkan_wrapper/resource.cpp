@@ -36,49 +36,49 @@ void resource::read_file(std::string& fileContents, std::string& path)
     }
 }
 
-void resource::create_buffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize deviceSize, VkBufferUsageFlags bufferUsageFlags, VkBuffer &buffer,
-                         VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceMemory &deviceMemory)
+void resource::create_buffer(VkDevice device, VkPhysicalDevice physical_device, VkDeviceSize device_size, VkBufferUsageFlags buffer_usage_flags, VkBuffer &buffer,
+                         VkMemoryPropertyFlags memory_propery_flags, VkDeviceMemory &device_memory)
 {
-    VkBufferCreateInfo bufferCreateInfo;
+    VkBufferCreateInfo buffer_create_info = {};
     
-    bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferCreateInfo.pNext = nullptr;
-    bufferCreateInfo.flags = 0;
-    bufferCreateInfo.size = deviceSize;
-    bufferCreateInfo.usage = bufferUsageFlags;
-    bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    bufferCreateInfo.queueFamilyIndexCount = 0;
-    bufferCreateInfo.pQueueFamilyIndices = nullptr;
+    buffer_create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    buffer_create_info.pNext = nullptr;
+    buffer_create_info.flags = 0;
+    buffer_create_info.size = device_size;
+    buffer_create_info.usage = buffer_usage_flags;
+    buffer_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    buffer_create_info.queueFamilyIndexCount = 0;
+    buffer_create_info.pQueueFamilyIndices = nullptr;
     
-    VkResult result = vkCreateBuffer(device, &bufferCreateInfo, nullptr, &buffer);
+    VkResult result = vkCreateBuffer(device, &buffer_create_info, nullptr, &buffer);
     ASSERT_VULKAN(result);
-    VkMemoryRequirements memoryRequirements;
-    vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
+    VkMemoryRequirements memory_requirements;
+    vkGetBufferMemoryRequirements(device, buffer, &memory_requirements);
     
-    VkMemoryAllocateInfo memoryAllocateInfo;
-    memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    memoryAllocateInfo.pNext = nullptr;
-    memoryAllocateInfo.allocationSize = memoryRequirements.size;
-    memoryAllocateInfo.memoryTypeIndex = find_memory_type_index(physicalDevice,memoryRequirements.memoryTypeBits, memoryPropertyFlags);
+    VkMemoryAllocateInfo memory_allocate_info = {};
+    memory_allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    memory_allocate_info.pNext = nullptr;
+    memory_allocate_info.allocationSize = memory_requirements.size;
+    memory_allocate_info.memoryTypeIndex = find_memory_type_index(physical_device,memory_requirements.memoryTypeBits, memory_propery_flags);
     
-    result = vkAllocateMemory(device, &memoryAllocateInfo, nullptr, &deviceMemory);
+    result = vkAllocateMemory(device, &memory_allocate_info, nullptr, &device_memory);
     ASSERT_VULKAN(result);
-    vkBindBufferMemory(device, buffer, deviceMemory, 0);
+    vkBindBufferMemory(device, buffer, device_memory, 0);
     
 }
 
-uint32_t resource::find_memory_type_index( VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+uint32_t resource::find_memory_type_index( VkPhysicalDevice physical_device, uint32_t type_filter, VkMemoryPropertyFlags properties)
 {
     //for memory buffer intro go here:
     //https://vulkan-tutorial.com/Vertex_buffers/Vertex_buffer_creation
-    VkPhysicalDeviceMemoryProperties physicalDeviceMemoryProperties;
+    VkPhysicalDeviceMemoryProperties physical_device_mem_properties;
     
-    vkGetPhysicalDeviceMemoryProperties(physicalDevice, &physicalDeviceMemoryProperties);
+    vkGetPhysicalDeviceMemoryProperties(physical_device, &physical_device_mem_properties);
     
     int32_t result = -1;
-    for( int32_t i = 0; i < physicalDeviceMemoryProperties.memoryTypeCount; ++i)
+    for( int32_t i = 0; i < physical_device_mem_properties.memoryTypeCount; ++i)
     {
-        if((typeFilter & (1 << i)) && (physicalDeviceMemoryProperties.memoryTypes[i].propertyFlags & properties) ==
+        if((type_filter & (1 << i)) && (physical_device_mem_properties.memoryTypes[i].propertyFlags & properties) ==
            properties)
         {
             result =  i;

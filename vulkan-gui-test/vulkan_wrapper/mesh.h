@@ -39,8 +39,9 @@ namespace vk
         
         mesh(const char* path, device* device)
         {
-            create(path);
             _device = device;
+            create(path);
+
         };
         
         ~mesh();
@@ -50,29 +51,25 @@ namespace vk
         inline void create_and_upload_buffer( VkCommandPool commandPool,
                                           std::vector<T>& data, VkBufferUsageFlags usage, VkBuffer &buffer, VkDeviceMemory &deviceMemory);
         
-        
         static const std::string _mesh_resource_path;
         
-        //public
         void draw(VkCommandBuffer commandBuffer, vk::pipeline& pipeline);
-        
-        //public
-        void allocate_gpu_memory();
         virtual void destroy() override;
-        
-        //private
-        void create_vertex_buffer();
-        void create_index_buffer();
-        
-        std::vector<vertex>& get_vertices()
+    
+        inline std::vector<vertex>& get_vertices()
         {
             return _vertices;
         }
-        std::vector<uint32_t>& get_indices()
+        inline std::vector<uint32_t>& get_indices()
         {
             return _indices;
         }
         
+    protected:
+        
+        void create_vertex_buffer();
+        void create_index_buffer();
+        void allocate_gpu_memory();
     };
 
 }

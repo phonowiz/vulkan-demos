@@ -19,6 +19,7 @@ namespace vk
         display_plane(device* device)
         {
             _device = device;
+            create();
         }
         
         using mesh::allocate_gpu_memory;

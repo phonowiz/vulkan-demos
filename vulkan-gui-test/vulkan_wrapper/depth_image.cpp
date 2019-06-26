@@ -23,7 +23,7 @@ void depth_image::create(uint32_t width, uint32_t height)
                 VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     
-    create_image_view( _image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, _imageView);
+    create_image_view( _image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, _image_view);
     
     change_image_layout(_device->_commandPool, _device->_graphics_queue, _image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
                       VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
@@ -36,13 +36,13 @@ void depth_image::destroy()
     if(_created)
     {
         
-        vkDestroyImageView(_device->_logical_device, _imageView, nullptr);
+        vkDestroyImageView(_device->_logical_device, _image_view, nullptr);
         vkDestroyImage(_device->_logical_device, _image, nullptr);
         vkFreeMemory(_device->_logical_device, _imageMemory, nullptr);
         _created = false;
         _image = VK_NULL_HANDLE;
         _imageMemory = VK_NULL_HANDLE;
-        _imageView = VK_NULL_HANDLE;
+        _image_view = VK_NULL_HANDLE;
     }
 }
 

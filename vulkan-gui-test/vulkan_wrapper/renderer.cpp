@@ -30,7 +30,6 @@ renderer::renderer(device* device, GLFWwindow* window, swapchain* swapChain, mat
 _depth_image(device),
 _pipeline(device, material)
 {
-    memset(_attachments.data(), NULL, _attachments.size() * sizeof(texture_2d*));
     _device = device;
     _window = window;
     _swapchain = swapChain;
@@ -39,56 +38,35 @@ _pipeline(device, material)
 
 void renderer::create_render_pass()
 {
-    
-    
     //note: color attachments go first, then depth attachment.
     //note: VkAttachmentDescription  are  used to create the renderpass, while the
     //VkAttachmentReference are used to create the subpass itself
-    uint32_t num_attachments = 1;
-    std::array<VkAttachmentDescription, MAX_ATTACHMENTS> attachment_descriptions;
-    attachment_descriptions[0].flags = 0;
-    attachment_descriptions[0].format = _swapchain->get_surface_format().format;
-    attachment_descriptions[0].samples = VK_SAMPLE_COUNT_1_BIT;
-    attachment_descriptions[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    attachment_descriptions[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-    attachment_descriptions[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    attachment_descriptions[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    attachment_descriptions[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    attachment_descriptions[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    uint32_t num_attachments = 0;
+    std::array<VkAttachmentDescription, MAX_ATTACHMENTS> attachment_descriptions {};
+    attachment_descriptions[num_attachments].flags = 0;
+    attachment_descriptions[num_attachments].format = _swapchain->get_surface_format().format;
+    attachment_descriptions[num_attachments].samples = VK_SAMPLE_COUNT_1_BIT;
+    attachment_descriptions[num_attachments].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    attachment_descriptions[num_attachments].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    attachment_descriptions[num_attachments].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    attachment_descriptions[num_attachments].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    attachment_descriptions[num_attachments].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    attachment_descriptions[num_attachments].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    ++num_attachments;
     
-    for( int i = num_attachments; i < MAX_ATTACHMENTS; ++i)
-    {
-        if(_attachments[i] != nullptr)
-        {
-            attachment_descriptions[i].flags = 0;
-            attachment_descriptions[i].format = static_cast<VkFormat>(_attachments[i]->_format);
-            attachment_descriptions[i].samples = VK_SAMPLE_COUNT_1_BIT;
-            attachment_descriptions[i].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            attachment_descriptions[i].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-            attachment_descriptions[i].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-            attachment_descriptions[i].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            //initial layout is the layout the image is in just before the renderpass/subpass starts
-            attachment_descriptions[i].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            //this is the layout the image will be transitioned to after the renderpass/subpass happens
-            attachment_descriptions[i].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            
-            ++num_attachments;
-        }
-    }
-    
+    //note: the last attachment will always be the depth
     attachment_descriptions[num_attachments] = _depth_image.get_depth_attachment();
     ++num_attachments;
     
     //an excellent explanation of what the heck are these attachment references:
     //https://stackoverflow.com/questions/49652207/what-is-the-purpose-of-vkattachmentreference
-    std::array<VkAttachmentReference, MAX_ATTACHMENTS> attachment_references;
-    for( int i = 0; i < num_attachments-1; ++i)
-    {
-        attachment_references[i].attachment = i;
-        //this is the layout the attahment will be used during the subpass.  The driver decides if there should be a
-        //transition or not given the 'initialLayout' specified in the attachment description
-        attachment_references[i].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-    }
+    
+    std::array<VkAttachmentReference, 2> attachment_references {};
+    
+    attachment_references[0].attachment = 0;
+    //this is the layout the attahment will be used during the subpass.  The driver decides if there should be a
+    //transition or not given the 'initialLayout' specified in the attachment description
+    attachment_references[0].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL ;
     
     VkAttachmentReference depth_attachment_reference;
     depth_attachment_reference.attachment = num_attachments-1;
@@ -96,12 +74,15 @@ void renderer::create_render_pass()
     
     
     assert(num_attachments >= 2);
-    VkSubpassDescription subpass_description;
+    
+    //here is article about subpasses and input attachments and how they are all tied togethere
+    //https://www.saschawillems.de/blog/2018/07/19/vulkan-input-attachments-and-sub-passes/
+    VkSubpassDescription subpass_description {};
     subpass_description.flags = 0;
     subpass_description.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass_description.inputAttachmentCount = 0;
     subpass_description.pInputAttachments = nullptr;
-    subpass_description.colorAttachmentCount = num_attachments-1;
+    subpass_description.colorAttachmentCount = 1;
     subpass_description.pColorAttachments = attachment_references.data();
     subpass_description.pResolveAttachments = nullptr;
     subpass_description.pDepthStencilAttachment = &depth_attachment_reference;
@@ -151,7 +132,7 @@ void renderer::create_render_pass()
 }
 
 
-void renderer::create_command_buffer()
+void renderer::create_command_buffer(VkCommandBuffer** command_buffers)
 {
     VkCommandBufferAllocateInfo command_buffer_allocate_info;
     command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -161,35 +142,44 @@ void renderer::create_command_buffer()
     command_buffer_allocate_info.commandBufferCount = static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count());
     
     //todo: remove "new"
-    _command_buffers = new VkCommandBuffer[_swapchain->_swapchain_data.image_set.get_image_count()];
-    VkResult result = vkAllocateCommandBuffers(_device->_logical_device, &command_buffer_allocate_info, _command_buffers);
-   ASSERT_VULKAN(result);
+    delete[] *command_buffers;
+    *command_buffers = new VkCommandBuffer[_swapchain->_swapchain_data.image_set.get_image_count()];
+    VkResult result = vkAllocateCommandBuffers(_device->_logical_device, &command_buffer_allocate_info, *command_buffers);
+    ASSERT_VULKAN(result);
 }
 
 
 
-
-void renderer::create_semaphores()
+void renderer::create_semaphore(VkSemaphore& semaphore)
 {
     VkSemaphoreCreateInfo semaphore_create_info;
     semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphore_create_info.pNext = nullptr;
     semaphore_create_info.flags = 0;
     
-    VkResult result = vkCreateSemaphore(_device->_logical_device, &semaphore_create_info, nullptr, &_semaphore_image_available);
-    ASSERT_VULKAN(result);
-    result = vkCreateSemaphore(_device->_logical_device, &semaphore_create_info, nullptr, &_semaphore_rendering_done);
-    ASSERT_VULKAN(result);
     
+    VkResult result = vkCreateSemaphore(_device->_logical_device, &semaphore_create_info, nullptr, &semaphore);
+    ASSERT_VULKAN(result);
+}
+
+void renderer::create_fence(VkFence& fence)
+{
     VkFenceCreateInfo fenceInfo = {};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
     
+    VkResult result = vkCreateFence(_device->_logical_device, &fenceInfo, nullptr, &fence);
+    ASSERT_VULKAN(result);
+    
+}
+void renderer::create_semaphores_and_fences()
+{
+    create_semaphore(_semaphore_image_available);
+    create_semaphore(_semaphore_rendering_done);
     
     for(int i = 0; i < _swapchain->_swapchain_data.image_set.get_image_count(); ++i)
     {
-        result = vkCreateFence(_device->_logical_device, &fenceInfo, nullptr, &_inflight_fences[i]);
-        ASSERT_VULKAN(result);
+        create_fence(_inflight_fences[i]);
     }
 }
 
@@ -205,14 +195,14 @@ void renderer::recreate_renderer()
     _swapchain->recreate_swapchain( );
     create_frame_buffers();
     
-    create_command_buffer();
-    record_command_buffers();
+    create_command_buffer(&_command_buffers);
+    record_command_buffers(*_meshes.data(), _meshes.size());
 
 }
 
-void renderer::record_command_buffers()
+void renderer::record_command_buffers(mesh* meshes, size_t number_of_meshes)
 {
-    VkCommandBufferBeginInfo command_buffer_begin_info;
+    VkCommandBufferBeginInfo command_buffer_begin_info {};
     command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     command_buffer_begin_info.pNext = nullptr;
     command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
@@ -225,13 +215,14 @@ void renderer::record_command_buffers()
         VkResult result = vkBeginCommandBuffer(_command_buffers[i], &command_buffer_begin_info);
         ASSERT_VULKAN(result);
         
-        VkRenderPassBeginInfo render_pass_create_info;
+        VkRenderPassBeginInfo render_pass_create_info = {};
         render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         render_pass_create_info.pNext = nullptr;
         render_pass_create_info.renderPass = _render_pass;
         render_pass_create_info.framebuffer = _swapchain_frame_buffers[i];
         render_pass_create_info.renderArea.offset = { 0, 0 };
-        render_pass_create_info.renderArea.extent = { _swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height };
+        render_pass_create_info.renderArea.extent = { _swapchain->_swapchain_data.swapchain_extent.width,
+                                                        _swapchain->_swapchain_data.swapchain_extent.height };
         VkClearValue clearValue = {0.0f, 0.0f, 0.0f, 1.0f};
         VkClearValue depthClearValue = {1.0f, 0.0f};
         
@@ -257,13 +248,14 @@ void renderer::record_command_buffers()
         
         VkRect2D scissor;
         scissor.offset = { 0, 0};
-        scissor.extent = { _swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height};
+        scissor.extent = { _swapchain->_swapchain_data.swapchain_extent.width,
+                                _swapchain->_swapchain_data.swapchain_extent.height};
         vkCmdSetScissor(_command_buffers[i], 0, 1, &scissor);
 
         
-        for( vk::mesh* pMesh : _meshes)
+        for( size_t j = 0; j < number_of_meshes; ++j)
         {
-            pMesh->draw(_command_buffers[i], _pipeline);
+            meshes[j].draw(_command_buffers[i], _pipeline);
         }
         
         vkCmdEndRenderPass(_command_buffers[i]);
@@ -283,6 +275,7 @@ void renderer::destroy_framebuffers()
 }
 void renderer::destroy()
 {
+    _device->wait_for_all_operations_to_finish();
     vkDestroySemaphore(_device->_logical_device, _semaphore_image_available, nullptr);
     vkDestroySemaphore(_device->_logical_device, _semaphore_rendering_done, nullptr);
     _semaphore_image_available = VK_NULL_HANDLE;
@@ -316,15 +309,23 @@ void renderer::create_frame_buffers()
     for (size_t i = 0; i < _swapchain_frame_buffers.size(); i++)
     {
         VkImageView depth_image_view = _depth_image.get_image_view();
-        assert(depth_image_view != VK_NULL_HANDLE);
-        std::array<VkImageView, 2> attachment_views = {_swapchain->_swapchain_data.image_set.get_image_views()[i], depth_image_view};
+        std::array<VkImageView, MAX_ATTACHMENTS> attachment_views {};
         
-        VkFramebufferCreateInfo framebuffer_create_info;
+        assert(depth_image_view != VK_NULL_HANDLE);
+        
+        uint32_t num_attachments = 0;
+        attachment_views[num_attachments] = _swapchain->_swapchain_data.image_set.get_image_views()[i];
+        num_attachments++;
+
+        attachment_views[num_attachments] = depth_image_view;
+        num_attachments++;
+        
+        VkFramebufferCreateInfo framebuffer_create_info {};
         framebuffer_create_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebuffer_create_info.pNext = nullptr;
         framebuffer_create_info.flags = 0;
         framebuffer_create_info.renderPass = _render_pass;
-        framebuffer_create_info.attachmentCount = static_cast<uint32_t>(attachment_views.size());
+        framebuffer_create_info.attachmentCount = num_attachments;
         framebuffer_create_info.pAttachments = attachment_views.data();
         framebuffer_create_info.width = _swapchain->_swapchain_data.swapchain_extent.width;
         framebuffer_create_info.height = _swapchain->_swapchain_data.swapchain_extent.height;
@@ -341,30 +342,41 @@ void renderer::create_pipeline()
 
 void renderer::init()
 {
+    assert(_meshes.size() != 0 && "add meshes to render before calling init");
     create_render_pass();
-    _material->create_descriptor_set_layout();
     _swapchain->recreate_swapchain();
     
     create_frame_buffers();
-    create_pipeline();
-    create_semaphores();
-    create_command_buffer();
+    //create_pipeline();
+    create_semaphores_and_fences();
+    create_command_buffer(&_command_buffers);
     
     //we only support 1 mesh at the moment
     assert(_meshes.size() == 1);
     assert(_meshes.size() != 0);
     
-    for(int i = 0; i < _meshes.size(); ++i)
+}
+
+void renderer::perform_final_drawing_setup()
+{
+    _material->commit_parameters_to_gpu();
+    static bool pipeline_created = false;
+    if(!pipeline_created)
     {
-        _meshes[i]->allocate_gpu_memory();
+        //note: we create the pipeline here to give the client a chance to set the material input arguments.
+        //the pipeline needs this information to be created properly.
+        create_pipeline();
+        record_command_buffers(*_meshes.data(), _meshes.size());
+        pipeline_created = true;
     }
-    create_command_buffer();
-    record_command_buffers();
-    
 }
 
 void renderer::draw()
 {
+    
+    assert(_material != nullptr);
+    perform_final_drawing_setup();
+    
     static uint32_t image_index = 0;
     vkWaitForFences(_device->_logical_device, 1, &_inflight_fences[image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     vkResetFences(_device->_logical_device, 1, &_inflight_fences[image_index]);

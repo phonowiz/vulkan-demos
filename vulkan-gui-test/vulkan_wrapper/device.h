@@ -17,6 +17,9 @@
 #define ASSERT_VULKAN(val)\
 if(val != VK_SUCCESS){\
 assert(0);\
+}\
+else{\
+(void*)val;\
 }
 
 namespace vk {

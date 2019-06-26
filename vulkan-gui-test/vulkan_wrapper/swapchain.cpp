@@ -29,20 +29,22 @@ swapchain::swapchain(device* device, GLFWwindow* window, VkSurfaceKHR surface)
     
     _surface = surface;
     
+    recreate_swapchain();
+    
 }
-VkSurfaceFormatKHR swapchain::choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+VkSurfaceFormatKHR swapchain::choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& available_formats)
 {
-    if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
+    if (available_formats.size() == 1 && available_formats[0].format == VK_FORMAT_UNDEFINED) {
         return{VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
     }
     
-    for (const auto& availableFormat : availableFormats) {
-        if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-            return availableFormat;
+    for (const auto& available_format : available_formats) {
+        if (available_format.format == VK_FORMAT_B8G8R8A8_UNORM && available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+            return available_format;
         }
     }
     
-    return availableFormats[0];
+    return available_formats[0];
 }
 
 VkPresentModeKHR swapchain::choose_swap_present_mode(const std::vector<VkPresentModeKHR>& available_present_modes)

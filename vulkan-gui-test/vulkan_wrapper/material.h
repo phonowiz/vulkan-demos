@@ -19,6 +19,10 @@
 #include <array>
 
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+
 namespace  vk
 {
     class material : public resource
@@ -39,9 +43,10 @@ namespace  vk
         
         enum class parameter_stage
         {
-            VERTEX = VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT,
-            FRAGMENT = VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT,
-            COMPUTE = VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT
+            VERTEX =    VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT,
+            FRAGMENT =  VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT,
+            COMPUTE =   VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT,
+            NONE =      VkShaderStageFlagBits::VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM
         };
         
         void init_shader_parameters();
@@ -55,8 +60,39 @@ namespace  vk
         void deallocate_parameters();
         virtual void destroy() override;
         
+        inline bool descriptor_set_present() { return _descriptor_set_layout != VK_NULL_HANDLE; }
         inline VkDescriptorSetLayout* get_descriptor_set_layout(){ return &_descriptor_set_layout; }
         inline VkDescriptorSet* get_descriptor_set(){ return &_descriptor_set; }
+        
+        inline void init_parameter(const char* parameter_name, material::parameter_stage stage, float value, int binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name] = value;
+        };
+        
+        inline void init_parameter(const char* parameter_name, material::parameter_stage stage, int value, int binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name] = value;
+        };
+        inline void init_parameter(const char* parameter_name, material::parameter_stage stage, glm::vec3 value, int binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name] = value;
+        };
+        inline void init_parameter(const char* parameter_name, material::parameter_stage stage, glm::vec4 value, int binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name] = value;
+        };
+        inline void init_parameter(const char* parameter_name, material::parameter_stage stage, glm::vec2 value, int binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name] = value;
+        }
+        inline void init_parameter(const char* parameter_name, material::parameter_stage stage, glm::mat4 value, int binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name] = value;
+        }
+//
+        //todo: you'll need to add init function for samplers as well
+        
+        
         
         shader_parameter::shader_params_group& get_uniform_parameters(parameter_stage parameterStage, uint32_t binding);
         void set_image_sampler(texture_2d* texture, const char* parameterName, parameter_stage parameterStage, uint32_t binding);

@@ -26,7 +26,7 @@ layout(binding = 0) uniform Dimensions
 void main()
 {
     gl_Position = vec4(pos,1.0f);
-    fragColor = vec3(0.0f, 0.0f, 0.0f);
+    fragColor = vec3(1.0f, 0.0f, 0.0f);
     fragUVCoord = inUVCoord;
 }
 

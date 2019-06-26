@@ -37,7 +37,7 @@ namespace vk
         {
             VkSwapchainKHR          swapchain = VK_NULL_HANDLE;
             swapchain_image_set     image_set;
-            VkExtent2D              swapchain_extent;
+            VkExtent2D              swapchain_extent = {};
         };
         
         device* _device = nullptr;

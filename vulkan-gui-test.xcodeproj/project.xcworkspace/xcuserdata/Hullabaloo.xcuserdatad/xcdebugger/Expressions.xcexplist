@@ -3,39 +3,65 @@
    version = "1.0">
    <ContextStates>
       <ContextState
-         contextName = "MVKQueueSubmission::recordResult(VkResult):MVKQueue.mm">
+         contextName = "::vkCreatePipelineLayout(VkDevice, const VkPipelineLayoutCreateInfo *, const VkAllocationCallbacks *, VkPipelineLayout *):vulkan.mm">
       </ContextState>
       <ContextState
-         contextName = "vk::Texture2D::create(unsigned int, unsigned int):texture.cpp">
+         contextName = "vk::Shader::initShader(char const*, vk::Shader::ShaderType, char const*):shader.cpp">
          <PersistentStrings>
             <PersistentString
-               value = "_device-&gt;_commandPool">
+               value = "_physicalDevice-&gt;_device">
+            </PersistentString>
+            <PersistentString
+               value = "_pipelineShaderStage">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "MVKDescriptorBinding::writeBindings(unsigned int, unsigned int, unsigned int, unsigned long, void const*):MVKDescriptorSet.mm">
+         contextName = "vk::renderer::add_attachment(vk::renderer::attachment const&amp;, unsigned int):renderer.cpp">
          <PersistentStrings>
             <PersistentString
-               value = "_bufferBindings[0]">
+               value = "_attachments[1]">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "_glfwInitVulkan:vulkan.c">
+         contextName = "std::__1::lock_guard&lt;std::__1::mutex&gt;::lock_guard(std::__1::mutex&amp;) [inlined]:__mutex_base">
+      </ContextState>
+      <ContextState
+         contextName = "vk::Material::createDescriptorSet():material.cpp">
          <PersistentStrings>
             <PersistentString
-               value = "ep[i]">
+               value = "_descriptorSetLayoutBindings[0]">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "vk::Renderer::createRenderPass():renderer.cpp">
+         contextName = "vk::pipeline::create(VkRenderPass_T*, unsigned int, unsigned int):pipeline.cpp">
          <PersistentStrings>
             <PersistentString
-               value = "_swapChainData.swapChainImageFormat">
+               value = "_material">
             </PersistentString>
          </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "vk::Material::setImageSampler(vk::Texture2D*, char const*, vk::Material::ParameterStage, unsigned int):material.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "MVKGraphicsResourcesCommandEncoderState::encodeImpl()::$_1::operator()(MVKCommandEncoder*, MVKMTLBufferBinding&amp;) const:MVKCommandEncoderState.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "this-&gt;_areVertexBufferBindingsDirty">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "main:main.mm">
+      </ContextState>
+      <ContextState
+         contextName = "vk::renderer::create_command_buffer(VkCommandBuffer_T***):renderer.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "vk::Material::createDescriptorPool():material.cpp">
       </ContextState>
       <ContextState
          contextName = "vk::Texture::create(unsigned int, unsigned int):texture.cpp">
@@ -46,24 +72,49 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "std::__1::lock_guard&lt;std::__1::mutex&gt;::lock_guard(std::__1::mutex&amp;) [inlined]:__mutex_base">
+         contextName = "MVKCmdBindDescriptorSets::encode(MVKCommandEncoder*):MVKCmdPipeline.mm">
       </ContextState>
       <ContextState
-         contextName = "vk::Material::createDescriptorPool():material.cpp">
+         contextName = "MVKCommandBuffer::getRecordingResult():MVKCommandBuffer.h">
+      </ContextState>
+      <ContextState
+         contextName = "vk::Renderer::createRenderPass():renderer.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "_swapChainData.swapChainImageFormat">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "vk::Renderer::recordCommandBuffers():renderer.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "vk::material::create_descriptor_sets():material.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "write_descriptor_sets[count].dstBinding">
+            </PersistentString>
+            <PersistentString
+               value = "pair2.first">
+            </PersistentString>
+            <PersistentString
+               value = " _descriptor_set_layout_bindings[count].binding">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "MVKRenderSubpass::getColorAttachmentFormat(unsigned int):MVKRenderPass.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "_renderPass-&gt;_attachments">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
          contextName = "EasyImage::upload(VkDevice_T* const&amp;, VkPhysicalDevice_T*, VkCommandPool_T*, VkQueue_T*):easy_image.h">
          <PersistentStrings>
             <PersistentString
                value = "int x = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT">
-            </PersistentString>
-         </PersistentStrings>
-      </ContextState>
-      <ContextState
-         contextName = "MVKConfigurableObject::getConfigurationResult():MVKBaseObject.h">
-         <PersistentStrings>
-            <PersistentString
-               value = "_configurationResult">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -84,10 +135,18 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "MVKCmdBindDescriptorSets::encode(MVKCommandEncoder*):MVKCmdPipeline.mm">
+         contextName = "vk::Texture2D::create(unsigned int, unsigned int):texture.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "_device-&gt;_commandPool">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "MVKCommandBuffer::getRecordingResult():MVKCommandBuffer.h">
+         contextName = "vk::SwapChain::createFrameBuffers(VkRenderPass_T*):swap_chain.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "vk::SwapChain::createImageViews():swap_chain.cpp">
       </ContextState>
       <ContextState
          contextName = "MVKDescriptorSetLayout::bindDescriptorSet(MVKCommandEncoder*, MVKDescriptorSet*, MVKShaderResourceBinding&amp;, std::__1::vector&lt;unsigned int, std::__1::allocator&lt;unsigned int&gt; &gt;&amp;, unsigned int*):MVKDescriptorSet.mm">
@@ -98,7 +157,12 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "vk::Renderer::recordCommandBuffers():renderer.cpp">
+         contextName = "MVKConfigurableObject::getConfigurationResult():MVKBaseObject.h">
+         <PersistentStrings>
+            <PersistentString
+               value = "_configurationResult">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
          contextName = "HelloTriangleApplication::createFramebuffers():main-test.mm">
@@ -109,6 +173,9 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
+         contextName = "vk::deferred_renderer::deferred_renderer(vk::device*, GLFWwindow*, vk::swapchain*, vk::material_store&amp;):deferred_renderer.cpp">
+      </ContextState>
+      <ContextState
          contextName = "vk::SwapChain::createSwapChain():swap_chain.cpp">
          <PersistentStrings>
             <PersistentString
@@ -117,15 +184,13 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "vk::Shader::initShader(char const*, vk::Shader::ShaderType, char const*):shader.cpp">
-         <PersistentStrings>
-            <PersistentString
-               value = "_physicalDevice-&gt;_device">
-            </PersistentString>
-            <PersistentString
-               value = "_pipelineShaderStage">
-            </PersistentString>
-         </PersistentStrings>
+         contextName = "vk::resource::create_buffer(VkDevice_T*, VkPhysicalDevice_T*, unsigned long long, unsigned int, VkBuffer_T*&amp;, unsigned int, VkDeviceMemory_T*&amp;):resource.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "vk::Renderer::createPipeline():renderer.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "vk::deferred_renderer::create_render_pass():deferred_renderer.cpp">
       </ContextState>
       <ContextState
          contextName = "startVulkan():main.mm">
@@ -136,12 +201,43 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "vk::Material::createDescriptorSet():material.cpp">
+         contextName = "::___ZN25MVKRenderPipelineCompiler25newMTLRenderPipelineStateEP27MTLRenderPipelineDescriptor_block_invoke():MVKPipeline.mm">
          <PersistentStrings>
             <PersistentString
-               value = "_descriptorSetLayoutBindings[0]">
+               value = "ps">
             </PersistentString>
          </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "vk::deferred_renderer::create_frame_buffers():deferred_renderer.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "vk::material::create_descriptor_set_layout():material.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "pair.first">
+            </PersistentString>
+            <PersistentString
+               value = "pair.second.binding">
+            </PersistentString>
+            <PersistentString
+               value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
+            </PersistentString>
+            <PersistentString
+               value = "_sampler_buffers.size()">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "vk::mesh::draw(VkCommandBuffer_T*, vk::pipeline&amp;):mesh.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "createImage(VkDevice_T*, VkPhysicalDevice_T*, unsigned int, unsigned int, VkFormat, VkImageTiling, unsigned int, unsigned int, VkImage_T*&amp;, VkDeviceMemory_T*&amp;):vulkan_utils.h">
       </ContextState>
       <ContextState
          contextName = "vk::Renderer::draw():renderer.cpp">
@@ -152,23 +248,7 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "MVKRenderSubpass::getColorAttachmentFormat(unsigned int):MVKRenderPass.mm">
-         <PersistentStrings>
-            <PersistentString
-               value = "_renderPass-&gt;_attachments">
-            </PersistentString>
-         </PersistentStrings>
-      </ContextState>
-      <ContextState
-         contextName = "vk::SwapChain::createImageViews():swap_chain.cpp">
-      </ContextState>
-      <ContextState
-         contextName = "::___ZN25MVKRenderPipelineCompiler25newMTLRenderPipelineStateEP27MTLRenderPipelineDescriptor_block_invoke():MVKPipeline.mm">
-         <PersistentStrings>
-            <PersistentString
-               value = "ps">
-            </PersistentString>
-         </PersistentStrings>
+         contextName = "MVKQueueSubmission::recordResult(VkResult):MVKQueue.mm">
       </ContextState>
       <ContextState
          contextName = "vk::Material::createDescriptorSetLayout():material.cpp">
@@ -179,27 +259,31 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "MVKGraphicsResourcesCommandEncoderState::encodeImpl()::$_1::operator()(MVKCommandEncoder*, MVKMTLBufferBinding&amp;) const:MVKCommandEncoderState.mm">
+         contextName = "MVKPipelineLayout::MVKPipelineLayout(MVKDevice*, VkPipelineLayoutCreateInfo const*):MVKPipeline.mm">
          <PersistentStrings>
             <PersistentString
-               value = "this-&gt;_areVertexBufferBindingsDirty">
+               value = "_descriptorSetLayouts[0]">
+            </PersistentString>
+            <PersistentString
+               value = "_descriptorSetLayouts">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "vk::Renderer::createPipeline():renderer.cpp">
+         contextName = "_glfwInitVulkan:vulkan.c">
+         <PersistentStrings>
+            <PersistentString
+               value = "ep[i]">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "vk::SwapChain::createFrameBuffers(VkRenderPass_T*):swap_chain.cpp">
-      </ContextState>
-      <ContextState
-         contextName = "vk::Material::setImageSampler(vk::Texture2D*, char const*, vk::Material::ParameterStage, unsigned int):material.cpp">
-      </ContextState>
-      <ContextState
-         contextName = "createImage(VkDevice_T*, VkPhysicalDevice_T*, unsigned int, unsigned int, VkFormat, VkImageTiling, unsigned int, unsigned int, VkImage_T*&amp;, VkDeviceMemory_T*&amp;):vulkan_utils.h">
-      </ContextState>
-      <ContextState
-         contextName = "::vkCreatePipelineLayout(VkDevice, const VkPipelineLayoutCreateInfo *, const VkAllocationCallbacks *, VkPipelineLayout *):vulkan.mm">
+         contextName = "MVKDescriptorBinding::writeBindings(unsigned int, unsigned int, unsigned int, unsigned long, void const*):MVKDescriptorSet.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "_bufferBindings[0]">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
    </ContextStates>
 </VariablesViewState>

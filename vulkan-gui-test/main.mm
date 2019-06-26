@@ -30,6 +30,7 @@
 #include "vulkan_wrapper/material_store.h"
 #include "vulkan_wrapper/mesh.h"
 #include "vulkan_wrapper/display_plane.h"
+#include "vulkan_wrapper/deferred_renderer.h"
 
 ///an excellent summary of vulkan can be found here:
 //https://renderdoc.org/vulkan-in-30-minutes.html
@@ -63,6 +64,7 @@ void shutdownGlfw() {
 
 vk::material_shared_ptr standard_mat;
 vk::material_shared_ptr display_mat;
+vk::material_shared_ptr mrt_mat;
 
 
 
@@ -94,10 +96,49 @@ void updateMVP2()
     vertexParams["lightPosition"] = temp;
 
 
-    standard_mat->set_image_sampler(texture, "tex", vk::material::parameter_stage::FRAGMENT, 1);
+    //standard_mat->set_image_sampler(texture, "tex", vk::material::parameter_stage::FRAGMENT, 1);
     
     
     standard_mat->commit_parameters_to_gpu();
+}
+
+struct App
+{
+    vk::swapchain* swapchain = nullptr;
+    vk::device* physical_device = nullptr;
+    vk::renderer* renderer = nullptr;
+    vk::deferred_renderer* deferred_renderer = nullptr;
+};
+
+
+App app;
+
+
+void updateMVP3()
+{
+    std::chrono::time_point frameTime = std::chrono::high_resolution_clock::now();
+    float timeSinceStart = std::chrono::duration_cast<std::chrono::milliseconds>( frameTime - gameStartTime ).count()/1000.0f;
+    
+    glm::mat4 model = glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 projection = glm::perspective(glm::radians(60.0f), width/(float)height, 0.01f, 10.0f);
+    
+    /*
+     GLM was originally designed for OpenGL, where the Y coordinate of the clip coordinates is inverted.
+     The easiest way to compensate for that is to flip the sign on the scaling factor of the Y axis in the projection matrix.
+     If you don't do this, then the image will be rendered upside down.
+     */
+    projection[1][1] *= -1.0f;
+    
+    glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
+    
+    vk::shader_parameter::shader_params_group& vertex_params =
+        app.deferred_renderer->get_material()->get_uniform_parameters(vk::material::parameter_stage::VERTEX, 0);
+    
+    vertex_params["model"] = model;
+    vertex_params["view"] = view;
+    vertex_params["projection"] = projection;
+    vertex_params["lightPosition"] = temp;
 }
 
 void gameLoop2(vk::renderer &renderer)
@@ -111,16 +152,19 @@ void gameLoop2(vk::renderer &renderer)
     }
 }
 
-
-struct App
+void gameLoop4(vk::renderer& renderer)
 {
-    vk::swapchain* swapchain = nullptr;
-    vk::device* physical_device = nullptr;
-    vk::renderer* renderer = nullptr;
-};
+    int i = 0;
+    while(!glfwWindowShouldClose(window))
+    {
+        glfwPollEvents();
+        updateMVP3();
+        renderer.draw();
+        ++i;
+    }
+}
 
 
-App app;
 
 void onWindowResized2(GLFWwindow * window, int w, int h)
 {
@@ -138,7 +182,11 @@ void onWindowResized2(GLFWwindow * window, int w, int h)
         
         width = w;
         height = h;
-        app.renderer->recreate_renderer();
+        
+        if( app.renderer )
+            app.renderer->recreate_renderer() ;
+        if( app.deferred_renderer)
+            app.deferred_renderer->recreate_renderer() ;
         
     }
 }
@@ -159,7 +207,7 @@ void updateWithOrtho()
     
 }
 
-void gameLoop3(vk::renderer &renderer)
+void gameLoopOrtho(vk::renderer &renderer)
 {
     int i = 0;
     while (!glfwWindowShouldClose(window)) {
@@ -193,59 +241,63 @@ int main()
     vk::mesh mesh( "dragon.obj", &device );
     
     vk::display_plane plane(&device);
-    bool deferred = false;
     
     standard_mat = material_store.GET_MAT<vk::material>("standard");
     display_mat = material_store.GET_MAT<vk::material>("display");
+    mrt_mat = material_store.GET_MAT<vk::material>("mrt");
+    vk::texture_2d mario(&device, "mario.png");
     
-    vk::renderer renderer(&device,window, &swapchain, standard_mat);
-    
-    if(!deferred)
+    bool deferred = false;
+    if(deferred)
     {
-
-        //vk::Texture texture(&device, "mario.png");
-        
-
-        plane.create();
-        
-        vk::texture_2d mario(&device, "mario.png");
+        vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store);
         texture = &mario;
-        updateMVP2();
-        
-        //updateWithOrtho();
 
-        
-        //renderer.addMesh(&plane);
-        renderer.add_mesh(&mesh);
-        renderer.init();
+        deferred_renderer.add_mesh(&mesh);
+        deferred_renderer.init();
         
         app.physical_device = &device;
         app.swapchain = &swapchain;
-        app.renderer = &renderer;
+        app.renderer = nullptr;
+        app.deferred_renderer = &deferred_renderer;
         
-        gameLoop2(renderer);
-        //gameLoop3(renderer);
+        gameLoop4(deferred_renderer);
+        
+        deferred_renderer.destroy();
     }
     else
     {
-        vk::texture_2d position(&device, swapchain._swapchain_data.swapchain_extent.width, swapchain._swapchain_data.swapchain_extent.height);
-        vk::texture_2d albedo(&device, swapchain._swapchain_data.swapchain_extent.width, swapchain._swapchain_data.swapchain_extent.height);
-        //vk::texture_2d depth(&device, swapchain._swapchain_data.swapchain_extent.width, swapchain._swapchain_data.swapchain_extent.height);
+
+        //vk::renderer renderer(&device,window, &swapchain, standard_mat);
+        vk::renderer renderer(&device, window, &swapchain, display_mat);
         
-        renderer.add_attachment(&position, 0);
-        renderer.add_attachment(&albedo, 1);
-        //renderer.add_attachment(&depth, 2);
+        //renderer.add_mesh(&mesh);
+        renderer.add_mesh(&plane);
         
+        texture = &mario;
+        app.physical_device = &device;
+        app.swapchain = &swapchain;
+        app.renderer = &renderer;
+        app.deferred_renderer = nullptr;
+
+        //updateMVP2();
+        updateWithOrtho();
+        
+        renderer.init();
+
+        //gameLoop2(renderer);
+        gameLoopOrtho(renderer);
+        
+        renderer.destroy();
         
     }
 
     
-    device.wait_for_all_operations_to_finish();
+
     swapchain.destroy();
     material_store.destroy();
     mesh.destroy();
     plane.destroy();
-    renderer.destroy();
     device.destroy();
     
     shutdownGlfw();

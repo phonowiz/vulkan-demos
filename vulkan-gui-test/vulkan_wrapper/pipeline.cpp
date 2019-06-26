@@ -12,9 +12,25 @@
 using namespace vk;
 
 
+void pipeline::init_blend_attachments()
+{
+    for( uint32_t i = 0; i < BLEND_ATTACHMENTS; ++i)
+    {
+        _blend_attachments[i].blendEnable = VK_TRUE;
+        _blend_attachments[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+        _blend_attachments[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        _blend_attachments[i].colorBlendOp = VK_BLEND_OP_ADD;
+        _blend_attachments[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        _blend_attachments[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+        _blend_attachments[i].alphaBlendOp = VK_BLEND_OP_ADD;
+        _blend_attachments[i].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    }
+}
+
 void pipeline::create( VkRenderPass render_pass, uint32_t viewport_width, uint32_t viewport_height)
 {
     assert(_material != nullptr);
+    
     _width = viewport_width;
     _height = viewport_height;
     
@@ -70,7 +86,8 @@ void pipeline::create( VkRenderPass render_pass, uint32_t viewport_width, uint32
     rasterizationCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizationCreateInfo.cullMode = static_cast<VkCullModeFlagBits>(_cull_mode);
     
-    rasterizationCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    //TODO: THIS NEEDS TO BE SWITCHED BACK TO VK_FRONT_FACE_COUNTER_CLOCKWISE
+    rasterizationCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;//VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizationCreateInfo.depthBiasEnable = VK_FALSE;
     rasterizationCreateInfo.depthBiasConstantFactor = 0.0f;
     rasterizationCreateInfo.depthBiasClamp = 0.0f;
@@ -105,17 +122,6 @@ void pipeline::create( VkRenderPass render_pass, uint32_t viewport_width, uint32
     depthStencilStateCreateInfo.back = {};
     depthStencilStateCreateInfo.minDepthBounds = 0.0f;
     depthStencilStateCreateInfo.maxDepthBounds = 1.0f;
-
-    
-    VkPipelineColorBlendAttachmentState colorBlendAttachment;
-    colorBlendAttachment.blendEnable = VK_TRUE;
-    colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-    colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-    colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-    colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-    colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
     
     VkPipelineColorBlendStateCreateInfo colorBlendCreateInfo;
     colorBlendCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -123,8 +129,8 @@ void pipeline::create( VkRenderPass render_pass, uint32_t viewport_width, uint32
     colorBlendCreateInfo.flags = 0;
     colorBlendCreateInfo.logicOpEnable = VK_FALSE;
     colorBlendCreateInfo.logicOp = VK_LOGIC_OP_NO_OP;
-    colorBlendCreateInfo.attachmentCount = 1;
-    colorBlendCreateInfo.pAttachments = &colorBlendAttachment;
+    colorBlendCreateInfo.attachmentCount = _num_blend_attachments;
+    colorBlendCreateInfo.pAttachments = _blend_attachments.data();
     colorBlendCreateInfo.blendConstants[0] = 0.0f;
     colorBlendCreateInfo.blendConstants[1] = 0.0f;
     colorBlendCreateInfo.blendConstants[2] = 0.0f;
@@ -139,7 +145,7 @@ void pipeline::create( VkRenderPass render_pass, uint32_t viewport_width, uint32
     pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutCreateInfo.pNext = nullptr;
     pipelineLayoutCreateInfo.flags = 0;
-    pipelineLayoutCreateInfo.setLayoutCount = 1;
+    pipelineLayoutCreateInfo.setLayoutCount = _material->descriptor_set_present() ? 1 : 0;
     pipelineLayoutCreateInfo.pSetLayouts = _material->get_descriptor_set_layout();
     pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
     pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;

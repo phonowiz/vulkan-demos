@@ -25,11 +25,6 @@ namespace vk
         texture_2d(device* device, uint32_t width, uint32_t height);
         texture_2d(device* device,const char* path = nullptr);
         
-        enum class formats
-        {
-            RGBA = VK_FORMAT_R8G8B8A8_UNORM
-        };
-
         virtual void create( uint32_t width, uint32_t height) override;
         virtual void destroy() override;
         
@@ -57,8 +52,6 @@ namespace vk
         void load();
         void create_sampler();
         void set_sampler(device* device){ }
-        
-        texture_2d::formats _format = texture_2d::formats::RGBA;
         
         static const std::string texture_resource_path;
     private:

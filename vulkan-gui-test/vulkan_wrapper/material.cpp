@@ -76,6 +76,7 @@ void material::commit_parameters_to_gpu( )
 
 void material::set_image_sampler(texture_2d* texture, const char* parameterName, parameter_stage parameterStage, uint32_t binding)
 {
+    //todo: THERE IS A BUG HERE, WHEN YOU HAVE MULTIPLE SAMPLERS THIS CODE OVERRIDES BINDINGS OF PREVIOUS SAMPLERS SET
     buffer_info& mem = _sampler_buffers[parameterStage];
     mem.binding = binding;
     mem.usageType = usage_type::COMBINED_IMAGE_SAMPLER;
@@ -143,15 +144,15 @@ void material::init_shader_parameters()
 
 void material::create_descriptor_sets()
 {
-    VkDescriptorSetAllocateInfo descriptorSetAllocateInfo = {};
+    VkDescriptorSetAllocateInfo descriptor_set_allocate_info = {};
     
-    descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    descriptorSetAllocateInfo.pNext = nullptr;
-    descriptorSetAllocateInfo.descriptorPool = _descriptor_pool;
-    descriptorSetAllocateInfo.descriptorSetCount = 1;
-    descriptorSetAllocateInfo.pSetLayouts = &_descriptor_set_layout;
+    descriptor_set_allocate_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    descriptor_set_allocate_info.pNext = nullptr;
+    descriptor_set_allocate_info.descriptorPool = _descriptor_pool;
+    descriptor_set_allocate_info.descriptorSetCount = 1;
+    descriptor_set_allocate_info.pSetLayouts = &_descriptor_set_layout;
     
-    VkResult result = vkAllocateDescriptorSets(_device->_logical_device, &descriptorSetAllocateInfo, &_descriptor_set);
+    VkResult result = vkAllocateDescriptorSets(_device->_logical_device, &descriptor_set_allocate_info, &_descriptor_set);
     ASSERT_VULKAN(result);
     std::array<VkWriteDescriptorSet,BINDING_MAX> write_descriptor_sets;
 
@@ -285,22 +286,19 @@ void material::create_descriptor_pool()
         assert(count < BINDING_MAX);
     }
     
-
+    assert(count != 0 && "shaders need some sort of input (samplers/uniform buffers)");
+    VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = {};
     
-    if(count)
-    {
-        VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = {};
-        
-        descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        descriptorPoolCreateInfo.pNext = nullptr;
-        descriptorPoolCreateInfo.flags = 0;
-        descriptorPoolCreateInfo.maxSets = 1;
-        descriptorPoolCreateInfo.poolSizeCount = static_cast<uint32_t>(count);
-        descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes.data();
-        
-        VkResult result = vkCreateDescriptorPool(_device->_logical_device, &descriptorPoolCreateInfo, nullptr, &_descriptor_pool);
-        ASSERT_VULKAN(result);
-    }
+    descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    descriptorPoolCreateInfo.pNext = nullptr;
+    descriptorPoolCreateInfo.flags = 0;
+    descriptorPoolCreateInfo.maxSets = 1;
+    descriptorPoolCreateInfo.poolSizeCount = static_cast<uint32_t>(count);
+    descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes.data();
+    
+    VkResult result = vkCreateDescriptorPool(_device->_logical_device, &descriptorPoolCreateInfo, nullptr, &_descriptor_pool);
+    ASSERT_VULKAN(result);
+
 }
 
 void material::destroy()

@@ -27,6 +27,8 @@
 		B96B782021E070DD0089A2F7 /* textures in Resources */ = {isa = PBXBuildFile; fileRef = B96B781F21E070DC0089A2F7 /* textures */; };
 		B976F9BA222A723200CD2F78 /* libMoltenVK.dylib in Resources */ = {isa = PBXBuildFile; fileRef = B976F9B9222A723200CD2F78 /* libMoltenVK.dylib */; };
 		B976F9BB222A731800CD2F78 /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B976F9B9222A723200CD2F78 /* libMoltenVK.dylib */; };
+		B9776C9E2267B3B800DCB645 /* deferred_renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9776C9C2267B3B800DCB645 /* deferred_renderer.cpp */; };
+		B9776CA12267DDE200DCB645 /* render_texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9776C9F2267DDE200DCB645 /* render_texture.cpp */; };
 		B984C7FC2238CD18002327DE /* display_plane.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B984C7FA2238CD18002327DE /* display_plane.cpp */; };
 		B9AE757D2244C9AD00A219A3 /* pipeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9AE757B2244C9AD00A219A3 /* pipeline.cpp */; };
 		B9C7CD99222E482000AA173A /* object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9C7CD97222E482000AA173A /* object.cpp */; };
@@ -77,6 +79,10 @@
 		B94E2955221A1C1B005859E8 /* depth_image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = depth_image.h; sourceTree = "<group>"; };
 		B96B781F21E070DC0089A2F7 /* textures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = textures; path = "vulkan-gui-test/textures"; sourceTree = "<group>"; };
 		B976F9B9222A723200CD2F78 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = "vulkan-gui-test/vulkansdk-macos-1.1.85.0/MoltenVK/macOS/libMoltenVK.dylib"; sourceTree = "<group>"; };
+		B9776C9C2267B3B800DCB645 /* deferred_renderer.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = deferred_renderer.cpp; sourceTree = "<group>"; };
+		B9776C9D2267B3B800DCB645 /* deferred_renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = deferred_renderer.h; sourceTree = "<group>"; };
+		B9776C9F2267DDE200DCB645 /* render_texture.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = render_texture.cpp; sourceTree = "<group>"; };
+		B9776CA02267DDE200DCB645 /* render_texture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = render_texture.h; sourceTree = "<group>"; };
 		B984C7FA2238CD18002327DE /* display_plane.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = display_plane.cpp; sourceTree = "<group>"; };
 		B984C7FB2238CD18002327DE /* display_plane.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = display_plane.h; sourceTree = "<group>"; };
 		B9AE757B2244C9AD00A219A3 /* pipeline.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pipeline.cpp; sourceTree = "<group>"; };
@@ -268,6 +274,8 @@
 				B9AE757C2244C9AD00A219A3 /* pipeline.h */,
 				B9E92BD0220D69FB0060F755 /* renderer.cpp */,
 				B9E92BD1220D69FB0060F755 /* renderer.h */,
+				B9776C9C2267B3B800DCB645 /* deferred_renderer.cpp */,
+				B9776C9D2267B3B800DCB645 /* deferred_renderer.h */,
 				B9E1EED52213F723006DBA67 /* resource.cpp */,
 				B9E1EED62213F723006DBA67 /* resource.h */,
 				B9E1EEEB22166AC4006DBA67 /* shader_parameter.cpp */,
@@ -280,6 +288,8 @@
 				B91D19922228BBD7007CA202 /* swapchain_image_set.h */,
 				B9E92BD6221114D00060F755 /* texture_2d.cpp */,
 				B9E92BD7221114D00060F755 /* texture_2d.h */,
+				B9776C9F2267DDE200DCB645 /* render_texture.cpp */,
+				B9776CA02267DDE200DCB645 /* render_texture.h */,
 				B91A50F62246C9EF00E9D0CA /* vertex.cpp */,
 				B91A50F72246C9EF00E9D0CA /* vertex.h */,
 			);
@@ -380,7 +390,9 @@
 				B9E92BD8221114D00060F755 /* texture_2d.cpp in Sources */,
 				B91D19932228BBD7007CA202 /* swapchain_image_set.cpp in Sources */,
 				B9E92BD2220D69FB0060F755 /* renderer.cpp in Sources */,
+				B9776C9E2267B3B800DCB645 /* deferred_renderer.cpp in Sources */,
 				B9E92BCC220D4AD20060F755 /* swapchain.cpp in Sources */,
+				B9776CA12267DDE200DCB645 /* render_texture.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
