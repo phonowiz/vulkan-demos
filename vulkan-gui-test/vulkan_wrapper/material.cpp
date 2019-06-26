@@ -76,8 +76,7 @@ void material::commit_parameters_to_gpu( )
 
 void material::set_image_sampler(texture_2d* texture, const char* parameterName, parameter_stage parameterStage, uint32_t binding)
 {
-    //todo: THERE IS A BUG HERE, WHEN YOU HAVE MULTIPLE SAMPLERS THIS CODE OVERRIDES BINDINGS OF PREVIOUS SAMPLERS SET
-    buffer_info& mem = _sampler_buffers[parameterStage];
+    buffer_info& mem = _sampler_buffers[parameterStage][parameterName];
     mem.binding = binding;
     mem.usageType = usage_type::COMBINED_IMAGE_SAMPLER;
     
@@ -222,16 +221,18 @@ void material::create_descriptor_set_layout()
     int count = 0;
     //note: always go through the sampler buffers first, then the uniform buffers because
     //the descriptor bindings will be set up this way.
-    for (std::pair<parameter_stage , resource::buffer_info > pair : _sampler_buffers)
+    for (std::pair<parameter_stage , buffer_parameter > pair : _sampler_buffers)
     {
-        _descriptor_set_layout_bindings[count].binding = pair.second.binding;
-        _descriptor_set_layout_bindings[count].descriptorType = static_cast<VkDescriptorType>(pair.second.usageType);
-        _descriptor_set_layout_bindings[count].descriptorCount = 1;
-        _descriptor_set_layout_bindings[count].stageFlags = static_cast<VkShaderStageFlagBits>(pair.first);
-        _descriptor_set_layout_bindings[count].pImmutableSamplers = nullptr;
-        
-        ++count;
-        assert(BINDING_MAX > count);
+        for(std::pair<const char*, buffer_info> pair2 : pair.second)
+        {
+            _descriptor_set_layout_bindings[count].binding = pair2.second.binding;
+            _descriptor_set_layout_bindings[count].descriptorType = static_cast<VkDescriptorType>(pair2.second.usageType);
+            _descriptor_set_layout_bindings[count].descriptorCount = 1;
+            _descriptor_set_layout_bindings[count].stageFlags = static_cast<VkShaderStageFlagBits>(pair.first);
+            _descriptor_set_layout_bindings[count].pImmutableSamplers = nullptr;
+            ++count;
+            assert(BINDING_MAX > count);
+        }
     }
     
     for (std::pair<parameter_stage , resource::buffer_info > pair : _uniform_buffers)
@@ -268,13 +269,17 @@ void material::create_descriptor_pool()
     
     int count = 0;
     
-    for(std::pair<parameter_stage, resource::buffer_info > pair : _sampler_buffers)
+    for(std::pair<parameter_stage, buffer_parameter > pair : _sampler_buffers)
     {
-        descriptorPoolSizes[count].type = static_cast<VkDescriptorType>(pair.second.usageType);
-        descriptorPoolSizes[count].descriptorCount = 1;
-        
-        ++count;
-        assert(count < BINDING_MAX);
+        for(std::pair<const char*, buffer_info> pair2: pair.second)
+        {
+            descriptorPoolSizes[count].type = static_cast<VkDescriptorType>(pair2.second.usageType);
+            descriptorPoolSizes[count].descriptorCount = 1;
+            
+            ++count;
+            assert(count < BINDING_MAX);
+        }
+
     }
     
     for (std::pair<parameter_stage , resource::buffer_info > pair : _uniform_buffers)

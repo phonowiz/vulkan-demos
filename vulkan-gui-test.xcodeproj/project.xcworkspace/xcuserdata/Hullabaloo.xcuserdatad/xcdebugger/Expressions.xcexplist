@@ -6,13 +6,10 @@
          contextName = "::vkCreatePipelineLayout(VkDevice, const VkPipelineLayoutCreateInfo *, const VkAllocationCallbacks *, VkPipelineLayout *):vulkan.mm">
       </ContextState>
       <ContextState
-         contextName = "vk::Shader::initShader(char const*, vk::Shader::ShaderType, char const*):shader.cpp">
+         contextName = "MVKDescriptorBinding::writeBindings(unsigned int, unsigned int, unsigned int, unsigned long, void const*):MVKDescriptorSet.mm">
          <PersistentStrings>
             <PersistentString
-               value = "_physicalDevice-&gt;_device">
-            </PersistentString>
-            <PersistentString
-               value = "_pipelineShaderStage">
+               value = "_bufferBindings[0]">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -86,21 +83,21 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "vk::Renderer::recordCommandBuffers():renderer.cpp">
-      </ContextState>
-      <ContextState
          contextName = "vk::material::create_descriptor_sets():material.cpp">
          <PersistentStrings>
+            <PersistentString
+               value = " _descriptor_set_layout_bindings[count].binding">
+            </PersistentString>
             <PersistentString
                value = "write_descriptor_sets[count].dstBinding">
             </PersistentString>
             <PersistentString
                value = "pair2.first">
             </PersistentString>
-            <PersistentString
-               value = " _descriptor_set_layout_bindings[count].binding">
-            </PersistentString>
          </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "vk::Renderer::recordCommandBuffers():renderer.cpp">
       </ContextState>
       <ContextState
          contextName = "MVKRenderSubpass::getColorAttachmentFormat(unsigned int):MVKRenderPass.mm">
@@ -218,13 +215,16 @@
                value = "pair.first">
             </PersistentString>
             <PersistentString
-               value = "pair.second.binding">
+               value = "pair2.first">
             </PersistentString>
             <PersistentString
                value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
             </PersistentString>
             <PersistentString
                value = "_sampler_buffers.size()">
+            </PersistentString>
+            <PersistentString
+               value = "pair2.second.binding">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -251,6 +251,17 @@
          contextName = "MVKQueueSubmission::recordResult(VkResult):MVKQueue.mm">
       </ContextState>
       <ContextState
+         contextName = "vk::Shader::initShader(char const*, vk::Shader::ShaderType, char const*):shader.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "_physicalDevice-&gt;_device">
+            </PersistentString>
+            <PersistentString
+               value = "_pipelineShaderStage">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "vk::Material::createDescriptorSetLayout():material.cpp">
          <PersistentStrings>
             <PersistentString
@@ -274,14 +285,6 @@
          <PersistentStrings>
             <PersistentString
                value = "ep[i]">
-            </PersistentString>
-         </PersistentStrings>
-      </ContextState>
-      <ContextState
-         contextName = "MVKDescriptorBinding::writeBindings(unsigned int, unsigned int, unsigned int, unsigned long, void const*):MVKDescriptorSet.mm">
-         <PersistentStrings>
-            <PersistentString
-               value = "_bufferBindings[0]">
             </PersistentString>
          </PersistentStrings>
       </ContextState>

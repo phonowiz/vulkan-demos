@@ -247,7 +247,7 @@ int main()
     mrt_mat = material_store.GET_MAT<vk::material>("mrt");
     vk::texture_2d mario(&device, "mario.png");
     
-    bool deferred = false;
+    bool deferred = true;
     if(deferred)
     {
         vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store);
@@ -291,9 +291,7 @@ int main()
         renderer.destroy();
         
     }
-
     
-
     swapchain.destroy();
     material_store.destroy();
     mesh.destroy();

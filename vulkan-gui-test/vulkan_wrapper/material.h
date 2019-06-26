@@ -109,15 +109,15 @@ namespace  vk
         static const int BINDING_MAX = 30;
         
         
-        tsl::ordered_map<parameter_stage, resource::buffer_info>                  _uniform_buffers;
+        tsl::ordered_map<parameter_stage, resource::buffer_info>                    _uniform_buffers;
         tsl::ordered_map<parameter_stage, shader_parameter::shader_params_group>    _uniform_parameters;
 
-
-        tsl::ordered_map<parameter_stage, resource::buffer_info>                  _sampler_buffers;
+        typedef tsl::ordered_map<const char*, resource::buffer_info>                buffer_parameter;
+        tsl::ordered_map<parameter_stage, buffer_parameter>                         _sampler_buffers;
         
-        typedef tsl::ordered_map< const char*, shader_parameter>                  sampler_parameter;
+        typedef tsl::ordered_map< const char*, shader_parameter>                    sampler_parameter;
+        tsl::ordered_map<parameter_stage, sampler_parameter>                        _sampler_parameters;
         
-        tsl::ordered_map<parameter_stage, sampler_parameter>                     _sampler_parameters;
         std::array<VkDescriptorSetLayoutBinding, BINDING_MAX>                    _descriptor_set_layout_bindings;
         
         

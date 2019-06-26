@@ -285,7 +285,7 @@ void deferred_renderer::perform_final_drawing_setup()
         
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_normals), "normals", material::parameter_stage::FRAGMENT, 1);
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_albedo), "albedo", material::parameter_stage::FRAGMENT, 2);
-        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_depth), "positions", material::parameter_stage::FRAGMENT, 3);
+        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_positions), "positions", material::parameter_stage::FRAGMENT, 3);
         
         setup_initialized = true;
     }
