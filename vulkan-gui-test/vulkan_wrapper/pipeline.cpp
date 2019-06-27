@@ -86,8 +86,7 @@ void pipeline::create( VkRenderPass render_pass, uint32_t viewport_width, uint32
     rasterizationCreateInfo.polygonMode = VK_POLYGON_MODE_FILL;
     rasterizationCreateInfo.cullMode = static_cast<VkCullModeFlagBits>(_cull_mode);
     
-    //TODO: THIS NEEDS TO BE SWITCHED BACK TO VK_FRONT_FACE_COUNTER_CLOCKWISE
-    rasterizationCreateInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;//VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rasterizationCreateInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
     rasterizationCreateInfo.depthBiasEnable = VK_FALSE;
     rasterizationCreateInfo.depthBiasConstantFactor = 0.0f;
     rasterizationCreateInfo.depthBiasClamp = 0.0f;

@@ -14,8 +14,6 @@ using namespace vk;
 
 void display_plane::create()
 {
-    //std::vector<Vertex>& vertices;
-    // Vertex(glm::vec3 pos, glm::vec3 color, glm::vec2 uvCoord, glm::vec3 normal)
     _vertices =
     {
         vertex({-1.0f, -1.0f, 0.10f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}),
@@ -32,9 +30,8 @@ void display_plane::create()
     
     _indices =
     {
-        //4,5,6,4,7,5,
-        0,1,2,0,3,1,
-        4,5,6,4,7,5
+        5,7,4,6,5,4,
+        1,3,0,2,1,0
     };
     
     allocate_gpu_memory();
