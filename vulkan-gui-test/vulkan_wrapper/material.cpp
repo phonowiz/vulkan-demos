@@ -28,7 +28,7 @@ void material::commit_parameters_to_gpu( )
 //    BufferInfo mem =  _uniformBuffers[parameterStage];
 //    ShaderParameter::ShaderParamsGroup& group = _parameters[parameterStage];
 //
-    if(!initialized)
+    if(!_initialized)
         init_shader_parameters();
     
     for (std::pair<parameter_stage , shader_parameter::shader_params_group > pair : _uniform_parameters)
@@ -63,16 +63,6 @@ void material::commit_parameters_to_gpu( )
     }
 
 }
-
-//ShaderParameter::ShaderParamsGroup& Material::getImageSamplerParameters(ParameterStage stage, uint32_t binding)
-//{
-//
-//    BufferInfo &mems = _samplerBuffers[stage];
-//    mems.usageType = UsageType::COMBINED_IMAGE_SAMPLER;
-//    mems.binding = binding;
-//
-//    return _samplerParameters[stage];
-//}
 
 void material::set_image_sampler(texture_2d* texture, const char* parameterName, parameter_stage parameterStage, uint32_t binding)
 {
@@ -138,7 +128,7 @@ void material::init_shader_parameters()
     create_descriptor_sets();
  
     
-    initialized = true;
+    _initialized = true;
 }
 
 void material::create_descriptor_sets()
@@ -312,7 +302,7 @@ void material::destroy()
     vkDestroyDescriptorPool(_device->_logical_device, _descriptor_pool, nullptr);
     _descriptor_set_layout = VK_NULL_HANDLE;
     _descriptor_pool = VK_NULL_HANDLE;
-    
+    _initialized = false;
     deallocate_parameters();
 }
 material::~material()

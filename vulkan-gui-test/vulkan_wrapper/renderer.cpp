@@ -189,7 +189,7 @@ void renderer::recreate_renderer()
     _device->wait_for_all_operations_to_finish();
 
     vkDestroyRenderPass(_device->_logical_device, _render_pass, nullptr);
-
+    _render_pass = VK_NULL_HANDLE;
     create_render_pass();
     destroy_framebuffers();
     _swapchain->recreate_swapchain( );

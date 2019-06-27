@@ -125,7 +125,7 @@ namespace  vk
         
         device *_device = nullptr;
         
-        bool initialized = false;
+        bool _initialized = false;
         ~material();
     
     private:

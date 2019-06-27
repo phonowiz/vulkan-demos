@@ -100,6 +100,25 @@
          contextName = "vk::Renderer::recordCommandBuffers():renderer.cpp">
       </ContextState>
       <ContextState
+         contextName = "vk::deferred_renderer::recreate_renderer():deferred_renderer.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "_swapchain-&gt;_swapchain_data.swapchain_extent.width">
+            </PersistentString>
+            <PersistentString
+               value = "_swapchain-&gt;_swapchain_data.swapchain_extent.height">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "MVKCmdDrawIndexed::encode(MVKCommandEncoder*):MVKCmdDraw.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "cmdEncoder-&gt;_mtlPrimitiveType">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "MVKRenderSubpass::getColorAttachmentFormat(unsigned int):MVKRenderPass.mm">
          <PersistentStrings>
             <PersistentString
@@ -188,6 +207,11 @@
       </ContextState>
       <ContextState
          contextName = "vk::deferred_renderer::create_render_pass():deferred_renderer.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "_normals._format">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
          contextName = "startVulkan():main.mm">
@@ -207,6 +231,28 @@
       </ContextState>
       <ContextState
          contextName = "vk::deferred_renderer::create_frame_buffers():deferred_renderer.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "_normals">
+            </PersistentString>
+            <PersistentString
+               value = "_swapchain-&gt;_swapchain_data.swapchain_extent.width">
+            </PersistentString>
+            <PersistentString
+               value = "_swapchain-&gt;_swapchain_data.swapchain_extent.height">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "vk::renderer::create_frame_buffers():renderer.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "_swapchain-&gt;_swapchain_data.swapchain_extent.width">
+            </PersistentString>
+            <PersistentString
+               value = "_swapchain-&gt;_swapchain_data.swapchain_extent.height">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
          contextName = "vk::material::create_descriptor_set_layout():material.cpp">

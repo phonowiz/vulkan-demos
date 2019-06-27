@@ -244,7 +244,6 @@ int main()
     
     standard_mat = material_store.GET_MAT<vk::material>("standard");
     display_mat = material_store.GET_MAT<vk::material>("display");
-    mrt_mat = material_store.GET_MAT<vk::material>("mrt");
     vk::texture_2d mario(&device, "mario.png");
     
     bool deferred = true;
