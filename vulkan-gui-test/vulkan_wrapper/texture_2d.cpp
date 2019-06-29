@@ -17,6 +17,10 @@ using namespace vk;
 
 const std::string texture_2d::texture_resource_path =  "/textures/";
 
+texture_2d::texture_2d(device* device):image(device)
+{
+}
+
 texture_2d::texture_2d(device* device, uint32_t width, uint32_t height):
 image(device)
 {

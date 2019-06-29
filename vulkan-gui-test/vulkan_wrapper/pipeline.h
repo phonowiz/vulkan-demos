@@ -75,7 +75,7 @@ namespace vk
             _num_blend_attachments = num_blend_attacments;
         };
         
-        void modify_blend_attachment(uint32_t blend_attachment_id, write_channels channels, bool enable_blend )
+        void modify_attachment_blend(uint32_t blend_attachment_id, write_channels channels, bool enable_blend )
         {
             assert(blend_attachment_id < _num_blend_attachments);
             _blend_attachments[blend_attachment_id].colorWriteMask = static_cast<VkColorComponentFlags>(channels);

@@ -26,7 +26,7 @@ renderer(device, window, swapchain, store.GET_MAT<material>("deferred_output")),
 _positions(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _albedo(device, swapchain->_swapchain_data.swapchain_extent.width,swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _normals(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
-_depth(device, swapchain->_swapchain_data.swapchain_extent.width,swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::DEPTH_TARGET),
+_depth(device, true),
 _mrt_pipeline(device),
 _plane(device),
 _debug_pipeline(device)
@@ -42,6 +42,7 @@ _debug_pipeline(device)
     _material->init_parameter("width", material::parameter_stage::VERTEX, 0.f, 0);
     _material->init_parameter("height", material::parameter_stage::VERTEX, 0.f, 0);
     
+    _depth.create(_swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height);
     _plane.create();
     create_command_buffer(&_offscreen_command_buffers);
 }
@@ -58,7 +59,7 @@ void deferred_renderer::create_render_pass()
     
     std::array<VkAttachmentDescription, 4> attachment_descriptions {};
     
-    for( uint32_t i = 0; i < attachment_descriptions.size(); ++i)
+    for( uint32_t i = 0; i < attachment_descriptions.size() - 2; ++i)
     {
         attachment_descriptions[i].samples = VK_SAMPLE_COUNT_1_BIT;
         attachment_descriptions[i].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -68,30 +69,25 @@ void deferred_renderer::create_render_pass()
         
         attachment_descriptions[i].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         attachment_descriptions[i].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        
-        if (i == attachment_descriptions.size() -1)
-        {
-            attachment_descriptions[i].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            attachment_descriptions[i].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-        }
     }
     
-    //attachment_descriptions[0].format = static_cast<VkFormat>(_positions._format);
+    //note: the last attachment is the depth texture, check create_frame_buffers function, frame buffer will assume this as well
+    attachment_descriptions[attachment_descriptions.size() - 1] = _depth.get_depth_attachment();
+    
     attachment_descriptions[0].format = static_cast<VkFormat>(_normals._format);
     attachment_descriptions[1].format = static_cast<VkFormat>(_albedo._format);
     attachment_descriptions[2].format = static_cast<VkFormat>(_positions._format);
     attachment_descriptions[3].format = static_cast<VkFormat>(_depth._format);
     
     std::array<VkAttachmentReference, 3> color_references {};
-    //note: the first integer in the instruction is the attachment number or location in the shader
+    //note: the first integer in the instruction is the attachment location specified in the shader
     color_references[0] = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
     color_references[1] = { 1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
     color_references[2] = { 2, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
     //color_references[3] = { 3, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
     
-    //todo: do I really need this depth attachment? we are rendering to textures
     VkAttachmentReference depth_reference = {};
-    
+    //note: in this code, the last attachement is the depth
     depth_reference.attachment = attachment_descriptions.size() -1;
     depth_reference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     
@@ -107,18 +103,18 @@ void deferred_renderer::create_render_pass()
     
     dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
     dependencies[0].dstSubpass = 0;
-    dependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-    dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-    dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    dependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    dependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
     dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
     
     dependencies[1].srcSubpass = 0;
     dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-    dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-    dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    dependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+    dependencies[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+    dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    dependencies[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
     dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
     
     
@@ -154,10 +150,11 @@ void deferred_renderer::create_pipeline()
                      _swapchain->_swapchain_data.swapchain_extent.height);
     
     _mrt_pipeline.set_number_of_blend_attachments(3);
-    bool enable_blend = false;
-    _mrt_pipeline.modify_blend_attachment(0, pipeline::write_channels::RGBA, enable_blend);
-    _mrt_pipeline.modify_blend_attachment(1, pipeline::write_channels::RGBA, enable_blend);
-    _mrt_pipeline.modify_blend_attachment(2, pipeline::write_channels::RGBA, enable_blend);
+    bool enable_blend = true;
+    _mrt_pipeline.modify_attachment_blend(0, pipeline::write_channels::RGBA, enable_blend);
+    _mrt_pipeline.modify_attachment_blend(1, pipeline::write_channels::RGBA, false);
+    _mrt_pipeline.modify_attachment_blend(2, pipeline::write_channels::RGBA, false);
+    //_mrt_pipeline.modify_blend_attachment(3, pipeline::write_channels::RGBA, enable_blend);
 
     _mrt_pipeline.create(_mrt_render_pass,
                          _swapchain->_swapchain_data.swapchain_extent.width,
@@ -179,6 +176,7 @@ void deferred_renderer::create_frame_buffers()
         attachment_views[0] = _normals._image_view;
         attachment_views[1] = _albedo._image_view;
         attachment_views[2] = _positions._image_view;
+        //note: the create_render_pass function specifies that the last attachment is the depth
         attachment_views[3] = _depth._image_view;
         
         VkFramebufferCreateInfo framebuffer_create_info {};
@@ -282,10 +280,11 @@ void deferred_renderer::perform_final_drawing_setup()
     {
         _mrt_pipeline.set_material(_mrt_material);
         _pipeline.set_material(_material);
-        
+        //note: the last argument is the binding number specified in the material's shader
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_normals), "normals", material::parameter_stage::FRAGMENT, 1);
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_albedo), "albedo", material::parameter_stage::FRAGMENT, 2);
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_positions), "positions", material::parameter_stage::FRAGMENT, 3);
+        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_depth), "depth", material::parameter_stage::FRAGMENT, 4);
         
         setup_initialized = true;
     }

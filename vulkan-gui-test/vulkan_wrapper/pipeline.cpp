@@ -115,8 +115,8 @@ void pipeline::create( VkRenderPass render_pass, uint32_t viewport_width, uint32
     
     //todo:depth bounds uses the min/max depth bounds below to see if the fragment is within the bounding box
     //we are currently not using this feature
-    depthStencilStateCreateInfo.depthBoundsTestEnable = VK_FALSE;
-    depthStencilStateCreateInfo.stencilTestEnable = VK_FALSE;
+    depthStencilStateCreateInfo.depthBoundsTestEnable = VK_TRUE;
+    depthStencilStateCreateInfo.stencilTestEnable = VK_TRUE;
     depthStencilStateCreateInfo.front = {};
     depthStencilStateCreateInfo.back = {};
     depthStencilStateCreateInfo.minDepthBounds = 0.0f;
@@ -135,10 +135,6 @@ void pipeline::create( VkRenderPass render_pass, uint32_t viewport_width, uint32
     colorBlendCreateInfo.blendConstants[2] = 0.0f;
     colorBlendCreateInfo.blendConstants[3] = 0.0f;
     
-    VkPushConstantRange pushConstantRange;
-    pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-    pushConstantRange.offset = 0;
-    pushConstantRange.size = sizeof(VkBool32);
     
     VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
     pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -146,8 +142,8 @@ void pipeline::create( VkRenderPass render_pass, uint32_t viewport_width, uint32
     pipelineLayoutCreateInfo.flags = 0;
     pipelineLayoutCreateInfo.setLayoutCount = _material->descriptor_set_present() ? 1 : 0;
     pipelineLayoutCreateInfo.pSetLayouts = _material->get_descriptor_set_layout();
-    pipelineLayoutCreateInfo.pushConstantRangeCount = 1;
-    pipelineLayoutCreateInfo.pPushConstantRanges = &pushConstantRange;
+    pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
+    pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
     
     VkResult result = vkCreatePipelineLayout(_device->_logical_device, &pipelineLayoutCreateInfo, nullptr, &_pipelineLayout);
     ASSERT_VULKAN(result);

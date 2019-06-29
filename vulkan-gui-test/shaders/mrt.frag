@@ -4,8 +4,6 @@
 layout (location = 0) in vec4 inNormal;
 layout (location = 1) in vec4 inAlbedo;
 layout (location = 2) in vec4 inWorldPos;
-//layout (location = 3) in vec3 inWorldPos;
-//layout (location = 4) in vec3 inTangent;
 
 layout (location = 0) out vec4 outNormal;
 layout (location = 1) out vec4 outAlbedo;
@@ -29,5 +27,4 @@ void main()
     outNormal = inNormal;
     outAlbedo = inAlbedo;
     outWorldPos = inWorldPos;
-    
 }

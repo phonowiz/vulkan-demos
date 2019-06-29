@@ -27,7 +27,7 @@ using namespace vk;
 
 
 renderer::renderer(device* device, GLFWwindow* window, swapchain* swapChain, material_shared_ptr material):
-_depth_image(device),
+_depth_image(device, false),
 _pipeline(device, material)
 {
     _device = device;

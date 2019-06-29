@@ -13,6 +13,7 @@
 #include "pipeline.h"
 #include "material_store.h"
 #include "display_plane.h"
+#include "depth_image.h"
 
 namespace vk
 {
@@ -34,7 +35,7 @@ namespace vk
         render_texture _positions;
         render_texture _normals;
         render_texture _albedo;
-        render_texture _depth;
+        depth_image    _depth;
         
     public:
         deferred_renderer(device* device, GLFWwindow* window, swapchain* swapchain, material_store& store);

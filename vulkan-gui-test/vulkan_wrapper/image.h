@@ -47,9 +47,10 @@ namespace vk
         
         
         device* _device = nullptr;
-        VkImage         _image = VK_NULL_HANDLE;
-        VkDeviceMemory  _imageMemory = VK_NULL_HANDLE;
-        VkImageView     _image_view = VK_NULL_HANDLE;
+        VkImage         _image =        VK_NULL_HANDLE;
+        VkDeviceMemory  _imageMemory =  VK_NULL_HANDLE;
+        VkImageView     _image_view =   VK_NULL_HANDLE;
+
         
         virtual void create(uint32_t width, uint32_t height) = 0;
         

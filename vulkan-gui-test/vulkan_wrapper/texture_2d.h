@@ -22,8 +22,9 @@ namespace vk
     public:
     
         texture_2d(){};
+        texture_2d(device* device);
         texture_2d(device* device, uint32_t width, uint32_t height);
-        texture_2d(device* device,const char* path = nullptr);
+        texture_2d(device* device,const char* path);
         
         virtual void create( uint32_t width, uint32_t height) override;
         virtual void destroy() override;
@@ -50,17 +51,19 @@ namespace vk
         }
         
         void load();
-        void create_sampler();
+        virtual void create_sampler();
         void set_sampler(device* device){ }
         
         static const std::string texture_resource_path;
+        
+    protected:
+        VkSampler _sampler = VK_NULL_HANDLE;
     private:
         
         bool _loaded = false;
         bool _uploaded = false;
         
         stbi_uc *_ppixels = nullptr;
-        VkSampler _sampler = VK_NULL_HANDLE;
         std::string _path;
         
         //TODO: we only support 4 channels at the moment
