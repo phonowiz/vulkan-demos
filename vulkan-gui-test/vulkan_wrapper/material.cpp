@@ -237,16 +237,16 @@ void material::create_descriptor_set_layout()
         assert(BINDING_MAX > count);
     }
 
-    VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo = {};
-    descriptorSetLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    descriptorSetLayoutCreateInfo.pNext = nullptr;
-    descriptorSetLayoutCreateInfo.flags = 0;
+    VkDescriptorSetLayoutCreateInfo descriptor_set_layout_create_info = {};
+    descriptor_set_layout_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    descriptor_set_layout_create_info.pNext = nullptr;
+    descriptor_set_layout_create_info.flags = 0;
     
     if(count)
     {
-        descriptorSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(count);
-        descriptorSetLayoutCreateInfo.pBindings = _descriptor_set_layout_bindings.data();
-        VkResult result = vkCreateDescriptorSetLayout(_device->_logical_device, &descriptorSetLayoutCreateInfo, nullptr, &_descriptor_set_layout);
+        descriptor_set_layout_create_info.bindingCount = static_cast<uint32_t>(count);
+        descriptor_set_layout_create_info.pBindings = _descriptor_set_layout_bindings.data();
+        VkResult result = vkCreateDescriptorSetLayout(_device->_logical_device, &descriptor_set_layout_create_info, nullptr, &_descriptor_set_layout);
         
         ASSERT_VULKAN(result);
     }

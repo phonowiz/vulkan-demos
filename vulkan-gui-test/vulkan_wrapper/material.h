@@ -25,6 +25,30 @@
 
 namespace  vk
 {
+    /*
+    ***** Vulkan review ******
+     
+    Descriptors are the atomic unit that represent one bind in a shader.  Descriptors aren't bound individually, but rather in
+    blocks of memory called descriptor sets.
+     
+    A descriptor set layout specifies information of the bindings that are found in the descriptor set.
+    An example of this information would be how the binding will be used and in which stage the bound descriptor will be used.  However,
+    these descriptor set layouts do not tell vulkan what actual texture or buffer will be used in the shader.
+     
+    To specify which resource (texture, buffers, etc) will be bound so that the shader can do it's work, you have to "write"
+    the resource memory by using the function vkUpdateDescriptorSets.   Please check the function material::create_descriptor_sets for an
+    example of how this works.
+     
+    ****** About vk::material ***
+    
+     This class acts as a wrapper around all things materials, including shaders, descriptors, descriptor sets, and descriptor sets
+     bindings.
+     
+     Each material class has one descriptor set, and this set used to describe to vulkan all the resources the vertex and fragment
+     shaders passed in upon creation of vk::material need in order to work properly.
+     
+     */
+    
     class material : public resource
     {
     public:
