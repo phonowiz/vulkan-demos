@@ -30,7 +30,7 @@
 		B9776C9E2267B3B800DCB645 /* deferred_renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9776C9C2267B3B800DCB645 /* deferred_renderer.cpp */; };
 		B9776CA12267DDE200DCB645 /* render_texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9776C9F2267DDE200DCB645 /* render_texture.cpp */; };
 		B984C7FC2238CD18002327DE /* display_plane.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B984C7FA2238CD18002327DE /* display_plane.cpp */; };
-		B9AE757D2244C9AD00A219A3 /* pipeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9AE757B2244C9AD00A219A3 /* pipeline.cpp */; };
+		B9AE757D2244C9AD00A219A3 /* graphics_pipeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9AE757B2244C9AD00A219A3 /* graphics_pipeline.cpp */; };
 		B9C7CD99222E482000AA173A /* object.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9C7CD97222E482000AA173A /* object.cpp */; };
 		B9CD5A472202CB01006D4C39 /* models in Resources */ = {isa = PBXBuildFile; fileRef = B9CD5A462202CB01006D4C39 /* models */; };
 		B9E1EED12213F341006DBA67 /* material_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9E1EECF2213F341006DBA67 /* material_store.cpp */; };
@@ -85,8 +85,8 @@
 		B9776CA02267DDE200DCB645 /* render_texture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = render_texture.h; sourceTree = "<group>"; };
 		B984C7FA2238CD18002327DE /* display_plane.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = display_plane.cpp; sourceTree = "<group>"; };
 		B984C7FB2238CD18002327DE /* display_plane.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = display_plane.h; sourceTree = "<group>"; };
-		B9AE757B2244C9AD00A219A3 /* pipeline.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = pipeline.cpp; sourceTree = "<group>"; };
-		B9AE757C2244C9AD00A219A3 /* pipeline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pipeline.h; sourceTree = "<group>"; };
+		B9AE757B2244C9AD00A219A3 /* graphics_pipeline.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = graphics_pipeline.cpp; sourceTree = "<group>"; };
+		B9AE757C2244C9AD00A219A3 /* graphics_pipeline.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = graphics_pipeline.h; sourceTree = "<group>"; };
 		B9C7CD97222E482000AA173A /* object.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = object.cpp; sourceTree = "<group>"; };
 		B9C7CD98222E482000AA173A /* object.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = object.h; sourceTree = "<group>"; };
 		B9CD5A462202CB01006D4C39 /* models */ = {isa = PBXFileReference; lastKnownFileType = folder; name = models; path = "vulkan-gui-test/models"; sourceTree = "<group>"; };
@@ -272,8 +272,8 @@
 				B9384E782202198100565024 /* mesh.h */,
 				B9C7CD97222E482000AA173A /* object.cpp */,
 				B9C7CD98222E482000AA173A /* object.h */,
-				B9AE757B2244C9AD00A219A3 /* pipeline.cpp */,
-				B9AE757C2244C9AD00A219A3 /* pipeline.h */,
+				B9AE757B2244C9AD00A219A3 /* graphics_pipeline.cpp */,
+				B9AE757C2244C9AD00A219A3 /* graphics_pipeline.h */,
 				B9776C9F2267DDE200DCB645 /* render_texture.cpp */,
 				B9776CA02267DDE200DCB645 /* render_texture.h */,
 				B9E92BD0220D69FB0060F755 /* renderer.cpp */,
@@ -378,7 +378,7 @@
 				B9E1EED12213F341006DBA67 /* material_store.cpp in Sources */,
 				B9E92BCF220D545B0060F755 /* device.cpp in Sources */,
 				B94E2956221A1C1B005859E8 /* depth_image.cpp in Sources */,
-				B9AE757D2244C9AD00A219A3 /* pipeline.cpp in Sources */,
+				B9AE757D2244C9AD00A219A3 /* graphics_pipeline.cpp in Sources */,
 				B924E0B72211E7C500157385 /* mesh.cpp in Sources */,
 				B9E92BD52210DBAE0060F755 /* material.cpp in Sources */,
 				B9E1EED72213F723006DBA67 /* resource.cpp in Sources */,

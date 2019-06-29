@@ -15,8 +15,8 @@ layout(binding = 4 ) uniform sampler2D depth;
 
 void main()
 {
-    outColor = texture(depth, fragUVCoord );
-    //outColor = texture(albedo, fragUVCoord );
+    //outColor = texture(depth, fragUVCoord );
+    outColor = texture(albedo, fragUVCoord );
 
     outColor.x = 1 - outColor.x;
     outColor.x *= 80.0f;

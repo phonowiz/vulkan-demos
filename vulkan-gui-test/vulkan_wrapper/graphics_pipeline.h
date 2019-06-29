@@ -16,7 +16,7 @@ namespace vk
 {
     class texture_2d;
     
-    class pipeline
+    class graphics_pipeline
     {
     public:
         
@@ -45,7 +45,7 @@ namespace vk
         };
         
         
-        pipeline(device* device, material_shared_ptr material )
+        graphics_pipeline(device* device, material_shared_ptr material )
         {
             _device = device;
             _material = material;
@@ -53,7 +53,7 @@ namespace vk
             init_blend_attachments();
         };
         
-        pipeline(device* device)
+        graphics_pipeline(device* device)
         {
             _device = device;
             init_blend_attachments();
@@ -83,7 +83,7 @@ namespace vk
         };
         
         void destroy();
-        ~pipeline(){};
+        ~graphics_pipeline(){};
         
     public:
         VkPipeline _pipeline = VK_NULL_HANDLE;

@@ -10,7 +10,7 @@
 
 #include "renderer.h"
 #include "render_texture.h"
-#include "pipeline.h"
+#include "graphics_pipeline.h"
 #include "material_store.h"
 #include "display_plane.h"
 #include "depth_image.h"
@@ -60,8 +60,8 @@ namespace vk
         VkSampler       _color_sampler = VK_NULL_HANDLE;
         VkCommandBuffer *_offscreen_command_buffers = nullptr;
         
-        pipeline _mrt_pipeline;
-        pipeline _debug_pipeline;
+        graphics_pipeline _mrt_pipeline;
+        graphics_pipeline _debug_pipeline;
         
         material_shared_ptr _mrt_material = nullptr;
         //material_shared_ptr _deferred_material = nullptr;

@@ -16,7 +16,7 @@
 
 #include "vertex.h"
 #include "material.h"
-#include "pipeline.h"
+#include "graphics_pipeline.h"
 
 namespace vk
 {
@@ -53,7 +53,7 @@ namespace vk
         
         static const std::string _mesh_resource_path;
         
-        void draw(VkCommandBuffer commandBuffer, vk::pipeline& pipeline);
+        void draw(VkCommandBuffer commandBuffer, vk::graphics_pipeline& pipeline);
         virtual void destroy() override;
     
         inline std::vector<vertex>& get_vertices()

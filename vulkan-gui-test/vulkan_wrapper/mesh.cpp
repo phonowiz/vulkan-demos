@@ -94,7 +94,7 @@ void mesh::create_and_upload_buffer(VkCommandPool commandPool,
     
 }
 
-void mesh::draw(VkCommandBuffer commandBuffer, vk::pipeline& pipeline)
+void mesh::draw(VkCommandBuffer commandBuffer, vk::graphics_pipeline& pipeline)
 {
     VkDeviceSize offsets[] = { 0 };
     assert(_vertex_buffer != nullptr);

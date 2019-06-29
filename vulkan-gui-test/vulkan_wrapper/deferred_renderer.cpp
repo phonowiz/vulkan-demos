@@ -151,9 +151,9 @@ void deferred_renderer::create_pipeline()
     
     _mrt_pipeline.set_number_of_blend_attachments(3);
     bool enable_blend = true;
-    _mrt_pipeline.modify_attachment_blend(0, pipeline::write_channels::RGBA, enable_blend);
-    _mrt_pipeline.modify_attachment_blend(1, pipeline::write_channels::RGBA, false);
-    _mrt_pipeline.modify_attachment_blend(2, pipeline::write_channels::RGBA, false);
+    _mrt_pipeline.modify_attachment_blend(0, graphics_pipeline::write_channels::RGBA, enable_blend);
+    _mrt_pipeline.modify_attachment_blend(1, graphics_pipeline::write_channels::RGBA, false);
+    _mrt_pipeline.modify_attachment_blend(2, graphics_pipeline::write_channels::RGBA, false);
     //_mrt_pipeline.modify_blend_attachment(3, pipeline::write_channels::RGBA, enable_blend);
 
     _mrt_pipeline.create(_mrt_render_pass,

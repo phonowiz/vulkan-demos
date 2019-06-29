@@ -15,7 +15,7 @@
 #include <vector>
 #include "material.h"
 #include "depth_image.h"
-#include "pipeline.h"
+#include "graphics_pipeline.h"
 
 
 
@@ -48,7 +48,7 @@ namespace vk
         void add_mesh(mesh* pMesh){ _meshes.push_back(pMesh); };
         void clear_meshes(mesh* pMesh){ _meshes.clear();}
         virtual void draw();
-        pipeline& get_pipeline() { return _pipeline;}
+        graphics_pipeline& get_pipeline() { return _pipeline;}
         
         void init();
         void recreate_renderer();
@@ -90,7 +90,7 @@ namespace vk
         static const uint32_t MAX_ATTACHMENTS = 10;
         
         VkCommandBuffer* _command_buffers = nullptr;
-        pipeline _pipeline;
+        graphics_pipeline _pipeline;
         
         material_shared_ptr         _material;
         std::vector<VkFramebuffer>  _swapchain_frame_buffers;
