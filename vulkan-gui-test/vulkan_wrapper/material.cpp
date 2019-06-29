@@ -35,12 +35,12 @@ void material::commit_parameters_to_gpu( )
     {
         buffer_info& mem = _uniform_buffers[pair.first];
         shader_parameter::shader_params_group& group = _uniform_parameters[pair.first];
-        if(mem.uniformBufferMemory != VK_NULL_HANDLE)
+        if(mem.uniform_buffer_memory != VK_NULL_HANDLE)
         {
             if(mem.usageType == usage_type::UNIFORM_BUFFER)
             {
                 void* data = nullptr;
-                vkMapMemory(_device->_logical_device, mem.uniformBufferMemory, 0, mem.size, 0, &data);
+                vkMapMemory(_device->_logical_device, mem.uniform_buffer_memory, 0, mem.size, 0, &data);
                 char* byteData = static_cast<char*>(data);
                 
                 size_t totalWritten = 0;
@@ -56,7 +56,7 @@ void material::commit_parameters_to_gpu( )
                 }
                 
                 assert(totalWritten == mem.size && "memory written differs from original memory allocated from GPU, have you added/removed new shader parameters?");
-                vkUnmapMemory(_device->_logical_device, mem.uniformBufferMemory);
+                vkUnmapMemory(_device->_logical_device, mem.uniform_buffer_memory);
             }
         }
 
@@ -86,11 +86,11 @@ void material::deallocate_parameters()
 {
     for (std::pair<parameter_stage , resource::buffer_info > pair : _uniform_buffers)
     {
-        vkFreeMemory(_device->_logical_device, pair.second.uniformBufferMemory, nullptr);
+        vkFreeMemory(_device->_logical_device, pair.second.uniform_buffer_memory, nullptr);
         vkDestroyBuffer(_device->_logical_device, pair.second.uniformBuffer, nullptr);
         
         pair.second.uniformBuffer = VK_NULL_HANDLE;
-        pair.second.uniformBufferMemory = VK_NULL_HANDLE;
+        pair.second.uniform_buffer_memory = VK_NULL_HANDLE;
     }
 }
 
@@ -114,9 +114,9 @@ void material::init_shader_parameters()
         
         if(totalSize != 0)
         {
-            assert(mem.uniformBufferMemory == VK_NULL_HANDLE && mem.uniformBuffer == VK_NULL_HANDLE);
+            assert(mem.uniform_buffer_memory == VK_NULL_HANDLE && mem.uniformBuffer == VK_NULL_HANDLE);
             create_buffer(_device->_logical_device, _device->_physical_device, totalSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, mem.uniformBuffer,
-                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mem.uniformBufferMemory);
+                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mem.uniform_buffer_memory);
         }
 
         
