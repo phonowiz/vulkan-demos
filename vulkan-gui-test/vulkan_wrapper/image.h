@@ -48,7 +48,7 @@ namespace vk
         
         device* _device = nullptr;
         VkImage         _image =        VK_NULL_HANDLE;
-        VkDeviceMemory  _imageMemory =  VK_NULL_HANDLE;
+        VkDeviceMemory  _image_memory =  VK_NULL_HANDLE;
         VkImageView     _image_view =   VK_NULL_HANDLE;
 
         

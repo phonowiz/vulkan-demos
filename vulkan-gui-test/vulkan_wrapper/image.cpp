@@ -11,7 +11,7 @@
 using namespace vk;
 
 void image::create_image( uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
-                          VkImageUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags)
+                          VkImageUsageFlags usage_flags, VkMemoryPropertyFlags property_flags)
 {
     
     VkImageCreateInfo image_create_info = {};
@@ -31,7 +31,7 @@ void image::create_image( uint32_t width, uint32_t height, VkFormat format, VkIm
     image_create_info.arrayLayers = 1;
     image_create_info.samples = VK_SAMPLE_COUNT_1_BIT;
     image_create_info.tiling = tiling;
-    image_create_info.usage = usageFlags;
+    image_create_info.usage = usage_flags;
     //the following assignment depends on this assumption:
     assert(_device->_presentQueue == _device->_graphics_queue);
     image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -41,24 +41,24 @@ void image::create_image( uint32_t width, uint32_t height, VkFormat format, VkIm
     
     VkResult result = vkCreateImage(_device->_logical_device, &image_create_info, nullptr, &_image);
     ASSERT_VULKAN(result);
-    VkMemoryRequirements memoryRequirements;
-    vkGetImageMemoryRequirements(_device->_logical_device, _image, &memoryRequirements);
+    VkMemoryRequirements memory_requirements;
+    vkGetImageMemoryRequirements(_device->_logical_device, _image, &memory_requirements);
     
-    VkMemoryAllocateInfo memoryAllocateInfo;
-    memoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    memoryAllocateInfo.pNext = nullptr;
-    memoryAllocateInfo.allocationSize = memoryRequirements.size;
-    memoryAllocateInfo.memoryTypeIndex = find_memory_type_index(_device->_physical_device, memoryRequirements.memoryTypeBits,
-                                                             propertyFlags);
-    result = vkAllocateMemory(_device->_logical_device, &memoryAllocateInfo, nullptr, &_imageMemory);
+    VkMemoryAllocateInfo memory_allocate_info;
+    memory_allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    memory_allocate_info.pNext = nullptr;
+    memory_allocate_info.allocationSize = memory_requirements.size;
+    memory_allocate_info.memoryTypeIndex = find_memory_type_index(_device->_physical_device, memory_requirements.memoryTypeBits,
+                                                             property_flags);
+    result = vkAllocateMemory(_device->_logical_device, &memory_allocate_info, nullptr, &_image_memory);
     
     ASSERT_VULKAN(result);
     
-    vkBindImageMemory(_device->_logical_device, _image, _imageMemory, 0);
+    vkBindImageMemory(_device->_logical_device, _image, _image_memory, 0);
     
 }
 
-void image::create_image_view(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageView &imageView)
+void image::create_image_view(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, VkImageView &image_view)
 {
     
     VkImageViewCreateInfo image_view_create_info;
@@ -73,78 +73,78 @@ void image::create_image_view(VkImage image, VkFormat format, VkImageAspectFlags
     image_view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
     image_view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
     image_view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-    image_view_create_info.subresourceRange.aspectMask = aspectFlags;
+    image_view_create_info.subresourceRange.aspectMask = aspect_flags;
     image_view_create_info.subresourceRange.baseMipLevel = 0;
     image_view_create_info.subresourceRange.levelCount = 1;
     image_view_create_info.subresourceRange.baseArrayLayer = 0;
     image_view_create_info.subresourceRange.layerCount = 1;
     
-    VkResult result = vkCreateImageView(_device->_logical_device, &image_view_create_info, nullptr, &imageView);
+    VkResult result = vkCreateImageView(_device->_logical_device, &image_view_create_info, nullptr, &image_view);
     ASSERT_VULKAN(result);
 }
 
-void image::change_image_layout(VkCommandPool commandPool, VkQueue queue, VkImage image,
-                              VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+void image::change_image_layout(VkCommandPool command_pool, VkQueue queue, VkImage image,
+                              VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout)
 {
-    VkCommandBuffer commandBuffer = _device->start_single_time_command_buffer( commandPool);
+    VkCommandBuffer command_buffer = _device->start_single_time_command_buffer( command_pool);
     
-    VkImageMemoryBarrier imageMemoryBarrier;
-    imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    imageMemoryBarrier.pNext = nullptr;
-    if( oldLayout == VK_IMAGE_LAYOUT_PREINITIALIZED &&
-       newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+    VkImageMemoryBarrier image_memory_barrier;
+    image_memory_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    image_memory_barrier.pNext = nullptr;
+    if( old_layout == VK_IMAGE_LAYOUT_PREINITIALIZED &&
+       new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
     {
-        imageMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-        imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        image_memory_barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
+        image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     }
-    else if( oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
-            newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+    else if( old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+            new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
     {
-        imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
     }
-    else if( oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
-            newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+    else if( old_layout == VK_IMAGE_LAYOUT_UNDEFINED &&
+            new_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
     {
-        imageMemoryBarrier.srcAccessMask = 0;
-        imageMemoryBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
+        image_memory_barrier.srcAccessMask = 0;
+        image_memory_barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT |
         VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
     }
     else
     {
         assert(0 && "transition not yet supported");
     }
-    imageMemoryBarrier.oldLayout = oldLayout;
-    imageMemoryBarrier.newLayout = newLayout;
-    imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    imageMemoryBarrier.image = image;
-    if(newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+    image_memory_barrier.oldLayout = old_layout;
+    image_memory_barrier.newLayout = new_layout;
+    image_memory_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    image_memory_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    image_memory_barrier.image = image;
+    if(new_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
     {
-        imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+        image_memory_barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
         
         if( is_stencil_format(format))
         {
-            imageMemoryBarrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+            image_memory_barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
         }
     }
     else
     {
-        imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        image_memory_barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     }
     
-    imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
-    imageMemoryBarrier.subresourceRange.levelCount = 1;
-    imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
-    imageMemoryBarrier.subresourceRange.layerCount = 1;
+    image_memory_barrier.subresourceRange.baseMipLevel = 0;
+    image_memory_barrier.subresourceRange.levelCount = 1;
+    image_memory_barrier.subresourceRange.baseArrayLayer = 0;
+    image_memory_barrier.subresourceRange.layerCount = 1;
     
-    vkCmdPipelineBarrier(commandBuffer,
+    vkCmdPipelineBarrier(command_buffer,
                          VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, //operations in this pipeline stage should occur before the barrier
                          VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, //operations in this pipeline stage will wait on the barrier
-                         0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
+                         0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
     
     
-    _device->end_single_time_command_buffer( queue, commandPool, commandBuffer);
+    _device->end_single_time_command_buffer( queue, command_pool, command_buffer);
     
     
 }
@@ -156,28 +156,28 @@ bool image::is_stencil_format(VkFormat format)
 void image::write_buffer_to_image(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer)
 {
     
-    VkCommandBuffer commandBuffer = _device->start_single_time_command_buffer( commandPool);
+    VkCommandBuffer command_buffer = _device->start_single_time_command_buffer( commandPool);
     
     
-    VkBufferImageCopy bufferImageCopy;
+    VkBufferImageCopy buffer_image_copy;
     
-    bufferImageCopy.bufferOffset = 0;
-    bufferImageCopy.bufferRowLength = 0;
-    bufferImageCopy.bufferImageHeight = 0;
-    bufferImageCopy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    bufferImageCopy.imageSubresource.mipLevel = 0;
-    bufferImageCopy.imageSubresource.baseArrayLayer = 0;
-    bufferImageCopy.imageSubresource.layerCount = 1;
-    bufferImageCopy.imageOffset = { 0, 0, 0};
-    bufferImageCopy.imageExtent = { static_cast<uint32_t>(get_width()),
+    buffer_image_copy.bufferOffset = 0;
+    buffer_image_copy.bufferRowLength = 0;
+    buffer_image_copy.bufferImageHeight = 0;
+    buffer_image_copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    buffer_image_copy.imageSubresource.mipLevel = 0;
+    buffer_image_copy.imageSubresource.baseArrayLayer = 0;
+    buffer_image_copy.imageSubresource.layerCount = 1;
+    buffer_image_copy.imageOffset = { 0, 0, 0};
+    buffer_image_copy.imageExtent = { static_cast<uint32_t>(get_width()),
         static_cast<uint32_t>(get_height()),
         1};
     
-    vkCmdCopyBufferToImage(commandBuffer, buffer, _image,
-                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferImageCopy);
+    vkCmdCopyBufferToImage(command_buffer, buffer, _image,
+                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &buffer_image_copy);
     
     
-    _device->end_single_time_command_buffer(queue, commandPool, commandBuffer);
+    _device->end_single_time_command_buffer(queue, commandPool, command_buffer);
 }
 
 
