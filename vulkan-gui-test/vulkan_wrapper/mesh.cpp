@@ -102,7 +102,7 @@ void mesh::draw(VkCommandBuffer commandBuffer, vk::graphics_pipeline& pipeline)
     vkCmdBindVertexBuffers(commandBuffer, 0, 1, &_vertex_buffer, offsets);
     vkCmdBindIndexBuffer(commandBuffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
     
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._pipelineLayout, 0, 1, pipeline._material->get_descriptor_set(), 0, nullptr);
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._pipeline_layout, 0, 1, pipeline._material->get_descriptor_set(), 0, nullptr);
     
     //in the render target, there will be list of registered meshes that will submit their indices
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(get_indices().size()), 1, 0, 0, 0);

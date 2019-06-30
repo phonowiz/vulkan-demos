@@ -87,7 +87,7 @@ namespace vk
         
     public:
         VkPipeline _pipeline = VK_NULL_HANDLE;
-        VkPipelineLayout _pipelineLayout = VK_NULL_HANDLE;
+        VkPipelineLayout _pipeline_layout = VK_NULL_HANDLE;
         material_shared_ptr _material = nullptr;
     
     private:
