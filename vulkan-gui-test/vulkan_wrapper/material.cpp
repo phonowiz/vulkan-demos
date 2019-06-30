@@ -15,7 +15,7 @@
 
 using namespace vk;
 
-material::material( const char* name, ShaderSharedPtr vertexShader, ShaderSharedPtr fragmentShader, device* device)
+material::material( const char* name, shader_shared_ptr vertexShader, shader_shared_ptr fragmentShader, device* device)
 {
     _vertex_shader = vertexShader;
     _fragment_shader = fragmentShader;

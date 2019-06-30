@@ -51,7 +51,7 @@ namespace  vk
     
     };
     
-    using ShaderSharedPtr = std::shared_ptr<shader>;
+    using shader_shared_ptr = std::shared_ptr<shader>;
 };
 
 

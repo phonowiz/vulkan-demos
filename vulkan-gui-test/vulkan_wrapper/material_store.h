@@ -45,8 +45,8 @@ namespace vk
         }
         
         material_shared_ptr get_material(const char* name) const;
-        inline ShaderSharedPtr const  find_shader_using_path(const char* path)const ;
-        ShaderSharedPtr add_shader(const char* shaderPath, shader::ShaderType shaderType);
+        inline shader_shared_ptr const  find_shader_using_path(const char* path)const ;
+        shader_shared_ptr add_shader(const char* shaderPath, shader::ShaderType shaderType);
         void add_material( std::shared_ptr<material> material);
         
         device* _device = nullptr;

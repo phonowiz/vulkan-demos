@@ -52,7 +52,7 @@ namespace  vk
     class material : public resource
     {
     public:
-        material(const char* name, ShaderSharedPtr vertexShader, ShaderSharedPtr fragmentShader, device* device );
+        material(const char* name, shader_shared_ptr vertexShader, shader_shared_ptr fragmentShader, device* device );
         
         //currently we oly support 3 shader stages max: vertex, pixel, and compute. geometry is not supported on macs.
         //compute pipeline is not yet implemented in this code.
@@ -121,8 +121,8 @@ namespace  vk
         shader_parameter::shader_params_group& get_uniform_parameters(parameter_stage parameterStage, uint32_t binding);
         void set_image_sampler(texture_2d* texture, const char* parameterName, parameter_stage parameterStage, uint32_t binding);
         
-        ShaderSharedPtr _vertex_shader;
-        ShaderSharedPtr _fragment_shader;
+        shader_shared_ptr _vertex_shader;
+        shader_shared_ptr _fragment_shader;
         
         
         VkDescriptorSetLayout _descriptor_set_layout = VK_NULL_HANDLE;

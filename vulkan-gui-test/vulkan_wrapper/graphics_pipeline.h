@@ -99,10 +99,6 @@ namespace vk
         
         cull_mode _cull_mode = cull_mode::BACK_FACE;
 
-
-
-
-        
         static const uint32_t BLEND_ATTACHMENTS = 10;
         std::array<VkPipelineColorBlendAttachmentState, BLEND_ATTACHMENTS> _blend_attachments {};
         uint32_t _num_blend_attachments = 1;
