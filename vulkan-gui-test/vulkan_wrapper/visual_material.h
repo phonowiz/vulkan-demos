@@ -41,18 +41,18 @@ namespace  vk
      
     ****** About vk::material ***
     
-     This class acts as a wrapper around all things materials, including shaders, descriptors, descriptor sets, and descriptor sets
-     bindings.
+    This class acts as a wrapper around all things materials, including shaders, descriptors, descriptor sets, and descriptor sets
+    bindings.
      
-     Each material class has one descriptor set, and this set used to describe to vulkan all the resources the vertex and fragment
-     shaders passed in upon creation of vk::material need in order to work properly.
+    Each material class has one descriptor set, and this set used to describe to vulkan all the resources the vertex and fragment
+    shaders passed in upon creation of vk::material need in order to work properly.
      
      */
     
-    class material : public resource
+    class visual_material : public resource
     {
     public:
-        material(const char* name, shader_shared_ptr vertexShader, shader_shared_ptr fragmentShader, device* device );
+        visual_material(const char* name, shader_shared_ptr vertex_shader, shader_shared_ptr fragment_shader, device* device );
         
         //currently we oly support 3 shader stages max: vertex, pixel, and compute. geometry is not supported on macs.
         //compute pipeline is not yet implemented in this code.
@@ -76,8 +76,6 @@ namespace  vk
         void init_shader_parameters();
         void commit_parameters_to_gpu();
         
-        //todo: maybe this should be called setupParameterBinding, because the layout describes the type of data that is
-        //bound to the shader
         void create_descriptor_set_layout();
         void create_descriptor_pool();
         void create_descriptor_sets();
@@ -88,38 +86,43 @@ namespace  vk
         inline VkDescriptorSetLayout* get_descriptor_set_layout(){ return &_descriptor_set_layout; }
         inline VkDescriptorSet* get_descriptor_set(){ return &_descriptor_set; }
         
-        inline void init_parameter(const char* parameter_name, material::parameter_stage stage, float value, int binding)
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, float value, int binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;
         };
         
-        inline void init_parameter(const char* parameter_name, material::parameter_stage stage, int value, int binding)
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, int value, int binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;
         };
-        inline void init_parameter(const char* parameter_name, material::parameter_stage stage, glm::vec3 value, int binding)
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec3 value, int binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;
         };
-        inline void init_parameter(const char* parameter_name, material::parameter_stage stage, glm::vec4 value, int binding)
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec4 value, int binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;
         };
-        inline void init_parameter(const char* parameter_name, material::parameter_stage stage, glm::vec2 value, int binding)
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec2 value, int binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;
         }
-        inline void init_parameter(const char* parameter_name, material::parameter_stage stage, glm::mat4 value, int binding)
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::mat4 value, int binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;
         }
-//
-        //todo: you'll need to add init function for samplers as well
-        
-        
-        
+
         shader_parameter::shader_params_group& get_uniform_parameters(parameter_stage parameterStage, uint32_t binding);
         void set_image_sampler(texture_2d* texture, const char* parameterName, parameter_stage parameterStage, uint32_t binding);
+        
+        ~visual_material();
+    
+        const char* _name = nullptr;
+    
+    protected:
+        
+        device *_device = nullptr;
+        bool _initialized = false;
         
         shader_shared_ptr _vertex_shader;
         shader_shared_ptr _fragment_shader;
@@ -135,7 +138,7 @@ namespace  vk
         
         tsl::ordered_map<parameter_stage, resource::buffer_info>                    _uniform_buffers;
         tsl::ordered_map<parameter_stage, shader_parameter::shader_params_group>    _uniform_parameters;
-
+        
         typedef tsl::ordered_map<const char*, resource::buffer_info>                buffer_parameter;
         tsl::ordered_map<parameter_stage, buffer_parameter>                         _sampler_buffers;
         
@@ -144,18 +147,8 @@ namespace  vk
         
         std::array<VkDescriptorSetLayoutBinding, BINDING_MAX>                    _descriptor_set_layout_bindings;
         
-        
-        const char* _name = nullptr;
-        
-        device *_device = nullptr;
-        
-        bool _initialized = false;
-        ~material();
-    
-    private:
-        
     };
     
     
-    using material_shared_ptr = std::shared_ptr<material>;
+    using material_shared_ptr = std::shared_ptr<visual_material>;
 }

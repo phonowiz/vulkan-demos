@@ -2,12 +2,11 @@
 //  pipeline.hpp
 //  vulkan-gui-test
 //
-//  Created by Rafael Sabino on 3/22/19.
+//  Created by Rafael Sabino on 6/30/19.
 //  Copyright © 2019 Rafael Sabino. All rights reserved.
 //
 
-#ifndef pipeline_hpp
-#define pipeline_hpp
+#pragma once
 
 #include <stdio.h>
 

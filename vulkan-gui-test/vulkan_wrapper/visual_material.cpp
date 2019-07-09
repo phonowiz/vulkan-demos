@@ -6,7 +6,7 @@
 //  Copyright © 2019 Rafael Sabino. All rights reserved.
 //
 
-#include "material.h"
+#include "visual_material.h"
 #include "shader_parameter.h"
 #include <unordered_map>
 #include <array>
@@ -15,7 +15,7 @@
 
 using namespace vk;
 
-material::material( const char* name, shader_shared_ptr vertexShader, shader_shared_ptr fragmentShader, device* device)
+visual_material::visual_material( const char* name, shader_shared_ptr vertexShader, shader_shared_ptr fragmentShader, device* device)
 {
     _vertex_shader = vertexShader;
     _fragment_shader = fragmentShader;
@@ -23,7 +23,7 @@ material::material( const char* name, shader_shared_ptr vertexShader, shader_sha
     _device = device;
 }
 
-void material::commit_parameters_to_gpu( )
+void visual_material::commit_parameters_to_gpu( )
 {
 //    BufferInfo mem =  _uniformBuffers[parameterStage];
 //    ShaderParameter::ShaderParamsGroup& group = _parameters[parameterStage];
@@ -64,7 +64,7 @@ void material::commit_parameters_to_gpu( )
 
 }
 
-void material::set_image_sampler(texture_2d* texture, const char* parameterName, parameter_stage parameterStage, uint32_t binding)
+void visual_material::set_image_sampler(texture_2d* texture, const char* parameterName, parameter_stage parameterStage, uint32_t binding)
 {
     buffer_info& mem = _sampler_buffers[parameterStage][parameterName];
     mem.binding = binding;
@@ -72,7 +72,7 @@ void material::set_image_sampler(texture_2d* texture, const char* parameterName,
     
     _sampler_parameters[parameterStage][parameterName] = texture;
 }
-shader_parameter::shader_params_group& material::get_uniform_parameters(parameter_stage stage, uint32_t binding)
+shader_parameter::shader_params_group& visual_material::get_uniform_parameters(parameter_stage stage, uint32_t binding)
 {
     buffer_info& mem = _uniform_buffers[stage];
     mem.binding = binding;
@@ -82,7 +82,7 @@ shader_parameter::shader_params_group& material::get_uniform_parameters(paramete
     
 }
 
-void material::deallocate_parameters()
+void visual_material::deallocate_parameters()
 {
     for (std::pair<parameter_stage , resource::buffer_info > pair : _uniform_buffers)
     {
@@ -94,7 +94,7 @@ void material::deallocate_parameters()
     }
 }
 
-void material::init_shader_parameters()
+void visual_material::init_shader_parameters()
 {
     size_t totalSize = 0;
     
@@ -131,7 +131,7 @@ void material::init_shader_parameters()
     _initialized = true;
 }
 
-void material::create_descriptor_sets()
+void visual_material::create_descriptor_sets()
 {
     VkDescriptorSetAllocateInfo descriptor_set_allocate_info = {};
     
@@ -206,7 +206,7 @@ void material::create_descriptor_sets()
     vkUpdateDescriptorSets(_device->_logical_device, count, write_descriptor_sets.data(), 0, nullptr);
 }
 
-void material::create_descriptor_set_layout()
+void visual_material::create_descriptor_set_layout()
 {
     int count = 0;
     //note: always go through the sampler buffers first, then the uniform buffers because
@@ -253,9 +253,9 @@ void material::create_descriptor_set_layout()
 
 }
 
-void material::create_descriptor_pool()
+void visual_material::create_descriptor_pool()
 {
-    std::array<VkDescriptorPoolSize, BINDING_MAX> descriptorPoolSizes;
+    std::array<VkDescriptorPoolSize, BINDING_MAX> descriptor_pool_sizes;
     
     int count = 0;
     
@@ -263,8 +263,8 @@ void material::create_descriptor_pool()
     {
         for(std::pair<const char*, buffer_info> pair2: pair.second)
         {
-            descriptorPoolSizes[count].type = static_cast<VkDescriptorType>(pair2.second.usageType);
-            descriptorPoolSizes[count].descriptorCount = 1;
+            descriptor_pool_sizes[count].type = static_cast<VkDescriptorType>(pair2.second.usageType);
+            descriptor_pool_sizes[count].descriptorCount = 1;
             
             ++count;
             assert(count < BINDING_MAX);
@@ -274,8 +274,8 @@ void material::create_descriptor_pool()
     
     for (std::pair<parameter_stage , resource::buffer_info > pair : _uniform_buffers)
     {
-        descriptorPoolSizes[count].type = static_cast<VkDescriptorType>(pair.second.usageType);
-        descriptorPoolSizes[count].descriptorCount = 1;
+        descriptor_pool_sizes[count].type = static_cast<VkDescriptorType>(pair.second.usageType);
+        descriptor_pool_sizes[count].descriptorCount = 1;
         
         ++count;
         assert(count < BINDING_MAX);
@@ -289,14 +289,14 @@ void material::create_descriptor_pool()
     descriptorPoolCreateInfo.flags = 0;
     descriptorPoolCreateInfo.maxSets = 1;
     descriptorPoolCreateInfo.poolSizeCount = static_cast<uint32_t>(count);
-    descriptorPoolCreateInfo.pPoolSizes = descriptorPoolSizes.data();
+    descriptorPoolCreateInfo.pPoolSizes = descriptor_pool_sizes.data();
     
     VkResult result = vkCreateDescriptorPool(_device->_logical_device, &descriptorPoolCreateInfo, nullptr, &_descriptor_pool);
     ASSERT_VULKAN(result);
 
 }
 
-void material::destroy()
+void visual_material::destroy()
 {
     vkDestroyDescriptorSetLayout(_device->_logical_device, _descriptor_set_layout, nullptr);
     vkDestroyDescriptorPool(_device->_logical_device, _descriptor_pool, nullptr);
@@ -305,6 +305,6 @@ void material::destroy()
     _initialized = false;
     deallocate_parameters();
 }
-material::~material()
+visual_material::~visual_material()
 {
 }
