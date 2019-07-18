@@ -6,4 +6,4 @@
 //  Copyright © 2019 Rafael Sabino. All rights reserved.
 //
 
-#include "compute_material.hpp"
+#include "compute_material.h"

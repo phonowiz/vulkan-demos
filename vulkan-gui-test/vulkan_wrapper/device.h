@@ -31,9 +31,10 @@ namespace vk {
         struct queue_family_indices {
             std::optional<uint32_t> graphics_family;
             std::optional<uint32_t> present_family;
+            std::optional<uint32_t> compute_family;
             
             bool is_complete() {
-                return graphics_family.has_value() && present_family.has_value();
+                return graphics_family.has_value() && present_family.has_value() && compute_family.has_value();
             }
         };
         
@@ -50,7 +51,7 @@ namespace vk {
 #ifndef __APPLE__
         const bool enableValidationLayers = true;
 #else
-        const bool enableValidationLayers = false;
+        const bool enable_validation_layers = false;
 #endif
         
         const std::vector<const char*> device_extensions = {
@@ -59,7 +60,6 @@ namespace vk {
         
         bool check_device_extension_support(VkPhysicalDevice device);
         
-        //todo: there should be another version of this function which doesn't take a device argument and queries the chosen physical devie
         void query_swapchain_support( VkPhysicalDevice device, VkSurfaceKHR surface, swapchain_support_details& swapChainSupportDetails);
         void create_instance();
         void print_stats();
@@ -80,7 +80,7 @@ namespace vk {
         void end_single_time_command_buffer(VkQueue queue, VkCommandPool commandPool, VkCommandBuffer commandBuffer);
         
         void copy_buffer( VkCommandPool commandPool, VkQueue queue, VkBuffer src, VkBuffer dest, VkDeviceSize size);
-        void create_command_pool(uint32_t queueIndex);
+        void create_command_pool(uint32_t queueIndex, VkCommandPool* pool);
         void wait_for_all_operations_to_finish();
         
         virtual void destroy() override;
@@ -91,8 +91,11 @@ namespace vk {
         VkDevice            _logical_device = VK_NULL_HANDLE;
         VkInstance          _instance = VK_NULL_HANDLE;
         VkQueue             _graphics_queue = VK_NULL_HANDLE;
-        VkQueue             _presentQueue = VK_NULL_HANDLE;
-        VkCommandPool       _commandPool = VK_NULL_HANDLE;
+        VkQueue             _present_queue = VK_NULL_HANDLE;
+        VkQueue             _compute_queue = VK_NULL_HANDLE;
+        VkCommandPool       _graphics_command_pool = VK_NULL_HANDLE;
+        VkCommandPool       _present_command_pool = VK_NULL_HANDLE;
+        VkCommandPool       _compute_command_pool = VK_NULL_HANDLE;
 
     private:
         

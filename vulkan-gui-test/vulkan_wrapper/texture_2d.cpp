@@ -113,11 +113,11 @@ void texture_2d::create(uint32_t width, uint32_t height)
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     
 
-    change_image_layout(_device->_commandPool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
+    change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
                       VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    write_buffer_to_image(_device->_commandPool, _device->_graphics_queue, staging_buffer);
+    write_buffer_to_image(_device->_graphics_command_pool, _device->_graphics_queue, staging_buffer);
     
-    change_image_layout(_device->_commandPool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
+    change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     
 

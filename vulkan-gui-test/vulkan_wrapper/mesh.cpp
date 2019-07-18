@@ -12,7 +12,7 @@
 #include "tiny_obj_loader.h"
 
 #include "vertex.h"
-#include "material.h"
+#include "visual_material.h"
 
 using namespace vk;
 
@@ -110,13 +110,13 @@ void mesh::draw(VkCommandBuffer commandBuffer, vk::graphics_pipeline& pipeline)
 
 void mesh::create_vertex_buffer()
 {
-    create_and_upload_buffer(_device->_commandPool,
+    create_and_upload_buffer(_device->_graphics_command_pool,
                           _vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, _vertex_buffer, _vertex_buffer_device_memory);
 }
 
 void mesh::create_index_buffer()
 {
-    create_and_upload_buffer( _device->_commandPool,
+    create_and_upload_buffer( _device->_graphics_command_pool,
                           _indices, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, _index_buffer, _index_buffer_device_memory);
 }
 

@@ -13,7 +13,7 @@
 #include <GLFW/glfw3.h>
 
 #include <vector>
-#include "material.h"
+#include "visual_material.h"
 #include "depth_image.h"
 #include "graphics_pipeline.h"
 
@@ -42,7 +42,7 @@ namespace vk
         
     public:
         
-        renderer(device* physicalDevice, GLFWwindow* window, swapchain* swapChain, material_shared_ptr material);
+        renderer(device* physical_device, GLFWwindow* window, swapchain* swapchain, visual_mat_shared_ptr material);
         
 
         void add_mesh(mesh* pMesh){ _meshes.push_back(pMesh); };
@@ -52,7 +52,7 @@ namespace vk
         
         void init();
         void recreate_renderer();
-        virtual vk::material_shared_ptr & get_material(){ return _material; }
+        virtual vk::visual_mat_shared_ptr & get_material(){ return _material; }
         
         virtual void destroy() override;
         ~renderer();
@@ -62,7 +62,7 @@ namespace vk
     
         virtual void create_frame_buffers();
         virtual void create_render_pass();
-        virtual void create_command_buffer(VkCommandBuffer** command_buffers);
+        virtual void create_command_buffer(VkCommandBuffer** command_buffers, VkCommandPool command_pool);
         virtual void create_semaphores_and_fences();
         
         void create_semaphore(VkSemaphore& semaphore);
@@ -92,7 +92,7 @@ namespace vk
         VkCommandBuffer* _command_buffers = nullptr;
         graphics_pipeline _pipeline;
         
-        material_shared_ptr         _material;
+        visual_mat_shared_ptr         _material;
         std::vector<VkFramebuffer>  _swapchain_frame_buffers;
         
         std::vector<mesh*> _meshes;

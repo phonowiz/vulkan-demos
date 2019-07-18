@@ -37,7 +37,7 @@ namespace  vk
             INVALID = VkDescriptorType::VK_DESCRIPTOR_TYPE_MAX_ENUM
         };
         
-        //todo: this should be protected
+    protected:
         struct buffer_info
         {
             VkBuffer        uniformBuffer =         VK_NULL_HANDLE;

@@ -50,14 +50,14 @@ static android_app *Android_application = nullptr;
 #include <sys/time.h>
 #endif
 
-#include "material.h"
+#include "visual_material.h"
 #include <vector>
 
 using namespace vk;
 
 const std::string shader::shaderResourcePath =  "/shaders/";
 
-shader::shader(device* device, const char* filePath, shader::ShaderType shaderType)
+shader::shader(device* device, const char* filePath, shader::shader_type shaderType)
 {
     std::string  path = resource::resource_root + shader::shaderResourcePath + filePath;
     _device = device;
@@ -68,7 +68,7 @@ shader::shader(device* device, const char* filePath, shader::ShaderType shaderTy
     init(shader.c_str(), shaderType);
 }
 
-void shader::init(const char *shaderText, shader::ShaderType shaderType, const char *entryPoint)
+void shader::init(const char *shaderText, shader::shader_type shaderType, const char *entryPoint)
 {
     VkResult  res;
     bool retVal = false;
@@ -76,26 +76,26 @@ void shader::init(const char *shaderText, shader::ShaderType shaderType, const c
     assert(shaderText != nullptr);
     
     init_glsl_lang();
-    VkShaderModuleCreateInfo moduleCreateInfo;
+    VkShaderModuleCreateInfo module_create_info {};
     
     
     std::vector<unsigned int> vtx_spv;
-    _pipelineShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    _pipelineShaderStage.pNext = NULL;
-    _pipelineShaderStage.pSpecializationInfo = NULL;
-    _pipelineShaderStage.flags = 0;
-    _pipelineShaderStage.stage = static_cast<VkShaderStageFlagBits>( shaderType );
-    _pipelineShaderStage.pName = entryPoint;
+    _pipeline_shader_stage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    _pipeline_shader_stage.pNext = NULL;
+    _pipeline_shader_stage.pSpecializationInfo = NULL;
+    _pipeline_shader_stage.flags = 0;
+    _pipeline_shader_stage.stage = static_cast<VkShaderStageFlagBits>( shaderType );
+    _pipeline_shader_stage.pName = entryPoint;
     
     retVal = glsl_to_spv(shaderType, shaderText, vtx_spv);
     assert(retVal);
     
-    moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    moduleCreateInfo.pNext = NULL;
-    moduleCreateInfo.flags = 0;
-    moduleCreateInfo.codeSize = vtx_spv.size() * sizeof(unsigned int);
-    moduleCreateInfo.pCode = vtx_spv.data();
-    res = vkCreateShaderModule(_device->_logical_device, &moduleCreateInfo, NULL, &_pipelineShaderStage.module);
+    module_create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    module_create_info.pNext = NULL;
+    module_create_info.flags = 0;
+    module_create_info.codeSize = vtx_spv.size() * sizeof(unsigned int);
+    module_create_info.pCode = vtx_spv.data();
+    res = vkCreateShaderModule(_device->_logical_device, &module_create_info, NULL, &_pipeline_shader_stage.module);
     assert(res == VK_SUCCESS);
     
     
@@ -117,7 +117,7 @@ void shader::finalize_glsl_lang()
 #endif
 }
 
-bool shader::glsl_to_spv(const shader::ShaderType shader_type, const char *pshader, std::vector<unsigned int> &spirv)
+bool shader::glsl_to_spv(const shader::shader_type shader_type, const char *pshader, std::vector<unsigned int> &spirv)
 {
     MVKShaderStage shaderStage;
     VkShaderStageFlagBits type = static_cast<VkShaderStageFlagBits>(shader_type);
@@ -152,7 +152,7 @@ bool shader::glsl_to_spv(const shader::ShaderType shader_type, const char *pshad
         spirv = glslConverter.getSPIRV();
     }
     std::string result = glslConverter.getResultLog();
-    if(!result.empty())
+    if(!wasConverted )
     {
         std::cout << "GLSL CONVERSTION FAILED: " <<  std::endl << result << std::endl;
     }
@@ -161,8 +161,8 @@ bool shader::glsl_to_spv(const shader::ShaderType shader_type, const char *pshad
 
 void shader::destroy()
 {
-    vkDestroyShaderModule(_device->_logical_device, _pipelineShaderStage.module, nullptr);
-    _pipelineShaderStage.module = VK_NULL_HANDLE;
+    vkDestroyShaderModule(_device->_logical_device, _pipeline_shader_stage.module, nullptr);
+    _pipeline_shader_stage.module = VK_NULL_HANDLE;
 }
 
 shader::~shader()

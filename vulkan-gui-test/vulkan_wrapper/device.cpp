@@ -50,18 +50,18 @@ void device::create_logical_device( VkSurfaceKHR surface)
     VkPhysicalDeviceFeatures deviceFeatures = {};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
 
-    VkDeviceCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    VkDeviceCreateInfo create_info = {};
+    create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 
-    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-    createInfo.pQueueCreateInfos = queueCreateInfos.data();
+    create_info.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+    create_info.pQueueCreateInfos = queueCreateInfos.data();
 
-    createInfo.pEnabledFeatures = &deviceFeatures;
+    create_info.pEnabledFeatures = &deviceFeatures;
 
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(device::device_extensions.size());
-    createInfo.ppEnabledExtensionNames = device::device_extensions.data();
+    create_info.enabledExtensionCount = static_cast<uint32_t>(device::device_extensions.size());
+    create_info.ppEnabledExtensionNames = device::device_extensions.data();
 
-    if (device::enableValidationLayers)
+    if (device::enable_validation_layers)
     {
     #ifndef __APPLE__
         createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
@@ -70,40 +70,64 @@ void device::create_logical_device( VkSurfaceKHR surface)
     }
     else
     {
-        createInfo.enabledLayerCount = 0;
+        create_info.enabledLayerCount = 0;
     }
 
-    if (vkCreateDevice(_physical_device, &createInfo, nullptr, &_logical_device) != VK_SUCCESS) {
+    if (vkCreateDevice(_physical_device, &create_info, nullptr, &_logical_device) != VK_SUCCESS) {
         throw std::runtime_error("failed to create logical device!");
     }
 
     vkGetDeviceQueue(_logical_device, indices.graphics_family.value(), 0, &_graphics_queue);
-    vkGetDeviceQueue(_logical_device, indices.present_family.value(), 0, &_presentQueue);
+    vkGetDeviceQueue(_logical_device, indices.present_family.value(), 0, &_present_queue);
+    vkGetDeviceQueue(_logical_device, indices.compute_family.value(), 0, &_compute_queue);
     
-    create_command_pool(0);
+    create_command_pool(indices.graphics_family.value(), &_graphics_command_pool);
+    
+    _present_command_pool = _graphics_command_pool;
+    if(indices.graphics_family != indices.present_family)
+    {
+        create_command_pool(indices.present_family.value(), &_present_command_pool);
+    }
+    _compute_command_pool = _present_command_pool;
+    
+    if(indices.graphics_family == indices.compute_family)
+    {
+        _compute_command_pool = _graphics_command_pool;
+    }
+    else if( indices.compute_family != indices.present_family)
+    {
+        create_command_pool(indices.compute_family.value(), &_compute_command_pool);
+    }
+    
 }
 
 device::queue_family_indices device::find_queue_families( VkPhysicalDevice device, VkSurfaceKHR surface) {
     device::queue_family_indices indices;
     
-    uint32_t queueFamilyCount = 0;
+    uint32_t queue_family_count = 0;
     
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
     static const uint32_t MAX_QUEUE_FAMILIES = 200;
-    assert(MAX_QUEUE_FAMILIES > queueFamilyCount);
-    std::array<VkQueueFamilyProperties, MAX_QUEUE_FAMILIES> queueFamilies;
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+    assert(MAX_QUEUE_FAMILIES > queue_family_count);
+    std::array<VkQueueFamilyProperties, MAX_QUEUE_FAMILIES> queue_families;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
     
     int i = 0;
-    for (const auto& queueFamily : queueFamilies) {
-        if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+    for (const auto& queue_family : queue_families) {
+        
+        if (queue_family.queueCount > 0 && queue_family.queueFlags & ( VK_QUEUE_COMPUTE_BIT))
+        {
+            indices.compute_family = i;
+        }
+        if (queue_family.queueCount > 0 && queue_family.queueFlags & (VK_QUEUE_GRAPHICS_BIT ))
+        {
             indices.graphics_family = i;
         }
         
-        VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+        VkBool32 present_support = false;
+        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &present_support);
         
-        if (queueFamily.queueCount > 0 && presentSupport) {
+        if (queue_family.queueCount > 0 && present_support) {
             indices.present_family = i;
         }
         
@@ -344,15 +368,15 @@ VkCommandBuffer device::start_single_time_command_buffer( VkCommandPool commandP
     
 }
 
-void device::create_command_pool(uint32_t queueIndex)
+void device::create_command_pool(uint32_t queue_index, VkCommandPool* pool)
 {
-    VkCommandPoolCreateInfo commandPoolCreateInfo;
-    commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    commandPoolCreateInfo.pNext = nullptr;
-    commandPoolCreateInfo.flags = 0;
-    commandPoolCreateInfo.queueFamilyIndex = queueIndex; //TODO: FIND OUT WHAT QUEUE WE PUT HERE;
+    VkCommandPoolCreateInfo command_pool_create_info;
+    command_pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    command_pool_create_info.pNext = nullptr;
+    command_pool_create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    command_pool_create_info.queueFamilyIndex = queue_index;
     
-    VkResult result = vkCreateCommandPool(_logical_device, &commandPoolCreateInfo, nullptr, &_commandPool);
+    VkResult result = vkCreateCommandPool(_logical_device, &command_pool_create_info, nullptr, pool);
     ASSERT_VULKAN(result);
 }
 
@@ -469,7 +493,7 @@ void device::wait_for_all_operations_to_finish()
 
 void device::destroy()
 {
-    vkDestroyCommandPool(_logical_device, _commandPool, nullptr);
+    vkDestroyCommandPool(_logical_device, _graphics_command_pool, nullptr);
     
     vkDestroyDevice(_logical_device, nullptr);
     vkDestroyInstance(_instance, nullptr);

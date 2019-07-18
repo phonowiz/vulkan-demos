@@ -33,7 +33,7 @@ void image::create_image( uint32_t width, uint32_t height, VkFormat format, VkIm
     image_create_info.tiling = tiling;
     image_create_info.usage = usage_flags;
     //the following assignment depends on this assumption:
-    assert(_device->_presentQueue == _device->_graphics_queue);
+    assert(_device->_present_queue == _device->_graphics_queue);
     image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     image_create_info.queueFamilyIndexCount = 0;
     image_create_info.pQueueFamilyIndices = nullptr;

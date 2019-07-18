@@ -62,9 +62,9 @@ void shutdownGlfw() {
 }
 
 
-vk::material_shared_ptr standard_mat;
-vk::material_shared_ptr display_mat;
-vk::material_shared_ptr mrt_mat;
+vk::visual_mat_shared_ptr standard_mat;
+vk::visual_mat_shared_ptr display_mat;
+vk::visual_mat_shared_ptr mrt_mat;
 
 
 
@@ -88,7 +88,7 @@ void updateMVP2()
     
     glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
 
-    vk::shader_parameter::shader_params_group& vertexParams =   standard_mat->get_uniform_parameters(vk::material::parameter_stage::VERTEX, 0);
+    vk::shader_parameter::shader_params_group& vertexParams =   standard_mat->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     
     vertexParams["model"] = model;
     vertexParams["view"] = view;
@@ -133,7 +133,7 @@ void updateMVP3()
     glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
     
     vk::shader_parameter::shader_params_group& vertex_params =
-        app.deferred_renderer->get_material()->get_uniform_parameters(vk::material::parameter_stage::VERTEX, 0);
+        app.deferred_renderer->get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     
     vertex_params["model"] = model;
     vertex_params["view"] = view;
@@ -196,12 +196,12 @@ void onWindowResized2(GLFWwindow * window, int w, int h)
 void updateWithOrtho()
 {
 
-    vk::shader_parameter::shader_params_group& vertexParams = display_mat->get_uniform_parameters(vk::material::parameter_stage::VERTEX, 0);
+    vk::shader_parameter::shader_params_group& vertexParams = display_mat->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     vertexParams["width"] = width;
     vertexParams["height"] = height;
     
     
-    display_mat->set_image_sampler(texture, "tex", vk::material::parameter_stage::FRAGMENT, 1);
+    display_mat->set_image_sampler(texture, "tex", vk::visual_material::parameter_stage::FRAGMENT, 1);
     
     display_mat->commit_parameters_to_gpu();
     
@@ -242,8 +242,8 @@ int main()
     
     vk::display_plane plane(&device);
     
-    standard_mat = material_store.GET_MAT<vk::material>("standard");
-    display_mat = material_store.GET_MAT<vk::material>("display");
+    standard_mat = material_store.GET_MAT<vk::visual_material>("standard");
+    display_mat = material_store.GET_MAT<vk::visual_material>("display");
     vk::texture_2d mario(&device, "mario.png");
     
     bool deferred = true;

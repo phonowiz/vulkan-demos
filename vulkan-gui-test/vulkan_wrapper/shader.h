@@ -22,7 +22,7 @@ namespace  vk
     {
     public:
         
-        enum class ShaderType
+        enum class shader_type
         {
             VERTEX = VK_SHADER_STAGE_VERTEX_BIT,
             FRAGMENT = VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -32,22 +32,22 @@ namespace  vk
             GEOMETRY = VK_SHADER_STAGE_GEOMETRY_BIT
         };
         
-        shader(device* device, const char* shader_path, shader::ShaderType shader_type);
+        shader(device* device, const char* shader_path, shader::shader_type shader_type);
         
         device* _device;
         static const std::string shaderResourcePath;
         
 
         
-        void init( const char *shaderText, ShaderType shaderType, const char *entryPoint = "main");
-        bool glsl_to_spv(const ShaderType shaderType, const char *pshader, std::vector<unsigned int> &spirv);
+        void init( const char *shaderText, shader_type shaderType, const char *entryPoint = "main");
+        bool glsl_to_spv(const shader_type shaderType, const char *pshader, std::vector<unsigned int> &spirv);
         
         void init_glsl_lang();
         void finalize_glsl_lang();
         virtual void destroy() override;
         ~shader();
         
-        VkPipelineShaderStageCreateInfo _pipelineShaderStage = {};
+        VkPipelineShaderStageCreateInfo _pipeline_shader_stage = {};
     
     };
     

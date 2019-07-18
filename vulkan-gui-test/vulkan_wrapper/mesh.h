@@ -15,8 +15,9 @@
 #include <unordered_map>
 
 #include "vertex.h"
-#include "material.h"
+#include "visual_material.h"
 #include "graphics_pipeline.h"
+#include "compute_pipeline.h"
 
 namespace vk
 {
@@ -53,7 +54,8 @@ namespace vk
         
         static const std::string _mesh_resource_path;
         
-        void draw(VkCommandBuffer commandBuffer, vk::graphics_pipeline& pipeline);
+        void draw(VkCommandBuffer command_buffer, vk::graphics_pipeline& pipeline);
+        
         virtual void destroy() override;
     
         inline std::vector<vertex>& get_vertices()

@@ -26,7 +26,7 @@
 using namespace vk;
 
 
-renderer::renderer(device* device, GLFWwindow* window, swapchain* swapChain, material_shared_ptr material):
+renderer::renderer(device* device, GLFWwindow* window, swapchain* swapChain, visual_mat_shared_ptr material):
 _depth_image(device, false),
 _pipeline(device, material)
 {
@@ -132,18 +132,21 @@ void renderer::create_render_pass()
 }
 
 
-void renderer::create_command_buffer(VkCommandBuffer** command_buffers)
+void renderer::create_command_buffer(VkCommandBuffer** command_buffers, VkCommandPool command_pool)
 {
     VkCommandBufferAllocateInfo command_buffer_allocate_info;
     command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     command_buffer_allocate_info.pNext = nullptr;
-    command_buffer_allocate_info.commandPool = _device->_commandPool;
+    command_buffer_allocate_info.commandPool = command_pool;
     command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     command_buffer_allocate_info.commandBufferCount = static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count());
-    
+
     //todo: remove "new"
     delete[] *command_buffers;
     *command_buffers = new VkCommandBuffer[_swapchain->_swapchain_data.image_set.get_image_count()];
+    
+    
+
     VkResult result = vkAllocateCommandBuffers(_device->_logical_device, &command_buffer_allocate_info, *command_buffers);
     ASSERT_VULKAN(result);
 }
@@ -195,7 +198,7 @@ void renderer::recreate_renderer()
     _swapchain->recreate_swapchain( );
     create_frame_buffers();
     
-    create_command_buffer(&_command_buffers);
+    create_command_buffer(&_command_buffers, _device->_present_command_pool);
     record_command_buffers(*_meshes.data(), _meshes.size());
 
 }
@@ -281,7 +284,7 @@ void renderer::destroy()
     _semaphore_image_available = VK_NULL_HANDLE;
     _semaphore_rendering_done = VK_NULL_HANDLE;
     
-    vkFreeCommandBuffers(_device->_logical_device, _device->_commandPool,
+    vkFreeCommandBuffers(_device->_logical_device, _device->_graphics_command_pool,
                          static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _command_buffers);
     delete[] _command_buffers;
     
@@ -349,7 +352,7 @@ void renderer::init()
     create_frame_buffers();
     //create_pipeline();
     create_semaphores_and_fences();
-    create_command_buffer(&_command_buffers);
+    create_command_buffer(&_command_buffers, _device->_present_command_pool);
     
     //we only support 1 mesh at the moment
     assert(_meshes.size() == 1);
@@ -408,7 +411,7 @@ void renderer::draw()
     present_info.pSwapchains = &_swapchain->_swapchain_data.swapchain;
     present_info.pImageIndices = &image_index;
     present_info.pResults = nullptr;
-    result = vkQueuePresentKHR(_device->_presentQueue, &present_info);
+    result = vkQueuePresentKHR(_device->_present_queue, &present_info);
     
     ASSERT_VULKAN(result);
 }

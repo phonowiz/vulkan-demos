@@ -8,6 +8,25 @@
 
 #pragma once
 
-#include <stdio.h>
+#include "device.h"
 
-#endif /* pipeline_hpp */
+namespace vk
+{
+    class pipeline
+    {
+    public:
+        
+        pipeline( device* device)
+        {
+            _device = device;
+        }
+        
+        virtual ~pipeline(){};
+        
+        
+        VkPipeline _pipeline = VK_NULL_HANDLE;
+        VkPipelineLayout _pipeline_layout = VK_NULL_HANDLE;
+        device* _device = nullptr;
+        
+    };
+}

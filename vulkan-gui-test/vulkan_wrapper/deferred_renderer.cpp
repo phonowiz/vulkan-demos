@@ -22,29 +22,39 @@ using namespace vk;
 
 
 deferred_renderer::deferred_renderer(device* device, GLFWwindow* window, vk::swapchain* swapchain, vk::material_store& store):
-renderer(device, window, swapchain, store.GET_MAT<material>("deferred_output")),
+renderer(device, window, swapchain, store.GET_MAT<visual_material>("deferred_output")),
 _positions(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _albedo(device, swapchain->_swapchain_data.swapchain_extent.width,swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _normals(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _depth(device, true),
 _mrt_pipeline(device),
 _plane(device),
-_debug_pipeline(device)
+_debug_pipeline(device),
+_mrt_material(store.GET_MAT<visual_material>("mrt")),
+_voxelize_pipeline(device, store.GET_MAT<compute_material>("voxelizer"))
 {
-    _mrt_material = store.GET_MAT<material>("mrt");
-    
     int binding = 0;
-    _mrt_material->init_parameter("model", material::parameter_stage::VERTEX, glm::mat4(0), binding);
-    _mrt_material->init_parameter("view", material::parameter_stage::VERTEX, glm::mat4(0), binding);
-    _mrt_material->init_parameter("projection", material::parameter_stage::VERTEX, glm::mat4(0), binding);
-    _mrt_material->init_parameter("lightPosition", material::parameter_stage::VERTEX, glm::vec4(0), binding);
+    _mrt_material->init_parameter("model", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
+    _mrt_material->init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
+    _mrt_material->init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
+    _mrt_material->init_parameter("lightPosition", visual_material::parameter_stage::VERTEX, glm::vec4(0), binding);
     
-    _material->init_parameter("width", material::parameter_stage::VERTEX, 0.f, 0);
-    _material->init_parameter("height", material::parameter_stage::VERTEX, 0.f, 0);
+    _material->init_parameter("width", visual_material::parameter_stage::VERTEX, 0.f, 0);
+    _material->init_parameter("height", visual_material::parameter_stage::VERTEX, 0.f, 0);
+    
+    _voxelize_pipeline.set_image_sampler(&_depth, "depth_texture", 0);
+    _voxelize_pipeline.set_image_sampler(&_depth, "3d_texture", 1);
+    
+    //TODO: I think maybe material should be private and we should have a function that does this for us,
+    //we can already set image samplers using the pipeline object.  Also, consider creating a frame buffer object which houses
+    //the pipeline and rendering commands to be used for rendering meshes.
+    
+    _voxelize_pipeline.create();
     
     _depth.create(_swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height);
     _plane.create();
-    create_command_buffer(&_offscreen_command_buffers);
+    create_command_buffer(&_offscreen_command_buffers, _device->_graphics_command_pool);
+    create_command_buffer(&_voxelize_command_buffers, _device->_compute_command_pool);
 }
 
 
@@ -136,10 +146,13 @@ void deferred_renderer::create_semaphores_and_fences()
     
     create_semaphore(_deferred_semaphore_image_available);
     create_semaphore(_deferred_semaphore_rendering_done);
+    create_semaphore(_voxelize_semaphore);
+    create_semaphore(_voxelize_semaphore_done);
     
     for(int i = 0; i < _swapchain->_swapchain_data.image_set.get_image_count(); ++i)
     {
         create_fence(_deferred_inflight_fences[i]);
+        create_fence(_voxelize_inflight_fence[i]);
     }
 }
 
@@ -154,7 +167,6 @@ void deferred_renderer::create_pipeline()
     _mrt_pipeline.modify_attachment_blend(0, graphics_pipeline::write_channels::RGBA, enable_blend);
     _mrt_pipeline.modify_attachment_blend(1, graphics_pipeline::write_channels::RGBA, false);
     _mrt_pipeline.modify_attachment_blend(2, graphics_pipeline::write_channels::RGBA, false);
-    //_mrt_pipeline.modify_blend_attachment(3, pipeline::write_channels::RGBA, enable_blend);
 
     _mrt_pipeline.create(_mrt_render_pass,
                          _swapchain->_swapchain_data.swapchain_extent.width,
@@ -195,6 +207,31 @@ void deferred_renderer::create_frame_buffers()
     }
 }
 
+
+void deferred_renderer::record_voxelize_command_buffers()
+{
+    assert(_voxelize_pipeline._pipeline != VK_NULL_HANDLE);
+    assert(_voxelize_pipeline._pipeline_layout != VK_NULL_HANDLE);
+    
+    for( int i = 0; i < _swapchain->_swapchain_data.image_set.get_image_count(); ++i)
+    {
+        VkCommandBufferBeginInfo command_buffer_begin_info {};
+        command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        
+        vkBeginCommandBuffer(_voxelize_command_buffers[i], &command_buffer_begin_info);
+        
+        vkCmdBindPipeline(_voxelize_command_buffers[i], VK_PIPELINE_BIND_POINT_COMPUTE, _voxelize_pipeline._pipeline);
+        vkCmdBindDescriptorSets(_voxelize_command_buffers[i], VK_PIPELINE_BIND_POINT_COMPUTE, _voxelize_pipeline._pipeline_layout, 0, 1,
+                                _voxelize_pipeline._material->get_descriptor_set(), 0, VK_NULL_HANDLE);
+        
+        vkCmdDispatch(_voxelize_command_buffers[i], _swapchain->_swapchain_data.swapchain_extent.width/16,
+                      _swapchain->_swapchain_data.swapchain_extent.height/16, 1);
+        
+        vkEndCommandBuffer(_voxelize_command_buffers[i]);
+    }
+
+}
+
 void deferred_renderer::record_command_buffers(mesh* meshes, size_t number_of_meshes)
 {
     VkCommandBufferBeginInfo command_buffer_begin_info {};
@@ -212,6 +249,9 @@ void deferred_renderer::record_command_buffers(mesh* meshes, size_t number_of_me
     
     for (size_t i = 0; i < _swapchain->_swapchain_data.image_set.get_image_count(); i++)
     {
+        //TODO: consider creating a render pass object which contains a frame buffer object and all of the assets needed to
+        //render a mesh.
+        
         VkRenderPassBeginInfo render_pass_begin_info {};
         render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         render_pass_begin_info.pNext = nullptr;
@@ -281,10 +321,10 @@ void deferred_renderer::perform_final_drawing_setup()
         _mrt_pipeline.set_material(_mrt_material);
         _pipeline.set_material(_material);
         //note: the last argument is the binding number specified in the material's shader
-        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_normals), "normals", material::parameter_stage::FRAGMENT, 1);
-        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_albedo), "albedo", material::parameter_stage::FRAGMENT, 2);
-        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_positions), "positions", material::parameter_stage::FRAGMENT, 3);
-        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_depth), "depth", material::parameter_stage::FRAGMENT, 4);
+        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_normals), "normals", visual_material::parameter_stage::FRAGMENT, 1);
+        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_albedo), "albedo", visual_material::parameter_stage::FRAGMENT, 2);
+        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_positions), "positions", visual_material::parameter_stage::FRAGMENT, 3);
+        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_depth), "depth", visual_material::parameter_stage::FRAGMENT, 4);
         
         setup_initialized = true;
     }
@@ -304,7 +344,7 @@ void deferred_renderer::draw()
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain,
                           std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &image_index);
     
-    //POPULATE G-BUFFERS
+    //render g-buffers
     VkSubmitInfo submit_info = {};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = nullptr;
@@ -318,10 +358,11 @@ void deferred_renderer::draw()
     submit_info.pSignalSemaphores = &_deferred_semaphore_rendering_done;
     
     
-    VkResult result = vkQueueSubmit(_device->_presentQueue, 1, &submit_info, _deferred_inflight_fences[image_index]);
+    VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _deferred_inflight_fences[image_index]);
     ASSERT_VULKAN(result);
     
-    //RENDER SCENE WITH G-BUFFERS
+
+    //Present g-buffers, in other words, save g buffers to textures, make sure we are done rendering them before we do
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = nullptr;
     submit_info.waitSemaphoreCount = 1;
@@ -331,30 +372,44 @@ void deferred_renderer::draw()
     submit_info.pCommandBuffers = &(_command_buffers[image_index]);
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &_semaphore_rendering_done;
-    
+
     result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _inflight_fences[image_index]);
     ASSERT_VULKAN(result);
     
-    VkPresentInfoKHR present_info;
+    //voxelize
+    vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[image_index]);
+    
+    submit_info = {};
+    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info.commandBufferCount = 1;
+    submit_info.waitSemaphoreCount = 1;
+    submit_info.pWaitSemaphores = &_semaphore_rendering_done;
+    submit_info.pCommandBuffers = &(_voxelize_command_buffers[image_index]);
+    submit_info.signalSemaphoreCount = 1;
+    submit_info.pSignalSemaphores = &_voxelize_semaphore_done;
+    vkResetCommandBuffer( _voxelize_command_buffers[image_index], 0);
+    vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _voxelize_inflight_fence[image_index]);
+    
+    //render scene with g buffers and 3d voxel texture
+    int binding = 0;
+    vk::shader_parameter::shader_params_group& display_params =   renderer::get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, binding);
+    
+    display_params["width"] = static_cast<float>(_swapchain->_swapchain_data.swapchain_extent.width);
+    display_params["height"] = static_cast<float>(_swapchain->_swapchain_data.swapchain_extent.height);
+    
+    VkPresentInfoKHR present_info {};
     present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     present_info.pNext = nullptr;
     present_info.waitSemaphoreCount = 1;
-    present_info.pWaitSemaphores = &_semaphore_rendering_done;
+    present_info.pWaitSemaphores = &_voxelize_semaphore_done;
     present_info.swapchainCount = 1;
     present_info.pSwapchains = &_swapchain->_swapchain_data.swapchain;
     present_info.pImageIndices = &image_index;
     present_info.pResults = nullptr;
-    result = vkQueuePresentKHR(_device->_presentQueue, &present_info);
-    
-    ASSERT_VULKAN(result);
-    
-    int binding = 0;
-    vk::shader_parameter::shader_params_group& display_params =   renderer::get_material()->get_uniform_parameters(vk::material::parameter_stage::VERTEX, binding);
+    result = vkQueuePresentKHR(_device->_present_queue, &present_info);
 
-    display_params["width"] = static_cast<float>(_swapchain->_swapchain_data.swapchain_extent.width);
-    display_params["height"] = static_cast<float>(_swapchain->_swapchain_data.swapchain_extent.height);
-    
-    renderer::draw();
+    ASSERT_VULKAN(result);
 }
 
 void deferred_renderer::destroy()
@@ -363,11 +418,17 @@ void deferred_renderer::destroy()
     
     vkDestroySemaphore(_device->_logical_device, _deferred_semaphore_image_available, nullptr);
     vkDestroySemaphore(_device->_logical_device, _deferred_semaphore_rendering_done, nullptr);
+    vkDestroySemaphore(_device->_logical_device, _voxelize_semaphore, nullptr);
+    vkDestroySemaphore(_device->_logical_device, _voxelize_semaphore_done, nullptr);
+    
     _deferred_semaphore_image_available = VK_NULL_HANDLE;
     _deferred_semaphore_rendering_done = VK_NULL_HANDLE;
 
-    vkFreeCommandBuffers(_device->_logical_device, _device->_commandPool,
+    vkFreeCommandBuffers(_device->_logical_device, _device->_graphics_command_pool,
                          static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _offscreen_command_buffers);
+    
+    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool,
+                         static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _voxelize_command_buffers);
     
     delete[] _offscreen_command_buffers;
     

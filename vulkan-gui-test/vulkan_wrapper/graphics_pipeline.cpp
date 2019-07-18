@@ -1,5 +1,5 @@
 //
-//  pipeline.cpp
+//  graphics_pipeline.cpp
 //  vulkan-gui-test
 //
 //  Created by Rafael Sabino on 3/22/19.
@@ -39,7 +39,7 @@ void graphics_pipeline::create( VkRenderPass render_pass, uint32_t viewport_widt
     auto vertex_attribute_descriptos = vertex::get_attribute_descriptions();
     
     
-    VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info;
+    VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info {};
     vertex_input_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertex_input_state_create_info.pNext = nullptr;
     vertex_input_state_create_info.flags = 0;
@@ -49,7 +49,7 @@ void graphics_pipeline::create( VkRenderPass render_pass, uint32_t viewport_widt
     vertex_input_state_create_info.pVertexAttributeDescriptions = vertex_attribute_descriptos.data();
     
     
-    VkPipelineInputAssemblyStateCreateInfo input_assembly_create_info;
+    VkPipelineInputAssemblyStateCreateInfo input_assembly_create_info {};
     input_assembly_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     input_assembly_create_info.pNext = nullptr;
     input_assembly_create_info.flags = 0;
@@ -68,7 +68,7 @@ void graphics_pipeline::create( VkRenderPass render_pass, uint32_t viewport_widt
     scissor.offset = { 0, 0 };
     scissor.extent = { _width, _height };
     
-    VkPipelineViewportStateCreateInfo viewport_state_create_info;
+    VkPipelineViewportStateCreateInfo viewport_state_create_info {};
     viewport_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     viewport_state_create_info.pNext = nullptr;
     viewport_state_create_info.flags = 0;
@@ -77,7 +77,7 @@ void graphics_pipeline::create( VkRenderPass render_pass, uint32_t viewport_widt
     viewport_state_create_info.scissorCount = 1;
     viewport_state_create_info.pScissors = &scissor;
     
-    VkPipelineRasterizationStateCreateInfo rasterization_state_create_info;
+    VkPipelineRasterizationStateCreateInfo rasterization_state_create_info {};
     rasterization_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterization_state_create_info.pNext = nullptr;
     rasterization_state_create_info.flags = 0;
@@ -93,7 +93,7 @@ void graphics_pipeline::create( VkRenderPass render_pass, uint32_t viewport_widt
     rasterization_state_create_info.depthBiasSlopeFactor = 0.0f;
     rasterization_state_create_info.lineWidth = 1.0f;
     
-    VkPipelineMultisampleStateCreateInfo multisample_state_create_info;
+    VkPipelineMultisampleStateCreateInfo multisample_state_create_info {};
     multisample_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisample_state_create_info.pNext = nullptr;
     multisample_state_create_info.flags = 0;
@@ -122,7 +122,7 @@ void graphics_pipeline::create( VkRenderPass render_pass, uint32_t viewport_widt
     depth_stencil_create_info.minDepthBounds = 0.0f;
     depth_stencil_create_info.maxDepthBounds = 1.0f;
     
-    VkPipelineColorBlendStateCreateInfo color_blend_create_info;
+    VkPipelineColorBlendStateCreateInfo color_blend_create_info {};
     color_blend_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     color_blend_create_info.pNext = nullptr;
     color_blend_create_info.flags = 0;
@@ -165,8 +165,8 @@ void graphics_pipeline::create( VkRenderPass render_pass, uint32_t viewport_widt
     pipeline_create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipeline_create_info.pNext = nullptr;
     pipeline_create_info.flags = 0;
-    pipeline_create_info.stageCount = static_cast<uint32_t>(_material->get_shader_stages().size());
-    pipeline_create_info.pStages = _material->get_shader_stages().data();
+    pipeline_create_info.stageCount = static_cast<uint32_t>(_material->get_shader_stages_size());
+    pipeline_create_info.pStages = _material->get_shader_stages();
     pipeline_create_info.pVertexInputState = &vertex_input_state_create_info;
     pipeline_create_info.pInputAssemblyState = &input_assembly_create_info;
     pipeline_create_info.pTessellationState = nullptr;
@@ -183,6 +183,8 @@ void graphics_pipeline::create( VkRenderPass render_pass, uint32_t viewport_widt
     pipeline_create_info.basePipelineIndex = -1;
     
     result = vkCreateGraphicsPipelines(_device->_logical_device, VK_NULL_HANDLE, 1, &pipeline_create_info, nullptr, &_pipeline);
+    
+    _material->commit_parameters_to_gpu();
 }
 
 void graphics_pipeline::destroy()

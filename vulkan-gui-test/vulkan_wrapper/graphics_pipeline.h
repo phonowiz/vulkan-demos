@@ -9,14 +9,15 @@
 #pragma once
 
 #include "device.h"
-#include "material.h"
+#include "visual_material.h"
+#include "pipeline.h"
 #include <array>
 
 namespace vk
 {
     class texture_2d;
     
-    class graphics_pipeline
+    class graphics_pipeline : public pipeline
     {
     public:
         
@@ -45,25 +46,25 @@ namespace vk
         };
         
         
-        graphics_pipeline(device* device, material_shared_ptr material )
+        graphics_pipeline(device* device, visual_mat_shared_ptr material ) :
+        pipeline(device)
         {
-            _device = device;
             _material = material;
             
             init_blend_attachments();
         };
         
-        graphics_pipeline(device* device)
+        graphics_pipeline(device* device) :
+        pipeline(device)
         {
-            _device = device;
             init_blend_attachments();
         }
         
         void create( VkRenderPass render_pass, uint32_t viewport_width, uint32_t viewport_height );
         void set_viewport(uint32_t width, uint32_t height){ _width = width; _height = height;};
         void set_cullmode(cull_mode mode){ _cull_mode = mode; };
-        void set_material(material_shared_ptr material ) { _material = material; }
-        inline void set_image_sampler(texture_2d* texture, const char* parameter_name, material::parameter_stage parameter_stage, uint32_t binding)
+        void set_material(visual_mat_shared_ptr material ) { _material = material; }
+        inline void set_image_sampler(texture_2d* texture, const char* parameter_name, visual_material::parameter_stage parameter_stage, uint32_t binding)
         {
             _material->set_image_sampler(texture, parameter_name, parameter_stage, binding);
         }
@@ -86,9 +87,7 @@ namespace vk
         ~graphics_pipeline(){};
         
     public:
-        VkPipeline _pipeline = VK_NULL_HANDLE;
-        VkPipelineLayout _pipeline_layout = VK_NULL_HANDLE;
-        material_shared_ptr _material = nullptr;
+        visual_mat_shared_ptr _material = nullptr;
     
     private:
         void init_blend_attachments();
@@ -102,9 +101,6 @@ namespace vk
         static const uint32_t BLEND_ATTACHMENTS = 10;
         std::array<VkPipelineColorBlendAttachmentState, BLEND_ATTACHMENTS> _blend_attachments {};
         uint32_t _num_blend_attachments = 1;
-        
-        
-        device* _device = nullptr;
         
     };
 }

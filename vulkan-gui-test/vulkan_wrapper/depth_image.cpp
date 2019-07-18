@@ -28,7 +28,7 @@ void depth_image::create(uint32_t width, uint32_t height)
     
     create_image_view( _image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, _image_view);
     
-    change_image_layout(_device->_commandPool, _device->_graphics_queue, _image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+    change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
                       VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
     
     create_sampler();

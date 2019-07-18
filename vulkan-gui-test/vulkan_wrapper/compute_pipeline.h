@@ -8,28 +8,35 @@
 
 #pragma once
 
-#include "texture_2d.h"
+#include "pipeline.h"
+#include "compute_material.h"
 
 namespace vk
 {
-    class texture_2d;
+    class device;
     
-    class compute_pipeline
+    class compute_pipeline : public pipeline
     {
     public:
-//        compute_pipeline(device* device, material_shared_ptr material )
-//        {
-//            _device = device;
-//            _material = material;
-//        };
-//        
-//        compute_pipeline(){};
         
-    public:
-        VkPipeline _pipeline = VK_NULL_HANDLE;
+        compute_pipeline(device* device, compute_mat_shared_ptr material) :
+        pipeline(device),
+        _material(material)
+        {
+        }
         
-        device* _device = nullptr;
         
+        inline void set_image_sampler(texture_2d* texture, const char* parameter_name, uint32_t binding)
+        {
+            assert(_material != nullptr && " no material assigned to this compute pipeline");
+            _material->set_image_sampler(texture, parameter_name, material_base::parameter_stage::COMPUTE, binding);
+        }
+        
+        compute_mat_shared_ptr _material = nullptr;
+        
+        void create();
+        
+    private:
     };
-}
+};
 
