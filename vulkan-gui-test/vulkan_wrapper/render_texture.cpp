@@ -28,8 +28,7 @@ texture_2d(device, width, height)
 
 void render_texture::create(uint32_t width, uint32_t height)
 {
-    create_image(_width,
-                 _height,
+    create_image(
                  static_cast<VkFormat>(_format),
                  VK_IMAGE_TILING_OPTIMAL,
                  static_cast<VkImageUsageFlagBits>(_usage),

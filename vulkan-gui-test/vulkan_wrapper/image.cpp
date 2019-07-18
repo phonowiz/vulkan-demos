@@ -10,23 +10,21 @@
 
 using namespace vk;
 
-void image::create_image( uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+void image::create_image(  VkFormat format, VkImageTiling tiling,
                           VkImageUsageFlags usage_flags, VkMemoryPropertyFlags property_flags)
 {
     
     VkImageCreateInfo image_create_info = {};
-    
-    _width = width;
-    _height = height;
+
     
     image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_create_info.pNext  = nullptr;
     image_create_info.flags = 0;
-    image_create_info.imageType = VK_IMAGE_TYPE_2D;
+    image_create_info.imageType = _depth == 1 ? VK_IMAGE_TYPE_2D : VK_IMAGE_TYPE_3D;
     image_create_info.format = format;
-    image_create_info.extent.width = width;
-    image_create_info.extent.height = height;
-    image_create_info.extent.depth = 1;
+    image_create_info.extent.width = _width;
+    image_create_info.extent.height = _height;
+    image_create_info.extent.depth = _depth;
     image_create_info.mipLevels = 1;
     image_create_info.arrayLayers = 1;
     image_create_info.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -35,6 +33,7 @@ void image::create_image( uint32_t width, uint32_t height, VkFormat format, VkIm
     //the following assignment depends on this assumption:
     assert(_device->_present_queue == _device->_graphics_queue);
     image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    
     image_create_info.queueFamilyIndexCount = 0;
     image_create_info.pQueueFamilyIndices = nullptr;
     image_create_info.initialLayout = VK_IMAGE_LAYOUT_PREINITIALIZED;
@@ -56,31 +55,6 @@ void image::create_image( uint32_t width, uint32_t height, VkFormat format, VkIm
     
     vkBindImageMemory(_device->_logical_device, _image, _image_memory, 0);
     
-}
-
-void image::create_image_view(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, VkImageView &image_view)
-{
-    
-    VkImageViewCreateInfo image_view_create_info;
-    
-    image_view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    image_view_create_info.pNext = nullptr;
-    image_view_create_info.flags = 0;
-    image_view_create_info.image = image;
-    image_view_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-    image_view_create_info.format = format;
-    image_view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-    image_view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-    image_view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-    image_view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-    image_view_create_info.subresourceRange.aspectMask = aspect_flags;
-    image_view_create_info.subresourceRange.baseMipLevel = 0;
-    image_view_create_info.subresourceRange.levelCount = 1;
-    image_view_create_info.subresourceRange.baseArrayLayer = 0;
-    image_view_create_info.subresourceRange.layerCount = 1;
-    
-    VkResult result = vkCreateImageView(_device->_logical_device, &image_view_create_info, nullptr, &image_view);
-    ASSERT_VULKAN(result);
 }
 
 void image::change_image_layout(VkCommandPool command_pool, VkQueue queue, VkImage image,

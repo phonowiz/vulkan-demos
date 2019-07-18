@@ -87,11 +87,12 @@ void texture_2d::create(uint32_t width, uint32_t height)
     assert(width != 0 && height != 0);
     _width = width;
     _height = height;
+    _depth = 1u;
     VkDeviceSize image_size = get_size_in_bytes();
 
 
-    VkBuffer staging_buffer;
-    VkDeviceMemory staging_buffer_memory;
+    VkBuffer staging_buffer {};
+    VkDeviceMemory staging_buffer_memory {};
     
     
     create_buffer(_device->_logical_device, _device->_physical_device, image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -105,8 +106,7 @@ void texture_2d::create(uint32_t width, uint32_t height)
         vkUnmapMemory(_device->_logical_device, staging_buffer_memory);
     }
     
-    create_image(_width,
-                _height,
+    create_image(
                 static_cast<VkFormat>(_format),
                 VK_IMAGE_TILING_OPTIMAL,
                 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
@@ -128,6 +128,31 @@ void texture_2d::create(uint32_t width, uint32_t height)
     create_image_view(_image, static_cast<VkFormat>(_format), VK_IMAGE_ASPECT_COLOR_BIT, _image_view);
     _uploaded = true;
 }
+
+void texture_2d::create_image_view(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, VkImageView &image_view)
+{
+    VkImageViewCreateInfo image_view_create_info {};
+    
+    image_view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    image_view_create_info.pNext = nullptr;
+    image_view_create_info.flags = 0;
+    image_view_create_info.image = image;
+    image_view_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    image_view_create_info.format = format;
+    image_view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+    image_view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+    image_view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+    image_view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+    image_view_create_info.subresourceRange.aspectMask = aspect_flags;
+    image_view_create_info.subresourceRange.baseMipLevel = 0;
+    image_view_create_info.subresourceRange.levelCount = 1;
+    image_view_create_info.subresourceRange.baseArrayLayer = 0;
+    image_view_create_info.subresourceRange.layerCount = 1;
+    
+    VkResult result = vkCreateImageView(_device->_logical_device, &image_view_create_info, nullptr, &image_view);
+    ASSERT_VULKAN(result);
+}
+
 void texture_2d::destroy()
 {
     if(_loaded)

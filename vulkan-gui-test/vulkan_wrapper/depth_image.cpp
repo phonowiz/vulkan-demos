@@ -14,7 +14,7 @@ void depth_image::create(uint32_t width, uint32_t height)
 {
     assert(!_created);
     
-    VkFormat depthFormat = _device->find_depth_format( );
+    VkFormat depth_format = _device->find_depth_format( );
     
     _width = width;
     _height = height;
@@ -22,13 +22,13 @@ void depth_image::create(uint32_t width, uint32_t height)
     VkImageUsageFlagBits usage_flags = _write_to_texture ? static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT) :
                             static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
     
-    create_image( width, height, depthFormat,
+    create_image( depth_format,
                 VK_IMAGE_TILING_OPTIMAL, usage_flags,
                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     
-    create_image_view( _image, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT, _image_view);
+    create_image_view( _image, depth_format, VK_IMAGE_ASPECT_DEPTH_BIT, _image_view);
     
-    change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+    change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, depth_format, VK_IMAGE_LAYOUT_UNDEFINED,
                       VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
     
     create_sampler();

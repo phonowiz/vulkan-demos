@@ -39,8 +39,6 @@ void material_store::create(device* device)
     
     shader_shared_ptr voxel_shader = add_shader("voxelizer.comp", shader::shader_type::COMPUTE);
     
-    
-    
     mat_shared_ptr standard_mat = CREATE_MAT<visual_material>("standard", standard_vert, standard_frag, device);
     add_material(standard_mat);
     

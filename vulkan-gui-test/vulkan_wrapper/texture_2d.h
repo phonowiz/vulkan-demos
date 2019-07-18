@@ -34,30 +34,19 @@ namespace vk
             return _ppixels;
         }
         
-        VkSampler get_sampler()
-        {
-            return _sampler;
-        }
-        
-        int get_channels()
-        {
-            assert(_channels == 4);
-            return _channels;
-        }
-        
         int get_size_in_bytes()
         {
             return get_width() * get_height() * get_channels();
         }
         
         void load();
-        virtual void create_sampler();
+        
+        virtual void create_sampler() override;
+        virtual void create_image_view(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, VkImageView &image_view) override;
+        
         void set_sampler(device* device){ }
         
         static const std::string texture_resource_path;
-        
-    protected:
-        VkSampler _sampler = VK_NULL_HANDLE;
     private:
         
         bool _loaded = false;
@@ -65,11 +54,6 @@ namespace vk
         
         stbi_uc *_ppixels = nullptr;
         std::string _path;
-        
-        //TODO: we only support 4 channels at the moment
-        uint32_t _channels = 4;
-        //TODO: we only support RGBA
-
     };
 }
 

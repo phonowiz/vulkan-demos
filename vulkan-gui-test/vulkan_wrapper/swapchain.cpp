@@ -181,7 +181,7 @@ void swapchain::print_stats()
     vkGetPhysicalDeviceSurfaceFormatsKHR(_device->_physical_device, _surface, &amountOfFormats, nullptr);
     
     assert( amountOfFormats < 100);
-    auto surfaceFormats = std::array<VkSurfaceFormatKHR, 100>();//new VkSurfaceFormatKHR[amountOfFormats];
+    auto surfaceFormats = std::array<VkSurfaceFormatKHR, 100>();
     vkGetPhysicalDeviceSurfaceFormatsKHR(_device->_physical_device, _surface, &amountOfFormats, surfaceFormats.data());
     
     std::cout << std::endl;
@@ -194,7 +194,7 @@ void swapchain::print_stats()
     uint32_t amountOfPresentationModes = 0;
     vkGetPhysicalDeviceSurfacePresentModesKHR(_device->_physical_device, _surface, &amountOfPresentationModes, nullptr);
     assert( amountOfPresentationModes < 100);
-    auto presentModes =std::array<VkPresentModeKHR, 100>(); //new VkPresentModeKHR[amountOfPresentationModes];
+    auto presentModes =std::array<VkPresentModeKHR, 100>(); 
     vkGetPhysicalDeviceSurfacePresentModesKHR(_device->_physical_device, _surface, &amountOfPresentationModes, presentModes.data());
     
     std::cout << std::endl;
