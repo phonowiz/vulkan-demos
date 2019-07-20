@@ -26,7 +26,7 @@ namespace vk
         texture_2d(device* device, uint32_t width, uint32_t height);
         texture_2d(device* device,const char* path);
         
-        virtual void create( uint32_t width, uint32_t height) override;
+        virtual void create( uint32_t width, uint32_t height);
         virtual void destroy() override;
         
         stbi_uc * get_raw()
@@ -40,17 +40,22 @@ namespace vk
         }
         
         void load();
+        virtual void create_image_view(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, VkImageView& image_view) override;
         
-        virtual void create_sampler() override;
-        virtual void create_image_view(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, VkImageView &image_view) override;
-        
-        void set_sampler(device* device){ }
+        virtual const void* const get_instance_type(){ return _image_type; }
+        static const void* const  get_class_type(){ return _image_type; }
         
         static const std::string texture_resource_path;
+        
+    protected:
+        virtual void create_sampler() override;
     private:
         
+        static constexpr void* _image_type = nullptr;
+        
+        
         bool _loaded = false;
-        bool _uploaded = false;
+        bool _initialized = false;
         
         stbi_uc *_ppixels = nullptr;
         std::string _path;

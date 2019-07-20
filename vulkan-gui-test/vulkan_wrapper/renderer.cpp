@@ -226,16 +226,15 @@ void renderer::record_command_buffers(mesh* meshes, size_t number_of_meshes)
         render_pass_create_info.renderArea.offset = { 0, 0 };
         render_pass_create_info.renderArea.extent = { _swapchain->_swapchain_data.swapchain_extent.width,
                                                         _swapchain->_swapchain_data.swapchain_extent.height };
-        VkClearValue clearValue = {0.0f, 0.0f, 0.0f, 1.0f};
-        VkClearValue depthClearValue = {1.0f, 0.0f};
+        VkClearValue clear_value = {0.0f, 0.0f, 0.0f, 1.0f};
+        VkClearValue depth_clear_value = {1.0f, 0.0f};
         
         std::array<VkClearValue,2> clear_values;
-        clear_values[0] = clearValue;
-        clear_values[1] = depthClearValue;
+        clear_values[0] = clear_value;
+        clear_values[1] = depth_clear_value;
         
         render_pass_create_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
         render_pass_create_info.pClearValues = clear_values.data();
-        
         
         vkCmdBeginRenderPass(_command_buffers[i], &render_pass_create_info, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline._pipeline);
@@ -350,7 +349,6 @@ void renderer::init()
     _swapchain->recreate_swapchain();
     
     create_frame_buffers();
-    //create_pipeline();
     create_semaphores_and_fences();
     create_command_buffer(&_command_buffers, _device->_present_command_pool);
     

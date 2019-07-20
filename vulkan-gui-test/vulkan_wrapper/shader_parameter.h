@@ -12,6 +12,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/glm.hpp"
 #include "texture_2d.h"
+#include "texture_3d.h"
 
 #include <map>
 
@@ -37,7 +38,7 @@ namespace vk
             BOOLEAN,
             UINT,
             SAMPLER_2D,
-            //        SAMPLER_3D,
+            SAMPLER_3D,
             //        POINT_LIGHT,
             NONE
             
@@ -54,7 +55,8 @@ namespace vk
             int     intValue;
             unsigned int    uintValue;
             texture_2d*   sampler2D;
-            //        Texture3D*   sampler3D;
+            texture_3d*   sampler3D;
+            
             glm::mat4 mat4;
             //        PointLight pointLight;
             bool     boolean;
@@ -114,6 +116,10 @@ namespace vk
                     break;
                 case Type::SAMPLER_2D:
                     return sizeof (texture_2d);
+                    break;
+                case Type::SAMPLER_3D:
+                    return sizeof (texture_3d);
+                    break;
                 case Type::NONE:
                     assert(0);
                     break;
@@ -122,72 +128,30 @@ namespace vk
             return 0;
         }
         
-// TODO: do i really need these functions?  they used to be useful in opengl, in vulkan get_stored_value_memory might be good enough
-        
-//        inline int get_int_value()
-//        {
-//            assert(type == Type::INT);
-//            return value.intValue;
-//        }
-//        
-//        inline unsigned int get_unsigned_int()
-//        {
-//            assert(type == Type::UINT);
-//            return value.uintValue;
-//        }
-//        inline float getFloatValue()
-//        {
-//            assert(type == Type::FLOAT);
-//            return value.floatValue;
-//        }
-//        
-//        inline glm::vec2 getVec2Value()
-//        {
-//            assert( type == Type::VEC2);
-//            return value.vector2;
-//        }
-//        
-//        inline glm::vec3 getVec3Value()
-//        {
-//            assert( type == Type::VEC3);
-//            return value.vector3;
-//        }
-//        
-//        inline glm::vec4 getVec4Value()
-//        {
-//            assert(type == Type::VEC4);
-//            return value.vector4;
-//        }
-//        
         inline texture_2d* get_texture_2d()
         {
             assert(type == Type::SAMPLER_2D);
             return value.sampler2D;
         }
-//        //
-//        //    inline Texture3D* getSampler3DValue()
-//        //    {
-//        //        assert(type == Type::SAMPLER_3D);
-//        //        return value.sampler3D;
-//        //    }
-//        
-//        inline glm::mat4 getMat4Value()
-//        {
-//            assert(type == Type::MAT4);
-//            return value.mat4;
-//        }
-//        
-//        //    inline PointLight& getPointLightValue()
-//        //    {
-//        //        assert(type == Type::POINT_LIGHT);
-//        //        return value.pointLight;
-//        //    }
-//        
-//        inline bool getBoolValue()
-//        {
-//            assert(type == Type::BOOLEAN);
-//            return value.boolean;
-//        }
+        
+        inline texture_3d* get_texture_3d()
+        {
+            assert(type == Type::SAMPLER_3D);
+            return value.sampler3D;
+        }
+        
+        inline image* get_image()
+        {
+            assert(type == Type::SAMPLER_2D || type == Type::SAMPLER_3D);
+            
+            if(type == Type::SAMPLER_2D)
+            {
+                return static_cast<image*>(value.sampler2D);
+            }
+            
+            return static_cast<image*>(value.sampler3D);
+        }
+        
         
         inline shader_parameter& operator=(const glm::mat4 &value)
         {
@@ -261,13 +225,38 @@ namespace vk
             return *this;
         }
         
-        //    inline ShaderParameter& operator=(Texture3D* sampler)
-        //    {
-        //        type = Type::SAMPLER_3D;
-        //        this->value.sampler3D = sampler;
-        //        return *this;
-        //    }
-        //
+        inline shader_parameter& operator=(texture_3d* sampler)
+        {
+            assert( type == Type::NONE || type == Type::SAMPLER_3D);
+            type = Type::SAMPLER_3D;
+            this->value.sampler3D = sampler;
+            
+            return *this;
+        }
+        
+        inline shader_parameter& operator=(image* sampler)
+        {
+            assert( type == Type::NONE || type == Type::SAMPLER_3D || type == Type::SAMPLER_2D);
+            
+            if(sampler->get_instance_type() == texture_3d::get_class_type())
+            {
+                type = Type::SAMPLER_3D;
+                value.sampler3D = static_cast<texture_3d*>( sampler );
+            }
+            else if( sampler->get_instance_type() == texture_2d::get_class_type())
+            {
+                type = Type::SAMPLER_2D;
+                value.sampler2D = static_cast<texture_2d*>( sampler );
+            }
+            else
+            {
+                assert(0 && "image type not recognized");
+            }
+            
+            return *this;
+        }
+        
+
         //    inline ShaderParameter& operator=(const PointLight &light)
         //    {
         //        type = Type::POINT_LIGHT;
@@ -328,12 +317,12 @@ namespace vk
             value.sampler2D = _value;
             type = Type::SAMPLER_2D;
         }
-        //
-        //    ShaderParameter(Texture3D* _value)
-        //    {
-        //        value.sampler3D = _value;
-        //        type = Type::SAMPLER_3D;
-        //    }
+    
+        shader_parameter(texture_3d* _value)
+        {
+            value.sampler3D = _value;
+            type = Type::SAMPLER_3D;
+        }
         
     private:
         

@@ -46,10 +46,8 @@ void material_base::create_descriptor_sets()
     {
         for( std::pair<const char*, shader_parameter> pair2 : pair.second)
         {
-            //TODO: what about sampler 3D?
-            texture_2d* texture = pair2.second.get_texture_2d();
-            descriptor_image_infos[count].sampler = texture->get_sampler();
-            descriptor_image_infos[count].imageView = texture->get_image_view();
+            descriptor_image_infos[count].sampler = pair2.second.get_image()->get_sampler();
+            descriptor_image_infos[count].imageView = pair2.second.get_image()->get_image_view();
             descriptor_image_infos[count].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             
             write_descriptor_sets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -224,13 +222,23 @@ void material_base::init_shader_parameters()
     
     _initialized = true;
 }
-void material_base::set_image_sampler(texture_2d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding)
+void material_base::set_image_sampler(image* texture, const char* parameter_name, parameter_stage stage, uint32_t binding)
 {
     buffer_info& mem = _sampler_buffers[stage][parameter_name];
     mem.binding = binding;
     mem.usageType = usage_type::COMBINED_IMAGE_SAMPLER;
-    
+
     _sampler_parameters[stage][parameter_name] = texture;
+}
+
+void material_base::set_image_smapler(texture_2d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding)
+{
+    set_image_sampler(static_cast<image*>(texture), parameter_name, stage, binding);
+}
+
+void material_base::set_image_sampler(texture_3d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding)
+{
+    set_image_sampler(static_cast<image*>(texture), parameter_name, stage, binding);
 }
 
 void material_base::commit_parameters_to_gpu( )

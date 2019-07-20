@@ -267,11 +267,13 @@ int main()
     else
     {
 
-        vk::renderer renderer(&device,window, &swapchain, standard_mat);
-        //vk::renderer renderer(&device, window, &swapchain, display_mat);
+        //vk::renderer renderer(&device,window, &swapchain, standard_mat);
+        vk::renderer renderer(&device, window, &swapchain, display_mat);
+        vk::texture_3d tex_3d(&device, 256u, 256u, 256u);
+        renderer.get_material()->set_image_sampler(&tex_3d, "tex_3d", vk::visual_material::parameter_stage::FRAGMENT, 1);
         
-        renderer.add_mesh(&mesh);
-        //renderer.add_mesh(&plane);
+        //renderer.add_mesh(&mesh);
+        renderer.add_mesh(&plane);
         
         texture = &mario;
         app.physical_device = &device;
@@ -279,13 +281,13 @@ int main()
         app.renderer = &renderer;
         app.deferred_renderer = nullptr;
 
-        updateMVP2();
-        //updateWithOrtho();
+        //updateMVP2();
+        updateWithOrtho();
         
         renderer.init();
 
-        gameLoop2(renderer);
-        //gameLoopOrtho(renderer);
+        //gameLoop2(renderer);
+        gameLoopOrtho(renderer);
         
         renderer.destroy();
         

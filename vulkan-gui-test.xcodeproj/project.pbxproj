@@ -40,7 +40,6 @@
 		B9E1EED12213F341006DBA67 /* material_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9E1EECF2213F341006DBA67 /* material_store.cpp */; };
 		B9E1EED42213F6B0006DBA67 /* shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9E1EED22213F6B0006DBA67 /* shader.cpp */; };
 		B9E1EED72213F723006DBA67 /* resource.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9E1EED52213F723006DBA67 /* resource.cpp */; };
-		B9E1EEED22166AC4006DBA67 /* shader_parameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9E1EEEB22166AC4006DBA67 /* shader_parameter.cpp */; };
 		B9E1EEF12217C357006DBA67 /* image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9E1EEEF2217C357006DBA67 /* image.cpp */; };
 		B9E92BCC220D4AD20060F755 /* swapchain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9E92BCA220D4AD20060F755 /* swapchain.cpp */; };
 		B9E92BCF220D545B0060F755 /* device.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9E92BCD220D545B0060F755 /* device.cpp */; };
@@ -125,7 +124,6 @@
 		B9E1EED22213F6B0006DBA67 /* shader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = shader.cpp; sourceTree = "<group>"; };
 		B9E1EED52213F723006DBA67 /* resource.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = resource.cpp; sourceTree = "<group>"; };
 		B9E1EED62213F723006DBA67 /* resource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = resource.h; sourceTree = "<group>"; };
-		B9E1EEEB22166AC4006DBA67 /* shader_parameter.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = shader_parameter.cpp; sourceTree = "<group>"; };
 		B9E1EEEC22166AC4006DBA67 /* shader_parameter.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = shader_parameter.h; sourceTree = "<group>"; };
 		B9E1EEEF2217C357006DBA67 /* image.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = image.cpp; sourceTree = "<group>"; };
 		B9E1EEF02217C357006DBA67 /* image.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = image.h; sourceTree = "<group>"; };
@@ -298,7 +296,6 @@
 				B9E92BD1220D69FB0060F755 /* renderer.h */,
 				B9E1EED52213F723006DBA67 /* resource.cpp */,
 				B9E1EED62213F723006DBA67 /* resource.h */,
-				B9E1EEEB22166AC4006DBA67 /* shader_parameter.cpp */,
 				B9E1EEEC22166AC4006DBA67 /* shader_parameter.h */,
 				B9E1EED22213F6B0006DBA67 /* shader.cpp */,
 				B94CEB972246FA7C001AEDEE /* shader.h */,
@@ -395,7 +392,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B9E1EEED22166AC4006DBA67 /* shader_parameter.cpp in Sources */,
 				B9E1EEF12217C357006DBA67 /* image.cpp in Sources */,
 				B9E1EED12213F341006DBA67 /* material_store.cpp in Sources */,
 				B9E92BCF220D545B0060F755 /* device.cpp in Sources */,

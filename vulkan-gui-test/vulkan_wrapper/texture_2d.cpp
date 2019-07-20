@@ -57,7 +57,7 @@ void texture_2d::load( )
 
 void texture_2d::create_sampler()
 {
-    VkSamplerCreateInfo sampler_create_info;
+    VkSamplerCreateInfo sampler_create_info {};
     
     sampler_create_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     sampler_create_info.pNext = nullptr;
@@ -126,10 +126,10 @@ void texture_2d::create(uint32_t width, uint32_t height)
     vkFreeMemory(_device->_logical_device, staging_buffer_memory, nullptr);
     
     create_image_view(_image, static_cast<VkFormat>(_format), VK_IMAGE_ASPECT_COLOR_BIT, _image_view);
-    _uploaded = true;
+    _initialized = true;
 }
 
-void texture_2d::create_image_view(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, VkImageView &image_view)
+void texture_2d::create_image_view(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, VkImageView& image_view)
 {
     VkImageViewCreateInfo image_view_create_info {};
     
@@ -161,17 +161,9 @@ void texture_2d::destroy()
         _loaded = false;
     }
     
-    if(_uploaded)
+    if(_initialized)
     {
-        vkDestroySampler(_device->_logical_device, _sampler, nullptr);
-        vkDestroyImageView(_device->_logical_device, _image_view, nullptr);
-        vkDestroyImage(_device->_logical_device, _image, nullptr);
-        vkFreeMemory(_device->_logical_device, _image_memory, nullptr);
-        _sampler = VK_NULL_HANDLE;
-        _image_view = VK_NULL_HANDLE;
-        _image = VK_NULL_HANDLE;
-        _image_memory = VK_NULL_HANDLE;
-        
-        _uploaded = false;
+        image::destroy();
+        _initialized = false;
     }
 }

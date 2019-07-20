@@ -28,6 +28,8 @@ namespace vk
         
         bool is_stencil_format(VkFormat format);
         
+        virtual void destroy() override;
+        
         virtual ~image(){}
         
         void set_device(device* device){ _device = device;}
@@ -63,18 +65,10 @@ namespace vk
             return _height;
         }
         
-        void write_buffer_to_image(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer);
-        
         device*         _device = nullptr;
         VkImage         _image =        VK_NULL_HANDLE;
         VkDeviceMemory  _image_memory =  VK_NULL_HANDLE;
         VkImageView     _image_view =   VK_NULL_HANDLE;
-
-        
-        virtual void create(uint32_t width, uint32_t height) = 0;
-        virtual void create_sampler() = 0;
-        virtual void create_image_view( VkImage image, VkFormat format,
-                               VkImageAspectFlags aspectFlags, VkImageView &imageView) = 0;
         
         enum class formats
         {
@@ -86,6 +80,14 @@ namespace vk
         //TODO: Should this be public
         formats _format = formats::R8G8B8A8;
         
+        virtual const void* const get_instance_type() = 0;
+    protected:
+        
+        virtual void create_sampler() = 0;
+        virtual void create_image_view( VkImage image, VkFormat format,
+                                       VkImageAspectFlags aspectFlags, VkImageView& image_view) = 0;
+        void write_buffer_to_image(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer);
+    
     protected:
         VkSampler _sampler = VK_NULL_HANDLE;
         //TODO: we only support 4 channels at the moment

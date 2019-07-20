@@ -73,7 +73,9 @@ namespace vk
         inline VkDescriptorSet* get_descriptor_set(){ return &_descriptor_set; }
         
         virtual void destroy() override {   _initialized = false; }
-        void set_image_sampler(texture_2d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding);
+        void set_image_sampler(image* texture, const char* parameter_name, parameter_stage stage, uint32_t binding);
+        void set_image_smapler(texture_2d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding);
+        void set_image_sampler(texture_3d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding);
         
         virtual VkPipelineShaderStageCreateInfo* get_shader_stages() = 0;
         virtual size_t get_shader_stages_size() = 0;

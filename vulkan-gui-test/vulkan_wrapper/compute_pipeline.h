@@ -32,6 +32,12 @@ namespace vk
             _material->set_image_sampler(texture, parameter_name, material_base::parameter_stage::COMPUTE, binding);
         }
         
+        inline void set_image_sampler(texture_3d* texture, const char* parameter_name, uint32_t binding)
+        {
+            assert(_material != nullptr && " no material assigned to this compute pipeline");
+            _material->set_image_sampler(texture, parameter_name, material_base::parameter_stage::COMPUTE, binding);
+        }
+        
         compute_mat_shared_ptr _material = nullptr;
         
         void create();
