@@ -28,7 +28,7 @@ shader_parameter::shader_params_group& visual_material::get_uniform_parameters(p
     
     buffer_info& mem = _uniform_buffers[stage];
     mem.binding = binding;
-    mem.usageType = usage_type::UNIFORM_BUFFER;
+    mem.usage_type = usage_type::UNIFORM_BUFFER;
     
     return _uniform_parameters[stage];
     

@@ -11,6 +11,7 @@
 #include "device.h"
 #include "visual_material.h"
 #include "pipeline.h"
+#include "resource.h"
 #include <array>
 
 namespace vk
@@ -64,9 +65,9 @@ namespace vk
         void set_viewport(uint32_t width, uint32_t height){ _width = width; _height = height;};
         void set_cullmode(cull_mode mode){ _cull_mode = mode; };
         void set_material(visual_mat_shared_ptr material ) { _material = material; }
-        inline void set_image_sampler(texture_2d* texture, const char* parameter_name, visual_material::parameter_stage parameter_stage, uint32_t binding)
+        inline void set_image_sampler(texture_2d* texture, const char* parameter_name, visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
         {
-            _material->set_image_sampler(texture, parameter_name, parameter_stage, binding);
+            _material->set_image_sampler(texture, parameter_name, parameter_stage, binding, usage);
         }
         
         inline void set_number_of_blend_attachments(int num_blend_attacments)

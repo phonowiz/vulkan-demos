@@ -65,6 +65,8 @@ namespace vk
             return _height;
         }
         
+
+        
         device*         _device = nullptr;
         VkImage         _image =        VK_NULL_HANDLE;
         VkDeviceMemory  _image_memory =  VK_NULL_HANDLE;
@@ -77,11 +79,17 @@ namespace vk
             DEPTH_32_STENCIL_8 = VK_FORMAT_D32_SFLOAT_S8_UINT,
             DEPTH_24_STENCIL_8 = VK_FORMAT_D24_UNORM_S8_UINT
         };
-        //TODO: Should this be public
-        formats _format = formats::R8G8B8A8;
+
+        
+        inline formats get_format()
+        {
+            return _format;
+        }
         
         virtual const void* const get_instance_type() = 0;
     protected:
+        
+        formats _format = formats::R8G8B8A8;
         
         virtual void create_sampler() = 0;
         virtual void create_image_view( VkImage image, VkFormat format,

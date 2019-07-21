@@ -33,6 +33,7 @@ namespace  vk
         enum class usage_type
         {
             COMBINED_IMAGE_SAMPLER = VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+            STORAGE_IMAGE = VkDescriptorType::VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
             UNIFORM_BUFFER = VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             INVALID = VkDescriptorType::VK_DESCRIPTOR_TYPE_MAX_ENUM
         };
@@ -42,7 +43,7 @@ namespace  vk
         {
             VkBuffer        uniformBuffer =         VK_NULL_HANDLE;
             VkDeviceMemory  uniform_buffer_memory =   VK_NULL_HANDLE;
-            usage_type       usageType =             usage_type::INVALID;
+            usage_type       usage_type =             usage_type::INVALID;
             uint32_t        binding   =             0;
             size_t          size      =             0;
         };

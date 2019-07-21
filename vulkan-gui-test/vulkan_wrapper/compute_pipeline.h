@@ -10,6 +10,7 @@
 
 #include "pipeline.h"
 #include "compute_material.h"
+#include "resource.h"
 
 namespace vk
 {
@@ -26,16 +27,16 @@ namespace vk
         }
         
         
-        inline void set_image_sampler(texture_2d* texture, const char* parameter_name, uint32_t binding)
+        inline void set_image_sampler(texture_2d* texture, const char* parameter_name, uint32_t binding, resource::usage_type usage)
         {
             assert(_material != nullptr && " no material assigned to this compute pipeline");
-            _material->set_image_sampler(texture, parameter_name, material_base::parameter_stage::COMPUTE, binding);
+            _material->set_image_sampler(texture, parameter_name, material_base::parameter_stage::COMPUTE, binding, usage);
         }
         
-        inline void set_image_sampler(texture_3d* texture, const char* parameter_name, uint32_t binding)
+        inline void set_image_sampler(texture_3d* texture, const char* parameter_name, uint32_t binding, resource::usage_type usage)
         {
             assert(_material != nullptr && " no material assigned to this compute pipeline");
-            _material->set_image_sampler(texture, parameter_name, material_base::parameter_stage::COMPUTE, binding);
+            _material->set_image_sampler(texture, parameter_name, material_base::parameter_stage::COMPUTE, binding, usage);
         }
         
         compute_mat_shared_ptr _material = nullptr;

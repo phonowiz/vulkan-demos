@@ -70,7 +70,7 @@ void material_base::create_descriptor_sets()
     
     for (std::pair<parameter_stage , resource::buffer_info > pair : _uniform_buffers)
     {
-        assert(usage_type::INVALID != pair.second.usageType);
+        assert(usage_type::INVALID != pair.second.usage_type);
         
         descriptor_buffer_infos[count].buffer = pair.second.uniformBuffer;
         descriptor_buffer_infos[count].offset = 0;
@@ -106,7 +106,7 @@ void material_base::create_descriptor_pool()
     {
         for(std::pair<const char*, buffer_info> pair2: pair.second)
         {
-            descriptor_pool_sizes[count].type = static_cast<VkDescriptorType>(pair2.second.usageType);
+            descriptor_pool_sizes[count].type = static_cast<VkDescriptorType>(pair2.second.usage_type);
             descriptor_pool_sizes[count].descriptorCount = 1;
             
             ++count;
@@ -117,7 +117,7 @@ void material_base::create_descriptor_pool()
     
     for (std::pair<parameter_stage , resource::buffer_info > pair : _uniform_buffers)
     {
-        descriptor_pool_sizes[count].type = static_cast<VkDescriptorType>(pair.second.usageType);
+        descriptor_pool_sizes[count].type = static_cast<VkDescriptorType>(pair.second.usage_type);
         descriptor_pool_sizes[count].descriptorCount = 1;
         
         ++count;
@@ -150,7 +150,7 @@ void material_base::create_descriptor_set_layout()
         for(std::pair<const char*, buffer_info> pair2 : pair.second)
         {
             _descriptor_set_layout_bindings[count].binding = pair2.second.binding;
-            _descriptor_set_layout_bindings[count].descriptorType = static_cast<VkDescriptorType>(pair2.second.usageType);
+            _descriptor_set_layout_bindings[count].descriptorType = static_cast<VkDescriptorType>(pair2.second.usage_type);
             _descriptor_set_layout_bindings[count].descriptorCount = 1;
             _descriptor_set_layout_bindings[count].stageFlags = static_cast<VkShaderStageFlagBits>(pair.first);
             _descriptor_set_layout_bindings[count].pImmutableSamplers = nullptr;
@@ -162,7 +162,7 @@ void material_base::create_descriptor_set_layout()
     for (std::pair<parameter_stage , resource::buffer_info > pair : _uniform_buffers)
     {
         _descriptor_set_layout_bindings[count].binding = pair.second.binding;
-        _descriptor_set_layout_bindings[count].descriptorType = static_cast<VkDescriptorType>(pair.second.usageType);
+        _descriptor_set_layout_bindings[count].descriptorType = static_cast<VkDescriptorType>(pair.second.usage_type);
         _descriptor_set_layout_bindings[count].descriptorCount = 1;
         _descriptor_set_layout_bindings[count].stageFlags = static_cast<VkShaderStageFlagBits>(pair.first);
         _descriptor_set_layout_bindings[count].pImmutableSamplers = nullptr;
@@ -222,23 +222,23 @@ void material_base::init_shader_parameters()
     
     _initialized = true;
 }
-void material_base::set_image_sampler(image* texture, const char* parameter_name, parameter_stage stage, uint32_t binding)
+void material_base::set_image_sampler(image* texture, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage)
 {
     buffer_info& mem = _sampler_buffers[stage][parameter_name];
     mem.binding = binding;
-    mem.usageType = usage_type::COMBINED_IMAGE_SAMPLER;
+    mem.usage_type = usage;
 
     _sampler_parameters[stage][parameter_name] = texture;
 }
 
-void material_base::set_image_smapler(texture_2d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding)
+void material_base::set_image_smapler(texture_2d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage)
 {
-    set_image_sampler(static_cast<image*>(texture), parameter_name, stage, binding);
+    set_image_sampler(static_cast<image*>(texture), parameter_name, stage, binding, usage);
 }
 
-void material_base::set_image_sampler(texture_3d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding)
+void material_base::set_image_sampler(texture_3d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage)
 {
-    set_image_sampler(static_cast<image*>(texture), parameter_name, stage, binding);
+    set_image_sampler(static_cast<image*>(texture), parameter_name, stage, binding,usage);
 }
 
 void material_base::commit_parameters_to_gpu( )
@@ -252,7 +252,7 @@ void material_base::commit_parameters_to_gpu( )
         shader_parameter::shader_params_group& group = _uniform_parameters[pair.first];
         if(mem.uniform_buffer_memory != VK_NULL_HANDLE)
         {
-            if(mem.usageType == usage_type::UNIFORM_BUFFER)
+            if(mem.usage_type == usage_type::UNIFORM_BUFFER)
             {
                 void* data = nullptr;
                 vkMapMemory(_device->_logical_device, mem.uniform_buffer_memory, 0, mem.size, 0, &data);

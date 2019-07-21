@@ -42,8 +42,8 @@ _voxelize_pipeline(device, store.GET_MAT<compute_material>("voxelizer"))
     _material->init_parameter("width", visual_material::parameter_stage::VERTEX, 0.f, 0);
     _material->init_parameter("height", visual_material::parameter_stage::VERTEX, 0.f, 0);
     
-    _voxelize_pipeline.set_image_sampler(&_depth, "depth_texture", 0);
-    _voxelize_pipeline.set_image_sampler(&_depth, "3d_texture", 1);
+    _voxelize_pipeline.set_image_sampler(&_depth, "depth_texture", 0, resource::usage_type::COMBINED_IMAGE_SAMPLER);
+    _voxelize_pipeline.set_image_sampler(&_depth, "3d_texture", 1, resource::usage_type::STORAGE_IMAGE);
     
     //TODO: I think maybe material should be private and we should have a function that does this for us,
     //we can already set image samplers using the pipeline object.  Also, consider creating a frame buffer object which houses
@@ -84,10 +84,10 @@ void deferred_renderer::create_render_pass()
     //note: the last attachment is the depth texture, check create_frame_buffers function, frame buffer will assume this as well
     attachment_descriptions[attachment_descriptions.size() - 1] = _depth.get_depth_attachment();
     
-    attachment_descriptions[0].format = static_cast<VkFormat>(_normals._format);
-    attachment_descriptions[1].format = static_cast<VkFormat>(_albedo._format);
-    attachment_descriptions[2].format = static_cast<VkFormat>(_positions._format);
-    attachment_descriptions[3].format = static_cast<VkFormat>(_depth._format);
+    attachment_descriptions[0].format = static_cast<VkFormat>(_normals.get_format());
+    attachment_descriptions[1].format = static_cast<VkFormat>(_albedo.get_format());
+    attachment_descriptions[2].format = static_cast<VkFormat>(_positions.get_format());
+    attachment_descriptions[3].format = static_cast<VkFormat>(_depth.get_format());
     
     std::array<VkAttachmentReference, 3> color_references {};
     //note: the first integer in the instruction is the attachment location specified in the shader
@@ -321,10 +321,10 @@ void deferred_renderer::perform_final_drawing_setup()
         _mrt_pipeline.set_material(_mrt_material);
         _pipeline.set_material(_material);
         //note: the last argument is the binding number specified in the material's shader
-        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_normals), "normals", visual_material::parameter_stage::FRAGMENT, 1);
-        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_albedo), "albedo", visual_material::parameter_stage::FRAGMENT, 2);
-        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_positions), "positions", visual_material::parameter_stage::FRAGMENT, 3);
-        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_depth), "depth", visual_material::parameter_stage::FRAGMENT, 4);
+        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_normals), "normals", visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::COMBINED_IMAGE_SAMPLER);
+        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_albedo), "albedo", visual_material::parameter_stage::FRAGMENT, 2, resource::usage_type::COMBINED_IMAGE_SAMPLER);
+        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_positions), "positions", visual_material::parameter_stage::FRAGMENT, 3, resource::usage_type::COMBINED_IMAGE_SAMPLER);
+        _pipeline.set_image_sampler(static_cast<texture_2d*>(&_depth), "depth", visual_material::parameter_stage::FRAGMENT, 4, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         
         setup_initialized = true;
     }

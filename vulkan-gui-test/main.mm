@@ -201,7 +201,7 @@ void updateWithOrtho()
     vertexParams["height"] = height;
     
     
-    display_mat->set_image_sampler(texture, "tex", vk::visual_material::parameter_stage::FRAGMENT, 1);
+    display_mat->set_image_sampler(texture, "tex", vk::visual_material::parameter_stage::FRAGMENT, 1, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
     
     display_mat->commit_parameters_to_gpu();
     
@@ -270,7 +270,7 @@ int main()
         //vk::renderer renderer(&device,window, &swapchain, standard_mat);
         vk::renderer renderer(&device, window, &swapchain, display_mat);
         vk::texture_3d tex_3d(&device, 256u, 256u, 256u);
-        renderer.get_material()->set_image_sampler(&tex_3d, "tex_3d", vk::visual_material::parameter_stage::FRAGMENT, 1);
+        renderer.get_material()->set_image_sampler(&tex_3d, "tex_3d", vk::visual_material::parameter_stage::FRAGMENT, 1, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
         
         //renderer.add_mesh(&mesh);
         renderer.add_mesh(&plane);
