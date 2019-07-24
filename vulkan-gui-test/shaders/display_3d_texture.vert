@@ -6,6 +6,7 @@
 
 
 layout(location = 0) in vec3 pos;
+
 layout(location = 0) out vec3 frag_world_position;
 layout(location = 1) out vec3 eye_world_position;
 

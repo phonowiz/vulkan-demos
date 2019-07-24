@@ -1,5 +1,5 @@
 #version 450 core
-
+#extension GL_ARB_separate_shader_objects : enable
 
 //Author:  Rafael Sabino
 // Date:    02/28/2018
@@ -19,14 +19,11 @@ layout(location = 0) in  vec3 frag_world_position;
 layout(binding = 1) uniform UBO
 {
     vec3    eye_world_position;
-    float   focal_length;
 }ubo;
 
-layout(binding = 2) uniform sampler2D texture_3d;
+layout(binding = 2) uniform sampler3D texture_3d;
 
 layout(location = 0) out vec4 out_color;
-
-
 
 struct Ray {
     vec3 Origin;
@@ -68,27 +65,26 @@ void main()
     out_color = vec4(1.0f);
     if(IntersectBox(eye, aabb, tnear, tfar))
     {
-//        if (tnear < 0.0) tnear = 0.0;
-//
-//        vec3 rayStart = eye.Origin + eye.Dir * tnear;
-//        vec3 rayStop = eye.Origin + eye.Dir * tfar;
-//
-//        // Transform from object space to texture coordinate space:
-//        // note that the box we are intersecting against has dimension ranges from -1 to 1 in all axis
-//        rayStart = 0.5 * (rayStart + 1.0);
-//        rayStop = 0.5 * (rayStop + 1.0);
-//
-//        // Perform the ray marching:
-//        vec3 pos = rayStart;
-//        vec3 step = normalize(rayStop-rayStart) * stepSize;
-//        float travel = distance(rayStop, rayStart);
-//
-//        for (int i=0; i < maxSamples && travel > 0.0; ++i, pos += step, travel -= stepSize)
-//        {
-//            vec3 samplePoint = pos;
-//            fragColor += texture(texture3D, samplePoint);
-//        }
-        out_color = vec4(1.0f, 1.0f, 0.0f, 1.0f);
+        if (tnear < 0.0) tnear = 0.0;
+
+        vec3 ray_start = eye.Origin + eye.Dir * tnear;
+        vec3 ray_stop = eye.Origin + eye.Dir * tfar;
+
+        // Transform from object space to texture coordinate space:
+        // note that the box we are intersecting against has dimension ranges from -1 to 1 in all axis
+        ray_start = 0.5 * (ray_start + 1.0);
+        ray_stop = 0.5 * (ray_stop + 1.0);
+
+        // Perform the ray marching:
+        vec3 pos = ray_start;
+        vec3 step = normalize(ray_stop-ray_start) * step_size;
+        float travel = distance(ray_stop, ray_start);
+
+        for (int i=0; i < max_samples && travel > 0.0; ++i, pos += step, travel -= step_size)
+        {
+            out_color += texture(texture_3d, pos);
+        }
+        //out_color = vec4(1.0f, 1.0f, 0.0f, 1.0f);
     }
     
 

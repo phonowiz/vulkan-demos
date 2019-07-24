@@ -118,8 +118,9 @@ void update_3d_texture_rendering_params( vk::renderer& renderer)
     
     vertex_params["mvp"] = projection * view * model;
     vertex_params["model"] = model;
-    vertex_params["eye_world_position"] = eye;
     
+    vk::shader_parameter::shader_params_group& fragment_params =   renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
+    fragment_params["eye_world_position"] = eye;
 }
 
 
