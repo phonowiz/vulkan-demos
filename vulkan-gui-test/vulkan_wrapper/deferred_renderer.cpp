@@ -408,6 +408,8 @@ void deferred_renderer::draw()
     present_info.pImageIndices = &image_index;
     present_info.pResults = nullptr;
     result = vkQueuePresentKHR(_device->_present_queue, &present_info);
+    
+    //todo: check to see if you can collapse the 3 vkQueueSubmit calls into one, per nvidia: https://devblogs.nvidia.com/vulkan-dos-donts/
 
     ASSERT_VULKAN(result);
 }

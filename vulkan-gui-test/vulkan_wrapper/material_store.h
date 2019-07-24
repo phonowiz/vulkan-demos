@@ -24,20 +24,21 @@ namespace vk
     {
         
     public:
-        static material_store const& getInstance();
         
         ~material_store();
         template <typename T>
-        inline static std::shared_ptr<T> GET_MAT(const char* material_name)
+        inline std::shared_ptr<T> GET_MAT(const char* material_name)
         {
-            return std::static_pointer_cast<T>(material_store::getInstance().get_material(material_name));
+            return std::static_pointer_cast<T>(get_material(material_name));
         }
         
         material_store();
+        
         void create(device* device);
         virtual void destroy() override;
         
     private:
+
         template <typename T, typename ...ARGS>
         inline static mat_shared_ptr CREATE_MAT( ARGS... args)
         {

@@ -37,6 +37,9 @@ void material_store::create(device* device)
     shader_shared_ptr deferred_output_vert = add_shader("deferred_output.vert", shader::shader_type::VERTEX);
     shader_shared_ptr deferred_output_frag = add_shader("deferred_output.frag", shader::shader_type::FRAGMENT);
     
+    shader_shared_ptr display_3d_texture_vert = add_shader("display_3d_texture.vert", shader::shader_type::VERTEX);
+    shader_shared_ptr display_3d_texture_frag = add_shader("display_3d_texture.frag", shader::shader_type::FRAGMENT);
+    
     shader_shared_ptr voxel_shader = add_shader("voxelizer.comp", shader::shader_type::COMPUTE);
     
     mat_shared_ptr standard_mat = CREATE_MAT<visual_material>("standard", standard_vert, standard_frag, device);
@@ -47,6 +50,10 @@ void material_store::create(device* device)
     
     mat_shared_ptr mrt_mat = CREATE_MAT<visual_material>("mrt", mrt_vert, mrt_frag, device);
     add_material(mrt_mat);
+    
+    mat_shared_ptr display_3d_texture_mat = CREATE_MAT<visual_material>("display_3d_texture",
+                                                                        display_3d_texture_vert, display_3d_texture_frag, device);
+    add_material(display_3d_texture_mat);
     
     mat_shared_ptr deferred_output_mat = CREATE_MAT<visual_material>("deferred_output",
                                                                    deferred_output_vert, deferred_output_frag, device);
@@ -89,12 +96,6 @@ shader_shared_ptr const   material_store::find_shader_using_path(const char* pat
 {
     assert(shader_database.count(path) != 0);
     return shader_database[path];
-}
-
-material_store const & material_store::getInstance()
-{
-    static material_store instance;
-    return instance;
 }
 
 void material_store::destroy()

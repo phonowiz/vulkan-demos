@@ -22,6 +22,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/mat4x4.hpp>
 #include <chrono>
 
 #include "vulkan_wrapper/device.h"
@@ -42,7 +43,7 @@ VkSurfaceKHR surface;
 int width = 1024;
 int height = 768;
 
-void startGlfw() {
+void start_glfw() {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
@@ -56,7 +57,7 @@ std::chrono::time_point gameStartTime = std::chrono::high_resolution_clock::now(
 
 
 
-void shutdownGlfw() {
+void shutdown_glfw() {
     glfwDestroyWindow(window);
     glfwTerminate();
 }
@@ -65,62 +66,35 @@ void shutdownGlfw() {
 vk::visual_mat_shared_ptr standard_mat;
 vk::visual_mat_shared_ptr display_mat;
 vk::visual_mat_shared_ptr mrt_mat;
+vk::visual_mat_shared_ptr display_3d_tex_mat;
 
-
-
-vk::texture_2d* texture = nullptr;
-
-void updateMVP2()
-{
-    std::chrono::time_point frameTime = std::chrono::high_resolution_clock::now();
-    float timeSinceStart = std::chrono::duration_cast<std::chrono::milliseconds>( frameTime - gameStartTime ).count()/1000.0f;
-    
-    glm::mat4 model = glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 projection = glm::perspective(glm::radians(60.0f), width/(float)height, 0.01f, 10.0f);
-    
-    /*
-     GLM was originally designed for OpenGL, where the Y coordinate of the clip coordinates is inverted.
-     The easiest way to compensate for that is to flip the sign on the scaling factor of the Y axis in the projection matrix.
-     If you don't do this, then the image will be rendered upside down.
-     */
-    projection[1][1] *= -1.0f;
-    
-    glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
-
-    vk::shader_parameter::shader_params_group& vertexParams =   standard_mat->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-    
-    vertexParams["model"] = model;
-    vertexParams["view"] = view;
-    vertexParams["projection"] = projection;
-    vertexParams["lightPosition"] = temp;
-
-
-    //standard_mat->set_image_sampler(texture, "tex", vk::material::parameter_stage::FRAGMENT, 1);
-    
-    
-    standard_mat->commit_parameters_to_gpu();
-}
 
 struct App
 {
-    vk::swapchain* swapchain = nullptr;
-    vk::device* physical_device = nullptr;
+    vk::device* device = nullptr;
     vk::renderer* renderer = nullptr;
-    vk::deferred_renderer* deferred_renderer = nullptr;
 };
 
 
 App app;
 
+vk::texture_2d* texture = nullptr;
 
-void updateMVP3()
+
+void update_renderer_parameters( vk::renderer& renderer)
 {
-    std::chrono::time_point frameTime = std::chrono::high_resolution_clock::now();
-    float timeSinceStart = std::chrono::duration_cast<std::chrono::milliseconds>( frameTime - gameStartTime ).count()/1000.0f;
+    std::chrono::time_point frame_time = std::chrono::high_resolution_clock::now();
+    float time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>( frame_time - gameStartTime ).count()/1000.0f;
     
-    glm::mat4 model = glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 view = glm::lookAt(glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 scale;
+    glm::scale(scale, glm::vec3(1.0f, 1.0f, 1.0f));
+    
+    glm::vec3 eye(1.0f, 0.0f, -3.0f);
+    glm::vec3 look_at_point(0.0f, 0.0f, 0.0f);
+    glm::vec3 up(0.0f, 1.0f, 0.0f);
+    
+    glm::mat4 model = scale * glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view = glm::lookAt(eye, look_at_point, up);
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), width/(float)height, 0.01f, 10.0f);
     
     /*
@@ -130,90 +104,66 @@ void updateMVP3()
      */
     projection[1][1] *= -1.0f;
     
-    glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), timeSinceStart * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
-    
-    vk::shader_parameter::shader_params_group& vertex_params =
-        app.deferred_renderer->get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+    glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
+
+    vk::shader_parameter::shader_params_group& vertex_params =   renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     
     vertex_params["model"] = model;
     vertex_params["view"] = view;
     vertex_params["projection"] = projection;
     vertex_params["lightPosition"] = temp;
+
 }
 
-void gameLoop2(vk::renderer &renderer)
+
+void game_loop(vk::renderer &renderer)
 {
     int i = 0;
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-        updateMVP2();
+        update_renderer_parameters( renderer);
         renderer.draw();
         ++i;
     }
 }
 
-void gameLoop4(vk::renderer& renderer)
-{
-    int i = 0;
-    while(!glfwWindowShouldClose(window))
-    {
-        glfwPollEvents();
-        updateMVP3();
-        renderer.draw();
-        ++i;
-    }
-}
-
-
-
-void onWindowResized2(GLFWwindow * window, int w, int h)
+void on_window_resize(GLFWwindow * window, int w, int h)
 {
     if( w != 0 && h != 0)
     {
+        VkSurfaceCapabilitiesKHR surface_capabilities {};
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(app.device->_physical_device, surface, &surface_capabilities);
         
-        VkSurfaceCapabilitiesKHR surfaceCapabilities;
-        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(app.physical_device->_physical_device, surface, &surfaceCapabilities);
+        w = std::min(w, static_cast<int>(surface_capabilities.maxImageExtent.width));
+        h = std::min(h, static_cast<int>(surface_capabilities.maxImageExtent.height));
         
-        w = std::min(w, static_cast<int>(surfaceCapabilities.maxImageExtent.width));
-        h = std::min(h, static_cast<int>(surfaceCapabilities.maxImageExtent.height));
-        
-        w = std::max(w, static_cast<int>(surfaceCapabilities.minImageExtent.width));
-        h = std::max(h, static_cast<int>(surfaceCapabilities.minImageExtent.height));
+        w = std::max(w, static_cast<int>(surface_capabilities.minImageExtent.width));
+        h = std::max(h, static_cast<int>(surface_capabilities.minImageExtent.height));
         
         width = w;
         height = h;
         
-        if( app.renderer )
-            app.renderer->recreate_renderer() ;
-        if( app.deferred_renderer)
-            app.deferred_renderer->recreate_renderer() ;
-        
+        app.renderer->recreate_renderer() ;
     }
 }
 
-
-
-void updateWithOrtho()
+void update_ortho_parameters(vk::renderer& renderer)
 {
 
-    vk::shader_parameter::shader_params_group& vertexParams = display_mat->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-    vertexParams["width"] = width;
-    vertexParams["height"] = height;
-    
-    
-    display_mat->set_image_sampler(texture, "tex", vk::visual_material::parameter_stage::FRAGMENT, 1, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
-    
-    display_mat->commit_parameters_to_gpu();
+    vk::shader_parameter::shader_params_group& vertex_params =  renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+    vertex_params["width"] = width;
+    vertex_params["height"] = height;
+
+    renderer.get_material()->set_image_sampler(texture, "tex", vk::visual_material::parameter_stage::FRAGMENT, 1, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
     
 }
 
-void gameLoopOrtho(vk::renderer &renderer)
+void game_loop_ortho(vk::renderer &renderer)
 {
     int i = 0;
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
-        //updateMVP2();
-        updateWithOrtho();
+        update_ortho_parameters( renderer );
         renderer.draw();
         ++i;
     }
@@ -221,12 +171,13 @@ void gameLoopOrtho(vk::renderer &renderer)
 
 int main()
 {
-    startGlfw();
-
-    //vulkan render example
-    glfwSetWindowSizeCallback(window, onWindowResized2);
+    start_glfw();
+    
+    glfwSetWindowSizeCallback(window, on_window_resize);
     
     vk::device device;
+    
+    app.device = &device;
     
     VkResult res = glfwCreateWindowSurface(device._instance, window, nullptr, &surface);
     assert(res == VK_SUCCESS);
@@ -244,50 +195,44 @@ int main()
     
     standard_mat = material_store.GET_MAT<vk::visual_material>("standard");
     display_mat = material_store.GET_MAT<vk::visual_material>("display");
+    display_3d_tex_mat = material_store.GET_MAT<vk::visual_material>("display_3d_texture");
     vk::texture_2d mario(&device, "mario.png");
+    texture = &mario;
     
     bool deferred = true;
     if(deferred)
     {
         vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store);
-        texture = &mario;
+        
+        app.renderer = &deferred_renderer;
 
         deferred_renderer.add_mesh(&mesh);
         deferred_renderer.init();
         
-        app.physical_device = &device;
-        app.swapchain = &swapchain;
-        app.renderer = nullptr;
-        app.deferred_renderer = &deferred_renderer;
-        
-        gameLoop4(deferred_renderer);
-        
+        game_loop(deferred_renderer);
         deferred_renderer.destroy();
     }
     else
     {
-
+        
         //vk::renderer renderer(&device,window, &swapchain, standard_mat);
-        vk::renderer renderer(&device, window, &swapchain, display_mat);
-        vk::texture_3d tex_3d(&device, 256u, 256u, 256u);
-        renderer.get_material()->set_image_sampler(&tex_3d, "tex_3d", vk::visual_material::parameter_stage::FRAGMENT, 1, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
-        
-        //renderer.add_mesh(&mesh);
-        renderer.add_mesh(&plane);
-        
-        texture = &mario;
-        app.physical_device = &device;
-        app.swapchain = &swapchain;
+        //vk::renderer renderer(&device, window, &swapchain, display_mat);
+        vk::renderer renderer(&device, window, &swapchain, display_3d_tex_mat);
         app.renderer = &renderer;
-        app.deferred_renderer = nullptr;
+        //vk::texture_3d tex_3d(&device, 256u, 256u, 256u);
+        //renderer.get_material()->set_image_sampler(&tex_3d, "tex_3d", vk::visual_material::parameter_stage::FRAGMENT, 1, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
+        
+        vk::mesh cube("cube.obj", &device);
+        renderer.add_mesh(&cube);
+        //renderer.add_mesh(&plane);
 
         //updateMVP2();
-        updateWithOrtho();
+        //updateWithOrtho();
         
         renderer.init();
 
-        //gameLoop2(renderer);
-        gameLoopOrtho(renderer);
+        game_loop(renderer);
+        //game_loop_ortho(renderer);
         
         renderer.destroy();
         
@@ -299,7 +244,7 @@ int main()
     plane.destroy();
     device.destroy();
     
-    shutdownGlfw();
+    shutdown_glfw();
     return 0;
 }
 

@@ -30,6 +30,10 @@
 		B976F9BB222A731800CD2F78 /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B976F9B9222A723200CD2F78 /* libMoltenVK.dylib */; };
 		B9776C9E2267B3B800DCB645 /* deferred_renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9776C9C2267B3B800DCB645 /* deferred_renderer.cpp */; };
 		B9776CA12267DDE200DCB645 /* render_texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9776C9F2267DDE200DCB645 /* render_texture.cpp */; };
+		B978316222E541B000E5DE71 /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B978316022E541AF00E5DE71 /* camera.cpp */; };
+		B978316522E5435600E5DE71 /* orthographic_camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B978316322E5435600E5DE71 /* orthographic_camera.cpp */; };
+		B978316822E5480700E5DE71 /* perspective_camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B978316622E5480700E5DE71 /* perspective_camera.cpp */; };
+		B978317022E54DEC00E5DE71 /* first_person_controller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B978316F22E54DEC00E5DE71 /* first_person_controller.cpp */; };
 		B984C7FC2238CD18002327DE /* display_plane.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B984C7FA2238CD18002327DE /* display_plane.cpp */; };
 		B98DB6C022E06362009ABBC3 /* texture_3d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98DB6BE22E06362009ABBC3 /* texture_3d.cpp */; };
 		B9AE757D2244C9AD00A219A3 /* graphics_pipeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9AE757B2244C9AD00A219A3 /* graphics_pipeline.cpp */; };
@@ -88,6 +92,14 @@
 		B9776C9D2267B3B800DCB645 /* deferred_renderer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = deferred_renderer.h; sourceTree = "<group>"; };
 		B9776C9F2267DDE200DCB645 /* render_texture.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = render_texture.cpp; sourceTree = "<group>"; };
 		B9776CA02267DDE200DCB645 /* render_texture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = render_texture.h; sourceTree = "<group>"; };
+		B978316022E541AF00E5DE71 /* camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = camera.cpp; sourceTree = "<group>"; };
+		B978316122E541AF00E5DE71 /* camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = camera.h; sourceTree = "<group>"; };
+		B978316322E5435600E5DE71 /* orthographic_camera.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = orthographic_camera.cpp; sourceTree = "<group>"; };
+		B978316422E5435600E5DE71 /* orthographic_camera.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = orthographic_camera.h; sourceTree = "<group>"; };
+		B978316622E5480700E5DE71 /* perspective_camera.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = perspective_camera.cpp; sourceTree = "<group>"; };
+		B978316722E5480700E5DE71 /* perspective_camera.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = perspective_camera.h; sourceTree = "<group>"; };
+		B978316E22E54DEC00E5DE71 /* first_person_controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = first_person_controller.h; sourceTree = "<group>"; };
+		B978316F22E54DEC00E5DE71 /* first_person_controller.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = first_person_controller.cpp; sourceTree = "<group>"; };
 		B984C7FA2238CD18002327DE /* display_plane.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = display_plane.cpp; sourceTree = "<group>"; };
 		B984C7FB2238CD18002327DE /* display_plane.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = display_plane.h; sourceTree = "<group>"; };
 		B98DB6BE22E06362009ABBC3 /* texture_3d.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = texture_3d.cpp; sourceTree = "<group>"; };
@@ -179,6 +191,7 @@
 		B938D045219534B7004F759E /* vulkan-gui-test */ = {
 			isa = PBXGroup;
 			children = (
+				B978316D22E54DEC00E5DE71 /* camera_controllers */,
 				B9E92BC9220D4A990060F755 /* vulkan_wrapper */,
 				B9384E74220171E400565024 /* main.mm */,
 				B9DC35F9219574C2007B4FD8 /* vulkan */,
@@ -237,6 +250,28 @@
 			path = tsl;
 			sourceTree = "<group>";
 		};
+		B978315F22E541AF00E5DE71 /* cameras */ = {
+			isa = PBXGroup;
+			children = (
+				B978316022E541AF00E5DE71 /* camera.cpp */,
+				B978316122E541AF00E5DE71 /* camera.h */,
+				B978316322E5435600E5DE71 /* orthographic_camera.cpp */,
+				B978316422E5435600E5DE71 /* orthographic_camera.h */,
+				B978316622E5480700E5DE71 /* perspective_camera.cpp */,
+				B978316722E5480700E5DE71 /* perspective_camera.h */,
+			);
+			path = cameras;
+			sourceTree = "<group>";
+		};
+		B978316D22E54DEC00E5DE71 /* camera_controllers */ = {
+			isa = PBXGroup;
+			children = (
+				B978316E22E54DEC00E5DE71 /* first_person_controller.h */,
+				B978316F22E54DEC00E5DE71 /* first_person_controller.cpp */,
+			);
+			path = camera_controllers;
+			sourceTree = "<group>";
+		};
 		B9DC35F9219574C2007B4FD8 /* vulkan */ = {
 			isa = PBXGroup;
 			children = (
@@ -265,6 +300,7 @@
 		B9E92BC9220D4A990060F755 /* vulkan_wrapper */ = {
 			isa = PBXGroup;
 			children = (
+				B978315F22E541AF00E5DE71 /* cameras */,
 				B9E113DA22C9F03D004136A7 /* compute_material.cpp */,
 				B9E113DB22C9F03D004136A7 /* compute_material.h */,
 				B9E113D422C87105004136A7 /* compute_pipeline.cpp */,
@@ -396,13 +432,17 @@
 				B9E1EED12213F341006DBA67 /* material_store.cpp in Sources */,
 				B9E92BCF220D545B0060F755 /* device.cpp in Sources */,
 				B94E2956221A1C1B005859E8 /* depth_image.cpp in Sources */,
+				B978317022E54DEC00E5DE71 /* first_person_controller.cpp in Sources */,
+				B978316222E541B000E5DE71 /* camera.cpp in Sources */,
 				B9AE757D2244C9AD00A219A3 /* graphics_pipeline.cpp in Sources */,
 				B9399BBC22CFA05E001EEA5B /* material_base.cpp in Sources */,
+				B978316822E5480700E5DE71 /* perspective_camera.cpp in Sources */,
 				B924E0B72211E7C500157385 /* mesh.cpp in Sources */,
 				B9E92BD52210DBAE0060F755 /* visual_material.cpp in Sources */,
 				B9E1EED72213F723006DBA67 /* resource.cpp in Sources */,
 				B9E113D622C87105004136A7 /* compute_pipeline.cpp in Sources */,
 				B9C7CD99222E482000AA173A /* object.cpp in Sources */,
+				B978316522E5435600E5DE71 /* orthographic_camera.cpp in Sources */,
 				B91A50F82246C9EF00E9D0CA /* vertex.cpp in Sources */,
 				B9384E75220171E500565024 /* main.mm in Sources */,
 				B984C7FC2238CD18002327DE /* display_plane.cpp in Sources */,
