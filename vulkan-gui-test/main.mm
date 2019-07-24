@@ -53,7 +53,7 @@ void start_glfw() {
 }
 
 //render target
-std::chrono::time_point gameStartTime = std::chrono::high_resolution_clock::now();
+std::chrono::time_point game_start_time = std::chrono::high_resolution_clock::now();
 
 
 
@@ -68,11 +68,19 @@ vk::visual_mat_shared_ptr display_mat;
 vk::visual_mat_shared_ptr mrt_mat;
 vk::visual_mat_shared_ptr display_3d_tex_mat;
 
+enum class rendering_state
+{
+    DEFERRED,
+    STANDARD,
+    TWO_D_TEXTURE,
+    THREE_D_TEXTURE
+};
 
 struct App
 {
     vk::device* device = nullptr;
     vk::renderer* renderer = nullptr;
+    rendering_state state = rendering_state::STANDARD;
 };
 
 
@@ -81,15 +89,48 @@ App app;
 vk::texture_2d* texture = nullptr;
 
 
-void update_renderer_parameters( vk::renderer& renderer)
+void update_3d_texture_rendering_params( vk::renderer& renderer)
 {
     std::chrono::time_point frame_time = std::chrono::high_resolution_clock::now();
-    float time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>( frame_time - gameStartTime ).count()/1000.0f;
+    float time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>( frame_time - game_start_time ).count()/1000.0f;
     
     glm::mat4 scale;
     glm::scale(scale, glm::vec3(1.0f, 1.0f, 1.0f));
     
     glm::vec3 eye(1.0f, 0.0f, -3.0f);
+    glm::vec3 look_at_point(0.0f, 0.0f, 0.0f);
+    glm::vec3 up(0.0f, 1.0f, 0.0f);
+    
+    glm::mat4 model = scale * glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view = glm::lookAt(eye, look_at_point, up);
+    glm::mat4 projection = glm::perspective(glm::radians(60.0f), width/(float)height, 0.01f, 10.0f);
+    
+    /*
+     GLM was originally designed for OpenGL, where the Y coordinate of the clip coordinates is inverted.
+     The easiest way to compensate for that is to flip the sign on the scaling factor of the Y axis in the projection matrix.
+     If you don't do this, then the image will be rendered upside down.
+     */
+    projection[1][1] *= -1.0f;
+    
+    //glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
+    
+    vk::shader_parameter::shader_params_group& vertex_params =   renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+    
+    vertex_params["mvp"] = projection * view * model;
+    vertex_params["model"] = model;
+    
+}
+
+
+void update_renderer_parameters( vk::renderer& renderer)
+{
+    std::chrono::time_point frame_time = std::chrono::high_resolution_clock::now();
+    float time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>( frame_time - game_start_time ).count()/1000.0f;
+    
+    glm::mat4 scale;
+    glm::scale(scale, glm::vec3(1.0f, 1.0f, 1.0f));
+    
+    glm::vec3 eye(1.0f, 0.0f, -1.0f);
     glm::vec3 look_at_point(0.0f, 0.0f, 0.0f);
     glm::vec3 up(0.0f, 1.0f, 0.0f);
     
@@ -115,6 +156,16 @@ void update_renderer_parameters( vk::renderer& renderer)
 
 }
 
+void game_loop_3d_texture(vk::renderer &renderer)
+{
+    int i = 0;
+    while (!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
+        update_3d_texture_rendering_params( renderer);
+        renderer.draw();
+        ++i;
+    }
+}
 
 void game_loop(vk::renderer &renderer)
 {
@@ -190,58 +241,81 @@ int main()
     material_store.create(&device);
     
     vk::mesh mesh( "dragon.obj", &device );
-    
+    vk::mesh cube("cube.obj", &device);
     vk::display_plane plane(&device);
     
     standard_mat = material_store.GET_MAT<vk::visual_material>("standard");
     display_mat = material_store.GET_MAT<vk::visual_material>("display");
     display_3d_tex_mat = material_store.GET_MAT<vk::visual_material>("display_3d_texture");
-    vk::texture_2d mario(&device, "mario.png");
-    texture = &mario;
+
     
-    bool deferred = true;
-    if(deferred)
+    app.state = rendering_state::STANDARD;
+    switch( app.state )
     {
-        vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store);
-        
-        app.renderer = &deferred_renderer;
+        case rendering_state::TWO_D_TEXTURE:
+        {
 
-        deferred_renderer.add_mesh(&mesh);
-        deferred_renderer.init();
-        
-        game_loop(deferred_renderer);
-        deferred_renderer.destroy();
-    }
-    else
-    {
-        
-        //vk::renderer renderer(&device,window, &swapchain, standard_mat);
-        //vk::renderer renderer(&device, window, &swapchain, display_mat);
-        vk::renderer renderer(&device, window, &swapchain, display_3d_tex_mat);
-        app.renderer = &renderer;
-        //vk::texture_3d tex_3d(&device, 256u, 256u, 256u);
-        //renderer.get_material()->set_image_sampler(&tex_3d, "tex_3d", vk::visual_material::parameter_stage::FRAGMENT, 1, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
-        
-        vk::mesh cube("cube.obj", &device);
-        renderer.add_mesh(&cube);
-        //renderer.add_mesh(&plane);
+            vk::texture_2d mario(&device, "mario.png");
+            texture = &mario;
+            vk::renderer renderer(&device, window, &swapchain, display_mat);
+            app.renderer = &renderer;
 
-        //updateMVP2();
-        //updateWithOrtho();
-        
-        renderer.init();
+            renderer.add_mesh(&plane);
+            renderer.init();
+            
+            game_loop_ortho(renderer);
+            renderer.destroy();
+            break;
+        }
+        case rendering_state::DEFERRED:
+        {
+            vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store);
+            
+            app.renderer = &deferred_renderer;
+            
+            deferred_renderer.add_mesh(&mesh);
+            deferred_renderer.init();
+            
+            game_loop(deferred_renderer);
+            deferred_renderer.destroy();
+            break;
+        }
+        case rendering_state::THREE_D_TEXTURE:
+        {
 
-        game_loop(renderer);
-        //game_loop_ortho(renderer);
-        
-        renderer.destroy();
-        
+            vk::renderer renderer(&device, window, &swapchain, display_3d_tex_mat);
+            app.renderer = &renderer;
+            //vk::texture_3d tex_3d(&device, 256u, 256u, 256u);
+            //renderer.get_material()->set_image_sampler(&tex_3d, "tex_3d", vk::visual_material::parameter_stage::FRAGMENT, 1, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
+            
+
+            renderer.add_mesh(&cube);
+            renderer.init();
+            
+            game_loop_3d_texture(renderer);
+            renderer.destroy();
+        }
+        default:
+        {
+            vk::renderer renderer(&device,window, &swapchain, standard_mat);
+            
+            app.renderer = &renderer;
+            
+            renderer.add_mesh(&mesh);
+            
+            renderer.init();
+            
+            game_loop(renderer);
+            renderer.destroy();
+            break;
+        }
     }
     
     swapchain.destroy();
     material_store.destroy();
     mesh.destroy();
     plane.destroy();
+    cube.destroy();
     device.destroy();
     
     shutdown_glfw();
