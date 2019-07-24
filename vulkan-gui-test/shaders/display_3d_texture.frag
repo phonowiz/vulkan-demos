@@ -10,21 +10,23 @@
 //https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
 
 
+float   step_size = 0.01f;
+float   max_samples = 80;
 
 
-//uniform float   focalLength;
-//uniform vec3    camPosition;
-//uniform sampler3D texture3D;
-//
-//uniform float   stepSize = 0.01f;
-//uniform float   maxSamples = 80;
-//uniform mat4    viewMatrix;
+layout(location = 0) in  vec3 frag_world_position;
+
+layout(binding = 1) uniform UBO
+{
+    vec3    eye_world_position;
+    float   focal_length;
+}ubo;
+
+layout(binding = 2) uniform sampler2D texture_3d;
+
+layout(location = 0) out vec4 out_color;
 
 
-//in vec3  fragPosition;
-layout(location = 0) in  vec3 fragPosition;
-
-layout(location = 0) out vec4 outColor;
 
 struct Ray {
     vec3 Origin;
@@ -35,6 +37,7 @@ struct AABB {
     vec3 Min;
     vec3 Max;
 };
+
 
 bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1)
 {
@@ -50,21 +53,21 @@ bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1)
     //find maximum ray t value between x, y, and z
     t = min(tmax.xx, tmax.yz);
     t1 = min(t.x, t.y);
-    
+
     return t0 <= t1;
 }
 
 void main()
 {
-//    vec3 rayDirection =  fragPosition - camPosition;
-//
-//    Ray eye = Ray( camPosition, normalize(rayDirection) );
-//    AABB aabb = AABB(vec3(-1.0), vec3(+1.0));
-//
-//    float tnear, tfar;
-//    fragColor = vec4(0.0f);
-//    if(IntersectBox(eye, aabb, tnear, tfar))
-//    {
+    vec3 ray_direction =  frag_world_position - ubo.eye_world_position;
+
+    Ray eye = Ray( ubo.eye_world_position, normalize(ray_direction) );
+    AABB aabb = AABB(vec3(-1.0), vec3(+1.0));
+    
+    float tnear, tfar;
+    out_color = vec4(1.0f);
+    if(IntersectBox(eye, aabb, tnear, tfar))
+    {
 //        if (tnear < 0.0) tnear = 0.0;
 //
 //        vec3 rayStart = eye.Origin + eye.Dir * tnear;
@@ -85,7 +88,8 @@ void main()
 //            vec3 samplePoint = pos;
 //            fragColor += texture(texture3D, samplePoint);
 //        }
-//    }
+        out_color = vec4(1.0f, 1.0f, 0.0f, 1.0f);
+    }
     
-    outColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
 }

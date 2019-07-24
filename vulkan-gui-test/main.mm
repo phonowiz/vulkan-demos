@@ -118,6 +118,7 @@ void update_3d_texture_rendering_params( vk::renderer& renderer)
     
     vertex_params["mvp"] = projection * view * model;
     vertex_params["model"] = model;
+    vertex_params["eye_world_position"] = eye;
     
 }
 
@@ -249,7 +250,7 @@ int main()
     display_3d_tex_mat = material_store.GET_MAT<vk::visual_material>("display_3d_texture");
 
     
-    app.state = rendering_state::STANDARD;
+    app.state = rendering_state::THREE_D_TEXTURE;
     switch( app.state )
     {
         case rendering_state::TWO_D_TEXTURE:
