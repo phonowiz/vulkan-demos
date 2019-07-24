@@ -227,6 +227,8 @@ int main()
     start_glfw();
     
     glfwSetWindowSizeCallback(window, on_window_resize);
+    const int DEFAULT_VSYNC = 1;
+    glfwSwapInterval(DEFAULT_VSYNC);
     
     vk::device device;
     
