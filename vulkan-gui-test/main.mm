@@ -253,7 +253,7 @@ int main()
     display_3d_tex_mat = material_store.GET_MAT<vk::visual_material>("display_3d_texture");
 
     
-    app.state = rendering_state::THREE_D_TEXTURE;
+    app.state = rendering_state::DEFERRED;
     switch( app.state )
     {
         case rendering_state::TWO_D_TEXTURE:

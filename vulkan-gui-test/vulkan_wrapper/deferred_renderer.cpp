@@ -21,17 +21,20 @@ using namespace vk;
 //https://www.saschawillems.de/blog/2018/07/19/vulkan-input-attachments-and-sub-passes/
 
 
+
+
 deferred_renderer::deferred_renderer(device* device, GLFWwindow* window, vk::swapchain* swapchain, vk::material_store& store):
 renderer(device, window, swapchain, store.GET_MAT<visual_material>("deferred_output")),
 _positions(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _albedo(device, swapchain->_swapchain_data.swapchain_extent.width,swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _normals(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _depth(device, true),
-_mrt_pipeline(device),
 _plane(device),
 _debug_pipeline(device),
 _mrt_material(store.GET_MAT<visual_material>("mrt")),
-_voxelize_pipeline(device, store.GET_MAT<compute_material>("voxelizer"))
+_mrt_pipeline(device),
+_voxelize_pipeline(device, store.GET_MAT<visual_material>("voxelizer")),
+_voxel_texture(device, VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE)
 {
     int binding = 0;
     _mrt_material->init_parameter("model", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
@@ -42,32 +45,81 @@ _voxelize_pipeline(device, store.GET_MAT<compute_material>("voxelizer"))
     _material->init_parameter("width", visual_material::parameter_stage::VERTEX, 0.f, 0);
     _material->init_parameter("height", visual_material::parameter_stage::VERTEX, 0.f, 0);
     
-    _voxelize_pipeline.set_image_sampler(&_depth, "depth_texture", 0, resource::usage_type::COMBINED_IMAGE_SAMPLER);
-    _voxelize_pipeline.set_image_sampler(&_depth, "3d_texture", 1, resource::usage_type::STORAGE_IMAGE);
+    _voxelize_pipeline.set_image_sampler(&_voxel_texture, "3d_texture",
+                                         visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
+    
+    _voxelize_pipeline.set_cullmode( graphics_pipeline::cull_mode::NONE);
+    _voxelize_pipeline.set_depth_enable(false);
     
     //TODO: I think maybe material should be private and we should have a function that does this for us,
     //we can already set image samplers using the pipeline object.  Also, consider creating a frame buffer object which houses
     //the pipeline and rendering commands to be used for rendering meshes.
     
-    _voxelize_pipeline.create();
+    
     
     _depth.create(_swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height);
     _plane.create();
+    _plane.allocate_gpu_memory();
+    
     create_command_buffer(&_offscreen_command_buffers, _device->_graphics_command_pool);
     create_command_buffer(&_voxelize_command_buffers, _device->_compute_command_pool);
 }
 
 
+void deferred_renderer::create_voxelization_render_pass()
+{
+    VkSubpassDescription subpass = {};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.pColorAttachments = nullptr;
+    subpass.colorAttachmentCount = 0;
+    subpass.pDepthStencilAttachment = nullptr;
+    
+    
+    // Use subpass dependencies for attachment layput transitions
+    std::array<VkSubpassDependency, 2> dependencies {};
+    
+    dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependencies[0].dstSubpass = 0;
+    dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    dependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    dependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+    
+    
+    dependencies[1].srcSubpass = 0;
+    dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+    dependencies[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+    dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+    dependencies[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+    dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+    dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+    
+    
+    VkRenderPassCreateInfo render_pass_info = {};
+    render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    render_pass_info.pAttachments = nullptr;
+    render_pass_info.attachmentCount = 0;
+    render_pass_info.subpassCount = 1;
+    render_pass_info.pSubpasses = &subpass;
+    render_pass_info.dependencyCount = 2;
+    render_pass_info.pDependencies = dependencies.data();
+    
+    VkResult result = vkCreateRenderPass(_device->_logical_device, &render_pass_info, nullptr, &_voxelization_render_pass);
+    ASSERT_VULKAN(result);
+}
+
 void deferred_renderer::create_render_pass()
 {
-    //this call will create the swap chain render pass, or the render pass that will display stuff
+    //renderer::create_render_pass call will create the swap chain render pass, or the render pass that will display stuff
     //to screen
     renderer::create_render_pass();
     
     //note: for an exellent explanation of attachments, go here:
     //https://stackoverflow.com/questions/46384007/vulkan-what-is-the-meaning-of-attachment
     
-    std::array<VkAttachmentDescription, 4> attachment_descriptions {};
+    constexpr uint32_t NUMBER_OUTPUT_ATTACHMENTS = 4;
+    std::array<VkAttachmentDescription, NUMBER_OUTPUT_ATTACHMENTS> attachment_descriptions {};
     
     for( uint32_t i = 0; i < attachment_descriptions.size() - 2; ++i)
     {
@@ -138,6 +190,8 @@ void deferred_renderer::create_render_pass()
     render_pass_info.pDependencies = dependencies.data();
     
     vkCreateRenderPass(_device->_logical_device, &render_pass_info, nullptr, &_mrt_render_pass);
+    
+    create_voxelization_render_pass();
 }
 
 void deferred_renderer::create_semaphores_and_fences()
@@ -171,6 +225,9 @@ void deferred_renderer::create_pipeline()
     _mrt_pipeline.create(_mrt_render_pass,
                          _swapchain->_swapchain_data.swapchain_extent.width,
                          _swapchain->_swapchain_data.swapchain_extent.height);
+    
+    _voxelize_pipeline.set_number_of_blend_attachments(0);
+    _voxelize_pipeline.create(_voxelization_render_pass, VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE);
 }
 
 
@@ -180,6 +237,7 @@ void deferred_renderer::create_frame_buffers()
     
     //TODO: Get rid of the vector class
     _deferred_swapchain_frame_buffers.resize(_swapchain->_swapchain_data.image_set.get_image_count());
+    _voxelize_frame_buffers.resize(_swapchain->_swapchain_data.image_set.get_image_count());
     
     for (size_t i = 0; i < _swapchain_frame_buffers.size(); i++)
     {
@@ -203,31 +261,77 @@ void deferred_renderer::create_frame_buffers()
         framebuffer_create_info.layers = 1;
         
         VkResult result = vkCreateFramebuffer(_device->_logical_device, &framebuffer_create_info, nullptr, &(_deferred_swapchain_frame_buffers[i]));
+        ASSERT_VULKAN(result)
+        
+        framebuffer_create_info = {};
+        framebuffer_create_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebuffer_create_info.pNext = nullptr;
+        framebuffer_create_info.flags = 0;
+        framebuffer_create_info.renderPass = _voxelization_render_pass;
+        framebuffer_create_info.attachmentCount = 0;
+        framebuffer_create_info.pAttachments = nullptr;
+        framebuffer_create_info.width = VOXEL_CUBE_SIZE;
+        framebuffer_create_info.height = VOXEL_CUBE_SIZE;
+        framebuffer_create_info.layers = 1;
+        
+        result = vkCreateFramebuffer(_device->_logical_device, &framebuffer_create_info, nullptr, &(_voxelize_frame_buffers[i]));
+        
         ASSERT_VULKAN(result);
     }
 }
 
 
-void deferred_renderer::record_voxelize_command_buffers()
+void deferred_renderer::record_voxelize_command_buffers(mesh* meshes, size_t number_of_meshes)
 {
     assert(_voxelize_pipeline._pipeline != VK_NULL_HANDLE);
     assert(_voxelize_pipeline._pipeline_layout != VK_NULL_HANDLE);
     
+    
     for( int i = 0; i < _swapchain->_swapchain_data.image_set.get_image_count(); ++i)
     {
+        VkRenderPassBeginInfo render_pass_begin_info {};
+        render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        render_pass_begin_info.pNext = nullptr;
+        render_pass_begin_info.renderPass = _voxelization_render_pass;
+        render_pass_begin_info.framebuffer = _voxelize_frame_buffers[i];
+        render_pass_begin_info.renderArea.offset = { 0, 0 };
+        render_pass_begin_info.renderArea.extent = { VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE };
+        
+        render_pass_begin_info.clearValueCount = 0;
+        render_pass_begin_info.pClearValues = nullptr;
+        
         VkCommandBufferBeginInfo command_buffer_begin_info {};
         command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        command_buffer_begin_info.pNext = nullptr;
+        command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+        command_buffer_begin_info.pInheritanceInfo = nullptr;
         
-        vkBeginCommandBuffer(_voxelize_command_buffers[i], &command_buffer_begin_info);
+        VkResult result = vkBeginCommandBuffer(_voxelize_command_buffers[i], &command_buffer_begin_info);
+        ASSERT_VULKAN(result);
         
-        vkCmdBindPipeline(_voxelize_command_buffers[i], VK_PIPELINE_BIND_POINT_COMPUTE, _voxelize_pipeline._pipeline);
-        vkCmdBindDescriptorSets(_voxelize_command_buffers[i], VK_PIPELINE_BIND_POINT_COMPUTE, _voxelize_pipeline._pipeline_layout, 0, 1,
-                                _voxelize_pipeline._material->get_descriptor_set(), 0, VK_NULL_HANDLE);
+        vkCmdBeginRenderPass(_voxelize_command_buffers[i], &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBindPipeline(_voxelize_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _voxelize_pipeline._pipeline);
         
-        vkCmdDispatch(_voxelize_command_buffers[i], _swapchain->_swapchain_data.swapchain_extent.width/16,
-                      _swapchain->_swapchain_data.swapchain_extent.height/16, 1);
+        VkViewport viewport {};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = VOXEL_CUBE_SIZE;
+        viewport.height = VOXEL_CUBE_SIZE;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(_voxelize_command_buffers[i], 0, 1, &viewport);
         
-        vkEndCommandBuffer(_voxelize_command_buffers[i]);
+        VkRect2D scissor {};
+        scissor.offset = { 0, 0};
+        scissor.extent = { VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE};
+        vkCmdSetScissor(_offscreen_command_buffers[i], 0, 1, &scissor);
+        
+        for( size_t j = 0; j < number_of_meshes; ++j)
+        {
+            meshes[j].draw(_voxelize_command_buffers[i], _voxelize_pipeline);
+        }
+        
+        vkCmdEndRenderPass(_voxelize_command_buffers[i]);
     }
 
 }
@@ -276,7 +380,7 @@ void deferred_renderer::record_command_buffers(mesh* meshes, size_t number_of_me
         vkCmdBeginRenderPass(_offscreen_command_buffers[i], &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(_offscreen_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _mrt_pipeline._pipeline);
         
-        VkViewport viewport;
+        VkViewport viewport {};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
         viewport.width = _swapchain->_swapchain_data.swapchain_extent.width;
@@ -285,7 +389,7 @@ void deferred_renderer::record_command_buffers(mesh* meshes, size_t number_of_me
         viewport.maxDepth = 1.0f;
         vkCmdSetViewport(_offscreen_command_buffers[i], 0, 1, &viewport);
         
-        VkRect2D scissor;
+        VkRect2D scissor {};
         scissor.offset = { 0, 0};
         scissor.extent = { _swapchain->_swapchain_data.swapchain_extent.width,
             _swapchain->_swapchain_data.swapchain_extent.height};
@@ -298,7 +402,8 @@ void deferred_renderer::record_command_buffers(mesh* meshes, size_t number_of_me
         
         vkCmdEndRenderPass(_offscreen_command_buffers[i]);
     }
-    _plane.allocate_gpu_memory();
+    
+
     renderer::record_command_buffers(&_plane, 1);
 }
 
@@ -310,6 +415,8 @@ void deferred_renderer::destroy_framebuffers()
     {
         vkDestroyFramebuffer(_device->_logical_device, _deferred_swapchain_frame_buffers[i], nullptr);
         _deferred_swapchain_frame_buffers[i] = VK_NULL_HANDLE;
+        vkDestroyFramebuffer(_device->_logical_device, _voxelize_frame_buffers[i], nullptr);
+        _voxelize_frame_buffers[i] = VK_NULL_HANDLE;
     }
 }
 
@@ -328,7 +435,10 @@ void deferred_renderer::perform_final_drawing_setup()
         
         setup_initialized = true;
     }
-    _mrt_material->commit_parameters_to_gpu();
+    
+    _voxelize_pipeline._material->commit_parameters_to_gpu();
+    _mrt_pipeline._material->commit_parameters_to_gpu();
+    
     
     renderer::perform_final_drawing_setup();
 }
@@ -361,7 +471,6 @@ void deferred_renderer::draw()
     VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _deferred_inflight_fences[image_index]);
     ASSERT_VULKAN(result);
     
-
     //Present g-buffers, in other words, save g buffers to textures, make sure we are done rendering them before we do
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = nullptr;
@@ -375,6 +484,11 @@ void deferred_renderer::draw()
 
     result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _inflight_fences[image_index]);
     ASSERT_VULKAN(result);
+    
+    //TODO: YOU'LL NEED CAMERA POSITION INFORMATION IN WORLD SPACE
+    //TODO: YOU'LL NEED THE ORTHOGRAPHIC CAMERA
+    
+    //_voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 0);
     
     //voxelize
     vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
@@ -431,6 +545,7 @@ void deferred_renderer::destroy()
     
     vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool,
                          static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _voxelize_command_buffers);
+    
     
     delete[] _offscreen_command_buffers;
     

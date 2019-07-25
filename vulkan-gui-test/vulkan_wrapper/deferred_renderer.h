@@ -56,7 +56,8 @@ namespace vk
         
         void compute(VkCommandBuffer command_buffer, vk::compute_pipeline& pipeline);
         void record_command_buffers(mesh* meshes, size_t number_of_meshes) override;
-        void record_voxelize_command_buffers();
+        void record_voxelize_command_buffers(mesh* meshes, size_t number_of_meshes);
+        void create_voxelization_render_pass();
         
         virtual void perform_final_drawing_setup() override;
         
@@ -66,12 +67,13 @@ namespace vk
         
         graphics_pipeline _mrt_pipeline;
         graphics_pipeline _debug_pipeline;
-        compute_pipeline  _voxelize_pipeline;
+        graphics_pipeline _voxelize_pipeline;
         
         visual_mat_shared_ptr _mrt_material = nullptr;
         visual_mat_shared_ptr _debug_material = nullptr;
         
         VkRenderPass        _mrt_render_pass = VK_NULL_HANDLE;
+        VkRenderPass        _voxelization_render_pass = VK_NULL_HANDLE;
         
         VkSemaphore _deferred_semaphore_image_available = VK_NULL_HANDLE;
         VkSemaphore _deferred_semaphore_rendering_done = VK_NULL_HANDLE;
@@ -79,11 +81,17 @@ namespace vk
         VkSemaphore _voxelize_semaphore_done = VK_NULL_HANDLE;
         
         std::vector<VkFramebuffer>  _deferred_swapchain_frame_buffers;
+        std::vector<VkFramebuffer>  _voxelize_frame_buffers;
         
         display_plane _plane;
         
         std::array<VkFence, 2> _deferred_inflight_fences {};
         std::array<VkFence, 2> _voxelize_inflight_fence {};
+        
+        
+        static constexpr uint32_t VOXEL_CUBE_SIZE = 256u;
+        
+        texture_3d _voxel_texture;
         
     };
 }

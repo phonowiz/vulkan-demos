@@ -342,29 +342,29 @@ VkFormat device::find_support_format(const std::vector<VkFormat>& formats,
 
 
 //vulkan command
-VkCommandBuffer device::start_single_time_command_buffer( VkCommandPool commandPool)
+VkCommandBuffer device::start_single_time_command_buffer( VkCommandPool command_pool)
 {
-    VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
-    commandBufferAllocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    commandBufferAllocateInfo.pNext = nullptr;
-    commandBufferAllocateInfo.commandPool = commandPool;
-    commandBufferAllocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    commandBufferAllocateInfo.commandBufferCount = 1;
+    VkCommandBufferAllocateInfo command_buffer_allocate_info = {};
+    command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    command_buffer_allocate_info.pNext = nullptr;
+    command_buffer_allocate_info.commandPool = command_pool;
+    command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    command_buffer_allocate_info.commandBufferCount = 1;
     
-    VkCommandBuffer commandBuffer = {};
-    VkResult result = vkAllocateCommandBuffers(_logical_device, &commandBufferAllocateInfo, &commandBuffer);
+    VkCommandBuffer command_buffer = {};
+    VkResult result = vkAllocateCommandBuffers(_logical_device, &command_buffer_allocate_info, &command_buffer);
     ASSERT_VULKAN(result);
     
-    VkCommandBufferBeginInfo commandBufferBeginInfo;
-    commandBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    commandBufferBeginInfo.pNext = nullptr;
-    commandBufferBeginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-    commandBufferBeginInfo.pInheritanceInfo = nullptr;
+    VkCommandBufferBeginInfo command_buffer_begin_info {};
+    command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    command_buffer_begin_info.pNext = nullptr;
+    command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    command_buffer_begin_info.pInheritanceInfo = nullptr;
     
-    result = vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+    result = vkBeginCommandBuffer(command_buffer, &command_buffer_begin_info);
     ASSERT_VULKAN(result);
     
-    return commandBuffer;
+    return command_buffer;
     
 }
 

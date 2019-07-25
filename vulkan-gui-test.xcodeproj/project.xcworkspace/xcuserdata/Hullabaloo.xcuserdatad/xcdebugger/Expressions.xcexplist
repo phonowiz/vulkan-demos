@@ -6,10 +6,13 @@
          contextName = "::vkCreatePipelineLayout(VkDevice, const VkPipelineLayoutCreateInfo *, const VkAllocationCallbacks *, VkPipelineLayout *):vulkan.mm">
       </ContextState>
       <ContextState
-         contextName = "_glfwInitVulkan:vulkan.c">
+         contextName = "MVKPipelineLayout::MVKPipelineLayout(MVKDevice*, VkPipelineLayoutCreateInfo const*):MVKPipeline.mm">
          <PersistentStrings>
             <PersistentString
-               value = "ep[i]">
+               value = "_descriptorSetLayouts[0]">
+            </PersistentString>
+            <PersistentString
+               value = "_descriptorSetLayouts">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -94,13 +97,13 @@
          contextName = "vk::material::create_descriptor_sets():material.cpp">
          <PersistentStrings>
             <PersistentString
+               value = " _descriptor_set_layout_bindings[count].binding">
+            </PersistentString>
+            <PersistentString
                value = "pair2.first">
             </PersistentString>
             <PersistentString
                value = "write_descriptor_sets[count].dstBinding">
-            </PersistentString>
-            <PersistentString
-               value = " _descriptor_set_layout_bindings[count].binding">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -269,10 +272,10 @@
                value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
             </PersistentString>
             <PersistentString
-               value = "pair.first">
+               value = "pair2.first">
             </PersistentString>
             <PersistentString
-               value = "pair2.first">
+               value = "pair.first">
             </PersistentString>
             <PersistentString
                value = "_sampler_buffers.size()">
@@ -297,6 +300,15 @@
          contextName = "vk::graphics_pipeline::create(VkRenderPass_T*, unsigned int, unsigned int):graphics_pipeline.cpp">
          <PersistentStrings>
             <PersistentString
+               value = "pipeline_layout_create_info.setLayoutCount ">
+            </PersistentString>
+            <PersistentString
+               value = "pipeline_layout_create_info">
+            </PersistentString>
+            <PersistentString
+               value = "pipeline_layout_create_info.pSetLayouts">
+            </PersistentString>
+            <PersistentString
                value = "pipeline_create_info.pStages[0]">
             </PersistentString>
          </PersistentStrings>
@@ -306,6 +318,14 @@
          <PersistentStrings>
             <PersistentString
                value = "_inFlightFences">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "MVKPipelineLayout::bindDescriptorSets(MVKCommandEncoder*, std::__1::vector&lt;MVKDescriptorSet*, std::__1::allocator&lt;MVKDescriptorSet*&gt; &gt;&amp;, unsigned int, std::__1::vector&lt;unsigned int, std::__1::allocator&lt;unsigned int&gt; &gt;&amp;):MVKPipeline.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "_descriptorSetLayouts.size()">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -332,21 +352,18 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "vk::Material::createDescriptorSetLayout():material.cpp">
+         contextName = "_glfwInitVulkan:vulkan.c">
          <PersistentStrings>
             <PersistentString
-               value = "_descriptorSetLayoutBindings">
+               value = "ep[i]">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "MVKPipelineLayout::MVKPipelineLayout(MVKDevice*, VkPipelineLayoutCreateInfo const*):MVKPipeline.mm">
+         contextName = "vk::Material::createDescriptorSetLayout():material.cpp">
          <PersistentStrings>
             <PersistentString
-               value = "_descriptorSetLayouts[0]">
-            </PersistentString>
-            <PersistentString
-               value = "_descriptorSetLayouts">
+               value = "_descriptorSetLayoutBindings">
             </PersistentString>
          </PersistentStrings>
       </ContextState>

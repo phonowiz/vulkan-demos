@@ -109,8 +109,8 @@ void graphics_pipeline::create( VkRenderPass render_pass, uint32_t viewport_widt
     depth_stencil_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
     depth_stencil_create_info.pNext = nullptr;
     depth_stencil_create_info.flags = 0;
-    depth_stencil_create_info.depthTestEnable = VK_TRUE;
-    depth_stencil_create_info.depthWriteEnable = VK_TRUE;
+    depth_stencil_create_info.depthTestEnable =  static_cast<VkBool32>(_depth_enable);
+    depth_stencil_create_info.depthWriteEnable = static_cast<VkBool32>(_depth_enable);
     depth_stencil_create_info.depthCompareOp = VK_COMPARE_OP_LESS;
     
     //todo:depth bounds uses the min/max depth bounds below to see if the fragment is within the bounding box
