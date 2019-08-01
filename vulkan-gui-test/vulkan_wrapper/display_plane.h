@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "mesh.h"
+#include "shapes/mesh.h"
 #include "device.h"
 
 namespace vk
@@ -22,11 +22,8 @@ namespace vk
             create();
         }
         
-        using mesh::allocate_gpu_memory;
-        using mesh::destroy;
         void create();
         
     private:
-        //todo: a lot of the mesh functions don't apply to this class, we'll need to make them private
     };
 }

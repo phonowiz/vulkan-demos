@@ -6,13 +6,10 @@
          contextName = "::vkCreatePipelineLayout(VkDevice, const VkPipelineLayoutCreateInfo *, const VkAllocationCallbacks *, VkPipelineLayout *):vulkan.mm">
       </ContextState>
       <ContextState
-         contextName = "MVKPipelineLayout::MVKPipelineLayout(MVKDevice*, VkPipelineLayoutCreateInfo const*):MVKPipeline.mm">
+         contextName = "vk::Material::createDescriptorSetLayout():material.cpp">
          <PersistentStrings>
             <PersistentString
-               value = "_descriptorSetLayouts[0]">
-            </PersistentString>
-            <PersistentString
-               value = "_descriptorSetLayouts">
+               value = "_descriptorSetLayoutBindings">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -56,6 +53,11 @@
       </ContextState>
       <ContextState
          contextName = "main:main.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "perspective_camera">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
          contextName = "vk::renderer::create_command_buffer(VkCommandBuffer_T***):renderer.cpp">
@@ -97,13 +99,13 @@
          contextName = "vk::material::create_descriptor_sets():material.cpp">
          <PersistentStrings>
             <PersistentString
-               value = " _descriptor_set_layout_bindings[count].binding">
+               value = "write_descriptor_sets[count].dstBinding">
             </PersistentString>
             <PersistentString
                value = "pair2.first">
             </PersistentString>
             <PersistentString
-               value = "write_descriptor_sets[count].dstBinding">
+               value = " _descriptor_set_layout_bindings[count].binding">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -269,13 +271,13 @@
          contextName = "vk::material::create_descriptor_set_layout():material.cpp">
          <PersistentStrings>
             <PersistentString
+               value = "pair.first">
+            </PersistentString>
+            <PersistentString
                value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
             </PersistentString>
             <PersistentString
                value = "pair2.first">
-            </PersistentString>
-            <PersistentString
-               value = "pair.first">
             </PersistentString>
             <PersistentString
                value = "_sampler_buffers.size()">
@@ -300,16 +302,24 @@
          contextName = "vk::graphics_pipeline::create(VkRenderPass_T*, unsigned int, unsigned int):graphics_pipeline.cpp">
          <PersistentStrings>
             <PersistentString
-               value = "pipeline_layout_create_info.setLayoutCount ">
+               value = "pipeline_layout_create_info.pSetLayouts">
             </PersistentString>
             <PersistentString
                value = "pipeline_layout_create_info">
             </PersistentString>
             <PersistentString
-               value = "pipeline_layout_create_info.pSetLayouts">
+               value = "pipeline_layout_create_info.setLayoutCount ">
             </PersistentString>
             <PersistentString
                value = "pipeline_create_info.pStages[0]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "update_3d_texture_rendering_params(vk::renderer&amp;):main.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "app.swapchain-&gt;_swapchain_data.swapchain_extent.width">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -338,6 +348,17 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
+         contextName = "MVKPipelineLayout::MVKPipelineLayout(MVKDevice*, VkPipelineLayoutCreateInfo const*):MVKPipeline.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "_descriptorSetLayouts[0]">
+            </PersistentString>
+            <PersistentString
+               value = "_descriptorSetLayouts">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "MVKQueueSubmission::recordResult(VkResult):MVKQueue.mm">
       </ContextState>
       <ContextState
@@ -356,14 +377,6 @@
          <PersistentStrings>
             <PersistentString
                value = "ep[i]">
-            </PersistentString>
-         </PersistentStrings>
-      </ContextState>
-      <ContextState
-         contextName = "vk::Material::createDescriptorSetLayout():material.cpp">
-         <PersistentStrings>
-            <PersistentString
-               value = "_descriptorSetLayoutBindings">
             </PersistentString>
          </PersistentStrings>
       </ContextState>

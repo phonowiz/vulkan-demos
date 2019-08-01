@@ -6,7 +6,7 @@
 //  Copyright © 2019 Rafael Sabino. All rights reserved.
 //
 
-#include "vulkan_wrapper/mesh.h"
+#include "vulkan_wrapper/shapes/mesh.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
@@ -104,7 +104,6 @@ void mesh::draw(VkCommandBuffer commandBuffer, vk::graphics_pipeline& pipeline)
     
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._pipeline_layout, 0, 1, pipeline._material->get_descriptor_set(), 0, nullptr);
     
-    //in the render target, there will be list of registered meshes that will submit their indices
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(get_indices().size()), 1, 0, 0, 0);
 }
 

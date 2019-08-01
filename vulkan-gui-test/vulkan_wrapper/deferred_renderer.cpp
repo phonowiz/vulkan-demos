@@ -9,7 +9,7 @@
 #include "deferred_renderer.h"
 #include "swapchain.h"
 #include "texture_2d.h"
-#include "mesh.h"
+#include "shapes/mesh.h"
 
 using namespace vk;
 
@@ -30,11 +30,11 @@ _albedo(device, swapchain->_swapchain_data.swapchain_extent.width,swapchain->_sw
 _normals(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _depth(device, true),
 _plane(device),
-_debug_pipeline(device),
 _mrt_material(store.GET_MAT<visual_material>("mrt")),
 _mrt_pipeline(device),
 _voxelize_pipeline(device, store.GET_MAT<visual_material>("voxelizer")),
-_voxel_texture(device, VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE)
+_voxel_texture(device, VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE),
+_ortho_camera(1.5f, 1.5f, 10.0f)
 {
     int binding = 0;
     _mrt_material->init_parameter("model", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
@@ -51,15 +51,8 @@ _voxel_texture(device, VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE)
     _voxelize_pipeline.set_cullmode( graphics_pipeline::cull_mode::NONE);
     _voxelize_pipeline.set_depth_enable(false);
     
-    //TODO: I think maybe material should be private and we should have a function that does this for us,
-    //we can already set image samplers using the pipeline object.  Also, consider creating a frame buffer object which houses
-    //the pipeline and rendering commands to be used for rendering meshes.
-    
-    
-    
     _depth.create(_swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height);
     _plane.create();
-    _plane.allocate_gpu_memory();
     
     create_command_buffer(&_offscreen_command_buffers, _device->_graphics_command_pool);
     create_command_buffer(&_voxelize_command_buffers, _device->_compute_command_pool);
@@ -422,18 +415,17 @@ void deferred_renderer::destroy_framebuffers()
 
 void deferred_renderer::perform_final_drawing_setup()
 {
-    static bool setup_initialized = false;
-    if( !setup_initialized)
+    if( !_setup_initialized)
     {
         _mrt_pipeline.set_material(_mrt_material);
         _pipeline.set_material(_material);
-        //note: the last argument is the binding number specified in the material's shader
+
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_normals), "normals", visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_albedo), "albedo", visual_material::parameter_stage::FRAGMENT, 2, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_positions), "positions", visual_material::parameter_stage::FRAGMENT, 3, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_depth), "depth", visual_material::parameter_stage::FRAGMENT, 4, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         
-        setup_initialized = true;
+        _setup_initialized = true;
     }
     
     _voxelize_pipeline._material->commit_parameters_to_gpu();
@@ -443,7 +435,7 @@ void deferred_renderer::perform_final_drawing_setup()
     renderer::perform_final_drawing_setup();
 }
 
-void deferred_renderer::draw()
+void deferred_renderer::draw(camera& camera)
 {
     perform_final_drawing_setup();
     
@@ -451,8 +443,18 @@ void deferred_renderer::draw()
     vkWaitForFences(_device->_logical_device, 1, &_deferred_inflight_fences[image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     vkResetFences(_device->_logical_device, 1, &_deferred_inflight_fences[image_index]);
     
+    
+    //todo: acquire image at the very last minute, not in the very beginning
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain,
                           std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &image_index);
+    
+    vk::shader_parameter::shader_params_group& vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 0);
+    vk::shader_parameter::shader_params_group& mrt_params =  _mrt_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+    
+    _ortho_camera.position = camera.position;
+    vertex_params["model"] = mrt_params["model"];
+    vertex_params["view"] = _ortho_camera.view_matrix;
+    vertex_params["projection"] =_ortho_camera.get_projection_matrix();
     
     //render g-buffers
     VkSubmitInfo submit_info = {};
@@ -485,10 +487,8 @@ void deferred_renderer::draw()
     result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _inflight_fences[image_index]);
     ASSERT_VULKAN(result);
     
-    //TODO: YOU'LL NEED CAMERA POSITION INFORMATION IN WORLD SPACE
-    //TODO: YOU'LL NEED THE ORTHOGRAPHIC CAMERA
+
     
-    //_voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 0);
     
     //voxelize
     vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
@@ -505,6 +505,7 @@ void deferred_renderer::draw()
     vkResetCommandBuffer( _voxelize_command_buffers[image_index], 0);
     vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _voxelize_inflight_fence[image_index]);
     
+
     //render scene with g buffers and 3d voxel texture
     int binding = 0;
     vk::shader_parameter::shader_params_group& display_params =   renderer::get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, binding);
@@ -556,7 +557,7 @@ void deferred_renderer::destroy()
     }
     
     _mrt_pipeline.destroy();
-    _debug_pipeline.destroy();
+    _voxelize_pipeline.destroy();
     
     vkDestroyRenderPass(_device->_logical_device, _mrt_render_pass, nullptr);
     _mrt_render_pass = VK_NULL_HANDLE;

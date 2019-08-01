@@ -18,7 +18,10 @@ layout(location = 0) in  vec3 frag_world_position;
 
 layout(binding = 1) uniform UBO
 {
-    vec3    eye_world_position;
+    float   screen_width;
+    float   screen_height;
+    vec3    box_eye_position;
+    mat4    mvp_inverse;
 }ubo;
 
 layout(binding = 2) uniform sampler3D texture_3d;
@@ -56,35 +59,43 @@ bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1)
 
 void main()
 {
-    vec3 ray_direction =  frag_world_position - ubo.eye_world_position;
+    //excellent explanation of unprojection and how they work: https://www.derschmale.com/2014/09/28/unprojections-explained/
+    
+    //the near plane has a depth of zero, which is why I pick zero for my z axis
+    vec4 box_space_pos = vec4( float(gl_FragCoord.x)/ubo.screen_width, float(gl_FragCoord.y)/ubo.screen_height, 0.0f, 1.0f);
+    
+    box_space_pos = ubo.mvp_inverse * box_space_pos;
+    box_space_pos.xyz /= box_space_pos.w;
+    
+    vec3 box_ray_direction =  box_space_pos.xyz - ubo.box_eye_position;
 
-    Ray eye = Ray( ubo.eye_world_position, normalize(ray_direction) );
-    AABB aabb = AABB(vec3(-1.0), vec3(+1.0));
+    Ray eye = Ray( ubo.box_eye_position, normalize(box_ray_direction) );
+    AABB aabb = AABB(vec3(-1.f), vec3(+1.f));
     
     float tnear, tfar;
-    out_color = vec4(1.0f);
+    out_color =  vec4(1.0f);
     if(IntersectBox(eye, aabb, tnear, tfar))
     {
-        if (tnear < 0.0) tnear = 0.0;
-
+//        if (tnear < 0.0) tnear = 0.0;
+//
         vec3 ray_start = eye.Origin + eye.Dir * tnear;
-        vec3 ray_stop = eye.Origin + eye.Dir * tfar;
-
-        // Transform from object space to texture coordinate space:
-        // note that the box we are intersecting against has dimension ranges from -1 to 1 in all axis
-        ray_start = 0.5 * (ray_start + 1.0);
-        ray_stop = 0.5 * (ray_stop + 1.0);
-
-        // Perform the ray marching:
-        vec3 pos = ray_start;
-        vec3 step = normalize(ray_stop-ray_start) * step_size;
-        float travel = distance(ray_stop, ray_start);
-
-        for (int i=0; i < max_samples && travel > 0.0; ++i, pos += step, travel -= step_size)
-        {
-            out_color += texture(texture_3d, pos);
-        }
-        //out_color = vec4(1.0f, 1.0f, 0.0f, 1.0f);
+//        vec3 ray_stop = eye.Origin + eye.Dir * tfar;
+//
+//        // Transform from object space to texture coordinate space:
+//        // note that the box we are intersecting against has dimension ranges from -1 to 1 in all axis
+//        ray_start = 0.5 * (ray_start + 1.0);
+//        ray_stop = 0.5 * (ray_stop + 1.0);
+//
+//        // Perform the ray marching:
+//        vec3 pos = ray_start;
+//        vec3 step = normalize(ray_stop-ray_start) * step_size;
+//        float travel = distance(ray_stop, ray_start);
+//
+//        for (int i=0; i < max_samples && travel > 0.0; ++i, pos += step, travel -= step_size)
+//        {
+//            out_color += texture(texture_3d, pos);
+//        }
+        out_color = vec4(ray_start.x, 0.0f, 0.0f, 1.0f);
     }
     
 

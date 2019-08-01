@@ -16,6 +16,7 @@
 #include "visual_material.h"
 #include "depth_image.h"
 #include "graphics_pipeline.h"
+#include "./cameras/camera.h"
 
 
 
@@ -47,7 +48,7 @@ namespace vk
 
         void add_mesh(mesh* pMesh){ _meshes.push_back(pMesh); };
         void clear_meshes(mesh* pMesh){ _meshes.clear();}
-        virtual void draw();
+        virtual void draw(camera &camera);
         graphics_pipeline& get_pipeline() { return _pipeline;}
         
         void init();
@@ -96,6 +97,8 @@ namespace vk
         std::vector<VkFramebuffer>  _swapchain_frame_buffers;
         
         std::vector<mesh*> _meshes;
+        
+        bool _pipeline_created = false;
         
         depth_image _depth_image;
 

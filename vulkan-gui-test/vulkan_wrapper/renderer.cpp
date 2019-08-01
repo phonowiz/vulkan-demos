@@ -16,7 +16,7 @@
 #include "swapchain.h"
 #include "depth_image.h"
 #include "vertex.h"
-#include "vulkan_wrapper/mesh.h"
+#include "vulkan_wrapper/shapes/mesh.h"
 #include "shader.h"
 #include "device.h"
 #include <chrono>
@@ -346,7 +346,7 @@ void renderer::init()
 {
     assert(_meshes.size() != 0 && "add meshes to render before calling init");
     create_render_pass();
-    _swapchain->recreate_swapchain();
+    //_swapchain->recreate_swapchain();
     
     create_frame_buffers();
     create_semaphores_and_fences();
@@ -361,18 +361,18 @@ void renderer::init()
 void renderer::perform_final_drawing_setup()
 {
     _material->commit_parameters_to_gpu();
-    static bool pipeline_created = false;
-    if(!pipeline_created)
+
+    if(!_pipeline_created)
     {
         //note: we create the pipeline here to give the client a chance to set the material input arguments.
         //the pipeline needs this information to be created properly.
         create_pipeline();
         record_command_buffers(*_meshes.data(), _meshes.size());
-        pipeline_created = true;
+        _pipeline_created = true;
     }
 }
 
-void renderer::draw()
+void renderer::draw(camera& camera)
 {
     
     assert(_material != nullptr);
@@ -396,7 +396,7 @@ void renderer::draw()
     submit_info.pCommandBuffers = &(_command_buffers[image_index]);
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &_semaphore_rendering_done;
-    
+
     VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _inflight_fences[image_index]);
     ASSERT_VULKAN(result);
     

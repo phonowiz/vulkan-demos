@@ -15,6 +15,7 @@
 #include "material_store.h"
 #include "display_plane.h"
 #include "depth_image.h"
+#include "cameras/orthographic_camera.h"
 
 namespace vk
 {
@@ -43,7 +44,11 @@ namespace vk
         
         virtual vk::visual_mat_shared_ptr &  get_material() override { return _mrt_material; }
         
+        texture_3d* get_voxel_texture(){ return &_voxel_texture; }
+        
+        void wait_for_all_fences();
         virtual void destroy() override;
+        virtual void draw(camera& camera) override;
 
         
     private:
@@ -52,7 +57,7 @@ namespace vk
         virtual void create_pipeline()      override;
         virtual void create_semaphores_and_fences() override;
         virtual void destroy_framebuffers() override;
-        virtual void draw() override;
+
         
         void compute(VkCommandBuffer command_buffer, vk::compute_pipeline& pipeline);
         void record_command_buffers(mesh* meshes, size_t number_of_meshes) override;
@@ -66,7 +71,6 @@ namespace vk
         VkCommandBuffer *_voxelize_command_buffers = VK_NULL_HANDLE;
         
         graphics_pipeline _mrt_pipeline;
-        graphics_pipeline _debug_pipeline;
         graphics_pipeline _voxelize_pipeline;
         
         visual_mat_shared_ptr _mrt_material = nullptr;
@@ -83,14 +87,16 @@ namespace vk
         std::vector<VkFramebuffer>  _deferred_swapchain_frame_buffers;
         std::vector<VkFramebuffer>  _voxelize_frame_buffers;
         
+        orthographic_camera _ortho_camera;
+        
         display_plane _plane;
         
         std::array<VkFence, 2> _deferred_inflight_fences {};
         std::array<VkFence, 2> _voxelize_inflight_fence {};
         
         
-        static constexpr uint32_t VOXEL_CUBE_SIZE = 256u;
-        
+        static constexpr uint32_t VOXEL_CUBE_SIZE = 2u;
+        bool _setup_initialized = false;
         texture_3d _voxel_texture;
         
     };

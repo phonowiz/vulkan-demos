@@ -33,5 +33,13 @@ camera(glm::mat4(1.0f))
     _focal_length = _near;
     
     _projection_matrix = glm::ortho(_left, _right, _bottom, _top, _near, _far);
+    
+    /*
+     GLM was originally designed for OpenGL, where the Y coordinate of the clip coordinates is inverted.
+     The easiest way to compensate for that is to flip the sign on the scaling factor of the Y axis in the projection matrix.
+     If you don't do this, then the image will be rendered upside down.
+     */
+    
+    _projection_matrix[1][1] *= -1.0f;
 }
 

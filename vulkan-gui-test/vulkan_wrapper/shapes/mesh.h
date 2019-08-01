@@ -18,6 +18,7 @@
 #include "visual_material.h"
 #include "graphics_pipeline.h"
 #include "compute_pipeline.h"
+#include "transform.h"
 
 namespace vk
 {
@@ -67,8 +68,13 @@ namespace vk
             return _indices;
         }
         
+        inline void update_transform() { transform.update_transform_matrix(); }
+        
+        vk::transform transform;
+        
     protected:
         
+
         void create_vertex_buffer();
         void create_index_buffer();
         void allocate_gpu_memory();
