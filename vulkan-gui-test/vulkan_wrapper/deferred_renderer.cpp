@@ -487,9 +487,6 @@ void deferred_renderer::draw(camera& camera)
     result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _inflight_fences[image_index]);
     ASSERT_VULKAN(result);
     
-
-    
-    
     //voxelize
     vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[image_index]);

@@ -109,16 +109,20 @@ void update_3d_texture_rendering_params( vk::renderer& renderer)
     
     vk::shader_parameter::shader_params_group& vertex_params =   renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     app.three_d_camera->update_view_matrix();
-    vertex_params["mvp"] = app.three_d_camera->get_projection_matrix() * app.three_d_camera->view_matrix * model;
+    
+
+    glm::mat4 mvp = app.three_d_camera->get_projection_matrix() * app.three_d_camera->view_matrix * model;
+    vertex_params["mvp"] = mvp;
     vertex_params["model"] = model;
     
     vk::shader_parameter::shader_params_group& fragment_params =   renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
-    fragment_params["screen_width"] = static_cast<float>(app.swapchain->_swapchain_data.swapchain_extent.width);
-    fragment_params["screen_height"] = static_cast<float>(app.swapchain->_swapchain_data.swapchain_extent.height);
-    glm::vec4 eye_in_world_space = glm::vec4(app.three_d_camera->position, 1.0);
-    
-    fragment_params["box_eye_position"] =  glm::inverse( app.three_d_camera->view_matrix * model) *  eye_in_world_space;
-    fragment_params["mvp_inverse"] = glm::inverse(app.three_d_camera->get_projection_matrix() * app.three_d_camera->view_matrix * model);
+    glm::mat4 mvp_inverse = glm::inverse(app.three_d_camera->get_projection_matrix() * app.three_d_camera->view_matrix * model);
+
+    fragment_params["mvp_inverse"] = mvp_inverse;
+    fragment_params["box_eye_position"] =  glm::inverse( model) *  glm::vec4(app.three_d_camera->position, 1.0f);
+    fragment_params["screen_height"] = static_cast<float>(app.swapchain->_swapchain_data.swapchain_extent.width);
+    fragment_params["screen_width"] = static_cast<float>(app.swapchain->_swapchain_data.swapchain_extent.height);
+
 }
 
 

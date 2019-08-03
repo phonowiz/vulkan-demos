@@ -188,7 +188,7 @@ void material_base::create_descriptor_set_layout()
 
 void material_base::init_shader_parameters()
 {
-    size_t totalSize = 0;
+    size_t total_size = 0;
     
     //note: textures don't need to be initialized here because the texture classes take care of that
     for (std::pair<parameter_stage , buffer_info > pair : _uniform_buffers)
@@ -199,20 +199,20 @@ void material_base::init_shader_parameters()
         {
             //const char* name = pair.first;
             shader_parameter setting = pair.second;
-            totalSize += setting.get_size_in_bytes();
+            total_size += setting.get_size_in_bytes();
         }
         
-        _uniform_buffers[pair.first].size = totalSize;
+        _uniform_buffers[pair.first].size = total_size;
         
-        if(totalSize != 0)
+        if(total_size != 0)
         {
             assert(mem.uniform_buffer_memory == VK_NULL_HANDLE && mem.uniformBuffer == VK_NULL_HANDLE);
-            create_buffer(_device->_logical_device, _device->_physical_device, totalSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, mem.uniformBuffer,
+            create_buffer(_device->_logical_device, _device->_physical_device, total_size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, mem.uniformBuffer,
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mem.uniform_buffer_memory);
         }
         
         
-        totalSize = 0;
+        total_size = 0;
     }
     
     create_descriptor_pool();
@@ -256,21 +256,21 @@ void material_base::commit_parameters_to_gpu( )
             {
                 void* data = nullptr;
                 vkMapMemory(_device->_logical_device, mem.uniform_buffer_memory, 0, mem.size, 0, &data);
-                char* byteData = static_cast<char*>(data);
+                char* byte_data = static_cast<char*>(data);
                 
-                size_t totalWritten = 0;
+                size_t total_written = 0;
                 //important note: this code assumes that in the shader, the parameters are listed in the same order as they
                 //appear in the group
                 for (std::pair<const char* , shader_parameter > pair : group)
                 {
                     assert(pair.second.get_size_in_bytes() != 0 && "Empty parameter, probably means you've left a parameter unassigned");
-                    memcpy(byteData + totalWritten, pair.second.get_stored_value_memory(), pair.second.get_size_in_bytes() );
-                    totalWritten += pair.second.get_size_in_bytes();
+                    std::memcpy(byte_data + total_written, pair.second.get_stored_value_memory(), pair.second.get_size_in_bytes() );
+                    total_written += pair.second.get_size_in_bytes();
                     
-                    assert(totalWritten <= mem.size && "trying to write more memory than that allocated from GPU ");
+                    assert(total_written <= mem.size && "trying to write more memory than that allocated from GPU ");
                 }
                 
-                assert(totalWritten == mem.size && "memory written differs from original memory allocated from GPU, have you added/removed new shader parameters?");
+                assert(total_written == mem.size && "memory written differs from original memory allocated from GPU, have you added/removed new shader parameters?");
                 vkUnmapMemory(_device->_logical_device, mem.uniform_buffer_memory);
             }
         }

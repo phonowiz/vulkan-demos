@@ -26,6 +26,14 @@ namespace vk
     class shader_parameter
     {
         
+    private:
+        static constexpr size_t MAX_UNIFORM_BUFFER_SIZE = 1024;
+        struct uniform_buffer
+        {
+            char* memory[MAX_UNIFORM_BUFFER_SIZE];
+            size_t size = 0;
+        };
+        
     public:
         enum class Type
         {
@@ -40,12 +48,16 @@ namespace vk
             SAMPLER_2D,
             SAMPLER_3D,
             //        POINT_LIGHT,
+            UNIFORM_BUFFER,
             NONE
             
         };
         
     private:
         
+
+        
+
         union setting_value
         {
             glm::vec4 vector4;
@@ -60,6 +72,8 @@ namespace vk
             glm::mat4 mat4;
             //        PointLight pointLight;
             bool     boolean;
+            
+            uniform_buffer buffer;
             
             setting_value()
             {
@@ -76,8 +90,6 @@ namespace vk
         
         inline Type get_type(){return type;}
         inline setting_value* get_stored_value_memory(){ return &value; }
-        
-        
         
         using shader_params_group =  tsl::ordered_map<const char* ,shader_parameter>;
         using KeyValue = std::pair<const char*, shader_parameter> ;
@@ -120,6 +132,9 @@ namespace vk
                 case Type::SAMPLER_3D:
                     return sizeof (texture_3d);
                     break;
+                case Type::UNIFORM_BUFFER:
+                    return value.buffer.size;
+                    break;
                 case Type::NONE:
                     assert(0);
                     break;
@@ -152,6 +167,13 @@ namespace vk
             return static_cast<image*>(value.sampler3D);
         }
         
+        inline void set_uniform_buffer(void* memory, size_t size_in_bytes )
+        {
+            type = Type::UNIFORM_BUFFER;
+            value.buffer.size = size_in_bytes;
+            assert(size_in_bytes < MAX_UNIFORM_BUFFER_SIZE);
+            std::memcpy(static_cast<void*>(&value.buffer.memory[0]), memory, size_in_bytes);
+        }
         
         inline shader_parameter& operator=(const glm::mat4 &value)
         {
@@ -256,14 +278,6 @@ namespace vk
             return *this;
         }
         
-
-        //    inline ShaderParameter& operator=(const PointLight &light)
-        //    {
-        //        type = Type::POINT_LIGHT;
-        //        this->value.pointLight = light;
-        //        return *this;
-        //    }
-        //
         inline shader_parameter& operator=(const bool value)
         {
             type = Type::BOOLEAN;
