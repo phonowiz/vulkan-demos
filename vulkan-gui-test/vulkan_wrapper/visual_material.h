@@ -27,6 +27,7 @@ namespace  vk
     class visual_material : public material_base
     {
     public:
+        
         visual_material(const char* name, shader_shared_ptr vertex_shader, shader_shared_ptr fragment_shader, device* device );
 
         virtual VkPipelineShaderStageCreateInfo* get_shader_stages() override
@@ -39,7 +40,7 @@ namespace  vk
         virtual size_t get_shader_stages_size() override { return 2; }
 
         virtual void destroy() override;
-    
+        
         inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, float value, int binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;

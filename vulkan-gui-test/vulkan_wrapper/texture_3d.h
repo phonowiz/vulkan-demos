@@ -27,6 +27,8 @@ namespace vk {
 
         virtual const void* const get_instance_type(){ return _image_type; }
         static const void* const  get_class_type(){ return _image_type; }
+        
+        virtual void init() override;
     private:
         
         static constexpr void* _image_type = nullptr;

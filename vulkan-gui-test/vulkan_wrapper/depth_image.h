@@ -20,9 +20,10 @@ namespace vk {
     public:
         
         depth_image(bool write_to_texture){ _write_to_texture = write_to_texture; };
-        depth_image(vk::device* device, bool write_to_texture ):texture_2d(device){ _write_to_texture = write_to_texture; }
+        depth_image(vk::device* device, uint32_t width, uint32_t height, bool write_to_texture )
+            :texture_2d(device, width, height){ _write_to_texture = write_to_texture; }
         
-        virtual void create(uint32_t width, uint32_t height) override;
+
         virtual void destroy() override;
         virtual void create_sampler() override;
         VkAttachmentDescription get_depth_attachment();
@@ -30,6 +31,8 @@ namespace vk {
     protected:
         bool _created = false;
         bool _write_to_texture = false;
+        
+        virtual void create(uint32_t width, uint32_t height) override;
         
         depth_image(const depth_image&) = delete;
         depth_image(depth_image&&) = delete;

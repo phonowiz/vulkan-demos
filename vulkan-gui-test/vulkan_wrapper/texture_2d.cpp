@@ -24,8 +24,14 @@ texture_2d::texture_2d(device* device):image(device)
 texture_2d::texture_2d(device* device, uint32_t width, uint32_t height):
 image(device)
 {
+    _width = width;
+    _height = height;
+}
+
+void texture_2d::init()
+{
     create_sampler();
-    create(width, height);
+    create(_width, _height);
 }
 
 texture_2d::texture_2d(device* device,const char* path)
@@ -62,8 +68,8 @@ void texture_2d::create_sampler()
     sampler_create_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     sampler_create_info.pNext = nullptr;
     sampler_create_info.flags = 0;
-    sampler_create_info.magFilter = VK_FILTER_LINEAR;
-    sampler_create_info.minFilter = VK_FILTER_LINEAR;
+    sampler_create_info.magFilter = VK_FILTER_NEAREST;
+    sampler_create_info.minFilter = VK_FILTER_NEAREST;
     sampler_create_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
     sampler_create_info.addressModeU  = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     sampler_create_info.addressModeV =  VK_SAMPLER_ADDRESS_MODE_REPEAT;

@@ -20,6 +20,11 @@ void texture_3d::create(uint32_t width, uint32_t height, uint32_t depth)
     _height = height;
     _depth = depth;
     
+
+}
+
+void texture_3d::init()
+{
     create_image(
                  static_cast<VkFormat>(_format),
                  VK_IMAGE_TILING_OPTIMAL,
@@ -27,6 +32,7 @@ void texture_3d::create(uint32_t width, uint32_t height, uint32_t depth)
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     
     create_image_view(_image, static_cast<VkFormat>(_format), VK_IMAGE_ASPECT_COLOR_BIT,_image_view);
+    
 }
 
 void texture_3d::create_sampler()

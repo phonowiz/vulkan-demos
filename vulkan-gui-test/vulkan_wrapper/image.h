@@ -79,6 +79,12 @@ namespace vk
             DEPTH_32_STENCIL_8 = VK_FORMAT_D32_SFLOAT_S8_UINT,
             DEPTH_24_STENCIL_8 = VK_FORMAT_D24_UNORM_S8_UINT
         };
+        
+        enum class filter
+        {
+            LINEAR = VkFilter::VK_FILTER_LINEAR,
+            NEAREST = VkFilter::VK_FILTER_NEAREST
+        };
 
         
         inline formats get_format()
@@ -86,10 +92,14 @@ namespace vk
             return _format;
         }
         
+        void set_filter( image::filter filter){ _filter = filter; }
+        
         virtual const void* const get_instance_type() = 0;
+        virtual void init() = 0;
     protected:
         
         formats _format = formats::R8G8B8A8;
+        filter  _filter = filter::LINEAR;
         
         virtual void create_sampler() = 0;
         virtual void create_image_view( VkImage image, VkFormat format,

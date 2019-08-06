@@ -29,12 +29,12 @@ _positions(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain-
 _albedo(device, swapchain->_swapchain_data.swapchain_extent.width,swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _normals(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _voxel_2d_view(device, static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), render_texture::usage::COLOR_TARGET),
-_depth(device, true),
+_voxel_3d_texture(device, VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH),
+_depth(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height,true),
 _plane(device),
 _mrt_material(store.GET_MAT<visual_material>("mrt")),
 _mrt_pipeline(device),
 _voxelize_pipeline(device, store.GET_MAT<visual_material>("voxelizer")),
-_voxel_3d_texture(device, VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH),
 _ortho_camera(1.5f, 1.5f, 10.0f)
 {
     int binding = 0;
@@ -46,6 +46,18 @@ _ortho_camera(1.5f, 1.5f, 10.0f)
     _material->init_parameter("width", visual_material::parameter_stage::VERTEX, 0.f, 0);
     _material->init_parameter("height", visual_material::parameter_stage::VERTEX, 0.f, 0);
     
+    _positions.init();
+    _albedo.init();
+    _normals.init();
+    _depth.init();
+    
+    _voxel_3d_texture.set_filter(image::filter::NEAREST);
+    _voxel_2d_view.set_filter(image::filter::NEAREST);
+    
+    _voxel_3d_texture.init();
+    _voxel_2d_view.init();
+    
+    
     _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
                                          visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
     
@@ -55,7 +67,6 @@ _ortho_camera(1.5f, 1.5f, 10.0f)
     _mrt_pipeline.set_material(_mrt_material);
     _pipeline.set_material(_material);
     
-    _depth.create(_swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height);
     _plane.create();
     
     create_command_buffer(&_offscreen_command_buffers, _device->_graphics_command_pool);

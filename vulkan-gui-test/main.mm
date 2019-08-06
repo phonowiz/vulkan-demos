@@ -97,9 +97,6 @@ struct App
 
 App app;
 
-vk::texture_2d* texture = nullptr;
-
-
 void update_3d_texture_rendering_params( vk::renderer& renderer)
 {
     std::chrono::time_point frame_time = std::chrono::high_resolution_clock::now();
@@ -276,8 +273,7 @@ int main()
     vk::display_plane plane(&device);
     
     vk::texture_2d mario(&device, "mario.png");
-    texture = &mario;
-    
+    mario.init();
     plane.create();
     
     standard_mat = material_store.GET_MAT<vk::visual_material>("standard");
@@ -338,7 +334,6 @@ int main()
     app.state = rendering_state::DEFERRED;
 
     game_loop();
-    
     
     deferred_renderer.destroy();
     three_d_renderer.destroy();

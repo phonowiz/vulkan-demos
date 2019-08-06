@@ -26,13 +26,13 @@
 using namespace vk;
 
 
-renderer::renderer(device* device, GLFWwindow* window, swapchain* swapChain, visual_mat_shared_ptr material):
-_depth_image(device, false),
+renderer::renderer(device* device, GLFWwindow* window, swapchain* swapchain, visual_mat_shared_ptr material):
+_depth_image(device,swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height, false),
 _pipeline(device, material)
 {
     _device = device;
     _window = window;
-    _swapchain = swapChain;
+    _swapchain = swapchain;
     _material = material;
 }
 
@@ -304,7 +304,8 @@ void renderer::destroy()
 void renderer::create_frame_buffers()
 {
     _depth_image.destroy();
-    _depth_image.create(_swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height);
+    _depth_image.init();
+
     //TODO: Get rid of the vector class
     _swapchain_frame_buffers.resize(_swapchain->_swapchain_data.image_set.get_image_count());
     

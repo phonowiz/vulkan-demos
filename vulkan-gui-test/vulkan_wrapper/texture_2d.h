@@ -41,6 +41,7 @@ namespace vk
         
         void load();
         virtual void create_image_view(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, VkImageView& image_view) override;
+        virtual void init() override;
         
         virtual const void* const get_instance_type(){ return _image_type; }
         static const void* const  get_class_type(){ return _image_type; }
