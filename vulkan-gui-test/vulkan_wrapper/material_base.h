@@ -108,6 +108,9 @@ namespace vk
         
         bool _initialized = false;
         device* _device = nullptr;
+        
+        uint32_t _uniform_parameters_added_on_init = 0;
+        uint32_t _samplers_added_on_init = 0;
     };
     
     using mat_shared_ptr = std::shared_ptr<material_base>;

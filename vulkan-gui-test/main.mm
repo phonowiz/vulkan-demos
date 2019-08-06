@@ -60,8 +60,6 @@ void start_glfw() {
 //render target
 std::chrono::time_point game_start_time = std::chrono::high_resolution_clock::now();
 
-
-
 void shutdown_glfw() {
     glfwDestroyWindow(window);
     glfwTerminate();
@@ -78,7 +76,8 @@ enum class rendering_state
     DEFERRED,
     STANDARD,
     TWO_D_TEXTURE,
-    THREE_D_TEXTURE
+    THREE_D_TEXTURE,
+    VOXELIZER_CAMERA_VIEW
 };
 
 struct App
@@ -86,8 +85,10 @@ struct App
     vk::device* device = nullptr;
     vk::deferred_renderer*   deferred_renderer = nullptr;
     vk::renderer*   three_d_renderer = nullptr;
+    vk::renderer*   voxelizer_camera_renderer = nullptr;
     vk::camera*     perspective_camera = nullptr;
-    vk::camera*     three_d_camera = nullptr;
+    vk::camera*     three_d_texture_camera = nullptr;
+    vk::camera*     ortho_camera = nullptr;
     vk::swapchain*  swapchain = nullptr;
     
     rendering_state state = rendering_state::STANDARD;
@@ -108,18 +109,18 @@ void update_3d_texture_rendering_params( vk::renderer& renderer)
 
     
     vk::shader_parameter::shader_params_group& vertex_params =   renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-    app.three_d_camera->update_view_matrix();
+    app.three_d_texture_camera->update_view_matrix();
     
 
-    glm::mat4 mvp = app.three_d_camera->get_projection_matrix() * app.three_d_camera->view_matrix * model;
+    glm::mat4 mvp = app.three_d_texture_camera->get_projection_matrix() * app.three_d_texture_camera->view_matrix * model;
     vertex_params["mvp"] = mvp;
     vertex_params["model"] = model;
     
     vk::shader_parameter::shader_params_group& fragment_params =   renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
-    glm::mat4 mvp_inverse = glm::inverse(app.three_d_camera->get_projection_matrix() * app.three_d_camera->view_matrix * model);
+    glm::mat4 mvp_inverse = glm::inverse(app.three_d_texture_camera->get_projection_matrix() * app.three_d_texture_camera->view_matrix * model);
 
     fragment_params["mvp_inverse"] = mvp_inverse;
-    fragment_params["box_eye_position"] =  glm::inverse( model) *  glm::vec4(app.three_d_camera->position, 1.0f);
+    fragment_params["box_eye_position"] =  glm::inverse( model) *  glm::vec4(app.three_d_texture_camera->position, 1.0f);
     fragment_params["screen_height"] = static_cast<float>(app.swapchain->_swapchain_data.swapchain_extent.width);
     fragment_params["screen_width"] = static_cast<float>(app.swapchain->_swapchain_data.swapchain_extent.height);
 
@@ -159,6 +160,13 @@ void game_loop_3d_texture(vk::renderer &renderer)
     }
 }
 
+void update_ortho_parameters(vk::renderer& renderer)
+{
+    vk::shader_parameter::shader_params_group& vertex_params =  renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+    vertex_params["width"] = width;
+    vertex_params["height"] = height;
+}
+
 void game_loop()
 {
 
@@ -174,7 +182,13 @@ void game_loop()
         if( app.state == rendering_state::THREE_D_TEXTURE)
         {
             update_3d_texture_rendering_params(*app.three_d_renderer);
-            app.three_d_renderer->draw(*app.three_d_camera);
+            app.three_d_renderer->draw(*app.three_d_texture_camera);
+        }
+        
+        if( app.state == rendering_state::VOXELIZER_CAMERA_VIEW)
+        {
+            update_ortho_parameters(*app.voxelizer_camera_renderer);
+            app.voxelizer_camera_renderer->draw(*app.three_d_texture_camera);
         }
     }
     
@@ -200,16 +214,7 @@ void on_window_resize(GLFWwindow * window, int w, int h)
     }
 }
 
-void update_ortho_parameters(vk::renderer& renderer)
-{
 
-    vk::shader_parameter::shader_params_group& vertex_params =  renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-    vertex_params["width"] = width;
-    vertex_params["height"] = height;
-
-    renderer.get_material()->set_image_sampler(texture, "tex", vk::visual_material::parameter_stage::FRAGMENT, 1, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
-    
-}
 
 void game_loop_ortho(vk::renderer &renderer)
 {
@@ -235,6 +240,12 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         app.state = rendering_state::THREE_D_TEXTURE;
         app.device->wait_for_all_operations_to_finish();
     }
+    
+    if (key == GLFW_KEY_3 && action == GLFW_PRESS)
+    {
+        app.state = rendering_state::VOXELIZER_CAMERA_VIEW;
+        app.device->wait_for_all_operations_to_finish();
+    }
 }
 
 int main()
@@ -245,12 +256,11 @@ int main()
 
     glfwSetKeyCallback(window, key_callback);
 
-    
     vk::device device;
     
     app.device = &device;
     
-    VkResult res = glfwCreateWindowSurface(device._instance, window, nullptr, &surface);
+    glfwCreateWindowSurface(device._instance, window, nullptr, &surface);
     device.create_logical_device(surface);
 
     vk::swapchain swapchain(&device, window, surface);
@@ -265,6 +275,11 @@ int main()
     vk::mesh cube("cube.obj", &device);
     vk::display_plane plane(&device);
     
+    vk::texture_2d mario(&device, "mario.png");
+    texture = &mario;
+    
+    plane.create();
+    
     standard_mat = material_store.GET_MAT<vk::visual_material>("standard");
     display_mat = material_store.GET_MAT<vk::visual_material>("display");
     display_3d_tex_mat = material_store.GET_MAT<vk::visual_material>("display_3d_texture");
@@ -274,41 +289,48 @@ int main()
     
     vk::perspective_camera three_d_texture_cam(glm::radians(60.0f),
                                               swapchain._swapchain_data.swapchain_extent.width/ swapchain._swapchain_data.swapchain_extent.height, .01f, 10.f);
+    
+    vk::orthographic_camera ortho_camera( 1.5f, 1.5f, 10.f);
 
+    app.ortho_camera = &ortho_camera;
+    app.ortho_camera->position = glm::vec3( 1.0f, 0.0f, -8.f);
+    app.ortho_camera->forward = -app.ortho_camera->position;
+    
     app.perspective_camera = &perspective_camera;
     app.perspective_camera->position = glm::vec3(1.0f, 0.0f, -5.0f);
     app.perspective_camera->forward = -perspective_camera.position;
     
     
     glm::vec3 eye(1.0f, 0.0f, -3.0f);
-    app.three_d_camera = &three_d_texture_cam;
-    app.three_d_camera->position = eye;
-    app.three_d_camera->forward = -eye;
+    app.three_d_texture_camera = &three_d_texture_cam;
+    app.three_d_texture_camera->position = eye;
+    app.three_d_texture_camera->forward = -eye;
     
     
     vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store);
     vk::renderer three_d_renderer(&device, window, &swapchain, display_3d_tex_mat);
+    vk::renderer voxelizer_camera_view(&device, window, &swapchain, display_mat);
+    
     
     app.three_d_renderer = &three_d_renderer;
     app.deferred_renderer = &deferred_renderer;
+    app.voxelizer_camera_renderer = & voxelizer_camera_view;
     
     app.deferred_renderer->add_mesh(&mesh);
     app.deferred_renderer->init();
     
-//TODO: This code will be deleted soon and is only here for reference
-
-//    vk::orthographic_camera ortho_cam(1.5, 1.5 , 10 );
-//    app.camera = &ortho_cam;
-//
-//    app.camera->position = perspective_camera.position;//glm::vec3(1.0f, 0.0f, -3.0f);
-//    app.camera->forward = -app.camera->position;
+    
+    vk::texture_2d* voxelizer_cam_view = deferred_renderer.get_voxelizer_cam_texture();
+    app.voxelizer_camera_renderer->get_material()->set_image_sampler(voxelizer_cam_view, "tex",
+                                                                 vk::material_base::parameter_stage::FRAGMENT, 1, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
    
     vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture();
 
     app.three_d_renderer->get_material()->set_image_sampler(voxel_texture, "texture_3d",
                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
 
-
+    app.voxelizer_camera_renderer->add_mesh(&plane);
+    app.voxelizer_camera_renderer->init();
     
     app.three_d_renderer->add_mesh(&cube);
     app.three_d_renderer->init();
@@ -317,64 +339,6 @@ int main()
 
     game_loop();
     
-//TODO: This code will be deleted soon and is only here for reference
-    
-    
-//    switch( app.state )
-//    {
-//        case rendering_state::TWO_D_TEXTURE:
-//        {
-//
-////            vk::texture_2d mario(&device, "mario.png");
-////            texture = &mario;
-////            vk::renderer renderer(&device, window, &swapchain, display_mat);
-////            app.deferred_renderer = &renderer;
-////
-////
-////
-////            game_loop_ortho(renderer);
-////            renderer.destroy();
-//            break;
-//        }
-//        case rendering_state::DEFERRED:
-//        {
-//            //deferred_renderer.init();
-//
-//            game_loop(deferred_renderer);
-//            deferred_renderer.destroy();
-//            break;
-//        }
-//        case rendering_state::THREE_D_TEXTURE:
-//        {
-//
-////            app.three_d_renderer->add_mesh(&cube);
-////            app.three_d_renderer->init();
-////
-////            game_loop_3d_texture(renderer);
-////            renderer.destroy();
-//        }
-//        default:
-//        {
-//            vk::renderer renderer(&device,window, &swapchain, standard_mat);
-//
-//            app.deferred_renderer = &renderer;
-//
-//
-//
-//
-//            app.perspective_camera = &perspective_camera;
-////            app.camera->position = glm::vec3(1.0f, 0.0f, -1.0f);
-////            app.camera->forward = -app.camera->position;
-//
-//            renderer.add_mesh(&mesh);
-//
-//            renderer.init();
-//
-//            game_loop(renderer);
-//            renderer.destroy();
-//            break;
-//        }
-//    }
     
     deferred_renderer.destroy();
     three_d_renderer.destroy();

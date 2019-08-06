@@ -28,12 +28,13 @@ renderer(device, window, swapchain, store.GET_MAT<visual_material>("deferred_out
 _positions(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _albedo(device, swapchain->_swapchain_data.swapchain_extent.width,swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _normals(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
+_voxel_2d_view(device, static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), render_texture::usage::COLOR_TARGET),
 _depth(device, true),
 _plane(device),
 _mrt_material(store.GET_MAT<visual_material>("mrt")),
 _mrt_pipeline(device),
 _voxelize_pipeline(device, store.GET_MAT<visual_material>("voxelizer")),
-_voxel_texture(device, VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE),
+_voxel_3d_texture(device, VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH),
 _ortho_camera(1.5f, 1.5f, 10.0f)
 {
     int binding = 0;
@@ -45,26 +46,53 @@ _ortho_camera(1.5f, 1.5f, 10.0f)
     _material->init_parameter("width", visual_material::parameter_stage::VERTEX, 0.f, 0);
     _material->init_parameter("height", visual_material::parameter_stage::VERTEX, 0.f, 0);
     
-    _voxelize_pipeline.set_image_sampler(&_voxel_texture, "3d_texture",
+    _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
                                          visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
     
     _voxelize_pipeline.set_cullmode( graphics_pipeline::cull_mode::NONE);
     _voxelize_pipeline.set_depth_enable(false);
     
+    _mrt_pipeline.set_material(_mrt_material);
+    _pipeline.set_material(_material);
+    
     _depth.create(_swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height);
     _plane.create();
     
     create_command_buffer(&_offscreen_command_buffers, _device->_graphics_command_pool);
-    create_command_buffer(&_voxelize_command_buffers, _device->_compute_command_pool);
+    create_command_buffer(&_voxelize_command_buffers, _device->_graphics_command_pool);
 }
 
 
 void deferred_renderer::create_voxelization_render_pass()
 {
+    
+    constexpr uint32_t NUMBER_OUTPUT_ATTACHMENTS = 1;
+    std::array<VkAttachmentDescription, NUMBER_OUTPUT_ATTACHMENTS> attachment_descriptions {};
+    
+    for( uint32_t i = 0; i < attachment_descriptions.size(); ++i)
+    {
+        attachment_descriptions[i].samples = VK_SAMPLE_COUNT_1_BIT;
+        attachment_descriptions[i].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        attachment_descriptions[i].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        attachment_descriptions[i].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        attachment_descriptions[i].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        
+        attachment_descriptions[i].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        attachment_descriptions[i].finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    }
+    
+    attachment_descriptions[0].format = static_cast<VkFormat>(_voxel_2d_view.get_format());
+    
+    std::array<VkAttachmentReference, NUMBER_OUTPUT_ATTACHMENTS> color_references {};
+    //note: the first integer in the instruction is the attachment location specified in the shader
+    
+    //todo: eventually this color attachment will not be needed, please remove, for now, it is here for debugging purposes
+    color_references[0] = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+    
     VkSubpassDescription subpass = {};
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.pColorAttachments = nullptr;
-    subpass.colorAttachmentCount = 0;
+    subpass.pColorAttachments = color_references.data();
+    subpass.colorAttachmentCount = static_cast<uint32_t>(color_references.size());
     subpass.pDepthStencilAttachment = nullptr;
     
     
@@ -91,8 +119,8 @@ void deferred_renderer::create_voxelization_render_pass()
     
     VkRenderPassCreateInfo render_pass_info = {};
     render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    render_pass_info.pAttachments = nullptr;
-    render_pass_info.attachmentCount = 0;
+    render_pass_info.pAttachments = attachment_descriptions.data();
+    render_pass_info.attachmentCount = attachment_descriptions.size();
     render_pass_info.subpassCount = 1;
     render_pass_info.pSubpasses = &subpass;
     render_pass_info.dependencyCount = 2;
@@ -219,8 +247,9 @@ void deferred_renderer::create_pipeline()
                          _swapchain->_swapchain_data.swapchain_extent.width,
                          _swapchain->_swapchain_data.swapchain_extent.height);
     
-    _voxelize_pipeline.set_number_of_blend_attachments(0);
-    _voxelize_pipeline.create(_voxelization_render_pass, VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE);
+    _voxelize_pipeline.set_number_of_blend_attachments(1);
+    _voxelize_pipeline.modify_attachment_blend(0, graphics_pipeline::write_channels::RGBA, false);
+    _voxelize_pipeline.create(_voxelization_render_pass, VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT);
 }
 
 
@@ -256,15 +285,20 @@ void deferred_renderer::create_frame_buffers()
         VkResult result = vkCreateFramebuffer(_device->_logical_device, &framebuffer_create_info, nullptr, &(_deferred_swapchain_frame_buffers[i]));
         ASSERT_VULKAN(result)
         
+        //voxelization frame buffer
+        std::array<VkImageView, 1> voxel_attachment_views {};
+        
+        voxel_attachment_views[0] = _voxel_2d_view._image_view;
+        
         framebuffer_create_info = {};
         framebuffer_create_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebuffer_create_info.pNext = nullptr;
         framebuffer_create_info.flags = 0;
         framebuffer_create_info.renderPass = _voxelization_render_pass;
-        framebuffer_create_info.attachmentCount = 0;
-        framebuffer_create_info.pAttachments = nullptr;
-        framebuffer_create_info.width = VOXEL_CUBE_SIZE;
-        framebuffer_create_info.height = VOXEL_CUBE_SIZE;
+        framebuffer_create_info.attachmentCount = voxel_attachment_views.size();
+        framebuffer_create_info.pAttachments = voxel_attachment_views.data();
+        framebuffer_create_info.width = VOXEL_CUBE_WIDTH;
+        framebuffer_create_info.height = VOXEL_CUBE_HEIGHT;
         framebuffer_create_info.layers = 1;
         
         result = vkCreateFramebuffer(_device->_logical_device, &framebuffer_create_info, nullptr, &(_voxelize_frame_buffers[i]));
@@ -279,6 +313,9 @@ void deferred_renderer::record_voxelize_command_buffers(mesh* meshes, size_t num
     assert(_voxelize_pipeline._pipeline != VK_NULL_HANDLE);
     assert(_voxelize_pipeline._pipeline_layout != VK_NULL_HANDLE);
     
+    std::array<VkClearValue,1> clear_values;
+    clear_values[0].color = { { 1.0f, 1.0f, 1.0f, 0.0f } };
+    //clear_values[3].depthStencil = { 1.0f, 0 };
     
     for( int i = 0; i < _swapchain->_swapchain_data.image_set.get_image_count(); ++i)
     {
@@ -288,10 +325,10 @@ void deferred_renderer::record_voxelize_command_buffers(mesh* meshes, size_t num
         render_pass_begin_info.renderPass = _voxelization_render_pass;
         render_pass_begin_info.framebuffer = _voxelize_frame_buffers[i];
         render_pass_begin_info.renderArea.offset = { 0, 0 };
-        render_pass_begin_info.renderArea.extent = { VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE };
+        render_pass_begin_info.renderArea.extent = { VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT };
         
-        render_pass_begin_info.clearValueCount = 0;
-        render_pass_begin_info.pClearValues = nullptr;
+        render_pass_begin_info.clearValueCount = clear_values.size();
+        render_pass_begin_info.pClearValues = clear_values.data();
         
         VkCommandBufferBeginInfo command_buffer_begin_info {};
         command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -308,16 +345,16 @@ void deferred_renderer::record_voxelize_command_buffers(mesh* meshes, size_t num
         VkViewport viewport {};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
-        viewport.width = VOXEL_CUBE_SIZE;
-        viewport.height = VOXEL_CUBE_SIZE;
+        viewport.width = VOXEL_CUBE_WIDTH;
+        viewport.height = VOXEL_CUBE_HEIGHT;
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
         vkCmdSetViewport(_voxelize_command_buffers[i], 0, 1, &viewport);
         
         VkRect2D scissor {};
         scissor.offset = { 0, 0};
-        scissor.extent = { VOXEL_CUBE_SIZE, VOXEL_CUBE_SIZE};
-        vkCmdSetScissor(_offscreen_command_buffers[i], 0, 1, &scissor);
+        scissor.extent = { VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT};
+        vkCmdSetScissor(_voxelize_command_buffers[i], 0, 1, &scissor);
         
         for( size_t j = 0; j < number_of_meshes; ++j)
         {
@@ -396,7 +433,7 @@ void deferred_renderer::record_command_buffers(mesh* meshes, size_t number_of_me
         vkCmdEndRenderPass(_offscreen_command_buffers[i]);
     }
     
-
+    record_voxelize_command_buffers(meshes, number_of_meshes);
     renderer::record_command_buffers(&_plane, 1);
 }
 
@@ -417,8 +454,6 @@ void deferred_renderer::perform_final_drawing_setup()
 {
     if( !_setup_initialized)
     {
-        _mrt_pipeline.set_material(_mrt_material);
-        _pipeline.set_material(_material);
 
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_normals), "normals", visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_albedo), "albedo", visual_material::parameter_stage::FRAGMENT, 2, resource::usage_type::COMBINED_IMAGE_SAMPLER);
@@ -437,6 +472,23 @@ void deferred_renderer::perform_final_drawing_setup()
 
 void deferred_renderer::draw(camera& camera)
 {
+    vk::shader_parameter::shader_params_group& voxelize_vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+    vk::shader_parameter::shader_params_group& mrt_params =  _mrt_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+
+    _ortho_camera.position = glm::vec3(1.0f, 0.f, -8.0f);
+    _ortho_camera.forward = -_ortho_camera.position;
+    _ortho_camera.update_view_matrix();
+
+    voxelize_vertex_params["model"] = mrt_params["model"];
+    voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
+    voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
+    
+    int binding = 0;
+    vk::shader_parameter::shader_params_group& display_params =   renderer::get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, binding);
+    
+    display_params["width"] = static_cast<float>(_swapchain->_swapchain_data.swapchain_extent.width);
+    display_params["height"] = static_cast<float>(_swapchain->_swapchain_data.swapchain_extent.height);
+    
     perform_final_drawing_setup();
     
     static uint32_t image_index = 0;
@@ -447,14 +499,6 @@ void deferred_renderer::draw(camera& camera)
     //todo: acquire image at the very last minute, not in the very beginning
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain,
                           std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &image_index);
-    
-    vk::shader_parameter::shader_params_group& vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 0);
-    vk::shader_parameter::shader_params_group& mrt_params =  _mrt_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-    
-    _ortho_camera.position = camera.position;
-    vertex_params["model"] = mrt_params["model"];
-    vertex_params["view"] = _ortho_camera.view_matrix;
-    vertex_params["projection"] =_ortho_camera.get_projection_matrix();
     
     //render g-buffers
     VkSubmitInfo submit_info = {};
@@ -473,7 +517,8 @@ void deferred_renderer::draw(camera& camera)
     VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _deferred_inflight_fences[image_index]);
     ASSERT_VULKAN(result);
     
-    //Present g-buffers, in other words, save g buffers to textures, make sure we are done rendering them before we do
+    //render scene with g buffers and 3d voxel texture
+    
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = nullptr;
     submit_info.waitSemaphoreCount = 1;
@@ -499,17 +544,10 @@ void deferred_renderer::draw(camera& camera)
     submit_info.pCommandBuffers = &(_voxelize_command_buffers[image_index]);
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &_voxelize_semaphore_done;
-    vkResetCommandBuffer( _voxelize_command_buffers[image_index], 0);
-    vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _voxelize_inflight_fence[image_index]);
+    vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _voxelize_inflight_fence[image_index]);
     
-
-    //render scene with g buffers and 3d voxel texture
-    int binding = 0;
-    vk::shader_parameter::shader_params_group& display_params =   renderer::get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, binding);
     
-    display_params["width"] = static_cast<float>(_swapchain->_swapchain_data.swapchain_extent.width);
-    display_params["height"] = static_cast<float>(_swapchain->_swapchain_data.swapchain_extent.height);
-    
+    //present the scene to viewer
     VkPresentInfoKHR present_info {};
     present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     present_info.pNext = nullptr;
@@ -557,5 +595,6 @@ void deferred_renderer::destroy()
     _voxelize_pipeline.destroy();
     
     vkDestroyRenderPass(_device->_logical_device, _mrt_render_pass, nullptr);
+    vkDestroyRenderPass(_device->_logical_device, _voxelization_render_pass, nullptr);
     _mrt_render_pass = VK_NULL_HANDLE;
 }

@@ -63,7 +63,6 @@ bool IntersectBox(Ray r, AABB aabb, out float t0, out float t1)
 void main()
 {
     //excellent explanation of unprojection and how they work: https://www.derschmale.com/2014/09/28/unprojections-explained/
-    
     vec3 box_ray_direction =  frag_obj_pos.xyz - ubo.box_eye_position.xyz;
 
     Ray eye = Ray( frag_obj_pos.xyz, normalize(box_ray_direction) );
@@ -94,6 +93,8 @@ void main()
         {
             out_color += texture(texture_3d, pos);
         }
+
+        //out_color = vec4(ray_start, 1.0f);
 
     }
     

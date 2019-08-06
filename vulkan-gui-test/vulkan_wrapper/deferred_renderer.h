@@ -39,12 +39,19 @@ namespace vk
         render_texture _albedo;
         depth_image    _depth;
         
+        render_texture _voxel_2d_view;
+        texture_3d _voxel_3d_texture;
+        
+        visual_mat_shared_ptr _mrt_material = nullptr;
+        visual_mat_shared_ptr _debug_material = nullptr;
+        
     public:
         deferred_renderer(device* device, GLFWwindow* window, swapchain* swapchain, material_store& store);
         
         virtual vk::visual_mat_shared_ptr &  get_material() override { return _mrt_material; }
         
-        texture_3d* get_voxel_texture(){ return &_voxel_texture; }
+        texture_3d* get_voxel_texture(){ return &_voxel_3d_texture; }
+        texture_2d* get_voxelizer_cam_texture( ){return &_voxel_2d_view; }
         
         void wait_for_all_fences();
         virtual void destroy() override;
@@ -73,8 +80,7 @@ namespace vk
         graphics_pipeline _mrt_pipeline;
         graphics_pipeline _voxelize_pipeline;
         
-        visual_mat_shared_ptr _mrt_material = nullptr;
-        visual_mat_shared_ptr _debug_material = nullptr;
+
         
         VkRenderPass        _mrt_render_pass = VK_NULL_HANDLE;
         VkRenderPass        _voxelization_render_pass = VK_NULL_HANDLE;
@@ -95,9 +101,11 @@ namespace vk
         std::array<VkFence, 2> _voxelize_inflight_fence {};
         
         
-        static constexpr uint32_t VOXEL_CUBE_SIZE = 2u;
+        static constexpr uint32_t VOXEL_CUBE_WIDTH = 256u;
+        static constexpr uint32_t VOXEL_CUBE_HEIGHT = 256u;
+        static constexpr uint32_t VOXEL_CUBE_DEPTH  = 256u;
         bool _setup_initialized = false;
-        texture_3d _voxel_texture;
+
         
     };
 }

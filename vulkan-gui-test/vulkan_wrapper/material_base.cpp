@@ -101,14 +101,14 @@ void material_base::create_descriptor_pool()
     std::array<VkDescriptorPoolSize, BINDING_MAX> descriptor_pool_sizes;
     
     int count = 0;
-    
+    _samplers_added_on_init = 0;
     for(std::pair<parameter_stage, buffer_parameter > pair : _sampler_buffers)
     {
         for(std::pair<const char*, buffer_info> pair2: pair.second)
         {
             descriptor_pool_sizes[count].type = static_cast<VkDescriptorType>(pair2.second.usage_type);
             descriptor_pool_sizes[count].descriptorCount = 1;
-            
+            _samplers_added_on_init++;
             ++count;
             assert(count < BINDING_MAX);
         }
@@ -190,6 +190,7 @@ void material_base::init_shader_parameters()
 {
     size_t total_size = 0;
     
+    _uniform_parameters_added_on_init = 0;
     //note: textures don't need to be initialized here because the texture classes take care of that
     for (std::pair<parameter_stage , buffer_info > pair : _uniform_buffers)
     {
@@ -200,6 +201,7 @@ void material_base::init_shader_parameters()
             //const char* name = pair.first;
             shader_parameter setting = pair.second;
             total_size += setting.get_size_in_bytes();
+            ++_uniform_parameters_added_on_init;
         }
         
         _uniform_buffers[pair.first].size = total_size;
@@ -246,6 +248,7 @@ void material_base::commit_parameters_to_gpu( )
     if(!_initialized)
         init_shader_parameters();
     
+    uint32_t uniform_parameters_count = 0;
     for (std::pair<parameter_stage , shader_parameter::shader_params_group > pair : _uniform_parameters)
     {
         buffer_info& mem = _uniform_buffers[pair.first];
@@ -268,12 +271,15 @@ void material_base::commit_parameters_to_gpu( )
                     total_written += pair.second.get_size_in_bytes();
                     
                     assert(total_written <= mem.size && "trying to write more memory than that allocated from GPU ");
+                    uniform_parameters_count++;
                 }
                 
                 assert(total_written == mem.size && "memory written differs from original memory allocated from GPU, have you added/removed new shader parameters?");
                 vkUnmapMemory(_device->_logical_device, mem.uniform_buffer_memory);
             }
         }
+        
+        assert(uniform_parameters_count == _uniform_parameters_added_on_init && " you've added more uniform parameters after initialization of material, please check code");
         
     }
     
