@@ -21,11 +21,12 @@ namespace vk {
         texture_3d(device* device, uint32_t width, uint32_t height, uint32_t depth):
         image(device)
         {
-            create_sampler();
-            create(width, height, depth);
+            _width = width;
+            _height = height;
+            _depth = depth;
         }
 
-        virtual const void* const get_instance_type(){ return _image_type; }
+        virtual const void* const get_instance_type() override { return _image_type; } 
         static const void* const  get_class_type(){ return _image_type; }
         
         virtual void init() override;
@@ -33,7 +34,6 @@ namespace vk {
         
         static constexpr void* _image_type = nullptr;
         
-        virtual void create(uint32_t width, uint32_t height, uint32_t depth);
         virtual void create_sampler()  override;
         virtual void create_image_view( VkImage image, VkFormat format,
                                        VkImageAspectFlags aspectFlags, VkImageView& image_view) override;

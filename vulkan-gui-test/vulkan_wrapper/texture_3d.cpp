@@ -12,19 +12,10 @@
 using namespace vk;
 
 
-void texture_3d::create(uint32_t width, uint32_t height, uint32_t depth)
-{
-    //if depth is 1, maybe this should be a 2d texture
-    assert(width != 0 && height != 0 && depth > 1);
-    _width = width;
-    _height = height;
-    _depth = depth;
-    
-
-}
-
 void texture_3d::init()
 {
+    create_sampler();
+
     create_image(
                  static_cast<VkFormat>(_format),
                  VK_IMAGE_TILING_OPTIMAL,

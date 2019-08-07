@@ -80,8 +80,6 @@ namespace vk
         graphics_pipeline _mrt_pipeline;
         graphics_pipeline _voxelize_pipeline;
         
-
-        
         VkRenderPass        _mrt_render_pass = VK_NULL_HANDLE;
         VkRenderPass        _voxelization_render_pass = VK_NULL_HANDLE;
         
