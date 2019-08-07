@@ -10,9 +10,7 @@ layout(binding = 1 ) writeonly restrict uniform image3D voxel_texture;
 
 layout(binding = 2) uniform UBO
 {
-    uint voxel_world_width;
-    uint voxel_world_height;
-    
+    vec3 voxel_coords;
 } ubo;
 
 void main()
@@ -27,13 +25,15 @@ void main()
 //    vec3 ambient = fragColor * 0.1f;
 //    vec3 diffuse = max(dot(N,L), 0.0f) * fragColor;
 //    vec3 specular = pow(max(dot(R,V), 0.0f), 16.0f) * vec3(1.35f, 1.35f, 1.35f);
+    vec3 texture_coordinates = vec3(float(gl_FragCoord.x)/ubo.voxel_coords.x, float(gl_FragCoord.y)/ubo.voxel_coords.y, gl_FragCoord.z);
     
-    if(gl_FragCoord.x == 32 && gl_FragCoord.y == 32)
-    {
-         imageStore(voxel_texture, ivec3(32u,32u, 0u), vec4(1.0f, 1.0f, 1.0f, 1.0f));
-    }
-    else
-        imageStore(voxel_texture, ivec3(gl_FragCoord.x, ubo.voxel_world_width - gl_FragCoord.y, 0u), vec4(0.0f, 1.0f, 1.0f, 1.0f));
+    
+    //we flip here because y is upside down when we render the texture, it's a vulkan thing...
+    texture_coordinates.y = 1.0f - texture_coordinates.y;
+    
+    ivec3 voxel = ivec3(ubo.voxel_coords * texture_coordinates);
+
+    imageStore(voxel_texture, voxel, vec4(0.0f, 1.0f, 1.0f, 1.0f));
    
     
     final_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);

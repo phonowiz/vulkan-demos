@@ -101,9 +101,9 @@ namespace vk
         std::array<VkFence, 2> _voxelize_inflight_fence {};
         
         
-        static constexpr uint32_t VOXEL_CUBE_WIDTH = 32u;
-        static constexpr uint32_t VOXEL_CUBE_HEIGHT = 32u;
-        static constexpr uint32_t VOXEL_CUBE_DEPTH  = 32u;
+        static constexpr uint32_t VOXEL_CUBE_WIDTH = 128u;
+        static constexpr uint32_t VOXEL_CUBE_HEIGHT = 128u;
+        static constexpr uint32_t VOXEL_CUBE_DEPTH  = 128u;
         bool _setup_initialized = false;
 
         

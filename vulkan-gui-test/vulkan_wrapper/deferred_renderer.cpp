@@ -35,7 +35,7 @@ _plane(device),
 _mrt_material(store.GET_MAT<visual_material>("mrt")),
 _mrt_pipeline(device),
 _voxelize_pipeline(device, store.GET_MAT<visual_material>("voxelizer")),
-_ortho_camera(1.5f, 1.5f, 10.0f)
+_ortho_camera(2.0f, 2.0f, 10.0f)
 {
     int binding = 0;
     _mrt_material->init_parameter("model", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
@@ -491,8 +491,7 @@ void deferred_renderer::draw(camera& camera)
     _ortho_camera.forward = -_ortho_camera.position;
     _ortho_camera.update_view_matrix();
 
-    voxelize_frag_params["voxel_world_width"] = static_cast<uint32_t>(VOXEL_CUBE_WIDTH);
-    voxelize_frag_params["voxel_world_height"] = static_cast<uint32_t>(VOXEL_CUBE_HEIGHT);
+    voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
     
     voxelize_vertex_params["model"] = mrt_params["model"];
     voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
