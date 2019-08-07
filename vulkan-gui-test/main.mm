@@ -33,6 +33,7 @@
 #include "vulkan_wrapper/display_plane.h"
 #include "vulkan_wrapper/deferred_renderer.h"
 #include "vulkan_wrapper/cameras/perspective_camera.h"
+#include "vulkan_wrapper/display_2d_texture_renderer.h"
 
 ///an excellent summary of vulkan can be found here:
 //https://renderdoc.org/vulkan-in-30-minutes.html
@@ -85,7 +86,7 @@ struct App
     vk::device* device = nullptr;
     vk::deferred_renderer*   deferred_renderer = nullptr;
     vk::renderer*   three_d_renderer = nullptr;
-    vk::renderer*   voxelizer_camera_renderer = nullptr;
+    vk::display_2d_texture_renderer*   voxelizer_camera_renderer = nullptr;
     vk::camera*     perspective_camera = nullptr;
     vk::camera*     three_d_texture_camera = nullptr;
     vk::camera*     ortho_camera = nullptr;
@@ -269,11 +270,10 @@ int main()
     
     vk::mesh mesh( "dragon.obj", &device );
     vk::mesh cube("cube.obj", &device);
-    vk::display_plane plane(&device);
     
     vk::texture_2d mario(&device, "mario.png");
     mario.init();
-    plane.create();
+
     
     standard_mat = material_store.GET_MAT<vk::visual_material>("standard");
     display_mat = material_store.GET_MAT<vk::visual_material>("display");
@@ -304,27 +304,25 @@ int main()
     
     vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store);
     vk::renderer three_d_renderer(&device, window, &swapchain, display_3d_tex_mat);
-    vk::renderer voxelizer_camera_view(&device, window, &swapchain, display_mat);
+    vk::display_2d_texture_renderer voxelizer_camera_renderer ( &device, window, &swapchain, material_store);
     
     
     app.three_d_renderer = &three_d_renderer;
     app.deferred_renderer = &deferred_renderer;
-    app.voxelizer_camera_renderer = & voxelizer_camera_view;
+    app.voxelizer_camera_renderer = &voxelizer_camera_renderer;
     
     app.deferred_renderer->add_mesh(&mesh);
     app.deferred_renderer->init();
     
     
     vk::texture_2d* voxelizer_cam_view = deferred_renderer.get_voxelizer_cam_texture();
-    app.voxelizer_camera_renderer->get_material()->set_image_sampler(voxelizer_cam_view, "tex",
-                                                                 vk::material_base::parameter_stage::FRAGMENT, 1, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
+    app.voxelizer_camera_renderer->show_texture(voxelizer_cam_view);
    
     vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture();
 
     app.three_d_renderer->get_material()->set_image_sampler(voxel_texture, "texture_3d",
                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
 
-    app.voxelizer_camera_renderer->add_mesh(&plane);
     app.voxelizer_camera_renderer->init();
     
     app.three_d_renderer->add_mesh(&cube);
@@ -339,10 +337,10 @@ int main()
     
     deferred_renderer.destroy();
     three_d_renderer.destroy();
+    voxelizer_camera_renderer.destroy();
     swapchain.destroy();
     material_store.destroy();
     mesh.destroy();
-    plane.destroy();
     cube.destroy();
     device.destroy();
     

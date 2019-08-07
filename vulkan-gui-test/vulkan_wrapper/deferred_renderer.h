@@ -26,13 +26,6 @@ namespace vk
     {
         
     private:
-        struct attachment
-        {
-            image* texture = nullptr;
-            const char* shader_parameter = nullptr;
-            visual_material::parameter_stage stage = visual_material::parameter_stage::NONE;
-            renderer::subpass_layout subpass_layout = subpass_layout::LAYOUT_UNDEFINED;
-        };
         
         render_texture _positions;
         render_texture _normals;

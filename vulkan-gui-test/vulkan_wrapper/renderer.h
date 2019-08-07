@@ -43,7 +43,7 @@ namespace vk
         
     public:
         
-        renderer(device* physical_device, GLFWwindow* window, swapchain* swapchain, visual_mat_shared_ptr material);
+        renderer(device* device, GLFWwindow* window, swapchain* swapchain, visual_mat_shared_ptr material);
         
 
         void add_mesh(mesh* pMesh){ _meshes.push_back(pMesh); };
@@ -51,7 +51,7 @@ namespace vk
         virtual void draw(camera &camera);
         graphics_pipeline& get_pipeline() { return _pipeline;}
         
-        void init();
+        virtual void init();
         void recreate_renderer();
         virtual vk::visual_mat_shared_ptr & get_material(){ return _material; }
         
