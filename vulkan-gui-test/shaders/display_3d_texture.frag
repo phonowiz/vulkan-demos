@@ -11,7 +11,7 @@
 
 
 float   step_size = 0.01f;
-float   max_samples = 80;
+float   max_samples = 150;
 
 
 layout(location = 0) in  vec3 frag_obj_pos;
@@ -91,10 +91,11 @@ void main()
 
         for (int i=0; i < max_samples && travel > 0.0; ++i, pos += step, travel -= step_size)
         {
+            //vec3 s = vec3(pos.x, 1- pos.y, pos.z);
             out_color += texture(texture_3d, pos);
         }
 
-        //out_color = vec4(ray_start, 1.0f);
+        //out_color = vec4(frag_obj_pos.x,0.0f, 0.0f, 1.0f);
 
     }
     

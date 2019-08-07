@@ -26,7 +26,6 @@ void main()
 {
     gl_Position = ubo.mvp * vec4(pos,1.0f);
     frag_obj_pos = pos;
-    //frag_world_position = (ubo.model * vec4(pos, 1.0f)).xyz;
 }
 
 

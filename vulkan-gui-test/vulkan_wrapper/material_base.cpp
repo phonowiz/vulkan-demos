@@ -278,9 +278,7 @@ void material_base::commit_parameters_to_gpu( )
                 vkUnmapMemory(_device->_logical_device, mem.uniform_buffer_memory);
             }
         }
-        
-        assert(uniform_parameters_count == _uniform_parameters_added_on_init && " you've added more uniform parameters after initialization of material, please check code");
-        
     }
+    assert(uniform_parameters_count == _uniform_parameters_added_on_init && " you've added more uniform parameters after initialization of material, please check code");
     
 }

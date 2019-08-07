@@ -116,6 +116,8 @@ void update_3d_texture_rendering_params( vk::renderer& renderer)
     vk::shader_parameter::shader_params_group& fragment_params =   renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
     glm::mat4 mvp_inverse = glm::inverse(app.three_d_texture_camera->get_projection_matrix() * app.three_d_texture_camera->view_matrix * model);
 
+    
+    
     fragment_params["mvp_inverse"] = mvp_inverse;
     fragment_params["box_eye_position"] =  glm::inverse( model) *  glm::vec4(app.three_d_texture_camera->position, 1.0f);
     fragment_params["screen_height"] = static_cast<float>(app.swapchain->_swapchain_data.swapchain_extent.width);
@@ -129,7 +131,7 @@ void update_renderer_parameters( vk::renderer& renderer)
     std::chrono::time_point frame_time = std::chrono::high_resolution_clock::now();
     float time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>( frame_time - game_start_time ).count()/1000.0f;
     
-    glm::mat4 model = glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 model =glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     
     glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
 
@@ -329,6 +331,9 @@ int main()
     app.voxelizer_camera_renderer->init();
     
     app.three_d_renderer->add_mesh(&cube);
+    app.three_d_renderer->get_pipeline().set_depth_enable(true);
+    
+    app.three_d_renderer->get_pipeline().set_cullmode(vk::graphics_pipeline::cull_mode::NONE);
     app.three_d_renderer->init();
     
     app.state = rendering_state::DEFERRED;

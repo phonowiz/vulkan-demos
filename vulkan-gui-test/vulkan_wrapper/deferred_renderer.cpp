@@ -57,12 +57,9 @@ _ortho_camera(1.5f, 1.5f, 10.0f)
     _voxel_3d_texture.init();
     _voxel_2d_view.init();
     
-    
-    _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
-                                         visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
-    
     _voxelize_pipeline.set_cullmode( graphics_pipeline::cull_mode::NONE);
     _voxelize_pipeline.set_depth_enable(false);
+    
     
     _mrt_pipeline.set_material(_mrt_material);
     _pipeline.set_material(_material);
@@ -485,11 +482,18 @@ void deferred_renderer::draw(camera& camera)
 {
     vk::shader_parameter::shader_params_group& voxelize_vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     vk::shader_parameter::shader_params_group& mrt_params =  _mrt_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-
+    
+    vk::shader_parameter::shader_params_group& voxelize_frag_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2);
+    
+    _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
+                                         visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
     _ortho_camera.position = glm::vec3(1.0f, 0.f, -8.0f);
     _ortho_camera.forward = -_ortho_camera.position;
     _ortho_camera.update_view_matrix();
 
+    voxelize_frag_params["voxel_world_width"] = static_cast<uint32_t>(VOXEL_CUBE_WIDTH);
+    voxelize_frag_params["voxel_world_height"] = static_cast<uint32_t>(VOXEL_CUBE_HEIGHT);
+    
     voxelize_vertex_params["model"] = mrt_params["model"];
     voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
     voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();

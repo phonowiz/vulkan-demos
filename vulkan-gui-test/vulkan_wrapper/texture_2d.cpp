@@ -68,8 +68,8 @@ void texture_2d::create_sampler()
     sampler_create_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     sampler_create_info.pNext = nullptr;
     sampler_create_info.flags = 0;
-    sampler_create_info.magFilter = VK_FILTER_NEAREST;
-    sampler_create_info.minFilter = VK_FILTER_NEAREST;
+    sampler_create_info.magFilter = static_cast<VkFilter>(_filter);
+    sampler_create_info.minFilter = static_cast<VkFilter>(_filter);
     sampler_create_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
     sampler_create_info.addressModeU  = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     sampler_create_info.addressModeV =  VK_SAMPLER_ADDRESS_MODE_REPEAT;
