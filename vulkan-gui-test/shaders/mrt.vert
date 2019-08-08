@@ -3,7 +3,7 @@
 layout(location = 0) in vec3 pos;
 layout(location = 1) in vec3 color;
 layout(location = 2) in vec2 inUVCoord;
-layout(location = 3) in vec3 inNormal;
+layout(location = 3) in vec3 normal;
 
 
 layout(binding = 0) uniform UBO
@@ -48,8 +48,8 @@ void main()
     gl_Position = ubo.projection * ubo.view * ubo.model * vec4(pos, 1.0f);
     
     vec4 pos_world = ubo.model * vec4(pos, 1.0f);
-    
-    outNormal = vec4(1.0f, 0.0f, 0.0f, 1.0f);
+    vec3 normal_world = transpose(inverse(mat3(ubo.model))) * normalize(normal);
+    outNormal = vec4(normal_world, 1.0f);
     outAlbedo = vec4(0.0f, 1.0f, 0.0f, 1.0f);
     outWorldPos = pos_world;
 }
