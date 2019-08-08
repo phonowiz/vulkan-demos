@@ -16,6 +16,7 @@ layout(binding = 0) uniform UBO
 
 
 
+
 layout (location = 0) out vec4 outNormal;
 layout (location = 1) out vec4 outAlbedo;
 layout (location = 2) out vec4 outWorldPos;
@@ -46,7 +47,9 @@ void main()
     
     gl_Position = ubo.projection * ubo.view * ubo.model * vec4(pos, 1.0f);
     
+    vec4 pos_world = ubo.model * vec4(pos, 1.0f);
+    
     outNormal = vec4(1.0f, 0.0f, 0.0f, 1.0f);
     outAlbedo = vec4(0.0f, 1.0f, 0.0f, 1.0f);
-    outWorldPos = vec4(0.0f, 0.0f, 1.0f, 1.0f);
+    outWorldPos = pos_world;
 }

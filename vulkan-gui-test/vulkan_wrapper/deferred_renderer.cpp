@@ -150,7 +150,7 @@ void deferred_renderer::create_render_pass()
     constexpr uint32_t NUMBER_OUTPUT_ATTACHMENTS = 4;
     std::array<VkAttachmentDescription, NUMBER_OUTPUT_ATTACHMENTS> attachment_descriptions {};
     
-    for( uint32_t i = 0; i < attachment_descriptions.size() - 2; ++i)
+    for( uint32_t i = 0; i <= attachment_descriptions.size() - 2; ++i)
     {
         attachment_descriptions[i].samples = VK_SAMPLE_COUNT_1_BIT;
         attachment_descriptions[i].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -462,7 +462,6 @@ void deferred_renderer::perform_final_drawing_setup()
 {
     if( !_setup_initialized)
     {
-
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_normals), "normals", visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_albedo), "albedo", visual_material::parameter_stage::FRAGMENT, 2, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_positions), "positions", visual_material::parameter_stage::FRAGMENT, 3, resource::usage_type::COMBINED_IMAGE_SAMPLER);
@@ -481,7 +480,10 @@ void deferred_renderer::perform_final_drawing_setup()
 void deferred_renderer::draw(camera& camera)
 {
     vk::shader_parameter::shader_params_group& voxelize_vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-    vk::shader_parameter::shader_params_group& mrt_params =  _mrt_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+    vk::shader_parameter::shader_params_group& mrt_vertex_params =  _mrt_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+    vk::shader_parameter::shader_params_group& display_fragment_params = _pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5) ;
+    
+    display_fragment_params["state"] = static_cast<int>(_rendering_state);
     
     vk::shader_parameter::shader_params_group& voxelize_frag_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2);
     
@@ -493,7 +495,7 @@ void deferred_renderer::draw(camera& camera)
 
     voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
     
-    voxelize_vertex_params["model"] = mrt_params["model"];
+    voxelize_vertex_params["model"] = mrt_vertex_params["model"];
     voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
     voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
     

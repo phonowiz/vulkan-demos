@@ -41,10 +41,24 @@ namespace vk
     public:
         deferred_renderer(device* device, GLFWwindow* window, swapchain* swapchain, material_store& store);
         
+        
+        //note: these are tied to deferred_output.frag values, if these values change, then change shader accordingly
+        enum class rendering_state
+        {
+            ALBEDO = 0,
+            NORMALS,
+            POSITIONS,
+            DEPTH,
+            FULL_RENDERING
+        };
+        
         virtual vk::visual_mat_shared_ptr &  get_material() override { return _mrt_material; }
         
-        texture_3d* get_voxel_texture(){ return &_voxel_3d_texture; }
-        texture_2d* get_voxelizer_cam_texture( ){return &_voxel_2d_view; }
+        inline texture_3d* get_voxel_texture(){ return &_voxel_3d_texture;}
+        
+        
+        inline texture_2d* get_voxelizer_cam_texture( ){ return &_voxel_2d_view; }
+        inline void set_rendering_state( rendering_state state ){ _rendering_state = state; }
         
         void wait_for_all_fences();
         virtual void destroy() override;
@@ -83,6 +97,7 @@ namespace vk
         
         std::vector<VkFramebuffer>  _deferred_swapchain_frame_buffers;
         std::vector<VkFramebuffer>  _voxelize_frame_buffers;
+        rendering_state _rendering_state = rendering_state::FULL_RENDERING;
         
         orthographic_camera _ortho_camera;
         

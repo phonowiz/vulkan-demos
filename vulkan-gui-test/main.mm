@@ -68,17 +68,16 @@ void shutdown_glfw() {
 
 
 vk::visual_mat_shared_ptr standard_mat;
-vk::visual_mat_shared_ptr display_mat;
 vk::visual_mat_shared_ptr mrt_mat;
 vk::visual_mat_shared_ptr display_3d_tex_mat;
 
+
+//note: this enum class is tied to values in the deferred renderer shader, if these change, then check that shader
+//and update accordingly
 enum class rendering_state
 {
-    DEFERRED,
-    STANDARD,
-    TWO_D_TEXTURE,
-    THREE_D_TEXTURE,
-    VOXELIZER_CAMERA_VIEW
+    DEFERRED = 0,
+    THREE_D_TEXTURE
 };
 
 struct App
@@ -86,13 +85,13 @@ struct App
     vk::device* device = nullptr;
     vk::deferred_renderer*   deferred_renderer = nullptr;
     vk::renderer*   three_d_renderer = nullptr;
-    vk::display_2d_texture_renderer*   voxelizer_camera_renderer = nullptr;
+    
     vk::camera*     perspective_camera = nullptr;
     vk::camera*     three_d_texture_camera = nullptr;
     vk::camera*     ortho_camera = nullptr;
     vk::swapchain*  swapchain = nullptr;
     
-    rendering_state state = rendering_state::STANDARD;
+    vk::deferred_renderer::rendering_state state = vk::deferred_renderer::rendering_state::FULL_RENDERING;
 };
 
 
@@ -103,7 +102,7 @@ void update_3d_texture_rendering_params( vk::renderer& renderer)
     std::chrono::time_point frame_time = std::chrono::high_resolution_clock::now();
     float time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>( frame_time - game_start_time ).count()/1000.0f;
     
-    glm::mat4 model =  glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 model = glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     vk::shader_parameter::shader_params_group& vertex_params =   renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     app.three_d_texture_camera->update_view_matrix();
@@ -129,7 +128,7 @@ void update_renderer_parameters( vk::renderer& renderer)
     std::chrono::time_point frame_time = std::chrono::high_resolution_clock::now();
     float time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>( frame_time - game_start_time ).count()/1000.0f;
     
-    glm::mat4 model =glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 model = glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     
     glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
 
@@ -143,6 +142,9 @@ void update_renderer_parameters( vk::renderer& renderer)
     vertex_params["view"] = app.perspective_camera->view_matrix;
     vertex_params["projection"] =  app.perspective_camera->get_projection_matrix();
     vertex_params["lightPosition"] = temp;
+    
+//    vk::shader_parameter::shader_params_group& fragment_params = renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5);
+//    fragment_params["state"] = static_cast<int>(app.state);
 
 }
 
@@ -170,23 +172,18 @@ void game_loop()
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-        
-        if(app.state == rendering_state::DEFERRED )
-        {
+//
+//        if(app.state != vk::deferred_renderer::rendering_state::THREE_D_TEXTURE )
+//        {
             update_renderer_parameters( *app.deferred_renderer );
             app.deferred_renderer->draw(*app.perspective_camera);
-        }
-        if( app.state == rendering_state::THREE_D_TEXTURE)
-        {
-            update_3d_texture_rendering_params(*app.three_d_renderer);
-            app.three_d_renderer->draw(*app.three_d_texture_camera);
-        }
+//        }
         
-        if( app.state == rendering_state::VOXELIZER_CAMERA_VIEW)
-        {
-            update_ortho_parameters(*app.voxelizer_camera_renderer);
-            app.voxelizer_camera_renderer->draw(*app.three_d_texture_camera);
-        }
+//        else
+//        {
+//            update_3d_texture_rendering_params(*app.three_d_renderer);
+//            app.three_d_renderer->draw(*app.three_d_texture_camera);
+//        }
     }
     
 }
@@ -228,20 +225,27 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
     if (key == GLFW_KEY_1 && action == GLFW_PRESS)
     {
-        app.state = rendering_state::DEFERRED;
-        app.device->wait_for_all_operations_to_finish();
+        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::FULL_RENDERING);
     }
     
     if (key == GLFW_KEY_2 && action == GLFW_PRESS)
     {
-        app.state = rendering_state::THREE_D_TEXTURE;
-        app.device->wait_for_all_operations_to_finish();
+        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::ALBEDO);
     }
     
     if (key == GLFW_KEY_3 && action == GLFW_PRESS)
     {
-        app.state = rendering_state::VOXELIZER_CAMERA_VIEW;
-        app.device->wait_for_all_operations_to_finish();
+        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::NORMALS);
+    }
+    
+    if( key == GLFW_KEY_4 && action == GLFW_PRESS)
+    {
+        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::POSITIONS);
+    }
+    
+    if( key == GLFW_KEY_5 && action == GLFW_PRESS)
+    {
+        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::DEPTH);
     }
 }
 
@@ -271,12 +275,11 @@ int main()
     vk::mesh mesh( "dragon.obj", &device );
     vk::mesh cube("cube.obj", &device);
     
-    vk::texture_2d mario(&device, "mario.png");
-    mario.init();
+//    vk::texture_2d mario(&device, "mario.png");
+//    mario.init();
 
     
     standard_mat = material_store.GET_MAT<vk::visual_material>("standard");
-    display_mat = material_store.GET_MAT<vk::visual_material>("display");
     display_3d_tex_mat = material_store.GET_MAT<vk::visual_material>("display_3d_texture");
     
     vk::perspective_camera perspective_camera(glm::radians(60.0f),
@@ -304,26 +307,21 @@ int main()
     
     vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store);
     vk::renderer three_d_renderer(&device, window, &swapchain, display_3d_tex_mat);
-    vk::display_2d_texture_renderer voxelizer_camera_renderer ( &device, window, &swapchain, material_store);
-    
     
     app.three_d_renderer = &three_d_renderer;
+    
     app.deferred_renderer = &deferred_renderer;
-    app.voxelizer_camera_renderer = &voxelizer_camera_renderer;
     
     app.deferred_renderer->add_mesh(&mesh);
     app.deferred_renderer->init();
     
     
-    vk::texture_2d* voxelizer_cam_view = deferred_renderer.get_voxelizer_cam_texture();
-    app.voxelizer_camera_renderer->show_texture(voxelizer_cam_view);
+    //vk::texture_2d* voxelizer_cam_view = deferred_renderer.get_voxelizer_cam_texture();
+    //app.voxelizer_camera_renderer->show_texture(voxelizer_cam_view);
    
     vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture();
-
     app.three_d_renderer->get_material()->set_image_sampler(voxel_texture, "texture_3d",
                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
-
-    app.voxelizer_camera_renderer->init();
     
     app.three_d_renderer->add_mesh(&cube);
     app.three_d_renderer->get_pipeline().set_depth_enable(true);
@@ -331,13 +329,12 @@ int main()
     app.three_d_renderer->get_pipeline().set_cullmode(vk::graphics_pipeline::cull_mode::NONE);
     app.three_d_renderer->init();
     
-    app.state = rendering_state::DEFERRED;
 
     game_loop();
     
     deferred_renderer.destroy();
     three_d_renderer.destroy();
-    voxelizer_camera_renderer.destroy();
+    
     swapchain.destroy();
     material_store.destroy();
     mesh.destroy();
