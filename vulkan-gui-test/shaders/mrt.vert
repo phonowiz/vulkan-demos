@@ -1,8 +1,8 @@
 #version 450
 
 layout(location = 0) in vec3 pos;
-layout(location = 1) in vec3 color;
-layout(location = 2) in vec2 inUVCoord;
+layout(location = 1) in vec4 color;
+layout(location = 2) in vec2 uv_coord;
 layout(location = 3) in vec3 normal;
 
 
@@ -17,9 +17,9 @@ layout(binding = 0) uniform UBO
 
 
 
-layout (location = 0) out vec4 outNormal;
-layout (location = 1) out vec4 outAlbedo;
-layout (location = 2) out vec4 outWorldPos;
+layout (location = 0) out vec4 out_normal;
+layout (location = 1) out vec4 out_albedo;
+layout (location = 2) out vec4 out_world_pos;
 
 
 
@@ -49,7 +49,7 @@ void main()
     
     vec4 pos_world = ubo.model * vec4(pos, 1.0f);
     vec3 normal_world = transpose(inverse(mat3(ubo.model))) * normalize(normal);
-    outNormal = vec4(normal_world, 1.0f);
-    outAlbedo = vec4(0.0f, 1.0f, 0.0f, 1.0f);
-    outWorldPos = pos_world;
+    out_normal = vec4(normal_world, 1.0f);
+    out_albedo = color;
+    out_world_pos = pos_world;
 }

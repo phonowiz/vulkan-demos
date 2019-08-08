@@ -11,10 +11,10 @@ out gl_PerVertex
 
 //these are vertex attributes in the c++ side.  In the pipeline look for "vertex input" structures
 layout(location = 0) in vec3 pos;
-layout(location = 1) in vec3 color;
+layout(location = 1) in vec4 color;
 
 
-layout(location = 0) out vec3 vertex_color;
+layout(location = 0) out vec4 vertex_color;
 
 //this is bound using the descriptor set, at binding 0 on the vertex side
 layout(binding = 0) uniform UBO

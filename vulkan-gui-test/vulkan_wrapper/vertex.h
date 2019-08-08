@@ -27,12 +27,12 @@ namespace vk {
     {
     public:
         glm::vec3 _pos;
-        glm::vec3 _color;
+        glm::vec4 _color;
         glm::vec2 _uv_coord;
         glm::vec3 _normal;
         
         
-        vertex(glm::vec3 pos, glm::vec3 color, glm::vec2 uvCoord, glm::vec3 normal)
+        vertex(glm::vec3 pos, glm::vec4 color, glm::vec2 uvCoord, glm::vec3 normal)
         : _pos(pos), _color(color), _uv_coord(uvCoord), _normal(normal)
         {}
         
@@ -44,39 +44,39 @@ namespace vk {
         
         static VkVertexInputBindingDescription get_binding_description()
         {
-            VkVertexInputBindingDescription vertexInputBindingDescription;
-            vertexInputBindingDescription.binding = 0;
-            vertexInputBindingDescription.stride = sizeof(vertex);
-            vertexInputBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+            VkVertexInputBindingDescription vertex_input_binding_description;
+            vertex_input_binding_description.binding = 0;
+            vertex_input_binding_description.stride = sizeof(vertex);
+            vertex_input_binding_description.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
             
-            return vertexInputBindingDescription;
+            return vertex_input_binding_description;
         }
         
         static std::vector<VkVertexInputAttributeDescription> get_attribute_descriptions()
         {
-            std::vector<VkVertexInputAttributeDescription> vertexInputAttributeDescriptions(4);
+            std::vector<VkVertexInputAttributeDescription> vertex_input_attributes_description(4);
             
-            vertexInputAttributeDescriptions[0].location = 0;
-            vertexInputAttributeDescriptions[0].binding = 0;
-            vertexInputAttributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-            vertexInputAttributeDescriptions[0].offset = offsetof(vertex, _pos);
+            vertex_input_attributes_description[0].location = 0;
+            vertex_input_attributes_description[0].binding = 0;
+            vertex_input_attributes_description[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+            vertex_input_attributes_description[0].offset = offsetof(vertex, _pos);
             
-            vertexInputAttributeDescriptions[1].location = 1;
-            vertexInputAttributeDescriptions[1].binding = 0;
-            vertexInputAttributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-            vertexInputAttributeDescriptions[1].offset = offsetof(vertex, _color);
+            vertex_input_attributes_description[1].location = 1;
+            vertex_input_attributes_description[1].binding = 0;
+            vertex_input_attributes_description[1].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            vertex_input_attributes_description[1].offset = offsetof(vertex, _color);
             
-            vertexInputAttributeDescriptions[2].location = 2;
-            vertexInputAttributeDescriptions[2].binding = 0;
-            vertexInputAttributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
-            vertexInputAttributeDescriptions[2].offset = offsetof(vertex, _uv_coord);
+            vertex_input_attributes_description[2].location = 2;
+            vertex_input_attributes_description[2].binding = 0;
+            vertex_input_attributes_description[2].format = VK_FORMAT_R32G32_SFLOAT;
+            vertex_input_attributes_description[2].offset = offsetof(vertex, _uv_coord);
             
-            vertexInputAttributeDescriptions[3].location = 3;
-            vertexInputAttributeDescriptions[3].binding = 0;
-            vertexInputAttributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
-            vertexInputAttributeDescriptions[3].offset = offsetof(vertex, _normal);
+            vertex_input_attributes_description[3].location = 3;
+            vertex_input_attributes_description[3].binding = 0;
+            vertex_input_attributes_description[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+            vertex_input_attributes_description[3].offset = offsetof(vertex, _normal);
             
-            return vertexInputAttributeDescriptions;
+            return vertex_input_attributes_description;
             
         }
     };

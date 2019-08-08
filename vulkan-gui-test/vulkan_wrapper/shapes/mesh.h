@@ -39,6 +39,13 @@ namespace vk
         mesh(){};
     public:
         
+        struct material_properties
+        {
+            glm::vec4 color = glm::vec4(1.0f);
+        };
+        
+        material_properties material_properties;
+        
         mesh(const char* path, device* device)
         {
             _device = device;

@@ -20,16 +20,16 @@ const std::string mesh::_mesh_resource_path =  "/models/";
 
 void mesh::create(const char* path)
 {
-    tinyobj::attrib_t vertexAttributes;
+    tinyobj::attrib_t vertex_attributes;
     std::vector<tinyobj::shape_t> shapes;
     std::vector<tinyobj::material_t> materials;
     
-    std::string errorString;
-    std::string warnString;
+    std::string error_string;
+    std::string warn_string;
     
-    std::string  fullPath = resource::resource_root + mesh::_mesh_resource_path + path;
+    std::string  full_path = resource::resource_root + mesh::_mesh_resource_path + path;
     
-    bool success = tinyobj::LoadObj(&vertexAttributes, &shapes, &materials, &warnString, &errorString, fullPath.c_str());
+    bool success = tinyobj::LoadObj(&vertex_attributes, &shapes, &materials, &warn_string, &error_string, full_path.c_str());
     
     assert(success && "check errorString variable");
     
@@ -40,18 +40,20 @@ void mesh::create(const char* path)
         for(tinyobj::index_t index : shape.mesh.indices)
         {
             glm::vec3 pos(
-                          vertexAttributes.vertices[3 * index.vertex_index + 0],
-                          vertexAttributes.vertices[3 * index.vertex_index + 1],
-                          vertexAttributes.vertices[3 * index.vertex_index + 2]
+                          vertex_attributes.vertices[3 * index.vertex_index + 0],
+                          vertex_attributes.vertices[3 * index.vertex_index + 1],
+                          vertex_attributes.vertices[3 * index.vertex_index + 2]
                           );
             
             glm::vec3 normal
             (
-             vertexAttributes.normals[3 * index.normal_index + 0],
-             vertexAttributes.normals[3 * index.normal_index + 1],
-             vertexAttributes.normals[3 * index.normal_index + 2]
+             vertex_attributes.normals[3 * index.normal_index + 0],
+             vertex_attributes.normals[3 * index.normal_index + 1],
+             vertex_attributes.normals[3 * index.normal_index + 2]
              );
-            vertex vert(pos, glm::vec3( 0.0f, 1.0f, 0.0f ), glm::vec2( 0.0f, 0.0f), normal);
+            
+            //TODO: you read the material informamtion but don't use it here, try getting the color from the materials variable
+            vertex vert(pos, material_properties.color, glm::vec2( 0.0f, 0.0f), normal);
             
             if(map_vertices.count(vert) == 0)
             {
@@ -67,44 +69,44 @@ void mesh::create(const char* path)
 }
 
 template<typename T>
-void mesh::create_and_upload_buffer(VkCommandPool commandPool,
-                                  std::vector<T>& data, VkBufferUsageFlags usage, VkBuffer &buffer, VkDeviceMemory &deviceMemory)
+void mesh::create_and_upload_buffer(VkCommandPool command_pool,
+                                  std::vector<T>& data, VkBufferUsageFlags usage, VkBuffer &buffer, VkDeviceMemory &device_memory)
 {
-    VkDeviceSize bufferSize = sizeof(T) * data.size();
+    VkDeviceSize buffer_size = sizeof(T) * data.size();
     assert(data.size() != 0);
-    VkBuffer stagingBuffer;
-    VkDeviceMemory statingBufferMemory;
+    VkBuffer staging_buffer;
+    VkDeviceMemory staging_buffer_memory;
     
-    create_buffer(_device->_logical_device, _device->_physical_device, bufferSize,  VK_BUFFER_USAGE_TRANSFER_SRC_BIT, stagingBuffer,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, statingBufferMemory);
+    create_buffer(_device->_logical_device, _device->_physical_device, buffer_size,  VK_BUFFER_USAGE_TRANSFER_SRC_BIT, staging_buffer,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, staging_buffer_memory);
     
-    void* rawData= nullptr;
-    VkResult r = vkMapMemory(_device->_logical_device, statingBufferMemory, 0, bufferSize, 0, &rawData);
+    void* raw_data= nullptr;
+    VkResult r = vkMapMemory(_device->_logical_device, staging_buffer_memory, 0, buffer_size, 0, &raw_data);
     ASSERT_VULKAN(r);
-    memcpy(rawData, data.data(), bufferSize);
-    vkUnmapMemory(_device->_logical_device, statingBufferMemory);
+    memcpy(raw_data, data.data(), buffer_size);
+    vkUnmapMemory(_device->_logical_device, staging_buffer_memory);
     
     
-    create_buffer(_device->_logical_device, _device->_physical_device, bufferSize, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT, buffer,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, deviceMemory);
+    create_buffer(_device->_logical_device, _device->_physical_device, buffer_size, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT, buffer,
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, device_memory);
     
-    _device->copy_buffer(commandPool, _device->_graphics_queue, stagingBuffer, buffer, bufferSize);
-    vkDestroyBuffer(_device->_logical_device, stagingBuffer, nullptr);
-    vkFreeMemory(_device->_logical_device, statingBufferMemory, nullptr);
+    _device->copy_buffer(command_pool, _device->_graphics_queue, staging_buffer, buffer, buffer_size);
+    vkDestroyBuffer(_device->_logical_device, staging_buffer, nullptr);
+    vkFreeMemory(_device->_logical_device, staging_buffer_memory, nullptr);
     
 }
 
-void mesh::draw(VkCommandBuffer commandBuffer, vk::graphics_pipeline& pipeline)
+void mesh::draw(VkCommandBuffer commnad_buffer, vk::graphics_pipeline& pipeline)
 {
     VkDeviceSize offsets[] = { 0 };
     assert(_vertex_buffer != nullptr);
     
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, &_vertex_buffer, offsets);
-    vkCmdBindIndexBuffer(commandBuffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
+    vkCmdBindVertexBuffers(commnad_buffer, 0, 1, &_vertex_buffer, offsets);
+    vkCmdBindIndexBuffer(commnad_buffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
     
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._pipeline_layout, 0, 1, pipeline._material->get_descriptor_set(), 0, nullptr);
+    vkCmdBindDescriptorSets(commnad_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._pipeline_layout, 0, 1, pipeline._material->get_descriptor_set(), 0, nullptr);
     
-    vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(get_indices().size()), 1, 0, 0, 0);
+    vkCmdDrawIndexed(commnad_buffer, static_cast<uint32_t>(get_indices().size()), 1, 0, 0, 0);
 }
 
 void mesh::create_vertex_buffer()

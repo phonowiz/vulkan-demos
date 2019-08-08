@@ -2,7 +2,7 @@
 #extension GL_ARB_separate_shader_objects: enable
 
 
-layout(location = 0) in vec3 fragColor;
+layout(location = 0) in vec4 fragColor;
 layout(location = 1) in vec2 fragUVCoord;
 layout(location = 2) in vec3 fragNormal;
 layout(location = 3) in vec3 fragViewVec;
@@ -31,11 +31,12 @@ void main()
     vec3 V = normalize( fragViewVec);
     vec3 R = reflect (-L,N);
     
-    vec3 ambient = fragColor * 0.1f;
-    vec3 diffuse = max(dot(N,L), 0.0f) * fragColor;
+    vec4 ambient = fragColor * 0.1f;
+    vec4 diffuse = max(dot(N,L), 0.0f) * fragColor;
     vec3 specular = pow(max(dot(R,V), 0.0f), 16.0f) * vec3(1.35f, 1.35f, 1.35f);
     
-    outColor = vec4(ambient + diffuse + specular, 1.0f);
+    
+    outColor = vec4(ambient.xyz + diffuse.xyz + specular.xyz, 1.0f);
 }
 
 

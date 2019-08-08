@@ -19,6 +19,8 @@ layout(binding = 5) uniform RENDERING_STATE
 }s;
 
 
+//note: these are tied to enum class in deferred_renderer class, if these change, make sure
+//make respective change accordingly
 
 int ALBEDO = 0;
 int NORMALS = 1;
