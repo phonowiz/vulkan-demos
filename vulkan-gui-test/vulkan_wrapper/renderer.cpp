@@ -16,7 +16,7 @@
 #include "swapchain.h"
 #include "depth_image.h"
 #include "vertex.h"
-#include "vulkan_wrapper/shapes/mesh.h"
+#include "vulkan_wrapper/shapes/obj_shape.h"
 #include "shader.h"
 #include "device.h"
 #include <chrono>
@@ -199,11 +199,11 @@ void renderer::recreate_renderer()
     create_frame_buffers();
     
     create_command_buffer(&_command_buffers, _device->_present_command_pool);
-    record_command_buffers(*_meshes.data(), _meshes.size());
+    record_command_buffers(_shapes.data(), _shapes.size());
 
 }
 
-void renderer::record_command_buffers(mesh* meshes, size_t number_of_meshes)
+void renderer::record_command_buffers(obj_shape** shapes, size_t number_of_shapes)
 {
     VkCommandBufferBeginInfo command_buffer_begin_info {};
     command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -255,9 +255,9 @@ void renderer::record_command_buffers(mesh* meshes, size_t number_of_meshes)
         vkCmdSetScissor(_command_buffers[i], 0, 1, &scissor);
 
         
-        for( size_t j = 0; j < number_of_meshes; ++j)
+        for( size_t j = 0; j < number_of_shapes; ++j)
         {
-            meshes[j].draw(_command_buffers[i], _pipeline);
+            shapes[j]->draw(_command_buffers[i], _pipeline);
         }
         
         vkCmdEndRenderPass(_command_buffers[i]);
@@ -345,7 +345,7 @@ void renderer::create_pipeline()
 
 void renderer::init()
 {
-    assert(_meshes.size() != 0 && "add meshes to render before calling init");
+    assert(_shapes.size() != 0 && "add meshes to render before calling init");
     create_render_pass();
     //_swapchain->recreate_swapchain();
     
@@ -354,8 +354,8 @@ void renderer::init()
     create_command_buffer(&_command_buffers, _device->_present_command_pool);
     
     //we only support 1 mesh at the moment
-    assert(_meshes.size() == 1);
-    assert(_meshes.size() != 0);
+    //assert(_shapes.size() == 1);
+    assert(_shapes.size() != 0);
     
 }
 
@@ -368,7 +368,7 @@ void renderer::perform_final_drawing_setup()
         //note: we create the pipeline here to give the client a chance to set the material input arguments.
         //the pipeline needs this information to be created properly.
         create_pipeline();
-        record_command_buffers(*_meshes.data(), _meshes.size());
+        record_command_buffers(_shapes.data(), _shapes.size());
         _pipeline_created = true;
     }
 }

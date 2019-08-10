@@ -25,7 +25,7 @@ void display_2d_texture_renderer::show_texture(texture_2d *texture)
 
 void display_2d_texture_renderer::init()
 {
-    add_mesh(&_render_plane);
+    add_shape(&_render_plane);
     renderer::init();
 }
 

@@ -13,7 +13,7 @@
 #include "graphics_pipeline.h"
 #include "compute_pipeline.h"
 #include "material_store.h"
-#include "display_plane.h"
+#include "./shapes/screen_plane.h"
 #include "depth_image.h"
 #include "cameras/orthographic_camera.h"
 
@@ -59,6 +59,8 @@ namespace vk
         
         inline texture_2d* get_voxelizer_cam_texture( ){ return &_voxel_2d_view; }
         inline void set_rendering_state( rendering_state state ){ _rendering_state = state; }
+        inline rendering_state get_rendering_state() { return _rendering_state; }
+        
         
         void wait_for_all_fences();
         virtual void destroy() override;
@@ -74,8 +76,8 @@ namespace vk
 
         
         void compute(VkCommandBuffer command_buffer, vk::compute_pipeline& pipeline);
-        void record_command_buffers(mesh* meshes, size_t number_of_meshes) override;
-        void record_voxelize_command_buffers(mesh* meshes, size_t number_of_meshes);
+        void record_command_buffers(obj_shape** shapes, size_t number_of_shapes) override;
+        void record_voxelize_command_buffers(obj_shape** shapes, size_t number_of_shapes);
         void create_voxelization_render_pass();
         
         virtual void perform_final_drawing_setup() override;
@@ -101,7 +103,7 @@ namespace vk
         
         orthographic_camera _ortho_camera;
         
-        display_plane _plane;
+        screen_plane _screen_plane;
         
         std::array<VkFence, 2> _deferred_inflight_fences {};
         std::array<VkFence, 2> _voxelize_inflight_fence {};

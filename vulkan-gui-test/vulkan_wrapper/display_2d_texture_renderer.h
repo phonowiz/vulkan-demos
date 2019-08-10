@@ -13,7 +13,7 @@
 
 #include "renderer.h"
 #include "material_store.h"
-#include "display_plane.h"
+#include "./shapes/screen_plane.h"
 #include "device.h"
 #include "texture_2d.h"
 
@@ -31,7 +31,7 @@ namespace vk
         virtual void destroy() override;
     
     private:
-        display_plane _render_plane;
+        screen_plane _render_plane;
     
     };
 }

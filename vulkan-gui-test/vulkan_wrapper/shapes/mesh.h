@@ -20,6 +20,8 @@
 #include "compute_pipeline.h"
 #include "transform.h"
 
+#include "tiny_obj_loader.h"
+
 namespace vk
 {
     
@@ -44,17 +46,9 @@ namespace vk
             glm::vec4 color = glm::vec4(1.0f);
         };
         
-        material_properties material_properties;
-        
-        mesh(const char* path, device* device)
-        {
-            _device = device;
-            create(path);
-
-        };
+        mesh( device* device, tinyobj::attrib_t &vertex_attributes, tinyobj::shape_t& shape, tinyobj::material_t& material );
         
         ~mesh();
-        void create(const char* path);
         
         template<typename T>
         inline void create_and_upload_buffer( VkCommandPool commandPool,
@@ -81,7 +75,7 @@ namespace vk
         
     protected:
         
-
+        bool _active = true;
         void create_vertex_buffer();
         void create_index_buffer();
         void allocate_gpu_memory();

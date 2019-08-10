@@ -25,7 +25,7 @@ namespace vk
     class device;
     class swapchain;
     class depth_image;
-    class mesh;
+    class obj_shape;
     class texture_2d;
     
     class renderer : public object
@@ -46,8 +46,8 @@ namespace vk
         renderer(device* device, GLFWwindow* window, swapchain* swapchain, visual_mat_shared_ptr material);
         
 
-        void add_mesh(mesh* pMesh){ _meshes.push_back(pMesh); };
-        void clear_meshes(mesh* pMesh){ _meshes.clear();}
+        void add_shape(obj_shape* s){ _shapes.push_back(s); };
+        
         virtual void draw(camera &camera);
         graphics_pipeline& get_pipeline() { return _pipeline;}
         
@@ -69,7 +69,7 @@ namespace vk
         void create_semaphore(VkSemaphore& semaphore);
         void create_fence(VkFence& fence);
         
-        virtual void record_command_buffers(mesh* meshes, size_t number_of_meshes);
+        virtual void record_command_buffers(obj_shape** shapes, size_t number_of_shapes);
         virtual void create_pipeline();
         virtual void destroy_framebuffers();
         virtual void perform_final_drawing_setup();
@@ -96,7 +96,7 @@ namespace vk
         visual_mat_shared_ptr         _material;
         std::vector<VkFramebuffer>  _swapchain_frame_buffers;
         
-        std::vector<mesh*> _meshes;
+        std::vector<obj_shape*> _shapes;
         
         bool _pipeline_created = false;
         

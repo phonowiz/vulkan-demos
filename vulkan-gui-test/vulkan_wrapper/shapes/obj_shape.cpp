@@ -48,10 +48,20 @@ void obj_shape::create()
     
     assert(success && "check errorString variable");
     
+    tinyobj::material_t mat {};
+    mat.diffuse[0] = _diffuse.r;
+    mat.diffuse[1] = _diffuse.g;
+    mat.diffuse[2] = _diffuse.b;
+    
     int i = 0;
     for(tinyobj::shape_t shape:  shapes)
-    {
-        mesh* m = new mesh(_device, vertex_attributes, shape, materials.size() > 0 ? &materials[i] : nullptr);
+    {        
+        if(materials.size() != 0)
+        {
+            mat = materials[i];
+        }
+
+        mesh* m = new mesh(_device, vertex_attributes, shape, mat);
         _meshes.push_back(m);
         ++i;
     }
@@ -63,7 +73,11 @@ void obj_shape::draw(VkCommandBuffer commnad_buffer, vk::graphics_pipeline& pipe
         m->draw(commnad_buffer, pipeline);
     }
 }
-    
+
+void obj_shape::set_diffuse(glm::vec3 diffuse)
+{
+    _diffuse = diffuse;
+}
 void obj_shape::destroy()
 {
     for( mesh* m : _meshes)

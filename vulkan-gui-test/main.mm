@@ -29,11 +29,13 @@
 #include "vulkan_wrapper/renderer.h"
 #include "vulkan_wrapper/swapchain.h"
 #include "vulkan_wrapper/material_store.h"
-#include "vulkan_wrapper/shapes/mesh.h"
+#include "vulkan_wrapper/shapes/obj_shape.h"
+#include "vulkan_wrapper/shapes/cornell_box.h"
 #include "vulkan_wrapper/display_plane.h"
 #include "vulkan_wrapper/deferred_renderer.h"
 #include "vulkan_wrapper/cameras/perspective_camera.h"
 #include "vulkan_wrapper/display_2d_texture_renderer.h"
+
 
 ///an excellent summary of vulkan can be found here:
 //https://renderdoc.org/vulkan-in-30-minutes.html
@@ -72,14 +74,6 @@ vk::visual_mat_shared_ptr mrt_mat;
 vk::visual_mat_shared_ptr display_3d_tex_mat;
 
 
-//note: this enum class is tied to values in the deferred renderer shader, if these change, then check that shader
-//and update accordingly
-enum class rendering_state
-{
-    DEFERRED = 0,
-    THREE_D_TEXTURE
-};
-
 struct App
 {
     vk::device* device = nullptr;
@@ -88,10 +82,13 @@ struct App
     
     vk::camera*     perspective_camera = nullptr;
     vk::camera*     three_d_texture_camera = nullptr;
-    vk::camera*     ortho_camera = nullptr;
     vk::swapchain*  swapchain = nullptr;
     
     vk::deferred_renderer::rendering_state state = vk::deferred_renderer::rendering_state::FULL_RENDERING;
+    
+
+    bool render_3d_texture = false;
+
 };
 
 
@@ -142,9 +139,6 @@ void update_renderer_parameters( vk::renderer& renderer)
     vertex_params["view"] = app.perspective_camera->view_matrix;
     vertex_params["projection"] =  app.perspective_camera->get_projection_matrix();
     vertex_params["lightPosition"] = temp;
-    
-//    vk::shader_parameter::shader_params_group& fragment_params = renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5);
-//    fragment_params["state"] = static_cast<int>(app.state);
 
 }
 
@@ -172,18 +166,17 @@ void game_loop()
     while (!glfwWindowShouldClose(window))
     {
         glfwPollEvents();
-//
-//        if(app.state != vk::deferred_renderer::rendering_state::THREE_D_TEXTURE )
-//        {
+
+        if(!app.render_3d_texture)
+        {
             update_renderer_parameters( *app.deferred_renderer );
             app.deferred_renderer->draw(*app.perspective_camera);
-//        }
-        
-//        else
-//        {
-//            update_3d_texture_rendering_params(*app.three_d_renderer);
-//            app.three_d_renderer->draw(*app.three_d_texture_camera);
-//        }
+        }
+        else
+        {
+            update_3d_texture_rendering_params(*app.three_d_renderer);
+            app.three_d_renderer->draw(*app.three_d_texture_camera);
+        }
     }
     
 }
@@ -223,29 +216,39 @@ void game_loop_ortho(vk::renderer &renderer)
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+
     if (key == GLFW_KEY_1 && action == GLFW_PRESS)
     {
         app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::FULL_RENDERING);
+        app.render_3d_texture = false;
     }
     
     if (key == GLFW_KEY_2 && action == GLFW_PRESS)
     {
         app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::ALBEDO);
+        app.render_3d_texture = false;
     }
     
     if (key == GLFW_KEY_3 && action == GLFW_PRESS)
     {
         app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::NORMALS);
+        app.render_3d_texture = false;
     }
     
     if( key == GLFW_KEY_4 && action == GLFW_PRESS)
     {
         app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::POSITIONS);
+        app.render_3d_texture = false;
     }
     
     if( key == GLFW_KEY_5 && action == GLFW_PRESS)
     {
         app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::DEPTH);
+        app.render_3d_texture = false;
+    }
+    if( key == GLFW_KEY_6 && action == GLFW_PRESS)
+    {
+        app.render_3d_texture = true;
     }
 }
 
@@ -271,9 +274,15 @@ int main()
     vk::material_store material_store;
     
     material_store.create(&device);
+
+    vk::obj_shape dragon(&device, "dragon.obj");
+    vk::obj_shape cube(&device, "cube.obj");
+    vk::cornell_box cornell_box(&device);
     
-    vk::mesh mesh( "dragon.obj", &device );
-    vk::mesh cube("cube.obj", &device);
+    dragon.set_diffuse(glm::vec3(0.0f, 0.0f, 1.0f));
+    dragon.create();
+    cube.create();
+    cornell_box.create();
     
 //    vk::texture_2d mario(&device, "mario.png");
 //    mario.init();
@@ -288,11 +297,6 @@ int main()
     vk::perspective_camera three_d_texture_cam(glm::radians(60.0f),
                                               swapchain._swapchain_data.swapchain_extent.width/ swapchain._swapchain_data.swapchain_extent.height, .01f, 10.f);
     
-    vk::orthographic_camera ortho_camera( 1.5f, 1.5f, 10.f);
-
-    app.ortho_camera = &ortho_camera;
-    app.ortho_camera->position = glm::vec3( 1.0f, 0.0f, -8.f);
-    app.ortho_camera->forward = -app.ortho_camera->position;
     
     app.perspective_camera = &perspective_camera;
     app.perspective_camera->position = glm::vec3(1.0f, 0.0f, -5.0f);
@@ -312,7 +316,8 @@ int main()
     
     app.deferred_renderer = &deferred_renderer;
     
-    app.deferred_renderer->add_mesh(&mesh);
+    app.deferred_renderer->add_shape(&dragon);
+    app.deferred_renderer->add_shape(&cornell_box);
     app.deferred_renderer->init();
     
     
@@ -323,7 +328,7 @@ int main()
     app.three_d_renderer->get_material()->set_image_sampler(voxel_texture, "texture_3d",
                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
     
-    app.three_d_renderer->add_mesh(&cube);
+    app.three_d_renderer->add_shape(&cube);
     app.three_d_renderer->get_pipeline().set_depth_enable(true);
     
     app.three_d_renderer->get_pipeline().set_cullmode(vk::graphics_pipeline::cull_mode::NONE);
@@ -337,8 +342,9 @@ int main()
     
     swapchain.destroy();
     material_store.destroy();
-    mesh.destroy();
+    dragon.destroy();
     cube.destroy();
+    cornell_box.destroy();
     device.destroy();
     
     shutdown_glfw();

@@ -33,11 +33,8 @@ namespace vk {
         virtual void create();
         static const std::string _shape_resource_path;
         
-        virtual void set_diffuse(glm::vec3 diffuse);
-
     protected:
         
-        glm::vec3 _diffuse = glm::vec3(1.0f);
         std::vector<mesh*> _meshes;
         device* _device = nullptr;
         const char* _path = nullptr;

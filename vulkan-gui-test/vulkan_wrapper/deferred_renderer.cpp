@@ -31,7 +31,7 @@ _normals(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_
 _voxel_2d_view(device, static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), render_texture::usage::COLOR_TARGET),
 _voxel_3d_texture(device, VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH),
 _depth(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height,true),
-_plane(device),
+_screen_plane(device),
 _mrt_material(store.GET_MAT<visual_material>("mrt")),
 _mrt_pipeline(device),
 _voxelize_pipeline(device, store.GET_MAT<visual_material>("voxelizer")),
@@ -64,7 +64,7 @@ _ortho_camera(2.0f, 2.0f, 10.0f)
     _mrt_pipeline.set_material(_mrt_material);
     _pipeline.set_material(_material);
     
-    _plane.create();
+    _screen_plane.create();
     
     create_command_buffer(&_offscreen_command_buffers, _device->_graphics_command_pool);
     create_command_buffer(&_voxelize_command_buffers, _device->_graphics_command_pool);
@@ -316,7 +316,7 @@ void deferred_renderer::create_frame_buffers()
 }
 
 
-void deferred_renderer::record_voxelize_command_buffers(mesh* meshes, size_t number_of_meshes)
+void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size_t number_of_meshes)
 {
     assert(_voxelize_pipeline._pipeline != VK_NULL_HANDLE);
     assert(_voxelize_pipeline._pipeline_layout != VK_NULL_HANDLE);
@@ -366,7 +366,7 @@ void deferred_renderer::record_voxelize_command_buffers(mesh* meshes, size_t num
         
         for( size_t j = 0; j < number_of_meshes; ++j)
         {
-            meshes[j].draw(_voxelize_command_buffers[i], _voxelize_pipeline);
+            shapes[j]->draw(_voxelize_command_buffers[i], _voxelize_pipeline);
         }
         
         vkCmdEndRenderPass(_voxelize_command_buffers[i]);
@@ -374,7 +374,7 @@ void deferred_renderer::record_voxelize_command_buffers(mesh* meshes, size_t num
 
 }
 
-void deferred_renderer::record_command_buffers(mesh* meshes, size_t number_of_meshes)
+void deferred_renderer::record_command_buffers(obj_shape** shapes, size_t number_of_shapes)
 {
     VkCommandBufferBeginInfo command_buffer_begin_info {};
     command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -433,16 +433,17 @@ void deferred_renderer::record_command_buffers(mesh* meshes, size_t number_of_me
             _swapchain->_swapchain_data.swapchain_extent.height};
         vkCmdSetScissor(_offscreen_command_buffers[i], 0, 1, &scissor);
         
-        for( size_t j = 0; j < number_of_meshes; ++j)
+        for( size_t j = 0; j < number_of_shapes; ++j)
         {
-            meshes[j].draw(_offscreen_command_buffers[i], _mrt_pipeline);
+            shapes[j]->draw(_offscreen_command_buffers[i], _mrt_pipeline);
         }
         
         vkCmdEndRenderPass(_offscreen_command_buffers[i]);
     }
     
-    record_voxelize_command_buffers(meshes, number_of_meshes);
-    renderer::record_command_buffers(&_plane, 1);
+    record_voxelize_command_buffers(shapes, number_of_shapes);
+    std::array<obj_shape*, 1> screen_plane_array = { &_screen_plane };
+    renderer::record_command_buffers(screen_plane_array.data(), screen_plane_array.size());
 }
 
 void deferred_renderer::destroy_framebuffers()

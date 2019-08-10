@@ -18,55 +18,94 @@ using namespace vk;
 
 const std::string mesh::_mesh_resource_path =  "/models/";
 
-void mesh::create(const char* path)
+
+mesh::mesh( device* device, tinyobj::attrib_t &vertex_attributes, tinyobj::shape_t& shape, tinyobj::material_t& material )
 {
-    tinyobj::attrib_t vertex_attributes;
-    std::vector<tinyobj::shape_t> shapes;
-    std::vector<tinyobj::material_t> materials;
-    
-    std::string error_string;
-    std::string warn_string;
-    
-    std::string  full_path = resource::resource_root + mesh::_mesh_resource_path + path;
-    
-    bool success = tinyobj::LoadObj(&vertex_attributes, &shapes, &materials, &warn_string, &error_string, full_path.c_str());
-    
-    assert(success && "check errorString variable");
-    
-    
+    _device = device;
     std::unordered_map<vertex, uint32_t> map_vertices;
-    for(tinyobj::shape_t shape:  shapes)
+    
+    for(tinyobj::index_t index : shape.mesh.indices)
     {
-        for(tinyobj::index_t index : shape.mesh.indices)
+        glm::vec3 pos(
+                      vertex_attributes.vertices[3 * index.vertex_index + 0],
+                      vertex_attributes.vertices[3 * index.vertex_index + 1],
+                      vertex_attributes.vertices[3 * index.vertex_index + 2]
+                      );
+        
+        glm::vec3 normal
+        (
+         vertex_attributes.normals[3 * index.normal_index + 0],
+         vertex_attributes.normals[3 * index.normal_index + 1],
+         vertex_attributes.normals[3 * index.normal_index + 2]
+         );
+        
+        //TODO: you read the material informamtion but don't use it here, try getting the color from the materials variable.
+        //if there is no material in obj, there needs to be a default material.  If a material color is assigned programatically, choose this one above
+        //all other options.
+        
+        glm::vec4 color = glm::vec4(material.diffuse[0], material.diffuse[1], material.diffuse[2], 1.0f);
+        vertex vert(pos, color, glm::vec2( 0.0f, 0.0f), normal);
+        
+        if(map_vertices.count(vert) == 0)
         {
-            glm::vec3 pos(
-                          vertex_attributes.vertices[3 * index.vertex_index + 0],
-                          vertex_attributes.vertices[3 * index.vertex_index + 1],
-                          vertex_attributes.vertices[3 * index.vertex_index + 2]
-                          );
-            
-            glm::vec3 normal
-            (
-             vertex_attributes.normals[3 * index.normal_index + 0],
-             vertex_attributes.normals[3 * index.normal_index + 1],
-             vertex_attributes.normals[3 * index.normal_index + 2]
-             );
-            
-            //TODO: you read the material informamtion but don't use it here, try getting the color from the materials variable
-            vertex vert(pos, material_properties.color, glm::vec2( 0.0f, 0.0f), normal);
-            
-            if(map_vertices.count(vert) == 0)
-            {
-                map_vertices[vert] = static_cast<uint32_t>(map_vertices.size());
-                _vertices.push_back(vert);
-            }
-            
-            _indices.push_back(map_vertices[vert]);
+            map_vertices[vert] = static_cast<uint32_t>(map_vertices.size());
+            _vertices.push_back(vert);
         }
+        
+        _indices.push_back(map_vertices[vert]);
     }
     
     allocate_gpu_memory();
 }
+//void mesh::create(tinyobj::shape_t& shape)
+//{
+////    tinyobj::attrib_t vertex_attributes;
+////    std::vector<tinyobj::shape_t> shapes;
+////    std::vector<tinyobj::material_t> materials;
+////
+////    std::string error_string;
+////    std::string warn_string;
+////
+////    std::string  full_path = resource::resource_root + mesh::_mesh_resource_path + path;
+////
+////    bool success = tinyobj::LoadObj(&vertex_attributes, &shapes, &materials, &warn_string, &error_string, full_path.c_str());
+////
+////    assert(success && "check errorString variable");
+//
+//
+//    std::unordered_map<vertex, uint32_t> map_vertices;
+//    //for(tinyobj::shape_t shape:  shapes)
+//    {
+//        for(tinyobj::index_t index : shape.mesh.indices)
+//        {
+//            glm::vec3 pos(
+//                          vertex_attributes.vertices[3 * index.vertex_index + 0],
+//                          vertex_attributes.vertices[3 * index.vertex_index + 1],
+//                          vertex_attributes.vertices[3 * index.vertex_index + 2]
+//                          );
+//
+//            glm::vec3 normal
+//            (
+//             vertex_attributes.normals[3 * index.normal_index + 0],
+//             vertex_attributes.normals[3 * index.normal_index + 1],
+//             vertex_attributes.normals[3 * index.normal_index + 2]
+//             );
+//
+//            //TODO: you read the material informamtion but don't use it here, try getting the color from the materials variable
+//            vertex vert(pos, material_properties.color, glm::vec2( 0.0f, 0.0f), normal);
+//
+//            if(map_vertices.count(vert) == 0)
+//            {
+//                map_vertices[vert] = static_cast<uint32_t>(map_vertices.size());
+//                _vertices.push_back(vert);
+//            }
+//
+//            _indices.push_back(map_vertices[vert]);
+//        }
+//    }
+//
+//    allocate_gpu_memory();
+//}
 
 template<typename T>
 void mesh::create_and_upload_buffer(VkCommandPool command_pool,
@@ -98,15 +137,18 @@ void mesh::create_and_upload_buffer(VkCommandPool command_pool,
 
 void mesh::draw(VkCommandBuffer commnad_buffer, vk::graphics_pipeline& pipeline)
 {
-    VkDeviceSize offsets[] = { 0 };
-    assert(_vertex_buffer != nullptr);
-    
-    vkCmdBindVertexBuffers(commnad_buffer, 0, 1, &_vertex_buffer, offsets);
-    vkCmdBindIndexBuffer(commnad_buffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
-    
-    vkCmdBindDescriptorSets(commnad_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._pipeline_layout, 0, 1, pipeline._material->get_descriptor_set(), 0, nullptr);
-    
-    vkCmdDrawIndexed(commnad_buffer, static_cast<uint32_t>(get_indices().size()), 1, 0, 0, 0);
+    if(_active)
+    {
+        VkDeviceSize offsets[] = { 0 };
+        assert(_vertex_buffer != nullptr);
+        
+        vkCmdBindVertexBuffers(commnad_buffer, 0, 1, &_vertex_buffer, offsets);
+        vkCmdBindIndexBuffer(commnad_buffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
+        
+        vkCmdBindDescriptorSets(commnad_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline._pipeline_layout, 0, 1, pipeline._material->get_descriptor_set(), 0, nullptr);
+        
+        vkCmdDrawIndexed(commnad_buffer, static_cast<uint32_t>(get_indices().size()), 1, 0, 0, 0);
+    }
 }
 
 void mesh::create_vertex_buffer()

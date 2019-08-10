@@ -6,9 +6,22 @@
 //  Copyright © 2019 Rafael Sabino. All rights reserved.
 //
 
-#ifndef cornell_box_hpp
-#define cornell_box_hpp
+#pragma once
 
-#include <stdio.h>
-
-#endif /* cornell_box_hpp */
+#include "obj_shape.h"
+#include <array>
+namespace vk {
+    
+    class cornell_box : public obj_shape
+    {
+    public:
+        cornell_box(vk::device* device );
+        
+        virtual void set_diffuse(glm::vec3 diffuse) override;
+        virtual void create() override;
+        
+    private:
+        
+        std::array<glm::vec3, 7> _wall_colors;;
+    };
+}
