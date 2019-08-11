@@ -233,11 +233,14 @@ void deferred_renderer::create_semaphores_and_fences()
     renderer::create_semaphores_and_fences();
     
     create_semaphore(_deferred_semaphore_image_available);
-    create_semaphore(_deferred_semaphore_rendering_done);
+    create_semaphore(_g_buffers_rendering_done);
     create_semaphore(_voxelize_semaphore);
     create_semaphore(_voxelize_semaphore_done);
     create_semaphore(_clear_voxel_cube_semaphore);
     create_semaphore(_clear_voxel_cube_smaphonre_done);
+    create_semaphore(_generate_voxel_z_axis_semaphore);
+    create_semaphore(_generate_voxel_y_axis_semaphore);
+    create_semaphore(_generate_voxel_x_axis_semaphore);
     
     assert(NUM_OF_FRAMES == _swapchain->_swapchain_data.image_set.get_image_count());
     for(int i = 0; i < _swapchain->_swapchain_data.image_set.get_image_count(); ++i)
@@ -563,90 +566,88 @@ void deferred_renderer::draw(camera& camera)
     
     perform_final_drawing_setup();
     
-    static uint32_t image_index = 0;
-    
     //todo: acquire image at the very last minute, not in the very beginning
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain,
-                          std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &image_index);
+                          std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &_deferred_image_index);
     
     
     //clear voxel texture
     VkSubmitInfo submit_info = {};
     submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &_clear_3d_texture_command_buffers[image_index];
+    submit_info.pCommandBuffers = &_clear_3d_texture_command_buffers[_deferred_image_index];
+    submit_info.waitSemaphoreCount = 0;
+    submit_info.pWaitSemaphores = nullptr;
     submit_info.pSignalSemaphores = &_clear_voxel_cube_smaphonre_done;
     submit_info.signalSemaphoreCount = 1;
     
-    vkWaitForFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[image_index]);
+    vkWaitForFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index]);
     
-    VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _clear_voxel_texture_fence[image_index]);
+    VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _clear_voxel_texture_fence[_deferred_image_index]);
     ASSERT_VULKAN(result);
     
-    vkWaitForFences(_device->_logical_device, 1, &_g_buffers_fence[image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_device->_logical_device, 1, &_g_buffers_fence[image_index]);
-    
+    //voxelize
+    vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index]);
+
+    submit_info = {};
+    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info.commandBufferCount = 1;
+    submit_info.waitSemaphoreCount = 1;
+    submit_info.pWaitSemaphores = &_clear_voxel_cube_smaphonre_done;
+    submit_info.pCommandBuffers = &(_voxelize_command_buffers[_deferred_image_index]);
+    submit_info.signalSemaphoreCount = 1;
+    submit_info.pSignalSemaphores = &_generate_voxel_z_axis_semaphore;
+    vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _voxelize_inflight_fence[_deferred_image_index]);
+
+    vkWaitForFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index]);
+
     //render g-buffers
     submit_info = {};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = nullptr;
-    submit_info.waitSemaphoreCount = 1;
-    submit_info.pWaitSemaphores = &_semaphore_image_available;
+    submit_info.waitSemaphoreCount = 0;
+    submit_info.pWaitSemaphores = nullptr;
     VkPipelineStageFlags wait_stage_mask[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submit_info.pWaitDstStageMask = wait_stage_mask;
     submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &(_offscreen_command_buffers[image_index]);
+    submit_info.pCommandBuffers = &(_offscreen_command_buffers[_deferred_image_index]);
     submit_info.signalSemaphoreCount = 1;
-    submit_info.pSignalSemaphores = &_deferred_semaphore_rendering_done;
-    
-    
-    result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _g_buffers_fence[image_index]);
+    submit_info.pSignalSemaphores = &_g_buffers_rendering_done;
+
+
+    result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _g_buffers_fence[_deferred_image_index]);
     ASSERT_VULKAN(result);
     
     //render scene with g buffers and 3d voxel texture
-    
-    vkWaitForFences(_device->_logical_device, 1, &_composite_fence[image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_device->_logical_device, 1, &_composite_fence[image_index]);
-    
-    std::array<VkSemaphore, 2> wait_semaphores{_clear_voxel_cube_smaphonre_done, _deferred_semaphore_rendering_done};
+
+    vkWaitForFences(_device->_logical_device, 1, &_composite_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(_device->_logical_device, 1, &_composite_fence[_deferred_image_index]);
+
+    std::array<VkSemaphore, 3> wait_semaphores{_semaphore_image_available, _generate_voxel_z_axis_semaphore, _g_buffers_rendering_done};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = nullptr;
     submit_info.waitSemaphoreCount = wait_semaphores.size();
     submit_info.pWaitSemaphores = wait_semaphores.data();
     submit_info.pWaitDstStageMask = wait_stage_mask;
     submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &(_command_buffers[image_index]);
+    submit_info.pCommandBuffers = &(_command_buffers[_deferred_image_index]);
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &_semaphore_rendering_done;
 
-    result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _composite_fence[image_index]);
+    result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _composite_fence[_deferred_image_index]);
     ASSERT_VULKAN(result);
-    
-    //voxelize
-    vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[image_index]);
-    
-    submit_info = {};
-    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit_info.commandBufferCount = 1;
-    submit_info.waitSemaphoreCount = 1;
-    submit_info.pWaitSemaphores = &_semaphore_rendering_done;
-    submit_info.pCommandBuffers = &(_voxelize_command_buffers[image_index]);
-    submit_info.signalSemaphoreCount = 1;
-    submit_info.pSignalSemaphores = &_voxelize_semaphore_done;
-    vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _voxelize_inflight_fence[image_index]);
-    
-    
     
     //present the scene to viewer
     VkPresentInfoKHR present_info {};
     present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     present_info.pNext = nullptr;
     present_info.waitSemaphoreCount = 1;
-    present_info.pWaitSemaphores = &_voxelize_semaphore_done;
+    present_info.pWaitSemaphores =&_semaphore_rendering_done;
     present_info.swapchainCount = 1;
     present_info.pSwapchains = &_swapchain->_swapchain_data.swapchain;
-    present_info.pImageIndices = &image_index;
+    present_info.pImageIndices = &_deferred_image_index;
     present_info.pResults = nullptr;
     result = vkQueuePresentKHR(_device->_present_queue, &present_info);
     
@@ -660,14 +661,16 @@ void deferred_renderer::destroy()
     renderer::destroy();
     
     vkDestroySemaphore(_device->_logical_device, _deferred_semaphore_image_available, nullptr);
-    vkDestroySemaphore(_device->_logical_device, _deferred_semaphore_rendering_done, nullptr);
+    vkDestroySemaphore(_device->_logical_device, _g_buffers_rendering_done, nullptr);
     vkDestroySemaphore(_device->_logical_device, _voxelize_semaphore, nullptr);
     vkDestroySemaphore(_device->_logical_device, _voxelize_semaphore_done, nullptr);
     vkDestroySemaphore(_device->_logical_device, _clear_voxel_cube_semaphore, nullptr);
     vkDestroySemaphore(_device->_logical_device, _clear_voxel_cube_smaphonre_done, nullptr);
-    
+    vkDestroySemaphore(_device->_logical_device, _generate_voxel_x_axis_semaphore, nullptr);
+    vkDestroySemaphore(_device->_logical_device, _generate_voxel_y_axis_semaphore, nullptr);
+    vkDestroySemaphore(_device->_logical_device, _generate_voxel_z_axis_semaphore, nullptr);
     _deferred_semaphore_image_available = VK_NULL_HANDLE;
-    _deferred_semaphore_rendering_done = VK_NULL_HANDLE;
+    _g_buffers_rendering_done = VK_NULL_HANDLE;
 
     vkFreeCommandBuffers(_device->_logical_device, _device->_graphics_command_pool,
                          static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _offscreen_command_buffers);

@@ -97,15 +97,20 @@ namespace vk
         VkRenderPass        _voxelization_render_pass = VK_NULL_HANDLE;
         
         VkSemaphore _deferred_semaphore_image_available = VK_NULL_HANDLE;
-        VkSemaphore _deferred_semaphore_rendering_done = VK_NULL_HANDLE;
+        VkSemaphore _g_buffers_rendering_done = VK_NULL_HANDLE;
         VkSemaphore _voxelize_semaphore = VK_NULL_HANDLE;
         VkSemaphore _voxelize_semaphore_done = VK_NULL_HANDLE;
         VkSemaphore _clear_voxel_cube_semaphore = VK_NULL_HANDLE;
         VkSemaphore _clear_voxel_cube_smaphonre_done = VK_NULL_HANDLE;
-        
+        VkSemaphore _generate_voxel_x_axis_semaphore = VK_NULL_HANDLE;
+        VkSemaphore _generate_voxel_y_axis_semaphore = VK_NULL_HANDLE;
+        VkSemaphore _generate_voxel_z_axis_semaphore = VK_NULL_HANDLE;
+
         std::vector<VkFramebuffer>  _deferred_swapchain_frame_buffers;
         std::vector<VkFramebuffer>  _voxelize_frame_buffers;
         rendering_state _rendering_state = rendering_state::FULL_RENDERING;
+        
+        uint32_t _deferred_image_index = 0;
         
         orthographic_camera _ortho_camera;
         

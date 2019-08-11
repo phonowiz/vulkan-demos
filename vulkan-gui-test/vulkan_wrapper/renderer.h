@@ -73,6 +73,9 @@ namespace vk
         virtual void create_pipeline();
         virtual void destroy_framebuffers();
         virtual void perform_final_drawing_setup();
+        
+    private:
+         uint32_t _image_index = 0;
     
     protected:
         

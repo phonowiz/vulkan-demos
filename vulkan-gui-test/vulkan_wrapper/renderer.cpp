@@ -379,12 +379,11 @@ void renderer::draw(camera& camera)
     assert(_material != nullptr);
     perform_final_drawing_setup();
     
-    static uint32_t image_index = 0;
-    vkWaitForFences(_device->_logical_device, 1, &_composite_fence[image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_device->_logical_device, 1, &_composite_fence[image_index]);
+    vkWaitForFences(_device->_logical_device, 1, &_composite_fence[_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(_device->_logical_device, 1, &_composite_fence[_image_index]);
     
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain,
-                          std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &image_index);
+                          std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &_image_index);
     
     VkSubmitInfo submit_info;
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -394,11 +393,11 @@ void renderer::draw(camera& camera)
     VkPipelineStageFlags wait_stage_mask[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submit_info.pWaitDstStageMask = wait_stage_mask;
     submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &(_command_buffers[image_index]);
+    submit_info.pCommandBuffers = &(_command_buffers[_image_index]);
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &_semaphore_rendering_done;
 
-    VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _composite_fence[image_index]);
+    VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _composite_fence[_image_index]);
     ASSERT_VULKAN(result);
     
     VkPresentInfoKHR present_info;
@@ -408,7 +407,7 @@ void renderer::draw(camera& camera)
     present_info.pWaitSemaphores = &_semaphore_rendering_done;
     present_info.swapchainCount = 1;
     present_info.pSwapchains = &_swapchain->_swapchain_data.swapchain;
-    present_info.pImageIndices = &image_index;
+    present_info.pImageIndices = &_image_index;
     present_info.pResults = nullptr;
     result = vkQueuePresentKHR(_device->_present_queue, &present_info);
     
