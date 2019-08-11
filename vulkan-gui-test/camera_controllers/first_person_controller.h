@@ -30,31 +30,34 @@ public:
     
     
     first_person_controller(vk::camera * camera, GLFWwindow* window):
-    mouseXStart(0.0f),
-    mouseYStart(0.0f)
+    _mouse_x_start(0.0f),
+    _mouse_y_start(0.0f)
     {
         _window = window;
-        targetCamera = new vk::perspective_camera();
-        renderingCamera = camera;
+        _target_camera = new vk::perspective_camera();
+        _rendering_camera = camera;
         
     }
     
-    first_person_controller() { delete targetCamera; }
+    first_person_controller() { delete _target_camera; }
     
     void update();
 private:
-    bool firstUpdate = true;
+    bool _first_update = true;
     
-    const float CAMERA_SPEED = 1.4f;
-    const float CAMERA_ROTATION_SPEED = 0.003f;
-    const float CAMERA_POSITION_INTERPOLATION_SPEED = 8.0f;
-    const float CAMERA_ROTATION_INTERPOLATION_SPEED = 8.0f;
+    static constexpr float CAMERA_SPEED = 1.4f;
+    static constexpr float CAMERA_ROTATION_SPEED = 0.005f;
+    static constexpr float CAMERA_POSITION_INTERPOLATION_SPEED = 10.0f;
+    static constexpr float CAMERA_ROTATION_INTERPOLATION_SPEED = 12.0f;
     
-    vk::camera * renderingCamera;
-    vk::camera * targetCamera; // Dummy camera used for interpolation.
+    vk::camera * _rendering_camera;
+    vk::camera * _target_camera; // Dummy camera used for interpolation.
     GLFWwindow* _window = nullptr;
     
-    float mouseXStart;
-    float mouseYStart;
+    double _time = 0.0;
+    double _delta_time = 0.0;
+    
+    float _mouse_x_start;
+    float _mouse_y_start;
 };
 

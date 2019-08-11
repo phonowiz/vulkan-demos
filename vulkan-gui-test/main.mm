@@ -36,6 +36,8 @@
 #include "vulkan_wrapper/cameras/perspective_camera.h"
 #include "vulkan_wrapper/display_2d_texture_renderer.h"
 
+#include "camera_controllers/first_person_controller.h"
+
 
 ///an excellent summary of vulkan can be found here:
 //https://renderdoc.org/vulkan-in-30-minutes.html
@@ -80,13 +82,15 @@ struct App
     vk::deferred_renderer*   deferred_renderer = nullptr;
     vk::renderer*   three_d_renderer = nullptr;
     
+    first_person_controller* user_controller = nullptr;
+    
     vk::camera*     perspective_camera = nullptr;
     vk::camera*     three_d_texture_camera = nullptr;
     vk::swapchain*  swapchain = nullptr;
     
     vk::deferred_renderer::rendering_state state = vk::deferred_renderer::rendering_state::FULL_RENDERING;
     
-
+    bool quit = false;
     bool render_3d_texture = false;
 
 };
@@ -99,7 +103,7 @@ void update_3d_texture_rendering_params( vk::renderer& renderer)
     std::chrono::time_point frame_time = std::chrono::high_resolution_clock::now();
     float time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>( frame_time - game_start_time ).count()/1000.0f;
     
-    glm::mat4 model = glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 model = glm::mat4(1.0f);//glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
     vk::shader_parameter::shader_params_group& vertex_params =   renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     app.three_d_texture_camera->update_view_matrix();
@@ -163,10 +167,11 @@ void update_ortho_parameters(vk::renderer& renderer)
 void game_loop()
 {
 
-    while (!glfwWindowShouldClose(window))
+    while (!glfwWindowShouldClose(window) && !app.quit)
     {
         glfwPollEvents();
-
+        
+        app.user_controller->update();
         if(!app.render_3d_texture)
         {
             update_renderer_parameters( *app.deferred_renderer );
@@ -250,6 +255,10 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     {
         app.render_3d_texture = true;
     }
+    if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    {
+        app.quit = true;
+    }
 }
 
 int main()
@@ -257,6 +266,7 @@ int main()
     start_glfw();
     
     glfwSetWindowSizeCallback(window, on_window_resize);
+
 
     glfwSetKeyCallback(window, key_callback);
 
@@ -267,6 +277,7 @@ int main()
     glfwCreateWindowSurface(device._instance, window, nullptr, &surface);
     device.create_logical_device(surface);
 
+    glfwSetCursorPos(window, width * .5f, height * .5f);
     vk::swapchain swapchain(&device, window, surface);
     
     app.swapchain = &swapchain;
@@ -291,10 +302,10 @@ int main()
     standard_mat = material_store.GET_MAT<vk::visual_material>("standard");
     display_3d_tex_mat = material_store.GET_MAT<vk::visual_material>("display_3d_texture");
     
-    vk::perspective_camera perspective_camera(glm::radians(60.0f),
+    vk::perspective_camera perspective_camera(glm::radians(45.0f),
                                               swapchain._swapchain_data.swapchain_extent.width/ swapchain._swapchain_data.swapchain_extent.height, .01f, 10.f);
     
-    vk::perspective_camera three_d_texture_cam(glm::radians(60.0f),
+    vk::perspective_camera three_d_texture_cam(glm::radians(45.0f),
                                               swapchain._swapchain_data.swapchain_extent.width/ swapchain._swapchain_data.swapchain_extent.height, .01f, 10.f);
     
     
@@ -316,7 +327,7 @@ int main()
     
     app.deferred_renderer = &deferred_renderer;
     
-    app.deferred_renderer->add_shape(&dragon);
+    //app.deferred_renderer->add_shape(&dragon);
     app.deferred_renderer->add_shape(&cornell_box);
     app.deferred_renderer->init();
     
@@ -334,6 +345,10 @@ int main()
     app.three_d_renderer->get_pipeline().set_cullmode(vk::graphics_pipeline::cull_mode::NONE);
     app.three_d_renderer->init();
     
+    
+    first_person_controller user_controler(app.three_d_texture_camera, window);
+    
+    app.user_controller = &user_controler;
 
     game_loop();
     

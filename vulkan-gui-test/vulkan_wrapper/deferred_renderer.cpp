@@ -33,7 +33,7 @@ _mrt_material(store.GET_MAT<visual_material>("mrt")),
 _mrt_pipeline(device),
 _voxelize_pipeline(device, store.GET_MAT<visual_material>("voxelizer")),
 _clear_texture_3d_pipeline(device, store.GET_MAT<compute_material>("clear_3d_texture")),
-_ortho_camera(2.0f, 2.0f, 10.0f)
+_ortho_camera(10.0f, 10.0f, 10.0f)
 {
     int binding = 0;
     _mrt_material->init_parameter("model", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);

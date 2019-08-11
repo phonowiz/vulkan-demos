@@ -8,6 +8,6 @@ layout (binding = 0) uniform writeonly image3D texture_3d;
 void main()
 {
     ivec3 voxel = ivec3(gl_GlobalInvocationID.xyz);
-    imageStore(texture_3d, voxel, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    imageStore(texture_3d, voxel, vec4(0.0f, 0.0f, 0.2f, .009f));
     return;
 }
