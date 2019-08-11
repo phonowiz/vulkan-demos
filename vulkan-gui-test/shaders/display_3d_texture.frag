@@ -11,15 +11,14 @@
 
 
 float   step_size = 0.005f;
-float   max_samples = 200;
+float   max_samples = 300;
 
 
 layout(location = 0) in  vec3 frag_obj_pos;
 
 layout(binding = 1) uniform UBO
 {
-    mat4    mvp_inverse;
-    vec4    box_eye_position;
+    vec4  box_eye_position;
     float screen_height;
     float screen_width;
 

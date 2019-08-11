@@ -83,6 +83,7 @@ struct App
     vk::renderer*   three_d_renderer = nullptr;
     
     first_person_controller* user_controller = nullptr;
+    first_person_controller* texture_3d_view_controller = nullptr;
     
     vk::camera*     perspective_camera = nullptr;
     vk::camera*     three_d_texture_camera = nullptr;
@@ -92,6 +93,8 @@ struct App
     
     bool quit = false;
     bool render_3d_texture = false;
+    
+    glm::mat4 model = glm::mat4(1.0f);
 
 };
 
@@ -100,24 +103,17 @@ App app;
 
 void update_3d_texture_rendering_params( vk::renderer& renderer)
 {
-    std::chrono::time_point frame_time = std::chrono::high_resolution_clock::now();
-    float time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>( frame_time - game_start_time ).count()/1000.0f;
-    
-    glm::mat4 model = glm::mat4(1.0f);//glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
     vk::shader_parameter::shader_params_group& vertex_params =   renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     app.three_d_texture_camera->update_view_matrix();
     
 
-    glm::mat4 mvp = app.three_d_texture_camera->get_projection_matrix() * app.three_d_texture_camera->view_matrix * model;
+    glm::mat4 mvp = app.three_d_texture_camera->get_projection_matrix() * app.three_d_texture_camera->view_matrix * glm::mat4(1.0f);
     vertex_params["mvp"] = mvp;
-    vertex_params["model"] = model;
+    vertex_params["model"] = glm::mat4(1.0f);
     
     vk::shader_parameter::shader_params_group& fragment_params =   renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
-    glm::mat4 mvp_inverse = glm::inverse(app.three_d_texture_camera->get_projection_matrix() * app.three_d_texture_camera->view_matrix * model);
     
-    fragment_params["mvp_inverse"] = mvp_inverse;
-    fragment_params["box_eye_position"] =  glm::inverse( model) *  glm::vec4(app.three_d_texture_camera->position, 1.0f);
+    fragment_params["box_eye_position"] =   glm::vec4(app.three_d_texture_camera->position, 1.0f);
     fragment_params["screen_height"] = static_cast<float>(app.swapchain->_swapchain_data.swapchain_extent.width);
     fragment_params["screen_width"] = static_cast<float>(app.swapchain->_swapchain_data.swapchain_extent.height);
 
@@ -129,7 +125,7 @@ void update_renderer_parameters( vk::renderer& renderer)
     std::chrono::time_point frame_time = std::chrono::high_resolution_clock::now();
     float time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>( frame_time - game_start_time ).count()/1000.0f;
     
-    glm::mat4 model = glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    app.model = glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     
     glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
 
@@ -139,7 +135,7 @@ void update_renderer_parameters( vk::renderer& renderer)
     // https://github.com/SaschaWillems/Vulkan/blob/master/screenshots/dynamicuniformbuffer.jpg
     
     app.perspective_camera->update_view_matrix();
-    vertex_params["model"] = model;
+    vertex_params["model"] = app.model;
     vertex_params["view"] = app.perspective_camera->view_matrix;
     vertex_params["projection"] =  app.perspective_camera->get_projection_matrix();
     vertex_params["lightPosition"] = temp;
@@ -172,6 +168,7 @@ void game_loop()
         glfwPollEvents();
         
         app.user_controller->update();
+        app.texture_3d_view_controller->update();
         if(!app.render_3d_texture)
         {
             update_renderer_parameters( *app.deferred_renderer );
@@ -310,11 +307,11 @@ int main()
     
     
     app.perspective_camera = &perspective_camera;
-    app.perspective_camera->position = glm::vec3(1.0f, 0.0f, -5.0f);
+    app.perspective_camera->position = glm::vec3(0.0f, 0.0f, -5.0f);
     app.perspective_camera->forward = -perspective_camera.position;
     
     
-    glm::vec3 eye(1.0f, 0.0f, -3.0f);
+    glm::vec3 eye(0.0f, 0.0f, -3.0f);
     app.three_d_texture_camera = &three_d_texture_cam;
     app.three_d_texture_camera->position = eye;
     app.three_d_texture_camera->forward = -eye;
@@ -327,7 +324,7 @@ int main()
     
     app.deferred_renderer = &deferred_renderer;
     
-    //app.deferred_renderer->add_shape(&dragon);
+    app.deferred_renderer->add_shape(&dragon);
     app.deferred_renderer->add_shape(&cornell_box);
     app.deferred_renderer->init();
     
@@ -346,9 +343,11 @@ int main()
     app.three_d_renderer->init();
     
     
-    first_person_controller user_controler(app.three_d_texture_camera, window);
+    first_person_controller user_controler( app.perspective_camera, window);
+    first_person_controller  texture_3d_view_controller(app.three_d_texture_camera, window);
     
     app.user_controller = &user_controler;
+    app.texture_3d_view_controller = &texture_3d_view_controller;
 
     game_loop();
     

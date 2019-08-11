@@ -29,9 +29,10 @@ void main()
     
     
     //we flip here because y is upside down when we render the texture, it's a vulkan thing...
-    texture_coordinates.y = 1.0f - texture_coordinates.y;
-    
-    ivec3 voxel = ivec3(ubo.voxel_coords * texture_coordinates);
+    //texture_coordinates.y = 1.0f - texture_coordinates.y;
+    float voxel_depth = ubo.voxel_coords.z * gl_FragCoord.z;
+    float voxle_height = ubo.voxel_coords.y - gl_FragCoord.y;
+    ivec3 voxel = ivec3(gl_FragCoord.x, voxle_height, voxel_depth);
 
     imageStore(voxel_texture, voxel, vec4(1.0f, 1.0f, 1.0f, .001f));
    

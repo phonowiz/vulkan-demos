@@ -33,7 +33,7 @@ _mrt_material(store.GET_MAT<visual_material>("mrt")),
 _mrt_pipeline(device),
 _voxelize_pipeline(device, store.GET_MAT<visual_material>("voxelizer")),
 _clear_texture_3d_pipeline(device, store.GET_MAT<compute_material>("clear_3d_texture")),
-_ortho_camera(10.0f, 10.0f, 10.0f)
+_ortho_camera(2.f, 2.0f, 10.0f)
 {
     int binding = 0;
     _mrt_material->init_parameter("model", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
@@ -537,7 +537,6 @@ void deferred_renderer::perform_final_drawing_setup()
 void deferred_renderer::draw(camera& camera)
 {
     vk::shader_parameter::shader_params_group& voxelize_vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-    vk::shader_parameter::shader_params_group& mrt_vertex_params =  _mrt_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     vk::shader_parameter::shader_params_group& display_fragment_params = _pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5) ;
     
     display_fragment_params["state"] = static_cast<int>(_rendering_state);
@@ -546,13 +545,13 @@ void deferred_renderer::draw(camera& camera)
     
     _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
                                          visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
-    _ortho_camera.position = glm::vec3(1.0f, 0.f, -8.0f);
+    _ortho_camera.position = glm::vec3(0.0f, 0.f, -8.0f);
     _ortho_camera.forward = -_ortho_camera.position;
     _ortho_camera.update_view_matrix();
 
     voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
     
-    voxelize_vertex_params["model"] = mrt_vertex_params["model"];
+    voxelize_vertex_params["model"] = glm::mat4(1.0f);
     voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
     voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
     
@@ -565,9 +564,6 @@ void deferred_renderer::draw(camera& camera)
     perform_final_drawing_setup();
     
     static uint32_t image_index = 0;
-//    vkWaitForFences(_device->_logical_device, 1, &_g_buffers_fence[image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-//    vkResetFences(_device->_logical_device, 1, &_g_buffers_fence[image_index]);
-    
     
     //todo: acquire image at the very last minute, not in the very beginning
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain,
