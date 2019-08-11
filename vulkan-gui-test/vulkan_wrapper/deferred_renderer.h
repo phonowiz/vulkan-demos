@@ -78,16 +78,20 @@ namespace vk
         void compute(VkCommandBuffer command_buffer, vk::compute_pipeline& pipeline);
         void record_command_buffers(obj_shape** shapes, size_t number_of_shapes) override;
         void record_voxelize_command_buffers(obj_shape** shapes, size_t number_of_shapes);
+        void record_clear_texture_3d_buffer ();
+        
         void create_voxelization_render_pass();
         
         virtual void perform_final_drawing_setup() override;
         
         VkSampler       _color_sampler = VK_NULL_HANDLE;
-        VkCommandBuffer *_offscreen_command_buffers = nullptr;
+        VkCommandBuffer *_offscreen_command_buffers = VK_NULL_HANDLE;
         VkCommandBuffer *_voxelize_command_buffers = VK_NULL_HANDLE;
+        VkCommandBuffer *_clear_3d_texture_command_buffers = VK_NULL_HANDLE;
         
         graphics_pipeline _mrt_pipeline;
         graphics_pipeline _voxelize_pipeline;
+        compute_pipeline  _clear_texture_3d_pipeline;
         
         VkRenderPass        _mrt_render_pass = VK_NULL_HANDLE;
         VkRenderPass        _voxelization_render_pass = VK_NULL_HANDLE;
@@ -96,6 +100,8 @@ namespace vk
         VkSemaphore _deferred_semaphore_rendering_done = VK_NULL_HANDLE;
         VkSemaphore _voxelize_semaphore = VK_NULL_HANDLE;
         VkSemaphore _voxelize_semaphore_done = VK_NULL_HANDLE;
+        VkSemaphore _clear_voxel_cube_semaphore = VK_NULL_HANDLE;
+        VkSemaphore _clear_voxel_cube_smaphonre_done = VK_NULL_HANDLE;
         
         std::vector<VkFramebuffer>  _deferred_swapchain_frame_buffers;
         std::vector<VkFramebuffer>  _voxelize_frame_buffers;
@@ -105,13 +111,17 @@ namespace vk
         
         screen_plane _screen_plane;
         
-        std::array<VkFence, 2> _deferred_inflight_fences {};
-        std::array<VkFence, 2> _voxelize_inflight_fence {};
+        //on mind 2014 macbook pro, the number of frames is 2, this could change in other platforms
+        static constexpr uint32_t NUM_OF_FRAMES = 2;
+        
+        std::array<VkFence, NUM_OF_FRAMES> _g_buffers_fence {};
+        std::array<VkFence, NUM_OF_FRAMES> _voxelize_inflight_fence {};
+        std::array<VkFence, NUM_OF_FRAMES> _clear_voxel_texture_fence {};
         
         
-        static constexpr uint32_t VOXEL_CUBE_WIDTH = 128u;
-        static constexpr uint32_t VOXEL_CUBE_HEIGHT = 128u;
-        static constexpr uint32_t VOXEL_CUBE_DEPTH  = 128u;
+        static constexpr uint32_t VOXEL_CUBE_WIDTH = 256u;
+        static constexpr uint32_t VOXEL_CUBE_HEIGHT = 256u;
+        static constexpr uint32_t VOXEL_CUBE_DEPTH  = 256u;
         bool _setup_initialized = false;
 
         

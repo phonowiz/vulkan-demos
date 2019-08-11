@@ -63,7 +63,7 @@ namespace vk
     
         virtual void create_frame_buffers();
         virtual void create_render_pass();
-        virtual void create_command_buffer(VkCommandBuffer** command_buffers, VkCommandPool command_pool);
+        virtual void create_command_buffers(VkCommandBuffer** command_buffers, VkCommandPool command_pool);
         virtual void create_semaphores_and_fences();
         
         void create_semaphore(VkSemaphore& semaphore);
@@ -84,7 +84,7 @@ namespace vk
         VkSemaphore _semaphore_rendering_done = VK_NULL_HANDLE;
         swapchain*  _swapchain = nullptr;
         
-        std::array<VkFence, 20> _inflight_fences {};
+        std::array<VkFence, 20> _composite_fence {};
 
         
         //todo: find out what is the limit of attachments

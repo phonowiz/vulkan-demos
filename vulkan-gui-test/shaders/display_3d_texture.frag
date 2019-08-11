@@ -10,8 +10,8 @@
 //https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-box-intersection
 
 
-float   step_size = 0.01f;
-float   max_samples = 150;
+float   step_size = 0.005f;
+float   max_samples = 200;
 
 
 layout(location = 0) in  vec3 frag_obj_pos;

@@ -33,10 +33,10 @@ void main()
     
     ivec3 voxel = ivec3(ubo.voxel_coords * texture_coordinates);
 
-    imageStore(voxel_texture, voxel, vec4(0.0f, 1.0f, 1.0f, 1.0f));
+    imageStore(voxel_texture, voxel, vec4(1.0f, 1.0f, 1.0f, .001f));
    
     
-    final_color = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    final_color = frag_color;
 }
 
 

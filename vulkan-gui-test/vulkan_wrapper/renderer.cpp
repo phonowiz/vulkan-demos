@@ -132,7 +132,7 @@ void renderer::create_render_pass()
 }
 
 
-void renderer::create_command_buffer(VkCommandBuffer** command_buffers, VkCommandPool command_pool)
+void renderer::create_command_buffers(VkCommandBuffer** command_buffers, VkCommandPool command_pool)
 {
     VkCommandBufferAllocateInfo command_buffer_allocate_info;
     command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -182,7 +182,7 @@ void renderer::create_semaphores_and_fences()
     
     for(int i = 0; i < _swapchain->_swapchain_data.image_set.get_image_count(); ++i)
     {
-        create_fence(_inflight_fences[i]);
+        create_fence(_composite_fence[i]);
     }
 }
 
@@ -198,7 +198,7 @@ void renderer::recreate_renderer()
     _swapchain->recreate_swapchain( );
     create_frame_buffers();
     
-    create_command_buffer(&_command_buffers, _device->_present_command_pool);
+    create_command_buffers(&_command_buffers, _device->_present_command_pool);
     record_command_buffers(_shapes.data(), _shapes.size());
 
 }
@@ -292,8 +292,8 @@ void renderer::destroy()
 
     for (size_t i = 0; i < _swapchain_frame_buffers.size(); i++)
     {
-        vkDestroyFence(_device->_logical_device, _inflight_fences[i], nullptr);
-        _inflight_fences[i] = VK_NULL_HANDLE;
+        vkDestroyFence(_device->_logical_device, _composite_fence[i], nullptr);
+        _composite_fence[i] = VK_NULL_HANDLE;
     }
     
     _pipeline.destroy();
@@ -351,7 +351,7 @@ void renderer::init()
     
     create_frame_buffers();
     create_semaphores_and_fences();
-    create_command_buffer(&_command_buffers, _device->_present_command_pool);
+    create_command_buffers(&_command_buffers, _device->_present_command_pool);
     
     //we only support 1 mesh at the moment
     //assert(_shapes.size() == 1);
@@ -380,8 +380,8 @@ void renderer::draw(camera& camera)
     perform_final_drawing_setup();
     
     static uint32_t image_index = 0;
-    vkWaitForFences(_device->_logical_device, 1, &_inflight_fences[image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_device->_logical_device, 1, &_inflight_fences[image_index]);
+    vkWaitForFences(_device->_logical_device, 1, &_composite_fence[image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(_device->_logical_device, 1, &_composite_fence[image_index]);
     
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain,
                           std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &image_index);
@@ -398,7 +398,7 @@ void renderer::draw(camera& camera)
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &_semaphore_rendering_done;
 
-    VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _inflight_fences[image_index]);
+    VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _composite_fence[image_index]);
     ASSERT_VULKAN(result);
     
     VkPresentInfoKHR present_info;

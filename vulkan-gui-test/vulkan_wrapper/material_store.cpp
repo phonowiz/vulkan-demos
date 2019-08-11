@@ -43,6 +43,9 @@ void material_store::create(device* device)
     shader_shared_ptr voxel_shader_vert = add_shader("voxelize.vert", shader::shader_type::VERTEX);
     shader_shared_ptr voxel_shader_frag = add_shader("voxelize.frag", shader::shader_type::FRAGMENT);
     
+    shader_shared_ptr clear_3d_texture_comp =  add_shader("./compute/clear_3d_texture.comp", shader::shader_type::COMPUTE);
+    
+    
     mat_shared_ptr standard_mat = CREATE_MAT<visual_material>("standard", standard_vert, standard_frag, device);
     add_material(standard_mat);
     
@@ -53,15 +56,18 @@ void material_store::create(device* device)
     add_material(mrt_mat);
     
     mat_shared_ptr display_3d_texture_mat = CREATE_MAT<visual_material>("display_3d_texture",
-                                                                        display_3d_texture_vert, display_3d_texture_frag, device);
+                                                                    display_3d_texture_vert, display_3d_texture_frag, device);
     add_material(display_3d_texture_mat);
     
     mat_shared_ptr deferred_output_mat = CREATE_MAT<visual_material>("deferred_output",
                                                                    deferred_output_vert, deferred_output_frag, device);
     add_material(deferred_output_mat);
+    
     mat_shared_ptr voxelizer_mat = CREATE_MAT<visual_material>("voxelizer", voxel_shader_vert, voxel_shader_frag, device);
     add_material(voxelizer_mat);
     
+    mat_shared_ptr clear_3d_texture = CREATE_MAT<compute_material>("clear_3d_texture", clear_3d_texture_comp, device);
+    add_material(clear_3d_texture);
 }
 
 void material_store::add_material( mat_shared_ptr material)

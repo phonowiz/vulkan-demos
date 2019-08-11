@@ -19,6 +19,7 @@
 
 namespace vk {
     
+    //note: the name obj_shape comes from the fact that these objects are created by reading .obj files
     class obj_shape  : object
     {
     protected:

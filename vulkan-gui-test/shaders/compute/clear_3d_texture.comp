@@ -1,0 +1,13 @@
+
+#version 450
+
+layout (local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
+
+layout (binding = 0) uniform writeonly image3D texture_3d;
+
+void main()
+{
+    ivec3 voxel = ivec3(gl_GlobalInvocationID.xyz);
+    imageStore(texture_3d, voxel, vec4(0.0f, 0.0f, 0.0f, 1.0f));
+    return;
+}

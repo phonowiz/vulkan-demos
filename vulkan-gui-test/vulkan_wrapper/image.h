@@ -55,14 +55,18 @@ namespace vk
             return _channels;
         }
         
-        inline int get_width()
+        inline uint32_t get_width()
         {
             return _width;
         }
         
-        inline int get_height()
+        inline uint32_t get_height()
         {
             return _height;
+        }
+        inline uint32_t get_depth()
+        {
+            return _depth;
         }
         
 
@@ -75,6 +79,8 @@ namespace vk
         enum class formats
         {
             R8G8B8A8 = VK_FORMAT_R8G8B8A8_UNORM,
+            R32G32B32A32 = VK_FORMAT_R32G32B32A32_SFLOAT,
+            R16G16B16A16 = VK_FORMAT_R16G16B16A16_UNORM,
             DEPTH_32_FLOAT = VK_FORMAT_D32_SFLOAT,
             DEPTH_32_STENCIL_8 = VK_FORMAT_D32_SFLOAT_S8_UINT,
             DEPTH_24_STENCIL_8 = VK_FORMAT_D24_UNORM_S8_UINT

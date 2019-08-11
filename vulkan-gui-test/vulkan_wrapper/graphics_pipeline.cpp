@@ -186,11 +186,3 @@ void graphics_pipeline::create( VkRenderPass render_pass, uint32_t viewport_widt
     
     _material->commit_parameters_to_gpu();
 }
-
-void graphics_pipeline::destroy()
-{
-    vkDestroyPipeline(_device->_logical_device, _pipeline, nullptr);
-    vkDestroyPipelineLayout(_device->_logical_device, _pipeline_layout, nullptr);
-    _pipeline = VK_NULL_HANDLE;
-    _pipeline_layout = VK_NULL_HANDLE;
-}
