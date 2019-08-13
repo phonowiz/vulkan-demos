@@ -2,22 +2,34 @@
 <Workspace
    version = "1.0">
    <Group
-      location = "group:../vulkan-gui-test/vulkan_wrapper/textures"
-      name = "textures">
+      location = "group:../vulkan-gui-test/vulkan_wrapper/materials"
+      name = "materials">
       <FileRef
-         location = "group:texture_3d.cpp">
+         location = "group:visual_material.h">
       </FileRef>
       <FileRef
-         location = "group:texture_2d.cpp">
+         location = "group:compute_material.h">
       </FileRef>
       <FileRef
-         location = "group:texture_3d.h">
+         location = "group:material_store.cpp">
       </FileRef>
       <FileRef
-         location = "group:texture_2d.h">
+         location = "group:compute_material.cpp">
+      </FileRef>
+      <FileRef
+         location = "group:material_base.h">
+      </FileRef>
+      <FileRef
+         location = "group:material_base.cpp">
+      </FileRef>
+      <FileRef
+         location = "group:visual_material.cpp">
+      </FileRef>
+      <FileRef
+         location = "group:material_store.h">
       </FileRef>
    </Group>
    <FileRef
-      location = "self:vulkan-gui-test.xcodeproj">
+      location = "self:">
    </FileRef>
 </Workspace>

@@ -30,7 +30,7 @@
 #include "vulkan_wrapper/renderers/display_2d_texture_renderer.h"
 #include "vulkan_wrapper/renderers/deferred_renderer.h"
 #include "vulkan_wrapper/swapchain.h"
-#include "vulkan_wrapper/material_store.h"
+#include "vulkan_wrapper/materials/material_store.h"
 #include "vulkan_wrapper/shapes/obj_shape.h"
 #include "vulkan_wrapper/shapes/cornell_box.h"
 #include "vulkan_wrapper/display_plane.h"
