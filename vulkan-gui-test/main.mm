@@ -26,15 +26,17 @@
 #include <chrono>
 
 #include "vulkan_wrapper/device.h"
-#include "vulkan_wrapper/renderer.h"
+#include "vulkan_wrapper/renderers/renderer.h"
+#include "vulkan_wrapper/renderers/display_2d_texture_renderer.h"
+#include "vulkan_wrapper/renderers/deferred_renderer.h"
 #include "vulkan_wrapper/swapchain.h"
 #include "vulkan_wrapper/material_store.h"
 #include "vulkan_wrapper/shapes/obj_shape.h"
 #include "vulkan_wrapper/shapes/cornell_box.h"
 #include "vulkan_wrapper/display_plane.h"
-#include "vulkan_wrapper/deferred_renderer.h"
+
 #include "vulkan_wrapper/cameras/perspective_camera.h"
-#include "vulkan_wrapper/display_2d_texture_renderer.h"
+
 
 #include "camera_controllers/first_person_controller.h"
 
