@@ -41,16 +41,14 @@ void main()
 
     //scale to range [0,1], that is the texture range
     ndc.xy = (ndc.xy + 1) * .5f;
-    //flip because in vulkan ndc, y is upside down
     ndc.y = 1.0f - ndc.y;
     
-
     int voxel_depth = int(ceil(ubo.voxel_coords.z * ndc.z));
     int voxle_height = int(ceil(ubo.voxel_coords.y * ndc.y));
     int voxel_width = int(ceil(ubo.voxel_coords.x * ndc.x));
     ivec3 voxel = ivec3(voxel_width, voxle_height, voxel_depth);
     
-    imageStore(voxel_texture, voxel, vec4(frag_color.xyz, .05f));
+    imageStore(voxel_texture, voxel, vec4(frag_color.xyz, .8f));
 }
 
 

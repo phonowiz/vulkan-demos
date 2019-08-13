@@ -71,7 +71,7 @@ void main()
     out_color =  vec4(0.0f);
 
     
-    if(IntersectBox(eye, aabb, tnear, tfar))
+    IntersectBox(eye, aabb, tnear, tfar);
     {
         if (tnear < 0.0) tnear = 0.0;
 
