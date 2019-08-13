@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Workspace
    version = "1.0">
+   <Group
+      location = "group:../vulkan-gui-test/vulkan_wrapper/textures"
+      name = "textures">
+      <FileRef
+         location = "group:texture_3d.cpp">
+      </FileRef>
+      <FileRef
+         location = "group:texture_2d.cpp">
+      </FileRef>
+      <FileRef
+         location = "group:texture_3d.h">
+      </FileRef>
+      <FileRef
+         location = "group:texture_2d.h">
+      </FileRef>
+   </Group>
    <FileRef
       location = "self:vulkan-gui-test.xcodeproj">
    </FileRef>
