@@ -25,15 +25,15 @@
 #include <glm/mat4x4.hpp>
 #include <chrono>
 
-#include "vulkan_wrapper/device.h"
+#include "vulkan_wrapper/core/device.h"
+#include "vulkan_wrapper/core/swapchain.h"
 #include "vulkan_wrapper/renderers/renderer.h"
 #include "vulkan_wrapper/renderers/display_2d_texture_renderer.h"
 #include "vulkan_wrapper/renderers/deferred_renderer.h"
-#include "vulkan_wrapper/swapchain.h"
+
 #include "vulkan_wrapper/materials/material_store.h"
 #include "vulkan_wrapper/shapes/obj_shape.h"
 #include "vulkan_wrapper/shapes/cornell_box.h"
-#include "vulkan_wrapper/display_plane.h"
 
 #include "vulkan_wrapper/cameras/perspective_camera.h"
 

@@ -13,8 +13,8 @@
 #include <vector>
 
 #include "mesh.h"
-#include "../object.h"
-#include "../graphics_pipeline.h"
+#include "../core/object.h"
+#include "../pipelines/graphics_pipeline.h"
 
 
 namespace vk {

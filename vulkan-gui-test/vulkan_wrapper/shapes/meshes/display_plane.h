@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "shapes/mesh.h"
+#include "mesh.h"
 #include "device.h"
 
 namespace vk

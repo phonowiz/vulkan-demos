@@ -9,7 +9,7 @@
 #pragma once
 
 #include "obj_shape.h"
-#include "../display_plane.h"
+#include "display_plane.h"
 namespace vk
 {
     class screen_plane : public obj_shape

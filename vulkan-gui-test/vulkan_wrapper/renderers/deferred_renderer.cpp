@@ -9,7 +9,7 @@
 #include "deferred_renderer.h"
 #include "swapchain.h"
 #include "texture_2d.h"
-#include "shapes/mesh.h"
+#include "../shapes/meshes/mesh.h"
 
 using namespace vk;
 

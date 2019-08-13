@@ -6,7 +6,7 @@
 //  Copyright © 2019 Rafael Sabino. All rights reserved.
 //
 
-#include "vulkan_wrapper/shapes/mesh.h"
+#include "vulkan_wrapper/shapes/meshes/mesh.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
