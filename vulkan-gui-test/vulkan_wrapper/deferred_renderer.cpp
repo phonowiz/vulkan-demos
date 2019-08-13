@@ -62,6 +62,8 @@ _ortho_camera(6.f, 6.0f, 10.0f)
     _voxelize_pipeline._material->init_parameter("model", visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
     _voxelize_pipeline._material->init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
     _voxelize_pipeline._material->init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
+    _voxelize_pipeline._material->init_parameter("light_position", visual_material::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
+    _voxelize_pipeline._material->init_parameter("eye_position", visual_material::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
     
     
     _positions.init();
@@ -551,7 +553,7 @@ void deferred_renderer::perform_final_drawing_setup()
     renderer::perform_final_drawing_setup();
 }
 
-VkSemaphore deferred_renderer::generate_voxel_texture()
+VkSemaphore deferred_renderer::generate_voxel_texture(vk::camera &camera)
 {
     vk::shader_parameter::shader_params_group& voxelize_vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     vk::shader_parameter::shader_params_group& voxelize_frag_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2);
@@ -560,7 +562,10 @@ VkSemaphore deferred_renderer::generate_voxel_texture()
                                          visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
 
     voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
-    voxelize_vertex_params["model"] = glm::mat4(1.0f);
+    
+    //todo: objects right now are static, but in the futre we'll start moving them
+    glm::mat4 model = glm::mat4(1.0f);
+    voxelize_vertex_params["model"] = model;
 
     //clear voxel texture
     VkSubmitInfo submit_info = {};
@@ -600,6 +605,8 @@ VkSemaphore deferred_renderer::generate_voxel_texture()
         voxelize_frag_params["project_to_voxel_screen"] = project_to_voxel_screen;
         voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
         voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
+        voxelize_vertex_params["light_position"] = _light_pos;
+        voxelize_vertex_params["eye_position"] = camera.position;
         _voxelize_pipeline._material->commit_parameters_to_gpu();
 
         submit_info = {};
@@ -636,55 +643,9 @@ void deferred_renderer::draw(camera& camera)
     //todo: acquire image at the very last minute, not in the very beginning
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain,
                           std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &_deferred_image_index);
-    
-//    vk::shader_parameter::shader_params_group& voxelize_vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-//    vk::shader_parameter::shader_params_group& voxelize_frag_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2);
-//
-//    _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
-//                                         visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
-//    _ortho_camera.position = glm::vec3(0.0f, 0.f, -8.0f);
-//    _ortho_camera.forward = -_ortho_camera.position;
-//    _ortho_camera.update_view_matrix();
-//
-//    voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
-//
-//    voxelize_vertex_params["model"] = glm::mat4(1.0f);
-//    voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
-//    voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
-//
-//
-//    _voxelize_pipeline._material->commit_parameters_to_gpu();
-//
-//    //clear voxel texture
-//    VkSubmitInfo submit_info = {};
-//    submit_info.commandBufferCount = 1;
-//    submit_info.pCommandBuffers = &_clear_3d_texture_command_buffers[_deferred_image_index];
-//    submit_info.waitSemaphoreCount = 0;
-//    submit_info.pWaitSemaphores = nullptr;
-//    submit_info.pSignalSemaphores = &_clear_voxel_cube_smaphonre_done;
-//    submit_info.signalSemaphoreCount = 1;
-//
-//    vkWaitForFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-//    vkResetFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index]);
-//
-//    VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _clear_voxel_texture_fence[_deferred_image_index]);
-//    ASSERT_VULKAN(result);
-//
-//    //voxelize
-//    vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-//    vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index]);
-//
-//    submit_info = {};
-//    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-//    submit_info.commandBufferCount = 1;
-//    submit_info.waitSemaphoreCount = 1;
-//    submit_info.pWaitSemaphores = &_clear_voxel_cube_smaphonre_done;
-//    submit_info.pCommandBuffers = &(_voxelize_command_buffers[_deferred_image_index]);
-//    submit_info.signalSemaphoreCount = 1;
-//    submit_info.pSignalSemaphores = &_generate_voxel_z_axis_semaphore;
-//    vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _voxelize_inflight_fence[_deferred_image_index]);
 
-    VkSemaphore voxel_texture_semaphore = generate_voxel_texture();
+    VkSemaphore voxel_texture_semaphore = generate_voxel_texture(camera);
+    
     vkWaitForFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     vkResetFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index]);
 

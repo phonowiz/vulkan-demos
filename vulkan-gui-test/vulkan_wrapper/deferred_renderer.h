@@ -73,7 +73,7 @@ namespace vk
         virtual void create_pipeline()      override;
         virtual void create_semaphores_and_fences() override;
         virtual void destroy_framebuffers() override;
-        VkSemaphore generate_voxel_texture();
+        VkSemaphore generate_voxel_texture(vk::camera& camera);
         
         void compute(VkCommandBuffer command_buffer, vk::compute_pipeline& pipeline);
         void record_command_buffers(obj_shape** shapes, size_t number_of_shapes) override;
@@ -113,10 +113,11 @@ namespace vk
         uint32_t _deferred_image_index = 0;
         
         orthographic_camera _ortho_camera;
+        screen_plane        _screen_plane;
         
-        screen_plane _screen_plane;
+        glm::vec3 _light_pos = glm::vec3(-.50f, 1.0f, 0.0f);
         
-        //on mind 2014 macbook pro, the number of frames is 2, this could change in other platforms
+        //TODO: on my mid 2014 macbook pro, the number of frames is 2, this could change in other platforms
         static constexpr uint32_t NUM_OF_FRAMES = 2;
         
         std::array<VkFence, NUM_OF_FRAMES> _g_buffers_fence {};

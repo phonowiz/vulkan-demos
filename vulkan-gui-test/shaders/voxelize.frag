@@ -4,6 +4,10 @@
 
 
 layout(location = 0) in vec4 frag_color;
+//note: these two are in object space
+layout(location = 1) in vec3 frag_normal;
+layout(location = 2) in vec3 frag_light_vec;
+layout(location = 3) in vec3 frag_view_vec;
 
 layout(location = 0) out vec4 final_color;
 layout(binding = 1 ) writeonly restrict uniform image3D voxel_texture;
@@ -18,15 +22,21 @@ layout(binding = 2) uniform UBO
 void main()
 {
     
-    //TODO: VERY SIMPLE LIGHTING NEEDS TO HAPPEN HERE
-//    vec3 N = normalize(fragNormal);
-//    vec3 L = normalize(fragLightVec);
-//    vec3 V = normalize( fragViewVec);
-//    vec3 R = reflect (-L,N);
-//
-//    vec3 ambient = fragColor * 0.1f;
-//    vec3 diffuse = max(dot(N,L), 0.0f) * fragColor;
-//    vec3 specular = pow(max(dot(R,V), 0.0f), 16.0f) * vec3(1.35f, 1.35f, 1.35f);
+    vec3 N = normalize(frag_normal);
+    vec3 L = normalize(frag_light_vec);
+    
+    vec3 V = normalize(frag_view_vec);
+    //TODO: reflect isn't being used right now, will come into play once we have
+    //these cones ready
+    //vec3 R = reflect (-L,N);
+
+    //TODO: what should the ambient term be?
+    vec3 ambient =  vec3(.08f, .08f, .08f);
+    //TODO: transparncy isn't being considered here
+    vec3 diffuse = max(dot(N,L), 0.0f) * frag_color.xyz;
+    
+    //TODO: if you ever add specular cones, this needs to be put back in
+    //vec3 specular = pow(max(dot(R,V), 0.0f), 16.0f) * vec3(1.35f, 1.35f, 1.35f);
     
     
     vec4 ndc = vec4(float(gl_FragCoord.x)/ubo.voxel_coords.x, float(gl_FragCoord.y)/ubo.voxel_coords.y, gl_FragCoord.z, 1.0f);
@@ -43,12 +53,16 @@ void main()
     ndc.xy = (ndc.xy + 1) * .5f;
     ndc.y = 1.0f - ndc.y;
     
+    //this is so that the texture stores informations in alignment with world space, x seems
+    //to be pointing in opposite direction
+    ndc.x = 1.0f - ndc.x;
+    
     int voxel_depth = int(ceil(ubo.voxel_coords.z * ndc.z));
     int voxle_height = int(ceil(ubo.voxel_coords.y * ndc.y));
     int voxel_width = int(ceil(ubo.voxel_coords.x * ndc.x));
     ivec3 voxel = ivec3(voxel_width, voxle_height, voxel_depth);
     
-    imageStore(voxel_texture, voxel, vec4(frag_color.xyz, .8f));
+    imageStore(voxel_texture, voxel, vec4(diffuse.xyz, .8f));
 }
 
 
