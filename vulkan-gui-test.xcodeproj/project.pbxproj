@@ -278,14 +278,14 @@
 		B93FDCB423036EB0000AECBE /* materials */ = {
 			isa = PBXGroup;
 			children = (
-				B93FDCB523036EB0000AECBE /* visual_material.h */,
-				B93FDCB623036EB0000AECBE /* compute_material.h */,
-				B93FDCB723036EB0000AECBE /* material_store.cpp */,
 				B93FDCB823036EB0000AECBE /* compute_material.cpp */,
-				B93FDCB923036EB0000AECBE /* material_base.h */,
+				B93FDCB623036EB0000AECBE /* compute_material.h */,
 				B93FDCBA23036EB0000AECBE /* material_base.cpp */,
-				B93FDCBB23036EB0000AECBE /* visual_material.cpp */,
+				B93FDCB923036EB0000AECBE /* material_base.h */,
+				B93FDCB723036EB0000AECBE /* material_store.cpp */,
 				B93FDCBC23036EB0000AECBE /* material_store.h */,
+				B93FDCBB23036EB0000AECBE /* visual_material.cpp */,
+				B93FDCB523036EB0000AECBE /* visual_material.h */,
 			);
 			path = materials;
 			sourceTree = "<group>";

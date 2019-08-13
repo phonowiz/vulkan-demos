@@ -25,23 +25,23 @@ void material_store::create(device* device)
     _device = device;
     assert(_device != nullptr && "call setDevice() on the store object");
     
-    shader_shared_ptr standard_vert = add_shader( "triangle.vert", shader::shader_type::VERTEX );
-    shader_shared_ptr standard_frag = add_shader( "triangle.frag", shader::shader_type::FRAGMENT);
+    shader_shared_ptr standard_vert = add_shader( "graphics/triangle.vert", shader::shader_type::VERTEX );
+    shader_shared_ptr standard_frag = add_shader( "graphics/triangle.frag", shader::shader_type::FRAGMENT);
     
-    shader_shared_ptr display_vert = add_shader("display_plane.vert", shader::shader_type::VERTEX);
-    shader_shared_ptr display_farg = add_shader("display_plane.frag", shader::shader_type::FRAGMENT);
+    shader_shared_ptr display_vert = add_shader("graphics/display_plane.vert", shader::shader_type::VERTEX);
+    shader_shared_ptr display_farg = add_shader("graphics/display_plane.frag", shader::shader_type::FRAGMENT);
     
-    shader_shared_ptr mrt_vert = add_shader("mrt.vert", shader::shader_type::VERTEX);
-    shader_shared_ptr mrt_frag = add_shader("mrt.frag", shader::shader_type::FRAGMENT);
+    shader_shared_ptr mrt_vert = add_shader("graphics/mrt.vert", shader::shader_type::VERTEX);
+    shader_shared_ptr mrt_frag = add_shader("graphics/mrt.frag", shader::shader_type::FRAGMENT);
     
-    shader_shared_ptr deferred_output_vert = add_shader("deferred_output.vert", shader::shader_type::VERTEX);
-    shader_shared_ptr deferred_output_frag = add_shader("deferred_output.frag", shader::shader_type::FRAGMENT);
+    shader_shared_ptr deferred_output_vert = add_shader("graphics/deferred_output.vert", shader::shader_type::VERTEX);
+    shader_shared_ptr deferred_output_frag = add_shader("graphics/deferred_output.frag", shader::shader_type::FRAGMENT);
     
-    shader_shared_ptr display_3d_texture_vert = add_shader("display_3d_texture.vert", shader::shader_type::VERTEX);
-    shader_shared_ptr display_3d_texture_frag = add_shader("display_3d_texture.frag", shader::shader_type::FRAGMENT);
+    shader_shared_ptr display_3d_texture_vert = add_shader("graphics/display_3d_texture.vert", shader::shader_type::VERTEX);
+    shader_shared_ptr display_3d_texture_frag = add_shader("graphics/display_3d_texture.frag", shader::shader_type::FRAGMENT);
     
-    shader_shared_ptr voxel_shader_vert = add_shader("voxelize.vert", shader::shader_type::VERTEX);
-    shader_shared_ptr voxel_shader_frag = add_shader("voxelize.frag", shader::shader_type::FRAGMENT);
+    shader_shared_ptr voxel_shader_vert = add_shader("graphics/voxelize.vert", shader::shader_type::VERTEX);
+    shader_shared_ptr voxel_shader_frag = add_shader("graphics/voxelize.frag", shader::shader_type::FRAGMENT);
     
     shader_shared_ptr clear_3d_texture_comp =  add_shader("./compute/clear_3d_texture.comp", shader::shader_type::COMPUTE);
     
