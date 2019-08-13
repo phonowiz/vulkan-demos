@@ -10,6 +10,8 @@ layout(binding = 1 ) writeonly restrict uniform image3D voxel_texture;
 
 layout(binding = 2) uniform UBO
 {
+    mat4 inverse_view_projection;
+    mat4 project_to_voxel_screen;
     vec3 voxel_coords;
 } ubo;
 
@@ -25,19 +27,30 @@ void main()
 //    vec3 ambient = fragColor * 0.1f;
 //    vec3 diffuse = max(dot(N,L), 0.0f) * fragColor;
 //    vec3 specular = pow(max(dot(R,V), 0.0f), 16.0f) * vec3(1.35f, 1.35f, 1.35f);
-    vec3 texture_coordinates = vec3(float(gl_FragCoord.x)/ubo.voxel_coords.x, float(gl_FragCoord.y)/ubo.voxel_coords.y, gl_FragCoord.z);
     
     
-    //we flip here because y is upside down when we render the texture, it's a vulkan thing...
-    //texture_coordinates.y = 1.0f - texture_coordinates.y;
-    float voxel_depth = ubo.voxel_coords.z * gl_FragCoord.z;
-    float voxle_height = ubo.voxel_coords.y - gl_FragCoord.y;
-    ivec3 voxel = ivec3(gl_FragCoord.x, voxle_height, voxel_depth);
+    vec4 ndc = vec4(float(gl_FragCoord.x)/ubo.voxel_coords.x, float(gl_FragCoord.y)/ubo.voxel_coords.y, gl_FragCoord.z, 1.0f);
+    //scale to range[-1,1], that's the ndc range
+    ndc.xy = (2.0f * ndc.xy) - 1.0f;
+    
+    vec4 world_coords = ubo.inverse_view_projection * ndc;
+    vec4 voxel_proj = ubo.project_to_voxel_screen * world_coords;
 
-    imageStore(voxel_texture, voxel, vec4(1.0f, 1.0f, 1.0f, .001f));
-   
+    //normalized device coords once again...
+    ndc = voxel_proj / voxel_proj.w;
+
+    //scale to range [0,1], that is the texture range
+    ndc.xy = (ndc.xy + 1) * .5f;
+    //flip because in vulkan ndc, y is upside down
+    ndc.y = 1.0f - ndc.y;
     
-    final_color = frag_color;
+
+    int voxel_depth = int(ceil(ubo.voxel_coords.z * ndc.z));
+    int voxle_height = int(ceil(ubo.voxel_coords.y * ndc.y));
+    int voxel_width = int(ceil(ubo.voxel_coords.x * ndc.x));
+    ivec3 voxel = ivec3(voxel_width, voxle_height, voxel_depth);
+    
+    imageStore(voxel_texture, voxel, vec4(frag_color.xyz, .05f));
 }
 
 

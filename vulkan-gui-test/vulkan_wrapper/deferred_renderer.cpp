@@ -50,6 +50,20 @@ _ortho_camera(2.f, 2.0f, 10.0f)
     
     _clear_texture_3d_pipeline.material->set_image_sampler(&_voxel_3d_texture,
                                                             "texture_3d", material_base::parameter_stage::COMPUTE, 0, material_base::usage_type::STORAGE_IMAGE);
+    
+    _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
+                                         visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
+    
+    _voxelize_pipeline._material->init_parameter("inverse_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
+    _voxelize_pipeline._material->init_parameter("project_to_voxel_screen", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
+    _voxelize_pipeline._material->init_parameter("voxel_coords", visual_material::parameter_stage::FRAGMENT, glm::vec3(1.0f), 2);
+    
+    
+    _voxelize_pipeline._material->init_parameter("model", visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
+    _voxelize_pipeline._material->init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
+    _voxelize_pipeline._material->init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
+    
+    
     _positions.init();
     _albedo.init();
     _normals.init();
@@ -537,27 +551,127 @@ void deferred_renderer::perform_final_drawing_setup()
     renderer::perform_final_drawing_setup();
 }
 
-void deferred_renderer::draw(camera& camera)
+VkSemaphore deferred_renderer::generate_voxel_texture()
 {
     vk::shader_parameter::shader_params_group& voxelize_vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+    vk::shader_parameter::shader_params_group& voxelize_frag_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2);
+
+    _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
+                                         visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
+
+    voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
+    voxelize_vertex_params["model"] = glm::mat4(1.0f);
+
+    //clear voxel texture
+    VkSubmitInfo submit_info = {};
+    submit_info.commandBufferCount = 1;
+    submit_info.pCommandBuffers = &_clear_3d_texture_command_buffers[_deferred_image_index];
+    submit_info.waitSemaphoreCount = 0;
+    submit_info.pWaitSemaphores = nullptr;
+    submit_info.pSignalSemaphores = &_clear_voxel_cube_smaphonre_done;
+    submit_info.signalSemaphoreCount = 1;
+
+    vkWaitForFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index]);
+
+    VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _clear_voxel_texture_fence[_deferred_image_index]);
+    ASSERT_VULKAN(result);
+
+    std::array<glm::vec3, 3> cam_positions = {  glm::vec3(0.0f, 0.0f, -8.f),glm::vec3(0.0f, 8.f, 0.0f), glm::vec3(-8.0f, 0.0f, 0.0f)};
+    std::array<glm::vec3, 3> up_vectors = { glm::vec3 {0.0f, 1.0f, 0.0f}, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)};
+    std::array<VkSemaphore, 4> semaphores = {_clear_voxel_cube_smaphonre_done, _generate_voxel_z_axis_semaphore,
+        _generate_voxel_y_axis_semaphore, _generate_voxel_x_axis_semaphore};
+    
+    glm::mat4 project_to_voxel_screen = glm::mat4(1.0f);
+    int i = 0;
+    for( ; i < 3; ++i)
+    {
+        //voxelize
+        vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+        vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index]);
+        
+        _ortho_camera.position = cam_positions[i];
+        _ortho_camera.forward = -_ortho_camera.position;
+        _ortho_camera.up = up_vectors[i];
+        _ortho_camera.update_view_matrix();
+        
+        project_to_voxel_screen = (i == 0) ? _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix : project_to_voxel_screen;
+        voxelize_frag_params["inverse_view_projection"] = glm::inverse( _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix);
+        voxelize_frag_params["project_to_voxel_screen"] = project_to_voxel_screen;
+        voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
+        voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
+        _voxelize_pipeline._material->commit_parameters_to_gpu();
+
+        submit_info = {};
+        submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submit_info.commandBufferCount = 1;
+        submit_info.waitSemaphoreCount = 1;
+        submit_info.pWaitSemaphores = &semaphores[i];
+        submit_info.pCommandBuffers = &(_voxelize_command_buffers[_deferred_image_index]);
+        submit_info.signalSemaphoreCount = 1;
+        submit_info.pSignalSemaphores = &semaphores[i + 1];
+        vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _voxelize_inflight_fence[_deferred_image_index]);
+    }
+    
+    return semaphores[i];
+    
+//    vk::shader_parameter::shader_params_group& voxelize_vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+//    vk::shader_parameter::shader_params_group& voxelize_frag_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2);
+//
+//    _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
+//                                         visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
+//    _ortho_camera.position = glm::vec3(0.0f, 0.f, -8.0f);
+//    _ortho_camera.forward = -_ortho_camera.position;
+//    _ortho_camera.update_view_matrix();
+//
+//    voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
+//
+//    voxelize_vertex_params["model"] = glm::mat4(1.0f);
+//    voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
+//    voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
+//
+//
+//    _voxelize_pipeline._material->commit_parameters_to_gpu();
+//
+//    //clear voxel texture
+//    VkSubmitInfo submit_info = {};
+//    submit_info.commandBufferCount = 1;
+//    submit_info.pCommandBuffers = &_clear_3d_texture_command_buffers[_deferred_image_index];
+//    submit_info.waitSemaphoreCount = 0;
+//    submit_info.pWaitSemaphores = nullptr;
+//    submit_info.pSignalSemaphores = &_clear_voxel_cube_smaphonre_done;
+//    submit_info.signalSemaphoreCount = 1;
+//
+//    vkWaitForFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+//    vkResetFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index]);
+//
+//    VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _clear_voxel_texture_fence[_deferred_image_index]);
+//    ASSERT_VULKAN(result);
+//
+//    //voxelize
+//    vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+//    vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index]);
+//
+//    submit_info = {};
+//    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+//    submit_info.commandBufferCount = 1;
+//    submit_info.waitSemaphoreCount = 1;
+//    submit_info.pWaitSemaphores = &_clear_voxel_cube_smaphonre_done;
+//    submit_info.pCommandBuffers = &(_voxelize_command_buffers[_deferred_image_index]);
+//    submit_info.signalSemaphoreCount = 1;
+//    submit_info.pSignalSemaphores = &_generate_voxel_z_axis_semaphore;
+//    vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _voxelize_inflight_fence[_deferred_image_index]);
+}
+
+
+void deferred_renderer::draw(camera& camera)
+{
+
     vk::shader_parameter::shader_params_group& display_fragment_params = _pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5) ;
     
     display_fragment_params["state"] = static_cast<int>(_rendering_state);
     
-    vk::shader_parameter::shader_params_group& voxelize_frag_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2);
-    
-    _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
-                                         visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
-    _ortho_camera.position = glm::vec3(0.0f, 0.f, -8.0f);
-    _ortho_camera.forward = -_ortho_camera.position;
-    _ortho_camera.update_view_matrix();
 
-    voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
-    
-    voxelize_vertex_params["model"] = glm::mat4(1.0f);
-    voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
-    voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
-    
     int binding = 0;
     vk::shader_parameter::shader_params_group& display_params =   renderer::get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, binding);
     
@@ -570,41 +684,59 @@ void deferred_renderer::draw(camera& camera)
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain,
                           std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &_deferred_image_index);
     
-    
-    //clear voxel texture
-    VkSubmitInfo submit_info = {};
-    submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &_clear_3d_texture_command_buffers[_deferred_image_index];
-    submit_info.waitSemaphoreCount = 0;
-    submit_info.pWaitSemaphores = nullptr;
-    submit_info.pSignalSemaphores = &_clear_voxel_cube_smaphonre_done;
-    submit_info.signalSemaphoreCount = 1;
-    
-    vkWaitForFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index]);
-    
-    VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _clear_voxel_texture_fence[_deferred_image_index]);
-    ASSERT_VULKAN(result);
-    
-    //voxelize
-    vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index]);
+//    vk::shader_parameter::shader_params_group& voxelize_vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+//    vk::shader_parameter::shader_params_group& voxelize_frag_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2);
+//
+//    _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
+//                                         visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
+//    _ortho_camera.position = glm::vec3(0.0f, 0.f, -8.0f);
+//    _ortho_camera.forward = -_ortho_camera.position;
+//    _ortho_camera.update_view_matrix();
+//
+//    voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
+//
+//    voxelize_vertex_params["model"] = glm::mat4(1.0f);
+//    voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
+//    voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
+//
+//
+//    _voxelize_pipeline._material->commit_parameters_to_gpu();
+//
+//    //clear voxel texture
+//    VkSubmitInfo submit_info = {};
+//    submit_info.commandBufferCount = 1;
+//    submit_info.pCommandBuffers = &_clear_3d_texture_command_buffers[_deferred_image_index];
+//    submit_info.waitSemaphoreCount = 0;
+//    submit_info.pWaitSemaphores = nullptr;
+//    submit_info.pSignalSemaphores = &_clear_voxel_cube_smaphonre_done;
+//    submit_info.signalSemaphoreCount = 1;
+//
+//    vkWaitForFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+//    vkResetFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index]);
+//
+//    VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _clear_voxel_texture_fence[_deferred_image_index]);
+//    ASSERT_VULKAN(result);
+//
+//    //voxelize
+//    vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+//    vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index]);
+//
+//    submit_info = {};
+//    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+//    submit_info.commandBufferCount = 1;
+//    submit_info.waitSemaphoreCount = 1;
+//    submit_info.pWaitSemaphores = &_clear_voxel_cube_smaphonre_done;
+//    submit_info.pCommandBuffers = &(_voxelize_command_buffers[_deferred_image_index]);
+//    submit_info.signalSemaphoreCount = 1;
+//    submit_info.pSignalSemaphores = &_generate_voxel_z_axis_semaphore;
+//    vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _voxelize_inflight_fence[_deferred_image_index]);
 
-    submit_info = {};
-    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit_info.commandBufferCount = 1;
-    submit_info.waitSemaphoreCount = 1;
-    submit_info.pWaitSemaphores = &_clear_voxel_cube_smaphonre_done;
-    submit_info.pCommandBuffers = &(_voxelize_command_buffers[_deferred_image_index]);
-    submit_info.signalSemaphoreCount = 1;
-    submit_info.pSignalSemaphores = &_generate_voxel_z_axis_semaphore;
-    vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _voxelize_inflight_fence[_deferred_image_index]);
-
+    VkSemaphore voxel_texture_semaphore = generate_voxel_texture();
     vkWaitForFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     vkResetFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index]);
 
     //render g-buffers
-    submit_info = {};
+    VkSubmitInfo submit_info = {};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = nullptr;
     submit_info.waitSemaphoreCount = 0;
@@ -617,7 +749,7 @@ void deferred_renderer::draw(camera& camera)
     submit_info.pSignalSemaphores = &_g_buffers_rendering_done;
 
 
-    result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _g_buffers_fence[_deferred_image_index]);
+    VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _g_buffers_fence[_deferred_image_index]);
     ASSERT_VULKAN(result);
     
     //render scene with g buffers and 3d voxel texture
@@ -625,7 +757,7 @@ void deferred_renderer::draw(camera& camera)
     vkWaitForFences(_device->_logical_device, 1, &_composite_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     vkResetFences(_device->_logical_device, 1, &_composite_fence[_deferred_image_index]);
 
-    std::array<VkSemaphore, 3> wait_semaphores{_semaphore_image_available, _generate_voxel_z_axis_semaphore, _g_buffers_rendering_done};
+    std::array<VkSemaphore, 3> wait_semaphores{_semaphore_image_available, voxel_texture_semaphore, _g_buffers_rendering_done};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = nullptr;
     submit_info.waitSemaphoreCount = wait_semaphores.size();

@@ -73,7 +73,7 @@ namespace vk
         virtual void create_pipeline()      override;
         virtual void create_semaphores_and_fences() override;
         virtual void destroy_framebuffers() override;
-
+        VkSemaphore generate_voxel_texture();
         
         void compute(VkCommandBuffer command_buffer, vk::compute_pipeline& pipeline);
         void record_command_buffers(obj_shape** shapes, size_t number_of_shapes) override;
