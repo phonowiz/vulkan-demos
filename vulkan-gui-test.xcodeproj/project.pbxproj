@@ -296,11 +296,11 @@
 		B93FDCC123036F60000AECBE /* pipelines */ = {
 			isa = PBXGroup;
 			children = (
-				B93FDCC223036F60000AECBE /* graphics_pipeline.cpp */,
-				B93FDCC323036F60000AECBE /* compute_pipeline.h */,
-				B93FDCC423036F60000AECBE /* pipeline.h */,
 				B93FDCC523036F60000AECBE /* compute_pipeline.cpp */,
+				B93FDCC323036F60000AECBE /* compute_pipeline.h */,
+				B93FDCC223036F60000AECBE /* graphics_pipeline.cpp */,
 				B93FDCC623036F60000AECBE /* graphics_pipeline.h */,
+				B93FDCC423036F60000AECBE /* pipeline.h */,
 			);
 			path = pipelines;
 			sourceTree = "<group>";

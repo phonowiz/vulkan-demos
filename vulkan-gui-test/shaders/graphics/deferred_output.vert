@@ -12,7 +12,7 @@ layout(location = 2) in vec2 inUVCoord;
 layout(location = 3) in vec3 inNormal;
 
 layout(location = 0) out vec3 fragColor;
-layout(location = 1) out vec2 fragUVCoord;
+layout(location = 1) out noperspective vec2 fragUVCoord;
 
 
 layout(binding = 0) uniform Dimensions
@@ -26,7 +26,6 @@ layout(binding = 0) uniform Dimensions
 void main()
 {
     gl_Position = vec4(pos,1.0f);
-    //fragColor = vec3(1.0f, 0.0f, 0.0f);
     fragUVCoord = inUVCoord;
 }
 

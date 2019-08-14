@@ -78,9 +78,10 @@ namespace vk
         
         enum class formats
         {
-            R8G8B8A8 = VK_FORMAT_R8G8B8A8_UNORM,
-            R32G32B32A32 = VK_FORMAT_R32G32B32A32_SFLOAT,
-            R16G16B16A16 = VK_FORMAT_R16G16B16A16_UNORM,
+            R8G8B8A8_UNSIGNED_NORMALIZED = VK_FORMAT_R8G8B8A8_UNORM,
+            R32G32B32A32_SIGNED_FLOAT = VK_FORMAT_R32G32B32A32_SFLOAT,
+            R16G16B16A16_UNSIGNED_NORMALIZED = VK_FORMAT_R16G16B16A16_UNORM,
+            R8G8B8A8_SIGNED_NORMALIZED = VK_FORMAT_R8G8B8A8_SNORM,
             DEPTH_32_FLOAT = VK_FORMAT_D32_SFLOAT,
             DEPTH_32_STENCIL_8 = VK_FORMAT_D32_SFLOAT_S8_UINT,
             DEPTH_24_STENCIL_8 = VK_FORMAT_D24_UNORM_S8_UINT
@@ -104,7 +105,7 @@ namespace vk
         virtual void init() = 0;
     protected:
         
-        formats _format = formats::R8G8B8A8;
+        formats _format = formats::R8G8B8A8_SIGNED_NORMALIZED;
         filter  _filter = filter::LINEAR;
         
         virtual void create_sampler() = 0;

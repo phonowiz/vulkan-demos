@@ -302,10 +302,10 @@ int main()
     display_3d_tex_mat = material_store.GET_MAT<vk::visual_material>("display_3d_texture");
     
     vk::perspective_camera perspective_camera(glm::radians(45.0f),
-                                              swapchain._swapchain_data.swapchain_extent.width/ swapchain._swapchain_data.swapchain_extent.height, .01f, 10.f);
+                                              swapchain._swapchain_data.swapchain_extent.width/ swapchain._swapchain_data.swapchain_extent.height, .01f, 100.0f);
     
     vk::perspective_camera three_d_texture_cam(glm::radians(45.0f),
-                                              swapchain._swapchain_data.swapchain_extent.width/ swapchain._swapchain_data.swapchain_extent.height, .01f, 10.f);
+                                              swapchain._swapchain_data.swapchain_extent.width/ swapchain._swapchain_data.swapchain_extent.height, .01f, 100.0f);
     
     
     app.perspective_camera = &perspective_camera;

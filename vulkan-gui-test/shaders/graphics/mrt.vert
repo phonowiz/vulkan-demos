@@ -48,7 +48,8 @@ void main()
     gl_Position = ubo.projection * ubo.view * ubo.model * vec4(pos, 1.0f);
     
     vec4 pos_world = ubo.model * vec4(pos, 1.0f);
-    vec3 normal_world = transpose(inverse(mat3(ubo.model))) * normalize(normal);
+    vec3 normal_world = (ubo.model * vec4(normal,1.0f)).xyz;//transpose(inverse(mat3(ubo.model))) * normalize(normal);
+    normal_world = normalize(normal_world);
     out_normal = vec4(normal_world, 1.0f);
     out_albedo = color;
     out_world_pos = pos_world;

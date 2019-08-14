@@ -44,6 +44,8 @@ _ortho_camera(6.f, 6.0f, 10.0f)
     _material->init_parameter("width", visual_material::parameter_stage::VERTEX, 0.f, 0);
     _material->init_parameter("height", visual_material::parameter_stage::VERTEX, 0.f, 0);
     
+
+
     assert(_voxel_3d_texture.get_height() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
     assert(_voxel_3d_texture.get_width() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
     assert(_voxel_3d_texture.get_depth() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
@@ -65,6 +67,11 @@ _ortho_camera(6.f, 6.0f, 10.0f)
     _voxelize_pipeline._material->init_parameter("light_position", visual_material::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
     _voxelize_pipeline._material->init_parameter("eye_position", visual_material::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
     
+    
+    _positions.set_filter(image::filter::NEAREST);
+    _albedo.set_filter(image::filter::NEAREST);
+    _normals.set_filter(image::filter::NEAREST);
+    _depth.set_filter(image::filter::NEAREST);
     
     _positions.init();
     _albedo.init();
@@ -543,6 +550,13 @@ void deferred_renderer::perform_final_drawing_setup()
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_positions), "positions", visual_material::parameter_stage::FRAGMENT, 3, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_depth), "depth", visual_material::parameter_stage::FRAGMENT, 4, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         
+        
+        _material->init_parameter("world_cam_position", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+        _material->init_parameter("world_light_position", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+        _material->init_parameter("light_color", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+        _material->init_parameter("state", visual_material::parameter_stage::FRAGMENT, int(0), 5);
+
+        
         _setup_initialized = true;
     }
     
@@ -588,8 +602,8 @@ VkSemaphore deferred_renderer::generate_voxel_texture(vk::camera &camera)
         _generate_voxel_y_axis_semaphore, _generate_voxel_x_axis_semaphore};
     
     glm::mat4 project_to_voxel_screen = glm::mat4(1.0f);
-    int i = 0;
-    for( ; i < 3; ++i)
+    size_t i = 0;
+    for( ; i < cam_positions.size(); ++i)
     {
         //voxelize
         vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
@@ -605,7 +619,9 @@ VkSemaphore deferred_renderer::generate_voxel_texture(vk::camera &camera)
         voxelize_frag_params["project_to_voxel_screen"] = project_to_voxel_screen;
         voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
         voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
-        voxelize_vertex_params["light_position"] = _light_pos;
+        glm::vec3 light_pos;
+        light_pos.x = _light_pos.x; light_pos.y = _light_pos.y; light_pos.z = _light_pos.z;
+        voxelize_vertex_params["light_position"] = light_pos;
         voxelize_vertex_params["eye_position"] = camera.position;
         _voxelize_pipeline._material->commit_parameters_to_gpu();
 
@@ -629,8 +645,10 @@ void deferred_renderer::draw(camera& camera)
 
     vk::shader_parameter::shader_params_group& display_fragment_params = _pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5) ;
     
+    display_fragment_params["world_cam_position"] = glm::vec4(camera.position, 1.0f);
+    display_fragment_params["world_light_position"] = _light_pos;
+    display_fragment_params["light_color"] = _light_color;
     display_fragment_params["state"] = static_cast<int>(_rendering_state);
-    
 
     int binding = 0;
     vk::shader_parameter::shader_params_group& display_params =   renderer::get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, binding);

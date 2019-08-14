@@ -18,7 +18,6 @@ texture_2d(device, width, height)
 {
     render_texture::_usage = intended_use;
     
-    _format = formats::R8G8B8A8;
     if( render_texture::_usage != render_texture::usage::COLOR_TARGET)
     {
         _format = static_cast<vk::image::formats>(device->find_depth_format());
@@ -35,7 +34,7 @@ void render_texture::create(uint32_t width, uint32_t height)
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     
 
-    VkImageAspectFlags aspect_flag = (_format == formats::R8G8B8A8 ) ?
+    VkImageAspectFlags aspect_flag = (_format == formats::R8G8B8A8_UNSIGNED_NORMALIZED ) ?
                     VK_IMAGE_ASPECT_COLOR_BIT : VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
     
     
