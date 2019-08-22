@@ -24,8 +24,9 @@ material_base(device, name)
 
 shader_parameter::shader_params_group& visual_material::get_uniform_parameters(parameter_stage stage, uint32_t binding)
 {
+
     assert( stage != parameter_stage::COMPUTE && "compute stage is not usable from visual material class, choose compute material instead" );
-    
+
     buffer_info& mem = _uniform_buffers[stage];
     mem.binding = binding;
     mem.usage_type = usage_type::UNIFORM_BUFFER;

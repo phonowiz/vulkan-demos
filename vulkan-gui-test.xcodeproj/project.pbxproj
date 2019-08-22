@@ -118,11 +118,10 @@
 		B93FDCE423037359000AECBE /* shader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = shader.cpp; sourceTree = "<group>"; };
 		B93FDCE523037359000AECBE /* shader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shader.h; sourceTree = "<group>"; };
 		B93FDCE623037359000AECBE /* shader_parameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shader_parameter.h; sourceTree = "<group>"; };
+		B93FDCE92303D215000AECBE /* vulkan-gui-test.profdata */ = {isa = PBXFileReference; lastKnownFileType = file; path = "vulkan-gui-test.profdata"; sourceTree = "<group>"; };
+		B93FDCED230D2C6B000AECBE /* ordered_map.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ordered_map.h; sourceTree = "<group>"; };
 		B94CEB982248243F001AEDEE /* tiny_obj_loader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tiny_obj_loader.h; sourceTree = "<group>"; };
 		B94CEB9922482516001AEDEE /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
-		B94E29512218DB48005859E8 /* ordered_set.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ordered_set.h; sourceTree = "<group>"; };
-		B94E29522218DB48005859E8 /* ordered_hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ordered_hash.h; sourceTree = "<group>"; };
-		B94E29532218DB48005859E8 /* ordered_map.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ordered_map.h; sourceTree = "<group>"; };
 		B96AB61C22EE5C4000F33807 /* transform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = transform.h; sourceTree = "<group>"; };
 		B96AB61E22EE5E5000F33807 /* transform.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = transform.cpp; sourceTree = "<group>"; };
 		B96B781F21E070DC0089A2F7 /* textures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = textures; path = "vulkan-gui-test/textures"; sourceTree = "<group>"; };
@@ -193,6 +192,7 @@
 				B938D045219534B7004F759E /* vulkan-gui-test */,
 				B938D044219534B7004F759E /* Products */,
 				B938D05A21953D34004F759E /* Frameworks */,
+				B93FDCE82303D215000AECBE /* OptimizationProfiles */,
 			);
 			sourceTree = "<group>";
 		};
@@ -239,8 +239,8 @@
 			children = (
 				B94CEB9922482516001AEDEE /* stb_image.h */,
 				B94CEB982248243F001AEDEE /* tiny_obj_loader.h */,
-				B94E29502218DB48005859E8 /* tsl */,
 				B938D06A21953FC0004F759E /* MoltenVKGLSLToSPIRVConverter */,
+				B93FDCED230D2C6B000AECBE /* ordered_map.h */,
 			);
 			path = utils;
 			sourceTree = "<group>";
@@ -333,14 +333,12 @@
 			path = core;
 			sourceTree = "<group>";
 		};
-		B94E29502218DB48005859E8 /* tsl */ = {
+		B93FDCE82303D215000AECBE /* OptimizationProfiles */ = {
 			isa = PBXGroup;
 			children = (
-				B94E29512218DB48005859E8 /* ordered_set.h */,
-				B94E29522218DB48005859E8 /* ordered_hash.h */,
-				B94E29532218DB48005859E8 /* ordered_map.h */,
+				B93FDCE92303D215000AECBE /* vulkan-gui-test.profdata */,
 			);
-			path = tsl;
+			path = OptimizationProfiles;
 			sourceTree = "<group>";
 		};
 		B96AB61B22EE5BBA00F33807 /* shapes */ = {
@@ -665,6 +663,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_USE_OPTIMIZATION_PROFILE = YES;
 				CODE_SIGN_ENTITLEMENTS = "vulkan-gui-test/vulkan_gui_test.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -702,6 +701,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_USE_OPTIMIZATION_PROFILE = YES;
 				CODE_SIGN_ENTITLEMENTS = "vulkan-gui-test/vulkan_gui_test.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;

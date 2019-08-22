@@ -15,8 +15,7 @@
 #include "texture_3d.h"
 
 #include <map>
-
-#include "tsl/ordered_map.h"
+#include "ordered_map.h"
 
 /// <summary> Represents a setting for a material that can be used for a shader </summary>
 
@@ -91,40 +90,116 @@ namespace vk
         inline Type get_type(){return type;}
         inline setting_value* get_stored_value_memory(){ return &value; }
         
-        using shader_params_group =  tsl::ordered_map<const char* ,shader_parameter>;
+        using shader_params_group = ordered_map<const char* ,shader_parameter>;
         using KeyValue = std::pair<const char*, shader_parameter> ;
         
         shader_parameter():value(),type(Type::NONE)
         {
             
         }
-        inline size_t get_size_in_bytes()
+        
+        //the size returned here should be big enough ( safe enough) to store whatever bytes we pass it.
+        inline size_t aligned_size(size_t alignment, size_t bytes)
+        {
+            assert((alignment > 0) && (alignment & ~(alignment -1)) && "alignment must be greater than 0 && power of 2");
+            return (alignment -1 ) + bytes;
+        }
+        
+        
+        inline size_t get_type_size()
         {
             switch( type )
             {
                 case Type::INT:
                     return sizeof(int);
-                    break;
                 case Type::FLOAT:
                     return sizeof(float);
-                    break;
                 case Type::MAT4:
                     return sizeof(glm::mat4);
-                    break;
-                case Type::VEC2:
-                    return sizeof( glm::vec2);
-                    break;
                 case Type::VEC3:
-                    return sizeof( glm::vec3);
-                    break;
+                    return sizeof(glm::vec3);
                 case Type::VEC4:
-                    return sizeof( glm::vec4);
+                    return sizeof(glm::vec4);
+                case Type::VEC2:
+                    return sizeof(glm::vec2);
+                case Type::UINT:
+                    return sizeof(unsigned int);
+                case Type::BOOLEAN:
+                    return sizeof(bool);
+                case Type::SAMPLER_2D:
+                    return sizeof(texture_2d);
+                case Type::SAMPLER_3D:
+                    return sizeof(texture_3d);
+                case Type::UNIFORM_BUFFER:
+                    assert(0 && "WARNING: ALIGNMENT FOR THIS HAS NOT BEEN CHECKED");
+                    return value.buffer.size;
+                case Type::NONE:
+                    assert(0);
+                    break;
+                    
+            }
+        }
+        //note: this function follows std140 alignment rules, in your glsl shader, make sure to specify std140 as your choice
+        //for memory layout.
+        inline size_t get_std140_alignment()
+        {
+            switch( type )
+            {
+                case Type::INT:
+                    return sizeof(int);
+                case Type::FLOAT:
+                    return sizeof(float);
+                case Type::MAT4:
+                case Type::VEC3:
+                case Type::VEC4:
+                    return 4 * sizeof(float);
+                case Type::VEC2:
+                    return 2 * sizeof(float);
+                case Type::UINT:
+                    return sizeof(unsigned int);
+                case Type::BOOLEAN:
+                    return sizeof(bool);
+                case Type::SAMPLER_2D:
+                    return sizeof(texture_2d);
+                case Type::SAMPLER_3D:
+                    return sizeof(texture_3d);
+                case Type::UNIFORM_BUFFER:
+                    assert(0 && "WARNING: ALIGNMENT FOR THIS HAS NOT BEEN CHECKED");
+                    return value.buffer.size;
+                case Type::NONE:
+                    assert(0);
+                    break;
+                
+            }
+        }
+
+        inline size_t get_std140_aligned_size_in_bytes()
+        {
+            switch( type )
+            {
+                case Type::INT:
+                    return aligned_size(get_std140_alignment(), sizeof(int));
+                    break;
+                case Type::FLOAT:
+                    return aligned_size(get_std140_alignment(), sizeof(float));
                     break;
                 case Type::BOOLEAN:
-                    return sizeof( bool);
+                    return aligned_size(get_std140_alignment(), sizeof( bool));
                     break;
                 case Type::UINT:
-                    return sizeof( unsigned int);
+                    return aligned_size(get_std140_alignment(), sizeof( unsigned int));
+                    break;
+                case Type::MAT4:
+                    return aligned_size(get_std140_alignment(), sizeof(glm::mat4));
+                    break;
+                case Type::VEC2:
+                    return aligned_size(get_std140_alignment(), sizeof( glm::vec2));
+                    break;
+                case Type::VEC3:
+                    return aligned_size(get_std140_alignment(), sizeof( glm::vec3));
+                    break;
+                case Type::VEC4:
+                    return aligned_size(get_std140_alignment(), sizeof(glm::vec4));
                     break;
                 case Type::SAMPLER_2D:
                     return sizeof (texture_2d);
@@ -133,6 +208,8 @@ namespace vk
                     return sizeof (texture_3d);
                     break;
                 case Type::UNIFORM_BUFFER:
+                    
+                    assert(0 && "WARNING: ALIGNMENT FOR THIS HAS NOT BEEN CHECKED");
                     return value.buffer.size;
                     break;
                 case Type::NONE:

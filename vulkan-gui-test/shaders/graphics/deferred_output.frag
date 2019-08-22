@@ -2,6 +2,7 @@
 #version 450
 #extension GL_ARB_separate_shader_objects: enable
 
+#define NUM_SAMPLING_RAYS 6
 
 layout(location = 0) in vec3 frag_color;
 layout(location = 1) in vec2 frag_uv_coord;
@@ -13,21 +14,15 @@ layout(binding = 2 ) uniform sampler2D albedo;
 layout(binding = 3 ) uniform sampler2D world_positions;
 layout(binding = 4 ) uniform sampler2D depth;
 
-layout(binding = 5) uniform _rendering_state
+layout(binding = 5, std140) uniform _rendering_state
 {
     vec4 world_cam_position;
-    //todo: figure out how to pass in an array of light positions
     vec4 world_light_position;
     vec4 light_color;
+    vec4 voxel_world_scale;
     int state;
 }rendering_state;
 
-layout(binding = 6) uniform _settings
-{
-    vec3 world_cam_position;
-    
-
-}settings;
 
 
 //note: these are tied to enum class in deferred_renderer class, if these change, make sure
@@ -39,7 +34,22 @@ int POSITIONS = 2;
 int DEPTH = 3;
 int FULL_RENDERING = 4;
 
+//vec4 distance_limit = 15.0f * rendering_state.voxel_world_scale;
 
+
+vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal)
+{
+    vec4 ambient = vec4(0.f);
+    //vec3 step = distance_limit.xyz / 6.0f;
+    //vec3 ambient_step = distance_limit.xyz /10.0f;
+    
+    for( uint i = 0; i < NUM_SAMPLING_RAYS; ++i)
+    {
+        
+    }
+    
+    return vec4(0.0f);
+}
 
 vec4 direct_illumination(vec4 illumination)
 {

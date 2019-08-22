@@ -7,6 +7,7 @@
 //
 
 #include "material_base.h"
+#include <iostream>
 
 using namespace vk;
 
@@ -44,7 +45,7 @@ void material_base::create_descriptor_sets()
     
     for(std::pair<parameter_stage, sampler_parameter > pair : _sampler_parameters)
     {
-        for( std::pair<const char*, shader_parameter> pair2 : pair.second)
+        for( std::pair< std::string_view, shader_parameter> pair2 : pair.second)
         {
             descriptor_image_infos[count].sampler = pair2.second.get_image()->get_sampler();
             descriptor_image_infos[count].imageView = pair2.second.get_image()->get_image_view();
@@ -102,9 +103,9 @@ void material_base::create_descriptor_pool()
     
     int count = 0;
     _samplers_added_on_init = 0;
-    for(std::pair<parameter_stage, buffer_parameter > pair : _sampler_buffers)
+    for(std::pair<parameter_stage, buffer_parameter >& pair : _sampler_buffers)
     {
-        for(std::pair<const char*, buffer_info> pair2: pair.second)
+        for(std::pair<std::string_view, buffer_info> pair2: pair.second)
         {
             descriptor_pool_sizes[count].type = static_cast<VkDescriptorType>(pair2.second.usage_type);
             descriptor_pool_sizes[count].descriptorCount = 1;
@@ -147,7 +148,7 @@ void material_base::create_descriptor_set_layout()
     //the descriptor bindings will be set up this way.
     for (std::pair<parameter_stage , buffer_parameter > pair : _sampler_buffers)
     {
-        for(std::pair<const char*, buffer_info> pair2 : pair.second)
+        for(std::pair<std::string_view, buffer_info> pair2 : pair.second)
         {
             _descriptor_set_layout_bindings[count].binding = pair2.second.binding;
             _descriptor_set_layout_bindings[count].descriptorType = static_cast<VkDescriptorType>(pair2.second.usage_type);
@@ -186,6 +187,27 @@ void material_base::create_descriptor_set_layout()
     }
 }
 
+void material_base::print_uniform_argument_names()
+{
+    
+    std::cout << "printing arguments for material " << this->_name << std::endl;
+    for (std::pair<parameter_stage , buffer_info > pair : _uniform_buffers)
+    {
+
+        shader_parameter::shader_params_group& group = _uniform_parameters[pair.first];
+        buffer_info& mem = _uniform_buffers[pair.first];
+        std::cout << " uniform buffer at binding " << mem.binding << std::endl;
+        
+        for (std::pair<std::string_view, shader_parameter > pair : group)
+        {
+            std::string_view name = pair.first;
+            std::cout << name <<  std::endl;
+
+        }
+    
+    }
+}
+
 void material_base::init_shader_parameters()
 {
     size_t total_size = 0;
@@ -196,11 +218,11 @@ void material_base::init_shader_parameters()
     {
         buffer_info& mem = _uniform_buffers[pair.first];
         shader_parameter::shader_params_group& group = _uniform_parameters[pair.first];
-        for (std::pair<const char* , shader_parameter > pair : group)
+        for (std::pair<std::string_view , shader_parameter > pair : group)
         {
-            //const char* name = pair.first;
+            std::string_view name = pair.first;
             shader_parameter setting = pair.second;
-            total_size += setting.get_size_in_bytes();
+            total_size += setting.get_std140_aligned_size_in_bytes();
             ++_uniform_parameters_added_on_init;
         }
         
@@ -259,26 +281,28 @@ void material_base::commit_parameters_to_gpu( )
             {
                 void* data = nullptr;
                 vkMapMemory(_device->_logical_device, mem.uniform_buffer_memory, 0, mem.size, 0, &data);
-                char* byte_data = static_cast<char*>(data);
-                
-                size_t total_written = 0;
+                size_t mem_size = (mem.size);
+                char* ptr = static_cast<char*>(data);
                 //important note: this code assumes that in the shader, the parameters are listed in the same order as they
                 //appear in the group
-                for (std::pair<const char* , shader_parameter > pair : group)
+                for (std::pair<std::string_view , shader_parameter > pair : group)
                 {
-                    assert(pair.second.get_size_in_bytes() != 0 && "Empty parameter, probably means you've left a parameter unassigned");
-                    std::memcpy(byte_data + total_written, pair.second.get_stored_value_memory(), pair.second.get_size_in_bytes() );
-                    total_written += pair.second.get_size_in_bytes();
-                    
-                    assert(total_written <= mem.size && "trying to write more memory than that allocated from GPU ");
+                    void* p = static_cast<void*>(ptr);
+                    std::align( pair.second.get_std140_alignment(), pair.second.get_type_size(), p, mem_size);
+                    assert(p != nullptr);
+                    mem_size -= pair.second.get_type_size();
+                    std::memcpy(p, pair.second.get_stored_value_memory(), pair.second.get_type_size());
+                    ptr += pair.second.get_type_size();
                     uniform_parameters_count++;
+                    
+                    assert(mem_size >= 0);
                 }
-                
-                assert(total_written == mem.size && "memory written differs from original memory allocated from GPU, have you added/removed new shader parameters?");
                 vkUnmapMemory(_device->_logical_device, mem.uniform_buffer_memory);
             }
         }
     }
+    _uniform_parameters.freeze();
+    _sampler_parameters.freeze();
     assert(uniform_parameters_count == _uniform_parameters_added_on_init && " you've added more uniform parameters after initialization of material, please check code");
     
 }

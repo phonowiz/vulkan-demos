@@ -33,7 +33,7 @@ _mrt_material(store.GET_MAT<visual_material>("mrt")),
 _mrt_pipeline(device),
 _voxelize_pipeline(device, store.GET_MAT<visual_material>("voxelizer")),
 _clear_texture_3d_pipeline(device, store.GET_MAT<compute_material>("clear_3d_texture")),
-_ortho_camera(6.f, 6.0f, 10.0f)
+_ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world_dimensions.z)
 {
     int binding = 0;
     _mrt_material->init_parameter("model", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
@@ -67,6 +67,19 @@ _ortho_camera(6.f, 6.0f, 10.0f)
     _voxelize_pipeline._material->init_parameter("light_position", visual_material::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
     _voxelize_pipeline._material->init_parameter("eye_position", visual_material::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
     
+    
+    _material->init_parameter("world_cam_position", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+    _material->init_parameter("world_light_position", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+    _material->init_parameter("light_color", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+    
+    glm::vec4 world_scale_voxel = glm::vec4(float(_voxel_world_dimensions.x/VOXEL_CUBE_WIDTH),
+                                            float(_voxel_world_dimensions.y/VOXEL_CUBE_HEIGHT),
+                                            float(_voxel_world_dimensions.z/VOXEL_CUBE_DEPTH), 1.0f);
+    
+    _material->init_parameter("voxel_world_scale", visual_material::parameter_stage::FRAGMENT, world_scale_voxel, 5);
+    _material->init_parameter("state", visual_material::parameter_stage::FRAGMENT, int(0), 5);
+
+    //_material->print_uniform_argument_names();
     
     _positions.set_filter(image::filter::NEAREST);
     _albedo.set_filter(image::filter::NEAREST);
@@ -549,13 +562,6 @@ void deferred_renderer::perform_final_drawing_setup()
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_albedo), "albedo", visual_material::parameter_stage::FRAGMENT, 2, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_positions), "positions", visual_material::parameter_stage::FRAGMENT, 3, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(static_cast<texture_2d*>(&_depth), "depth", visual_material::parameter_stage::FRAGMENT, 4, resource::usage_type::COMBINED_IMAGE_SAMPLER);
-        
-        
-        _material->init_parameter("world_cam_position", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
-        _material->init_parameter("world_light_position", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
-        _material->init_parameter("light_color", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
-        _material->init_parameter("state", visual_material::parameter_stage::FRAGMENT, int(0), 5);
-
         
         _setup_initialized = true;
     }

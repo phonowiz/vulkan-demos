@@ -289,7 +289,7 @@ int main()
     vk::obj_shape cube(&device, "cube.obj");
     vk::cornell_box cornell_box(&device);
     
-    dragon.set_diffuse(glm::vec3(0.0f, 0.0f, 1.0f));
+    dragon.set_diffuse(glm::vec3(0.0f, 0.0f, .70f));
     dragon.create();
     cube.create();
     cornell_box.create();

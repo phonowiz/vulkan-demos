@@ -120,6 +120,7 @@ namespace vk
         
         //TODO: on my mid 2014 macbook pro, the number of frames is 2, this could change in other platforms
         static constexpr uint32_t NUM_OF_FRAMES = 2;
+
         
         std::array<VkFence, NUM_OF_FRAMES> _g_buffers_fence {};
         std::array<VkFence, NUM_OF_FRAMES> _voxelize_inflight_fence {};
@@ -129,6 +130,9 @@ namespace vk
         static constexpr uint32_t VOXEL_CUBE_WIDTH = 256u;
         static constexpr uint32_t VOXEL_CUBE_HEIGHT = 256u;
         static constexpr uint32_t VOXEL_CUBE_DEPTH  = 256u;
+        
+        
+        static constexpr glm::vec3 _voxel_world_dimensions = glm::vec3(6.0f, 6.0f, 10.f);
         bool _setup_initialized = false;
 
         

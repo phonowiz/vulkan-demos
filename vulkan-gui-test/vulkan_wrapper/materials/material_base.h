@@ -10,7 +10,7 @@
 
 #include "resource.h"
 #include "shader_parameter.h"
-#include "tsl/ordered_map.h"
+#include "ordered_map.h"
 
 #include <array>
 
@@ -56,11 +56,10 @@ namespace vk
         
     public:
         void commit_parameters_to_gpu();
+        void print_uniform_argument_names();
         
     protected:
         void init_shader_parameters();
-
-        
         void create_descriptor_set_layout();
         void create_descriptor_pool();
         void create_descriptor_sets();
@@ -92,19 +91,19 @@ namespace vk
         //todo: check out the VkPhysicalDeviceLimits structure: https://vulkan.lunarg.com/doc/view/1.0.30.0/linux/vkspec.chunked/ch31s02.html
         static const int BINDING_MAX = 30;
         
-        tsl::ordered_map<parameter_stage, resource::buffer_info>                    _uniform_buffers;
-        tsl::ordered_map<parameter_stage, shader_parameter::shader_params_group>    _uniform_parameters;
+        ordered_map<parameter_stage, resource::buffer_info>                       _uniform_buffers;
+        ordered_map<parameter_stage, shader_parameter::shader_params_group>       _uniform_parameters;
         
-        typedef tsl::ordered_map<const char*, resource::buffer_info>                buffer_parameter;
-        tsl::ordered_map<parameter_stage, buffer_parameter>                         _sampler_buffers;
+        typedef ordered_map<const char*, resource::buffer_info>                buffer_parameter;
+        ordered_map<parameter_stage, buffer_parameter>                         _sampler_buffers;
+
         
-        typedef tsl::ordered_map< const char*, shader_parameter>                    sampler_parameter;
-        tsl::ordered_map<parameter_stage, sampler_parameter>                        _sampler_parameters;
-        
-        std::array<VkDescriptorSetLayoutBinding, BINDING_MAX>                       _descriptor_set_layout_bindings;
+        typedef ordered_map< const char*, shader_parameter>                      sampler_parameter;
+        ordered_map<parameter_stage, sampler_parameter>                          _sampler_parameters;
+        std::array<VkDescriptorSetLayoutBinding, BINDING_MAX>                    _descriptor_set_layout_bindings;
         
         static const size_t MAX_SHADER_STAGES = 2;
-        std::array<VkPipelineShaderStageCreateInfo, MAX_SHADER_STAGES>              _pipeline_shader_stages;
+        std::array<VkPipelineShaderStageCreateInfo, MAX_SHADER_STAGES>            _pipeline_shader_stages;
         
         bool _initialized = false;
         device* _device = nullptr;
