@@ -20,8 +20,10 @@ layout(binding = 5, std140) uniform _rendering_state
     vec4 world_light_position;
     vec4 light_color;
     vec4 voxel_world_scale;
-    //vec4 sampling_rays[NUM_SAMPLING_RAYS];
     int state;
+    vec4 sampling_rays[NUM_SAMPLING_RAYS];
+
+
 }rendering_state;
 
 
@@ -116,11 +118,6 @@ void main()
     {
         //final composite shot will be assembled here
         out_color = direct_illumination(vec4(0.0f));
-        //out_color = vec4(.5f, .5f, .5f, 1.0f);
     }
-    //outColor = texture(depth, fragUVCoord );
-
-    
-
 }
 

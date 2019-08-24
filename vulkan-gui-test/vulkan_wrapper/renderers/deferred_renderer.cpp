@@ -77,7 +77,12 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
                                             float(_voxel_world_dimensions.z/VOXEL_CUBE_DEPTH), 1.0f);
     
     _material->init_parameter("voxel_world_scale", visual_material::parameter_stage::FRAGMENT, world_scale_voxel, 5);
+    
+    std::array<glm::vec4, 6> sampling_rays = {};
+    sampling_rays[0] = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f);
     _material->init_parameter("state", visual_material::parameter_stage::FRAGMENT, int(0), 5);
+    _material->init_parameter("sampling_rays", visual_material::parameter_stage::FRAGMENT, sampling_rays.data(), sampling_rays.size(), 5);
+
 
     //_material->print_uniform_argument_names();
     

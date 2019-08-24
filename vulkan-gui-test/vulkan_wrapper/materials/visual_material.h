@@ -66,6 +66,11 @@ namespace  vk
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;
         }
+        
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec4* vecs, size_t num_vectors, int binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name].set_vectors_array(vecs, num_vectors);
+        }
 
         shader_parameter::shader_params_group& get_uniform_parameters(parameter_stage parameterStage, uint32_t binding);
         

@@ -282,7 +282,7 @@ void material_base::commit_parameters_to_gpu( )
                 void* data = nullptr;
                 vkMapMemory(_device->_logical_device, mem.uniform_buffer_memory, 0, mem.size, 0, &data);
                 size_t mem_size = (mem.size);
-                char* ptr = static_cast<char*>(data);
+                
                 //important note: this code assumes that in the shader, the parameters are listed in the same order as they
                 //appear in the group
                 for (std::pair<std::string_view , shader_parameter > pair : group)

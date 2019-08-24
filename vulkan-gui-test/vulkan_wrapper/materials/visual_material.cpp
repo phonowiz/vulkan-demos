@@ -1,5 +1,5 @@
 //
-//  material.cpp
+//  visual_material.cpp
 //  vulkan-gui-test
 //
 //  Created by Rafael Sabino on 2/10/19.

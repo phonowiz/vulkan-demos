@@ -70,7 +70,8 @@ namespace vk
             
             setting_value()
             {
-                buffer = {};            }
+                buffer = {};
+            }
             
         };
         
@@ -87,9 +88,7 @@ namespace vk
         using KeyValue = std::pair<const char*, shader_parameter> ;
         
         shader_parameter():value(),type(Type::NONE)
-        {
-            
-        }
+        {}
         
         //the size returned here should be big enough ( safe enough) to store whatever bytes we pass it.
         inline size_t aligned_size(size_t alignment, size_t bytes)
@@ -281,12 +280,11 @@ namespace vk
         
         inline void set_vectors_array(glm::vec4* vecs, size_t num_vectors)
         {
+            assert( type == Type::NONE || type == Type::VEC4_ARRAY);
             type = Type::VEC4_ARRAY;
             value.buffer.num_elements = num_vectors;
-            //value.buffer.size = get_std140_aligned_size_in_bytes();
             void* data = reinterpret_cast<void*>(value.buffer.memory);
-            //size_t space = value.buffer.size;
-            assert(value.buffer.num_elements < MAX_UNIFORM_BUFFER_SIZE);
+            assert((value.buffer.num_elements * sizeof(glm::vec4)) < MAX_UNIFORM_BUFFER_SIZE);
             std::memcpy(data, &vecs[0], num_vectors * sizeof(glm::vec4));
         }
         
