@@ -20,6 +20,7 @@ layout(binding = 5, std140) uniform _rendering_state
     vec4 world_light_position;
     vec4 light_color;
     vec4 voxel_world_scale;
+    //vec4 sampling_rays[NUM_SAMPLING_RAYS];
     int state;
 }rendering_state;
 

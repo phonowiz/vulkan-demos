@@ -265,8 +265,6 @@ int main()
     start_glfw();
     
     glfwSetWindowSizeCallback(window, on_window_resize);
-
-
     glfwSetKeyCallback(window, key_callback);
 
     vk::device device;

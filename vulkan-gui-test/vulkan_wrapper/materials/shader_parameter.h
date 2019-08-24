@@ -21,16 +21,15 @@
 
 namespace vk
 {
-    //TODO: LET'S TRY IMPLEMENTING THIS WITH TEMPLATE CLASSES
     class shader_parameter
     {
         
     private:
-        static constexpr size_t MAX_UNIFORM_BUFFER_SIZE = 1024;
-        struct uniform_buffer
+        static constexpr size_t MAX_UNIFORM_BUFFER_SIZE = 512;
+        struct values_array
         {
             char* memory[MAX_UNIFORM_BUFFER_SIZE];
-            size_t size = 0;
+            size_t num_elements = 0;
         };
         
     public:
@@ -46,38 +45,32 @@ namespace vk
             UINT,
             SAMPLER_2D,
             SAMPLER_3D,
-            //        POINT_LIGHT,
-            UNIFORM_BUFFER,
+            VEC4_ARRAY,
             NONE
             
         };
         
     private:
         
-
-        
-
         union setting_value
         {
             glm::vec4 vector4;
             glm::vec3 vector3;
             glm::vec2 vector2;
-            float   floatValue;
+            float   float_value;
             int     intValue;
             unsigned int    uintValue;
             texture_2d*   sampler2D;
             texture_3d*   sampler3D;
             
             glm::mat4 mat4;
-            //        PointLight pointLight;
             bool     boolean;
             
-            uniform_buffer buffer;
+            values_array buffer;
             
             setting_value()
             {
-                mat4 = glm::mat4(0);
-            }
+                buffer = {};            }
             
         };
         
@@ -130,9 +123,8 @@ namespace vk
                     return sizeof(texture_2d);
                 case Type::SAMPLER_3D:
                     return sizeof(texture_3d);
-                case Type::UNIFORM_BUFFER:
-                    assert(0 && "WARNING: ALIGNMENT FOR THIS HAS NOT BEEN CHECKED");
-                    return value.buffer.size;
+                case Type::VEC4_ARRAY:
+                    return value.buffer.num_elements * sizeof(glm::vec4);
                 case Type::NONE:
                     assert(0);
                     break;
@@ -163,9 +155,8 @@ namespace vk
                     return sizeof(texture_2d);
                 case Type::SAMPLER_3D:
                     return sizeof(texture_3d);
-                case Type::UNIFORM_BUFFER:
-                    assert(0 && "WARNING: ALIGNMENT FOR THIS HAS NOT BEEN CHECKED");
-                    return value.buffer.size;
+                case Type::VEC4_ARRAY:
+                    return 4 * sizeof(float);
                 case Type::NONE:
                     assert(0);
                     break;
@@ -175,49 +166,93 @@ namespace vk
 
         inline size_t get_std140_aligned_size_in_bytes()
         {
+            size_t result = 0;
             switch( type )
             {
                 case Type::INT:
-                    return aligned_size(get_std140_alignment(), sizeof(int));
+                    result = aligned_size(get_std140_alignment(), sizeof(int));
                     break;
                 case Type::FLOAT:
-                    return aligned_size(get_std140_alignment(), sizeof(float));
+                    result =  aligned_size(get_std140_alignment(), sizeof(float));
                     break;
                 case Type::BOOLEAN:
-                    return aligned_size(get_std140_alignment(), sizeof( bool));
+                    result =  aligned_size(get_std140_alignment(), sizeof( bool));
                     break;
                 case Type::UINT:
-                    return aligned_size(get_std140_alignment(), sizeof( unsigned int));
+                    result = aligned_size(get_std140_alignment(), sizeof( unsigned int));
                     break;
                 case Type::MAT4:
-                    return aligned_size(get_std140_alignment(), sizeof(glm::mat4));
+                    result = aligned_size(get_std140_alignment(), sizeof(glm::mat4));
                     break;
                 case Type::VEC2:
-                    return aligned_size(get_std140_alignment(), sizeof( glm::vec2));
+                    result = aligned_size(get_std140_alignment(), sizeof( glm::vec2));
                     break;
                 case Type::VEC3:
-                    return aligned_size(get_std140_alignment(), sizeof( glm::vec3));
+                    result = aligned_size(get_std140_alignment(), sizeof( glm::vec3));
                     break;
                 case Type::VEC4:
-                    return aligned_size(get_std140_alignment(), sizeof(glm::vec4));
+                    result =  aligned_size(get_std140_alignment(), sizeof(glm::vec4));
                     break;
                 case Type::SAMPLER_2D:
-                    return sizeof (texture_2d);
+                    assert(0);
+                    result = sizeof (texture_2d);
                     break;
                 case Type::SAMPLER_3D:
-                    return sizeof (texture_3d);
-                    break;
-                case Type::UNIFORM_BUFFER:
-                    
-                    assert(0 && "WARNING: ALIGNMENT FOR THIS HAS NOT BEEN CHECKED");
-                    return value.buffer.size;
-                    break;
-                case Type::NONE:
                     assert(0);
+                    result = sizeof (texture_3d);
                     break;
+                case Type::VEC4_ARRAY:
+                {
+                    size_t vec4_size = aligned_size(get_std140_alignment(), sizeof(glm::vec4));
+                    result = value.buffer.num_elements * vec4_size;
+                    break;
+                }
+                case Type::NONE:
+                {
+                    assert(0 && "this case should never happen");
+                    result = 0;
+                    break;
+                }
             };
             
-            return 0;
+            return result;
+        }
+        
+        void* write_to_buffer(void* p, size_t& mem_size)
+        {
+            char* ptr = nullptr;
+            if(type == Type::VEC4_ARRAY)
+            {
+                glm::vec4* vecs = reinterpret_cast<glm::vec4*>(value.buffer.memory);
+                for(size_t i = 0; i < value.buffer.num_elements; ++i)
+                {
+                    void* result = std::align( get_std140_alignment(), sizeof(glm::vec4), p, mem_size);
+                    assert(result);
+                    std::memcpy(p, &vecs[i], sizeof(glm::vec4));
+                    mem_size -= sizeof(glm::vec4);
+                    ptr = static_cast<char*>(p);
+                    ptr+= sizeof(glm::vec4);
+                    p = reinterpret_cast<void*>(ptr);
+                }
+            }
+            else
+            {
+
+                assert(p != nullptr);
+
+                void* result = std::align( get_std140_alignment(),get_type_size(), p, mem_size);
+                assert(result);
+                assert(mem_size >= get_type_size());
+                mem_size -= get_type_size();
+                std::memcpy(p, get_stored_value_memory(), get_type_size());
+                ptr = static_cast<char*>(p);
+                ptr+= get_type_size();
+                p = reinterpret_cast<void*>(ptr);
+                *ptr += get_type_size();
+            }
+
+            
+            return reinterpret_cast<void*>(ptr);
         }
         
         inline texture_2d* get_texture_2d()
@@ -244,12 +279,15 @@ namespace vk
             return static_cast<image*>(value.sampler3D);
         }
         
-        inline void set_uniform_buffer(void* memory, size_t size_in_bytes )
+        inline void set_vectors_array(glm::vec4* vecs, size_t num_vectors)
         {
-            type = Type::UNIFORM_BUFFER;
-            value.buffer.size = size_in_bytes;
-            assert(size_in_bytes < MAX_UNIFORM_BUFFER_SIZE);
-            std::memcpy(static_cast<void*>(&value.buffer.memory[0]), memory, size_in_bytes);
+            type = Type::VEC4_ARRAY;
+            value.buffer.num_elements = num_vectors;
+            //value.buffer.size = get_std140_aligned_size_in_bytes();
+            void* data = reinterpret_cast<void*>(value.buffer.memory);
+            //size_t space = value.buffer.size;
+            assert(value.buffer.num_elements < MAX_UNIFORM_BUFFER_SIZE);
+            std::memcpy(data, &vecs[0], num_vectors * sizeof(glm::vec4));
         }
         
         inline shader_parameter& operator=(const glm::mat4 &value)
@@ -265,7 +303,7 @@ namespace vk
         {
             assert( type == Type::NONE || type == Type::FLOAT);
             type = Type::FLOAT;
-            this->value.floatValue = value;
+            this->value.float_value = value;
             
             return *this;
         }
@@ -399,7 +437,7 @@ namespace vk
         
         shader_parameter(float _value)
         {
-            value.floatValue= _value;
+            value.float_value= _value;
             type = Type::FLOAT;
         }
         

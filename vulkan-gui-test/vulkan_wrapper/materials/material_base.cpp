@@ -287,14 +287,10 @@ void material_base::commit_parameters_to_gpu( )
                 //appear in the group
                 for (std::pair<std::string_view , shader_parameter > pair : group)
                 {
-                    void* p = static_cast<void*>(ptr);
-                    std::align( pair.second.get_std140_alignment(), pair.second.get_type_size(), p, mem_size);
-                    assert(p != nullptr);
-                    mem_size -= pair.second.get_type_size();
-                    std::memcpy(p, pair.second.get_stored_value_memory(), pair.second.get_type_size());
-                    ptr += pair.second.get_type_size();
-                    uniform_parameters_count++;
                     
+                    data = pair.second.write_to_buffer(data, mem_size);
+                    
+                    uniform_parameters_count++;
                     assert(mem_size >= 0);
                 }
                 vkUnmapMemory(_device->_logical_device, mem.uniform_buffer_memory);
@@ -303,6 +299,7 @@ void material_base::commit_parameters_to_gpu( )
     }
     _uniform_parameters.freeze();
     _sampler_parameters.freeze();
+
     assert(uniform_parameters_count == _uniform_parameters_added_on_init && " you've added more uniform parameters after initialization of material, please check code");
     
 }
