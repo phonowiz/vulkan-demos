@@ -83,3 +83,21 @@ Here is a screenshot of my first Vulkan scene:
 
 At 1024x768 resolution and about 800,000 polygons, this sample app can run at around 150 frames a second, more than twice as fast as what OpenGL can do on my MacBook Pro 2015 with the same scene.  That is amazing! 
 
+## Deferred Rendering
+Here are screenshots of my deferred renderings, these will be used for voxel cone tracing. 
+
+#### Albedo
+<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/albedo.png">
+
+#### Depth
+<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/depth.png">
+
+#### Direct Lighting
+<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/direct-lighting.png">
+
+#### Normals
+<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/normals.png">
+
+#### 3D Texture Visualization
+<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/3d-texture visualization.png">
+The streaks you see here are as result of the ray marching am doing to render the 3D texture.  This view is mostly for debugging purposes and designed to show me what the 3D texture content is, how I visualize this doesn't contribute to the final cone traced image, but the contents of the 3D texture will contrinbute to final cone traced image.   
