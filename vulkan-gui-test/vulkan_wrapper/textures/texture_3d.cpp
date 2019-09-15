@@ -7,15 +7,17 @@
 //
 
 #include "texture_3d.h"
-
+#include <cmath>
 
 using namespace vk;
 
 
 void texture_3d::init()
 {
+    
+    _mip_levels = _enable_mipmapping ? static_cast<uint32_t>( std::floor(std::log2( std::max( _width, _height)))) + 1 : 1;
     create_sampler();
-
+    
     create_image(
                  static_cast<VkFormat>(_format),
                  VK_IMAGE_TILING_OPTIMAL,
@@ -33,8 +35,8 @@ void texture_3d::create_sampler()
     sampler_create_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     sampler_create_info.pNext = nullptr;
     sampler_create_info.flags = 0;
-    sampler_create_info.magFilter = static_cast<VkFilter>(_filter);;
-    sampler_create_info.minFilter = static_cast<VkFilter>(_filter);;
+    sampler_create_info.magFilter = static_cast<VkFilter>(_filter);
+    sampler_create_info.minFilter = static_cast<VkFilter>(_filter);
     sampler_create_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
     sampler_create_info.addressModeU  = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     sampler_create_info.addressModeV =  VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
@@ -45,7 +47,7 @@ void texture_3d::create_sampler()
     sampler_create_info.compareEnable = VK_FALSE;
     sampler_create_info.compareOp = VK_COMPARE_OP_ALWAYS;
     sampler_create_info.minLod = 0.0f;
-    sampler_create_info.maxLod = 0.0f;
+    sampler_create_info.maxLod = _mip_levels;
     sampler_create_info.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
     sampler_create_info.unnormalizedCoordinates = VK_FALSE;
     
@@ -69,7 +71,7 @@ void texture_3d::create_image_view( VkImage image, VkFormat format, VkImageAspec
     image_view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
     image_view_create_info.subresourceRange.aspectMask = aspect_flags;
     image_view_create_info.subresourceRange.baseMipLevel = 0;
-    image_view_create_info.subresourceRange.levelCount = 1;
+    image_view_create_info.subresourceRange.levelCount = _mip_levels;
     image_view_create_info.subresourceRange.baseArrayLayer = 0;
     image_view_create_info.subresourceRange.layerCount = 1;
     

@@ -88,11 +88,11 @@ void renderer::create_render_pass()
     subpass_description.pDepthStencilAttachment = &depth_attachment_reference;
     subpass_description.preserveAttachmentCount = 0;
     subpass_description.pPreserveAttachments = nullptr;
-
+    
     //Use subpass dependencies for attachment layput transitions.
     //Based off of this example: https://github.com/SaschaWillems/Vulkan/blob/master/examples/deferred/deferred.cpp
     std::array<VkSubpassDependency, 2> subpass_dependencies;
-
+    
     //note: for a great explanation of VK_SUBPASS_EXTERNAL:
     //https://stackoverflow.com/questions/53984863/what-exactly-is-vk-subpass-external?rq=1
     subpass_dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -114,7 +114,7 @@ void renderer::create_render_pass()
     
     //note: because we state the images initial layout upon entering the renderpass and the layouts the subpasses
     //need for them to do their work, transitions are implicit and will happen automatically as the renderpass excecutes.
-
+    
     VkRenderPassCreateInfo render_pass_create_info;
     render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     render_pass_create_info.pNext = nullptr;
@@ -127,7 +127,7 @@ void renderer::create_render_pass()
     render_pass_create_info.pDependencies = subpass_dependencies.data();
     
     VkResult result = vkCreateRenderPass(_device->_logical_device, &render_pass_create_info, nullptr, &_render_pass);
-
+    
     ASSERT_VULKAN(result);
 }
 
@@ -140,13 +140,13 @@ void renderer::create_command_buffers(VkCommandBuffer** command_buffers, VkComma
     command_buffer_allocate_info.commandPool = command_pool;
     command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     command_buffer_allocate_info.commandBufferCount = static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count());
-
+    
     //todo: remove "new"
     delete[] *command_buffers;
     *command_buffers = new VkCommandBuffer[_swapchain->_swapchain_data.image_set.get_image_count()];
     
     
-
+    
     VkResult result = vkAllocateCommandBuffers(_device->_logical_device, &command_buffer_allocate_info, *command_buffers);
     ASSERT_VULKAN(result);
 }
@@ -188,9 +188,9 @@ void renderer::create_semaphores_and_fences()
 
 void renderer::recreate_renderer()
 {
-
+    
     _device->wait_for_all_operations_to_finish();
-
+    
     vkDestroyRenderPass(_device->_logical_device, _render_pass, nullptr);
     _render_pass = VK_NULL_HANDLE;
     create_render_pass();
@@ -200,7 +200,7 @@ void renderer::recreate_renderer()
     
     create_command_buffers(&_command_buffers, _device->_present_command_pool);
     record_command_buffers(_shapes.data(), _shapes.size());
-
+    
 }
 
 void renderer::record_command_buffers(obj_shape** shapes, size_t number_of_shapes)
@@ -225,7 +225,7 @@ void renderer::record_command_buffers(obj_shape** shapes, size_t number_of_shape
         render_pass_create_info.framebuffer = _swapchain_frame_buffers[i];
         render_pass_create_info.renderArea.offset = { 0, 0 };
         render_pass_create_info.renderArea.extent = { _swapchain->_swapchain_data.swapchain_extent.width,
-                                                        _swapchain->_swapchain_data.swapchain_extent.height };
+            _swapchain->_swapchain_data.swapchain_extent.height };
         VkClearValue clear_value = {0.0f, 0.0f, 0.0f, 1.0f};
         VkClearValue depth_clear_value = {1.0f, 0.0f};
         
@@ -251,9 +251,9 @@ void renderer::record_command_buffers(obj_shape** shapes, size_t number_of_shape
         VkRect2D scissor;
         scissor.offset = { 0, 0};
         scissor.extent = { _swapchain->_swapchain_data.swapchain_extent.width,
-                                _swapchain->_swapchain_data.swapchain_extent.height};
+            _swapchain->_swapchain_data.swapchain_extent.height};
         vkCmdSetScissor(_command_buffers[i], 0, 1, &scissor);
-
+        
         
         for( size_t j = 0; j < number_of_shapes; ++j)
         {
@@ -289,7 +289,7 @@ void renderer::destroy()
     
     destroy_framebuffers();
     _depth_image.destroy();
-
+    
     for (size_t i = 0; i < _swapchain_frame_buffers.size(); i++)
     {
         vkDestroyFence(_device->_logical_device, _composite_fence[i], nullptr);
@@ -305,7 +305,7 @@ void renderer::create_frame_buffers()
 {
     _depth_image.destroy();
     _depth_image.init();
-
+    
     //TODO: Get rid of the vector class
     _swapchain_frame_buffers.resize(_swapchain->_swapchain_data.image_set.get_image_count());
     
@@ -319,7 +319,7 @@ void renderer::create_frame_buffers()
         uint32_t num_attachments = 0;
         attachment_views[num_attachments] = _swapchain->_swapchain_data.image_set.get_image_views()[i];
         num_attachments++;
-
+        
         attachment_views[num_attachments] = depth_image_view;
         num_attachments++;
         
@@ -347,7 +347,6 @@ void renderer::init()
 {
     assert(_shapes.size() != 0 && "add meshes to render before calling init");
     create_render_pass();
-    //_swapchain->recreate_swapchain();
     
     create_frame_buffers();
     create_semaphores_and_fences();
@@ -362,7 +361,7 @@ void renderer::init()
 void renderer::perform_final_drawing_setup()
 {
     _material->commit_parameters_to_gpu();
-
+    
     if(!_pipeline_created)
     {
         //note: we create the pipeline here to give the client a chance to set the material input arguments.
@@ -396,7 +395,7 @@ void renderer::draw(camera& camera)
     submit_info.pCommandBuffers = &(_command_buffers[_image_index]);
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &_semaphore_rendering_done;
-
+    
     VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _composite_fence[_image_index]);
     ASSERT_VULKAN(result);
     

@@ -20,7 +20,7 @@ namespace vk
     class texture_2d : public image
     {
     public:
-    
+        
         texture_2d(){};
         texture_2d(device* device);
         texture_2d(device* device, uint32_t width, uint32_t height);
@@ -43,7 +43,7 @@ namespace vk
         virtual void create_image_view(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, VkImageView& image_view) override;
         virtual void init() override;
         
-        virtual const void* const get_instance_type(){ return _image_type; }
+        virtual const void* const get_instance_type() override { return _image_type; };
         static const void* const  get_class_type(){ return _image_type; }
         
         static const std::string texture_resource_path;

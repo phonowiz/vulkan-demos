@@ -1,34 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Workspace
    version = "1.0">
-   <Group
-      location = "group:../vulkan-gui-test/vulkan_wrapper/materials"
-      name = "materials">
-      <FileRef
-         location = "group:visual_material.h">
-      </FileRef>
-      <FileRef
-         location = "group:compute_material.h">
-      </FileRef>
-      <FileRef
-         location = "group:material_store.cpp">
-      </FileRef>
-      <FileRef
-         location = "group:compute_material.cpp">
-      </FileRef>
-      <FileRef
-         location = "group:material_base.h">
-      </FileRef>
-      <FileRef
-         location = "group:material_base.cpp">
-      </FileRef>
-      <FileRef
-         location = "group:visual_material.cpp">
-      </FileRef>
-      <FileRef
-         location = "group:material_store.h">
-      </FileRef>
-   </Group>
    <FileRef
       location = "self:">
    </FileRef>

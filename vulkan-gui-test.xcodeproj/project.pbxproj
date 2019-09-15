@@ -267,10 +267,10 @@
 				B93FDCA823036D70000AECBE /* render_texture.h */,
 				B93FDCA923036D70000AECBE /* swapchain_image_set.cpp */,
 				B93FDCAB23036D70000AECBE /* swapchain_image_set.h */,
-				B93FDCA223036C29000AECBE /* texture_3d.cpp */,
 				B93FDCA323036C29000AECBE /* texture_2d.cpp */,
-				B93FDCA423036C29000AECBE /* texture_3d.h */,
 				B93FDCA523036C29000AECBE /* texture_2d.h */,
+				B93FDCA223036C29000AECBE /* texture_3d.cpp */,
+				B93FDCA423036C29000AECBE /* texture_3d.h */,
 			);
 			path = textures;
 			sourceTree = "<group>";

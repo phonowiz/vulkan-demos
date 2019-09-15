@@ -57,55 +57,6 @@ mesh::mesh( device* device, tinyobj::attrib_t &vertex_attributes, tinyobj::shape
     
     allocate_gpu_memory();
 }
-//void mesh::create(tinyobj::shape_t& shape)
-//{
-////    tinyobj::attrib_t vertex_attributes;
-////    std::vector<tinyobj::shape_t> shapes;
-////    std::vector<tinyobj::material_t> materials;
-////
-////    std::string error_string;
-////    std::string warn_string;
-////
-////    std::string  full_path = resource::resource_root + mesh::_mesh_resource_path + path;
-////
-////    bool success = tinyobj::LoadObj(&vertex_attributes, &shapes, &materials, &warn_string, &error_string, full_path.c_str());
-////
-////    assert(success && "check errorString variable");
-//
-//
-//    std::unordered_map<vertex, uint32_t> map_vertices;
-//    //for(tinyobj::shape_t shape:  shapes)
-//    {
-//        for(tinyobj::index_t index : shape.mesh.indices)
-//        {
-//            glm::vec3 pos(
-//                          vertex_attributes.vertices[3 * index.vertex_index + 0],
-//                          vertex_attributes.vertices[3 * index.vertex_index + 1],
-//                          vertex_attributes.vertices[3 * index.vertex_index + 2]
-//                          );
-//
-//            glm::vec3 normal
-//            (
-//             vertex_attributes.normals[3 * index.normal_index + 0],
-//             vertex_attributes.normals[3 * index.normal_index + 1],
-//             vertex_attributes.normals[3 * index.normal_index + 2]
-//             );
-//
-//            //TODO: you read the material informamtion but don't use it here, try getting the color from the materials variable
-//            vertex vert(pos, material_properties.color, glm::vec2( 0.0f, 0.0f), normal);
-//
-//            if(map_vertices.count(vert) == 0)
-//            {
-//                map_vertices[vert] = static_cast<uint32_t>(map_vertices.size());
-//                _vertices.push_back(vert);
-//            }
-//
-//            _indices.push_back(map_vertices[vert]);
-//        }
-//    }
-//
-//    allocate_gpu_memory();
-//}
 
 template<typename T>
 void mesh::create_and_upload_buffer(VkCommandPool command_pool,
@@ -113,8 +64,8 @@ void mesh::create_and_upload_buffer(VkCommandPool command_pool,
 {
     VkDeviceSize buffer_size = sizeof(T) * data.size();
     assert(data.size() != 0);
-    VkBuffer staging_buffer;
-    VkDeviceMemory staging_buffer_memory;
+    VkBuffer staging_buffer {};
+    VkDeviceMemory staging_buffer_memory {};
     
     create_buffer(_device->_logical_device, _device->_physical_device, buffer_size,  VK_BUFFER_USAGE_TRANSFER_SRC_BIT, staging_buffer,
                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, staging_buffer_memory);

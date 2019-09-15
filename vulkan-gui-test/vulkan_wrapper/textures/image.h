@@ -21,10 +21,10 @@ namespace vk
         image(){}
         image( device* device){ _device = device; }
         void create_image( VkFormat format, VkImageTiling tiling,
-                         VkImageUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags);
+                          VkImageUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags);
         
         void change_image_layout(VkCommandPool commandPool, VkQueue queue, VkImage image,
-                               VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+                                 VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
         
         bool is_stencil_format(VkFormat format);
         
@@ -64,12 +64,17 @@ namespace vk
         {
             return _height;
         }
+        
         inline uint32_t get_depth()
         {
             return _depth;
         }
         
-
+        inline void set_enable_mipmapping(bool b)
+        {
+            _enable_mipmapping = b;
+        }
+        
         
         device*         _device = nullptr;
         VkImage         _image =        VK_NULL_HANDLE;
@@ -92,7 +97,7 @@ namespace vk
             LINEAR = VkFilter::VK_FILTER_LINEAR,
             NEAREST = VkFilter::VK_FILTER_NEAREST
         };
-
+        
         
         inline formats get_format()
         {
@@ -101,6 +106,7 @@ namespace vk
         
         void set_filter( image::filter filter){ _filter = filter; }
         
+        void generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQueue queue, int32_t width, int32_t height, int32_t depth = 1);
         virtual const void* const get_instance_type() = 0;
         virtual void init() = 0;
     protected:
@@ -112,7 +118,7 @@ namespace vk
         virtual void create_image_view( VkImage image, VkFormat format,
                                        VkImageAspectFlags aspectFlags, VkImageView& image_view) = 0;
         void write_buffer_to_image(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer);
-    
+        
     protected:
         VkSampler _sampler = VK_NULL_HANDLE;
         //TODO: we only support 4 channels at the moment
@@ -121,6 +127,10 @@ namespace vk
         uint32_t _width = 0;
         uint32_t _height = 0;
         uint32_t _depth = 1;
+        uint32_t _mip_levels = 1;
+        
+        bool _enable_mipmapping = false;
+        
     };
 }
 

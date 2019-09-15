@@ -65,7 +65,8 @@ namespace vk
         void wait_for_all_fences();
         virtual void destroy() override;
         virtual void draw(camera& camera) override;
-
+        
+        
         
     private:
         virtual void create_render_pass()   override;
@@ -81,6 +82,7 @@ namespace vk
         void record_clear_texture_3d_buffer ();
         
         void create_voxelization_render_pass();
+        void setup_sampling_rays();
         
         virtual void perform_final_drawing_setup() override;
         
@@ -105,12 +107,14 @@ namespace vk
         VkSemaphore _generate_voxel_x_axis_semaphore = VK_NULL_HANDLE;
         VkSemaphore _generate_voxel_y_axis_semaphore = VK_NULL_HANDLE;
         VkSemaphore _generate_voxel_z_axis_semaphore = VK_NULL_HANDLE;
-
+        
         std::vector<VkFramebuffer>  _deferred_swapchain_frame_buffers;
         std::vector<VkFramebuffer>  _voxelize_frame_buffers;
         rendering_state _rendering_state = rendering_state::FULL_RENDERING;
         
         uint32_t _deferred_image_index = 0;
+        
+        
         
         orthographic_camera _ortho_camera;
         screen_plane        _screen_plane;
@@ -120,7 +124,7 @@ namespace vk
         
         //TODO: on my mid 2014 macbook pro, the number of frames is 2, this could change in other platforms
         static constexpr uint32_t NUM_OF_FRAMES = 2;
-
+        
         
         std::array<VkFence, NUM_OF_FRAMES> _g_buffers_fence {};
         std::array<VkFence, NUM_OF_FRAMES> _voxelize_inflight_fence {};
@@ -131,10 +135,13 @@ namespace vk
         static constexpr uint32_t VOXEL_CUBE_HEIGHT = 256u;
         static constexpr uint32_t VOXEL_CUBE_DEPTH  = 256u;
         
+        static constexpr size_t   NUM_SAMPLING_RAYS = 5;
+        
+        std::array<glm::vec4, NUM_SAMPLING_RAYS> _sampling_rays = {};
         
         static constexpr glm::vec3 _voxel_world_dimensions = glm::vec3(6.0f, 6.0f, 10.f);
         bool _setup_initialized = false;
-
+        
         
     };
 }

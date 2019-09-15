@@ -44,14 +44,14 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _material->init_parameter("width", visual_material::parameter_stage::VERTEX, 0.f, 0);
     _material->init_parameter("height", visual_material::parameter_stage::VERTEX, 0.f, 0);
     
-
-
+    
+    
     assert(_voxel_3d_texture.get_height() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
     assert(_voxel_3d_texture.get_width() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
     assert(_voxel_3d_texture.get_depth() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
     
     _clear_texture_3d_pipeline.material->set_image_sampler(&_voxel_3d_texture,
-                                                            "texture_3d", material_base::parameter_stage::COMPUTE, 0, material_base::usage_type::STORAGE_IMAGE);
+                                                           "texture_3d", material_base::parameter_stage::COMPUTE, 0, material_base::usage_type::STORAGE_IMAGE);
     
     _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
                                          visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
@@ -78,12 +78,12 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     
     _material->init_parameter("voxel_world_scale", visual_material::parameter_stage::FRAGMENT, world_scale_voxel, 5);
     
-    std::array<glm::vec4, 6> sampling_rays = {};
-    sampling_rays[0] = glm::vec4(1.0f, 0.0f, 1.0f, 1.0f);
+    
+    setup_sampling_rays();
     _material->init_parameter("state", visual_material::parameter_stage::FRAGMENT, int(0), 5);
-    _material->init_parameter("sampling_rays", visual_material::parameter_stage::FRAGMENT, sampling_rays.data(), sampling_rays.size(), 5);
-
-
+    _material->init_parameter("sampling_rays", visual_material::parameter_stage::FRAGMENT, _sampling_rays.data(), _sampling_rays.size(), 5);
+    
+    
     //_material->print_uniform_argument_names();
     
     _positions.set_filter(image::filter::NEAREST);
@@ -97,9 +97,11 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _depth.init();
     
     _voxel_3d_texture.set_filter(image::filter::NEAREST);
+    _voxel_3d_texture.set_enable_mipmapping(true);
+    
     _voxel_2d_view.set_filter(image::filter::NEAREST);
     
-    _voxel_3d_texture.init();
+sa    _voxel_3d_texture.init();
     _voxel_2d_view.init();
     
     _voxelize_pipeline.set_cullmode( graphics_pipeline::cull_mode::NONE);
@@ -116,6 +118,23 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     create_command_buffers(&_clear_3d_texture_command_buffers, _device->_compute_command_pool);
 }
 
+
+void deferred_renderer::setup_sampling_rays()
+{
+    glm::vec4 up = glm::vec4(0.0f, 1.0f, .0f, 0.0f);
+    _sampling_rays[0] = up;
+    glm::vec4 temp = glm::vec4(1.0f, 1.0f, 0.f, 0.0f);
+    _sampling_rays[1] = glm::normalize(temp);
+    
+    temp = glm::vec4(-1.0f, 1.0f, 0.f, 0.0f);
+    _sampling_rays[2] = glm::normalize(temp);
+    
+    temp = glm::vec4(0.0f, 1.0f, 1.0f, 0.0f);
+    _sampling_rays[3] = glm::normalize(temp);
+    
+    temp = glm::vec4(0.0f, 1.0f, -1.0f,0.0f);
+    _sampling_rays[4] = glm::normalize(temp);
+}
 
 void deferred_renderer::create_voxelization_render_pass()
 {
@@ -303,7 +322,7 @@ void deferred_renderer::create_pipeline()
     _mrt_pipeline.modify_attachment_blend(0, graphics_pipeline::write_channels::RGBA, enable_blend);
     _mrt_pipeline.modify_attachment_blend(1, graphics_pipeline::write_channels::RGBA, false);
     _mrt_pipeline.modify_attachment_blend(2, graphics_pipeline::write_channels::RGBA, false);
-
+    
     _mrt_pipeline.create(_mrt_render_pass,
                          _swapchain->_swapchain_data.swapchain_extent.width,
                          _swapchain->_swapchain_data.swapchain_extent.height);
@@ -445,7 +464,7 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
         
         vkCmdEndRenderPass(_voxelize_command_buffers[i]);
     }
-
+    
 }
 
 void deferred_renderer::record_clear_texture_3d_buffer()
@@ -582,16 +601,16 @@ VkSemaphore deferred_renderer::generate_voxel_texture(vk::camera &camera)
 {
     vk::shader_parameter::shader_params_group& voxelize_vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     vk::shader_parameter::shader_params_group& voxelize_frag_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2);
-
+    
     _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
                                          visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
-
+    
     voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
     
     //todo: objects right now are static, but in the futre we'll start moving them
     glm::mat4 model = glm::mat4(1.0f);
     voxelize_vertex_params["model"] = model;
-
+    
     //clear voxel texture
     VkSubmitInfo submit_info = {};
     submit_info.commandBufferCount = 1;
@@ -600,13 +619,13 @@ VkSemaphore deferred_renderer::generate_voxel_texture(vk::camera &camera)
     submit_info.pWaitSemaphores = nullptr;
     submit_info.pSignalSemaphores = &_clear_voxel_cube_smaphonre_done;
     submit_info.signalSemaphoreCount = 1;
-
+    
     vkWaitForFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     vkResetFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index]);
-
+    
     VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _clear_voxel_texture_fence[_deferred_image_index]);
     ASSERT_VULKAN(result);
-
+    
     std::array<glm::vec3, 3> cam_positions = {  glm::vec3(0.0f, 0.0f, -8.f),glm::vec3(0.0f, 8.f, 0.0f), glm::vec3(8.0f, 0.0f, 0.0f)};
     std::array<glm::vec3, 3> up_vectors = { glm::vec3 {0.0f, 1.0f, 0.0f}, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)};
     std::array<VkSemaphore, 4> semaphores = {_clear_voxel_cube_smaphonre_done, _generate_voxel_z_axis_semaphore,
@@ -635,7 +654,7 @@ VkSemaphore deferred_renderer::generate_voxel_texture(vk::camera &camera)
         voxelize_vertex_params["light_position"] = light_pos;
         voxelize_vertex_params["eye_position"] = camera.position;
         _voxelize_pipeline._material->commit_parameters_to_gpu();
-
+        
         submit_info = {};
         submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submit_info.commandBufferCount = 1;
@@ -653,14 +672,14 @@ VkSemaphore deferred_renderer::generate_voxel_texture(vk::camera &camera)
 
 void deferred_renderer::draw(camera& camera)
 {
-
+    
     vk::shader_parameter::shader_params_group& display_fragment_params = _pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5) ;
     
     display_fragment_params["world_cam_position"] = glm::vec4(camera.position, 1.0f);
     display_fragment_params["world_light_position"] = _light_pos;
     display_fragment_params["light_color"] = _light_color;
     display_fragment_params["state"] = static_cast<int>(_rendering_state);
-
+    
     int binding = 0;
     vk::shader_parameter::shader_params_group& display_params =   renderer::get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, binding);
     
@@ -672,12 +691,12 @@ void deferred_renderer::draw(camera& camera)
     //todo: acquire image at the very last minute, not in the very beginning
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain,
                           std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &_deferred_image_index);
-
+    
     VkSemaphore voxel_texture_semaphore = generate_voxel_texture(camera);
     
     vkWaitForFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     vkResetFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index]);
-
+    
     //render g-buffers
     VkSubmitInfo submit_info = {};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -690,16 +709,16 @@ void deferred_renderer::draw(camera& camera)
     submit_info.pCommandBuffers = &(_offscreen_command_buffers[_deferred_image_index]);
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &_g_buffers_rendering_done;
-
-
+    
+    
     VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _g_buffers_fence[_deferred_image_index]);
     ASSERT_VULKAN(result);
     
     //render scene with g buffers and 3d voxel texture
-
+    
     vkWaitForFences(_device->_logical_device, 1, &_composite_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     vkResetFences(_device->_logical_device, 1, &_composite_fence[_deferred_image_index]);
-
+    
     std::array<VkSemaphore, 3> wait_semaphores{_semaphore_image_available, voxel_texture_semaphore, _g_buffers_rendering_done};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = nullptr;
@@ -710,7 +729,7 @@ void deferred_renderer::draw(camera& camera)
     submit_info.pCommandBuffers = &(_command_buffers[_deferred_image_index]);
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &_semaphore_rendering_done;
-
+    
     result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _composite_fence[_deferred_image_index]);
     ASSERT_VULKAN(result);
     
@@ -727,7 +746,7 @@ void deferred_renderer::draw(camera& camera)
     result = vkQueuePresentKHR(_device->_present_queue, &present_info);
     
     //todo: check to see if you can collapse the 3 vkQueueSubmit calls into one, per nvidia: https://devblogs.nvidia.com/vulkan-dos-donts/
-
+    
     ASSERT_VULKAN(result);
 }
 
@@ -746,7 +765,7 @@ void deferred_renderer::destroy()
     vkDestroySemaphore(_device->_logical_device, _generate_voxel_z_axis_semaphore, nullptr);
     _deferred_semaphore_image_available = VK_NULL_HANDLE;
     _g_buffers_rendering_done = VK_NULL_HANDLE;
-
+    
     vkFreeCommandBuffers(_device->_logical_device, _device->_graphics_command_pool,
                          static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _offscreen_command_buffers);
     

@@ -97,7 +97,7 @@ struct App
     bool render_3d_texture = false;
     
     glm::mat4 model = glm::mat4(1.0f);
-
+    
 };
 
 
@@ -108,7 +108,7 @@ void update_3d_texture_rendering_params( vk::renderer& renderer)
     vk::shader_parameter::shader_params_group& vertex_params =   renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     app.three_d_texture_camera->update_view_matrix();
     
-
+    
     glm::mat4 mvp = app.three_d_texture_camera->get_projection_matrix() * app.three_d_texture_camera->view_matrix * glm::mat4(1.0f);
     vertex_params["mvp"] = mvp;
     vertex_params["model"] = glm::mat4(1.0f);
@@ -118,7 +118,7 @@ void update_3d_texture_rendering_params( vk::renderer& renderer)
     fragment_params["box_eye_position"] =   glm::vec4(app.three_d_texture_camera->position, 1.0f);
     fragment_params["screen_height"] = static_cast<float>(app.swapchain->_swapchain_data.swapchain_extent.width);
     fragment_params["screen_width"] = static_cast<float>(app.swapchain->_swapchain_data.swapchain_extent.height);
-
+    
 }
 
 
@@ -130,7 +130,7 @@ void update_renderer_parameters( vk::renderer& renderer)
     app.model = glm::mat4(1.0f);//glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     
     glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
-
+    
     vk::shader_parameter::shader_params_group& vertex_params = renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     
     //TODO: this model matrix applies to every model being submitted for drawing.  For model flexibility, look into uniform dynamic buffers example:
@@ -141,7 +141,7 @@ void update_renderer_parameters( vk::renderer& renderer)
     vertex_params["view"] = app.perspective_camera->view_matrix;
     vertex_params["projection"] =  app.perspective_camera->get_projection_matrix();
     vertex_params["lightPosition"] = temp;
-
+    
 }
 
 void game_loop_3d_texture(vk::renderer &renderer)
@@ -164,7 +164,7 @@ void update_ortho_parameters(vk::renderer& renderer)
 
 void game_loop()
 {
-
+    
     while (!glfwWindowShouldClose(window) && !app.quit)
     {
         glfwPollEvents();
@@ -220,7 +220,7 @@ void game_loop_ortho(vk::renderer &renderer)
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-
+    
     if (key == GLFW_KEY_1 && action == GLFW_PRESS)
     {
         app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::FULL_RENDERING);
@@ -266,14 +266,14 @@ int main()
     
     glfwSetWindowSizeCallback(window, on_window_resize);
     glfwSetKeyCallback(window, key_callback);
-
+    
     vk::device device;
     
     app.device = &device;
     
     glfwCreateWindowSurface(device._instance, window, nullptr, &surface);
     device.create_logical_device(surface);
-
+    
     glfwSetCursorPos(window, width * .5f, height * .5f);
     vk::swapchain swapchain(&device, window, surface);
     
@@ -282,7 +282,11 @@ int main()
     vk::material_store material_store;
     
     material_store.create(&device);
-
+    
+    vk::texture_2d mario(&device, "mario.png");
+    mario.set_enable_mipmapping(true);
+    mario.init();
+    
     vk::obj_shape dragon(&device, "dragon.obj");
     vk::obj_shape cube(&device, "cube.obj");
     vk::cornell_box cornell_box(&device);
@@ -292,10 +296,6 @@ int main()
     cube.create();
     cornell_box.create();
     
-//    vk::texture_2d mario(&device, "mario.png");
-//    mario.init();
-
-    
     standard_mat = material_store.GET_MAT<vk::visual_material>("standard");
     display_3d_tex_mat = material_store.GET_MAT<vk::visual_material>("display_3d_texture");
     
@@ -303,7 +303,7 @@ int main()
                                               swapchain._swapchain_data.swapchain_extent.width/ swapchain._swapchain_data.swapchain_extent.height, .01f, 100.0f);
     
     vk::perspective_camera three_d_texture_cam(glm::radians(45.0f),
-                                              swapchain._swapchain_data.swapchain_extent.width/ swapchain._swapchain_data.swapchain_extent.height, .01f, 100.0f);
+                                               swapchain._swapchain_data.swapchain_extent.width/ swapchain._swapchain_data.swapchain_extent.height, .01f, 100.0f);
     
     
     app.perspective_camera = &perspective_camera;
@@ -319,6 +319,11 @@ int main()
     
     vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store);
     vk::renderer three_d_renderer(&device, window, &swapchain, display_3d_tex_mat);
+    vk::display_2d_texture_renderer display_renderer(&device, window, &swapchain, material_store);
+    
+    display_renderer.show_texture(&mario);
+    display_renderer.init();
+    
     
     app.three_d_renderer = &three_d_renderer;
     
@@ -328,10 +333,6 @@ int main()
     app.deferred_renderer->add_shape(&cornell_box);
     app.deferred_renderer->init();
     
-    
-    //vk::texture_2d* voxelizer_cam_view = deferred_renderer.get_voxelizer_cam_texture();
-    //app.voxelizer_camera_renderer->show_texture(voxelizer_cam_view);
-   
     vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture();
     app.three_d_renderer->get_material()->set_image_sampler(voxel_texture, "texture_3d",
                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
@@ -348,11 +349,14 @@ int main()
     
     app.user_controller = &user_controler;
     app.texture_3d_view_controller = &texture_3d_view_controller;
-
-    game_loop();
     
+    game_loop();
+    //game_loop_ortho(display_renderer);
+    
+    mario.destroy();
     deferred_renderer.destroy();
     three_d_renderer.destroy();
+    display_renderer.destroy();
     
     swapchain.destroy();
     material_store.destroy();

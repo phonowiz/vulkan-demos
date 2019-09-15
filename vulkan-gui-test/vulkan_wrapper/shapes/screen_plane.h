@@ -20,13 +20,20 @@ namespace vk
         obj_shape(device),
         _display_plane( device ){  }
         
-        inline void create()
+        inline void create() override
         {
             _display_plane.create();
             
             _meshes.push_back(&_display_plane);
             _path = "display_plane";
             
+        }
+        
+        
+        virtual void destroy() override
+        {
+            _meshes.clear();
+            obj_shape::destroy();
         }
         
     private:

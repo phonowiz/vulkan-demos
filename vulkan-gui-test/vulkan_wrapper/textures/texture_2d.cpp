@@ -8,6 +8,7 @@
 
 #include "texture_2d.h"
 #include <assert.h>
+#include <cmath>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -30,6 +31,7 @@ image(device)
 
 void texture_2d::init()
 {
+    _mip_levels = _enable_mipmapping ? static_cast<uint32_t>( std::floor(std::log2( std::max( _width, _height)))) + 1 : 1;
     create_sampler();
     create(_width, _height);
 }
@@ -38,9 +40,7 @@ texture_2d::texture_2d(device* device,const char* path)
 :image(device)
 {
     _path = resource::resource_root + texture_2d::texture_resource_path + path;
-    create_sampler();
     load();
-    create( _width, _height);
 }
 
 void texture_2d::load( )
@@ -49,6 +49,10 @@ void texture_2d::load( )
     int w = 0;
     int h = 0;
     int c = 0;
+    
+    //todo: any way to detecct what the pixel format is? stbi_load might always
+    //use this format, but am not sure.
+    _format = formats::R8G8B8A8_UNSIGNED_NORMALIZED;
     
     assert(_path.empty() == false);
     _ppixels = stbi_load(_path.c_str(), &w,
@@ -80,7 +84,7 @@ void texture_2d::create_sampler()
     sampler_create_info.compareEnable = VK_FALSE;
     sampler_create_info.compareOp = VK_COMPARE_OP_ALWAYS;
     sampler_create_info.minLod = 0.0f;
-    sampler_create_info.maxLod = 0.0f;
+    sampler_create_info.maxLod = static_cast<float>(_mip_levels);
     sampler_create_info.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
     sampler_create_info.unnormalizedCoordinates = VK_FALSE;
     
@@ -94,15 +98,16 @@ void texture_2d::create(uint32_t width, uint32_t height)
     _width = width;
     _height = height;
     _depth = 1u;
+    
     VkDeviceSize image_size = get_size_in_bytes();
-
-
+    
+    
     VkBuffer staging_buffer {};
     VkDeviceMemory staging_buffer_memory {};
     
     
     create_buffer(_device->_logical_device, _device->_physical_device, image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                 staging_buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, staging_buffer_memory);
+                  staging_buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, staging_buffer_memory);
     
     if(_loaded)
     {
@@ -113,20 +118,26 @@ void texture_2d::create(uint32_t width, uint32_t height)
     }
     
     create_image(
-                static_cast<VkFormat>(_format),
-                VK_IMAGE_TILING_OPTIMAL,
-                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                 static_cast<VkFormat>(_format),
+                 VK_IMAGE_TILING_OPTIMAL,
+                 VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     
-
+    
     change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
-                      VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+                        VK_IMAGE_LAYOUT_PREINITIALIZED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     write_buffer_to_image(_device->_graphics_command_pool, _device->_graphics_queue, staging_buffer);
     
-    change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
-                      VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    if( _mip_levels == 1)
+    {
+        change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
+                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    }
+    else
+    {
+        generate_mipmaps(_image, _device->_graphics_command_pool, _device->_graphics_queue, _width, _height, _depth);
+    }
     
-
     
     vkDestroyBuffer(_device->_logical_device, staging_buffer, nullptr);
     vkFreeMemory(_device->_logical_device, staging_buffer_memory, nullptr);
@@ -151,7 +162,7 @@ void texture_2d::create_image_view(VkImage image, VkFormat format, VkImageAspect
     image_view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
     image_view_create_info.subresourceRange.aspectMask = aspect_flags;
     image_view_create_info.subresourceRange.baseMipLevel = 0;
-    image_view_create_info.subresourceRange.levelCount = 1;
+    image_view_create_info.subresourceRange.levelCount = _mip_levels;
     image_view_create_info.subresourceRange.baseArrayLayer = 0;
     image_view_create_info.subresourceRange.layerCount = 1;
     
