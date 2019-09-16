@@ -101,7 +101,7 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     
     _voxel_2d_view.set_filter(image::filter::NEAREST);
     
-sa    _voxel_3d_texture.init();
+    _voxel_3d_texture.init();
     _voxel_2d_view.init();
     
     _voxelize_pipeline.set_cullmode( graphics_pipeline::cull_mode::NONE);

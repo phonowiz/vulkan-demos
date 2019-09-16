@@ -75,9 +75,9 @@ void texture_2d::create_sampler()
     sampler_create_info.magFilter = static_cast<VkFilter>(_filter);
     sampler_create_info.minFilter = static_cast<VkFilter>(_filter);
     sampler_create_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-    sampler_create_info.addressModeU  = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    sampler_create_info.addressModeV =  VK_SAMPLER_ADDRESS_MODE_REPEAT;
-    sampler_create_info.addressModeW =  VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    sampler_create_info.addressModeU  = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    sampler_create_info.addressModeV =  VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    sampler_create_info.addressModeW =  VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
     sampler_create_info.mipLodBias = 0.0f;
     sampler_create_info.anisotropyEnable = VK_TRUE;
     sampler_create_info.maxAnisotropy = 16;

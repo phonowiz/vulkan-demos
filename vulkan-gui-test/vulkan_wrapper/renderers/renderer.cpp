@@ -340,7 +340,10 @@ void renderer::create_frame_buffers()
 }
 void renderer::create_pipeline()
 {
+    _pipeline.set_depth_enable(false);
+    //_pipeline.modify_attachment_blend(0, graphics_pipeline::write_channels::RGBA, false);
     _pipeline.create(_render_pass, _swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height);
+
 }
 
 void renderer::init()
