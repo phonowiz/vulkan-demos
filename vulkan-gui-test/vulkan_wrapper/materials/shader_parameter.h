@@ -91,12 +91,11 @@ namespace vk
         {}
         
         //the size returned here should be big enough ( safe enough) to store whatever bytes we pass it.
-        inline size_t aligned_size(size_t alignment, size_t bytes)
+        static size_t aligned_size(size_t alignment, size_t bytes)
         {
             assert((alignment > 0) && (alignment & ~(alignment -1)) && "alignment must be greater than 0 && power of 2");
             return (alignment -1 ) + bytes;
         }
-        
         
         inline size_t get_type_size()
         {
@@ -130,11 +129,10 @@ namespace vk
                     
             }
         }
-        //note: this function follows std140 alignment rules, in your glsl shader, make sure to specify std140 as your choice
-        //for memory layout.
-        inline size_t get_std140_alignment()
+        
+        static size_t get_std140_alignment( Type data_type)
         {
-            switch( type )
+            switch( data_type )
             {
                 case Type::INT:
                     return sizeof(int);
@@ -159,38 +157,44 @@ namespace vk
                 case Type::NONE:
                     assert(0);
                     break;
-                
+                    
             }
         }
+        //note: this function follows std140 alignment rules, in your glsl shader, make sure to specify std140 as your choice
+        //for memory layout.
+        inline size_t get_std140_alignment()
+        {
+            return get_std140_alignment(type);
+        }
 
-        inline size_t get_std140_aligned_size_in_bytes()
+        static size_t get_std140_aligned_size_in_bytes( Type data_type)
         {
             size_t result = 0;
-            switch( type )
+            switch( data_type )
             {
                 case Type::INT:
-                    result = aligned_size(get_std140_alignment(), sizeof(int));
+                    result = aligned_size(get_std140_alignment(data_type), sizeof(int));
                     break;
                 case Type::FLOAT:
-                    result =  aligned_size(get_std140_alignment(), sizeof(float));
+                    result =  aligned_size(get_std140_alignment(data_type), sizeof(float));
                     break;
                 case Type::BOOLEAN:
-                    result =  aligned_size(get_std140_alignment(), sizeof( bool));
+                    result =  aligned_size(get_std140_alignment(data_type), sizeof( bool));
                     break;
                 case Type::UINT:
-                    result = aligned_size(get_std140_alignment(), sizeof( unsigned int));
+                    result = aligned_size(get_std140_alignment(data_type), sizeof( unsigned int));
                     break;
                 case Type::MAT4:
-                    result = aligned_size(get_std140_alignment(), sizeof(glm::mat4));
+                    result = aligned_size(get_std140_alignment(data_type), sizeof(glm::mat4));
                     break;
                 case Type::VEC2:
-                    result = aligned_size(get_std140_alignment(), sizeof( glm::vec2));
+                    result = aligned_size(get_std140_alignment(data_type), sizeof( glm::vec2));
                     break;
                 case Type::VEC3:
-                    result = aligned_size(get_std140_alignment(), sizeof( glm::vec3));
+                    result = aligned_size(get_std140_alignment(data_type), sizeof( glm::vec3));
                     break;
                 case Type::VEC4:
-                    result =  aligned_size(get_std140_alignment(), sizeof(glm::vec4));
+                    result =  aligned_size(get_std140_alignment(data_type), sizeof(glm::vec4));
                     break;
                 case Type::SAMPLER_2D:
                     assert(0);
@@ -200,19 +204,31 @@ namespace vk
                     assert(0);
                     result = sizeof (texture_3d);
                     break;
+                default:
+                {
+                    assert(0 && "this case should never happen");
+                    result = 0;
+                }
+            };
+            
+            return result;
+        }
+        inline size_t get_max_std140_aligned_size_in_bytes()
+        {
+            size_t result;
+            switch(type)
+            {
                 case Type::VEC4_ARRAY:
                 {
                     size_t vec4_size = aligned_size(get_std140_alignment(), sizeof(glm::vec4));
                     result = value.buffer.num_elements * vec4_size;
                     break;
                 }
-                case Type::NONE:
+                default:
                 {
-                    assert(0 && "this case should never happen");
-                    result = 0;
-                    break;
+                    result = get_std140_aligned_size_in_bytes( type );
                 }
-            };
+            }
             
             return result;
         }
@@ -246,8 +262,6 @@ namespace vk
                 std::memcpy(p, get_stored_value_memory(), get_type_size());
                 ptr = static_cast<char*>(p);
                 ptr+= get_type_size();
-                p = reinterpret_cast<void*>(ptr);
-                *ptr += get_type_size();
             }
 
             

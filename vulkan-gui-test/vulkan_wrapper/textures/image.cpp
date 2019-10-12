@@ -80,7 +80,7 @@ void image::generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQueue 
     for (uint32_t i = 1; i < _mip_levels; i++) {
         
         //this barrier will transition the previous mip level to VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL.  Upon creation
-        //the imsage is set to VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL.  This is because when the blit happens,
+        //the image is set to VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL.  This is because when the blit happens,
         //the previous level must be src optimal
         barrier.subresourceRange.baseMipLevel = i - 1;
         barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;

@@ -13,6 +13,8 @@
 #include "ordered_map.h"
 
 #include <array>
+#include <vector>
+#include <assert.h>
 
 namespace vk
 {
@@ -56,6 +58,8 @@ namespace vk
         
     public:
         void commit_parameters_to_gpu();
+        void commit_dynamic_parameters_to_gpu();
+        
         void print_uniform_argument_names();
         
     protected:
@@ -65,17 +69,42 @@ namespace vk
         void create_descriptor_sets();
         void deallocate_parameters();
         
+        inline size_t get_ubo_alignment( size_t mem_size )
+        {
+            return (mem_size + _device->get_properties().limits.minUniformBufferOffsetAlignment - 1 ) &
+            ~(_device->get_properties().limits.minUniformBufferOffsetAlignment - 1);
+        }
+        
     public:
         
         inline bool descriptor_set_present() { return _descriptor_set_layout != VK_NULL_HANDLE; }
         inline VkDescriptorSetLayout* get_descriptor_set_layout(){ return &_descriptor_set_layout; }
         inline VkDescriptorSet* get_descriptor_set(){ return &_descriptor_set; }
         
+        
+        inline size_t get_num_dynamic_buffer_elements(){ return _uniform_dynamic_buffers.size(); }
+        
+        inline uint32_t get_dynamic_ubo_stride()
+        {
+            uint32_t bytes = 0;
+            //todo: we only support one uniform dynamic buffer per material, but I think that's all we need....
+            assert(_uniform_dynamic_parameters.size() == 0 || _uniform_dynamic_parameters.size() == 1);
+            for(std::pair<parameter_stage, object_shader_params_group> pair : _uniform_dynamic_parameters)
+            {
+                dynamic_buffer_info& mem = _uniform_dynamic_buffers[pair.first];
+                bytes = static_cast<uint32_t>(mem.size / pair.second.size() );
+            }
+            
+            return bytes;
+        };
+        
+        
         virtual void destroy() override {   _initialized = false; }
         void set_image_sampler(image* texture, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage);
         void set_image_smapler(texture_2d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage);
         void set_image_sampler(texture_3d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage);
         void set_vec4_array(glm::vec4* vec4s, size_t, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage);
+        
         virtual VkPipelineShaderStageCreateInfo* get_shader_stages() = 0;
         virtual size_t get_shader_stages_size() = 0;
         
@@ -83,6 +112,14 @@ namespace vk
         const char* _name = nullptr;
         
     protected:
+        
+        struct dynamic_buffer_info : public resource::buffer_info
+        {
+            shader_parameter::Type type = shader_parameter::Type::NONE;
+            
+            dynamic_buffer_info()
+            {}
+        };
         
         VkDescriptorSetLayout _descriptor_set_layout =  VK_NULL_HANDLE;
         VkDescriptorPool      _descriptor_pool =        VK_NULL_HANDLE;
@@ -94,8 +131,16 @@ namespace vk
         ordered_map<parameter_stage, resource::buffer_info>                       _uniform_buffers;
         ordered_map<parameter_stage, shader_parameter::shader_params_group>       _uniform_parameters;
         
-        typedef ordered_map<const char*, resource::buffer_info>                buffer_parameter;
-        ordered_map<parameter_stage, buffer_parameter>                         _sampler_buffers;
+        using object_shader_params_group = ordered_map<uint32_t, shader_parameter::shader_params_group >  ;
+        
+        //todo: for dynamic buffers, I think we won't need parameter stage, verify that that statement is true
+        //dynamic uniform buffers are shared by the stages
+        ordered_map<parameter_stage, material_base::dynamic_buffer_info >          _uniform_dynamic_buffers;
+        ordered_map<parameter_stage, object_shader_params_group >                  _uniform_dynamic_parameters;
+
+        
+        typedef ordered_map<const char*, resource::buffer_info>             buffer_parameter;
+        ordered_map<parameter_stage, buffer_parameter>                      _sampler_buffers;
 
         
         typedef ordered_map< const char*, shader_parameter>                      sampler_parameter;
@@ -103,12 +148,13 @@ namespace vk
         std::array<VkDescriptorSetLayoutBinding, BINDING_MAX>                    _descriptor_set_layout_bindings;
         
         static const size_t MAX_SHADER_STAGES = 2;
-        std::array<VkPipelineShaderStageCreateInfo, MAX_SHADER_STAGES>            _pipeline_shader_stages;
+        std::array<VkPipelineShaderStageCreateInfo, MAX_SHADER_STAGES>           _pipeline_shader_stages;
         
         bool _initialized = false;
         device* _device = nullptr;
         
         uint32_t _uniform_parameters_added_on_init = 0;
+        uint32_t _uniform_dynamic_parameters_added_on_init = 0;
         uint32_t _samplers_added_on_init = 0;
     };
     

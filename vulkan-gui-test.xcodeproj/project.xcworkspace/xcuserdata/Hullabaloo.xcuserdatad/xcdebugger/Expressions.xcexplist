@@ -9,10 +9,34 @@
          contextName = "MVKQueueSubmission::recordResult(VkResult):MVKQueue.mm">
       </ContextState>
       <ContextState
+         contextName = "ordered_map&lt;vk::material_base::parameter_stage, ordered_map&lt;unsigned int, ordered_map&lt;char const*, vk::shader_parameter&gt; &gt; &gt;::size():ordered_map.h">
+         <PersistentStrings>
+            <PersistentString
+               value = "_vec">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "update_3d_texture_rendering_params(vk::renderer&amp;):main.mm">
          <PersistentStrings>
             <PersistentString
                value = "app.swapchain-&gt;_swapchain_data.swapchain_extent.width">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "vk::material_base::create_descriptor_set_layout():material_base.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "pair.second.usage_type">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "vk::material_base::commit_dynamic_parameters_to_gpu():material_base.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "mem.size">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -28,7 +52,13 @@
          contextName = "MVKCmdDrawIndexed::encode(MVKCommandEncoder*):MVKCmdDraw.mm">
          <PersistentStrings>
             <PersistentString
+               value = "_indexCount">
+            </PersistentString>
+            <PersistentString
                value = "cmdEncoder-&gt;_mtlPrimitiveType">
+            </PersistentString>
+            <PersistentString
+               value = "_vertexOffset">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -49,6 +79,9 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
+         contextName = "vk::depth_image::get_depth_attachment():depth_image.cpp">
+      </ContextState>
+      <ContextState
          contextName = "MVKRenderSubpass::getColorAttachmentFormat(unsigned int):MVKRenderPass.mm">
          <PersistentStrings>
             <PersistentString
@@ -64,6 +97,14 @@
          <PersistentStrings>
             <PersistentString
                value = "_material">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "vk::material_base::init_shader_parameters():material_base.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "total_size">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -166,6 +207,14 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
+         contextName = "MVKGraphicsPipeline::initMTLRenderPipelineState(VkGraphicsPipelineCreateInfo const*):MVKPipeline.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "_mtlPipelineState">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "vk::deferred_renderer::deferred_renderer(vk::device*, GLFWwindow*, vk::swapchain*, vk::material_store&amp;):deferred_renderer.cpp">
       </ContextState>
       <ContextState
@@ -183,16 +232,24 @@
                value = "pair.first">
             </PersistentString>
             <PersistentString
-               value = "pair2.first">
+               value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
             </PersistentString>
             <PersistentString
-               value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
+               value = "pair2.first">
             </PersistentString>
             <PersistentString
                value = "_sampler_buffers.size()">
             </PersistentString>
             <PersistentString
                value = "pair2.second.binding">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "vk::material_base::create_descriptor_pool():material_base.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "pair.second.usage_type">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -216,13 +273,13 @@
          contextName = "vk::material::create_descriptor_sets():material.cpp">
          <PersistentStrings>
             <PersistentString
-               value = " _descriptor_set_layout_bindings[count].binding">
-            </PersistentString>
-            <PersistentString
                value = "write_descriptor_sets[count].dstBinding">
             </PersistentString>
             <PersistentString
                value = "pair2.first">
+            </PersistentString>
+            <PersistentString
+               value = " _descriptor_set_layout_bindings[count].binding">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -324,6 +381,9 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
+         contextName = "vk::depth_image::create(unsigned int, unsigned int):depth_image.cpp">
+      </ContextState>
+      <ContextState
          contextName = "vk::renderer::add_attachment(vk::renderer::attachment const&amp;, unsigned int):renderer.cpp">
          <PersistentStrings>
             <PersistentString
@@ -391,6 +451,28 @@
          <PersistentStrings>
             <PersistentString
                value = "_descriptorSetLayouts.size()">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "MVKGraphicsPipeline::encode(MVKCommandEncoder*):MVKPipeline.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "_mtlPipelineState">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "vk::material_base::get_ubo_alignment(unsigned long):material_base.h">
+      </ContextState>
+      <ContextState
+         contextName = "vk::material_base::create_descriptor_sets():material_base.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "pair.second.size">
+            </PersistentString>
+            <PersistentString
+               value = "pair.second.uniform_buffer">
             </PersistentString>
          </PersistentStrings>
       </ContextState>

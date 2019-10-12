@@ -83,6 +83,8 @@ public:
         return iterator<_value>(_vec, _vec.size());
     }
     
+    inline size_t size(){ return _vec.size(); }
+    
     template<const char*, class _val>
     _value & operator[]( const char* i)
     {

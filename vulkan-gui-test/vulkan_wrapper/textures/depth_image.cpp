@@ -15,6 +15,7 @@ void depth_image::create(uint32_t width, uint32_t height)
     assert(!_created);
     
     VkFormat depth_format = _device->find_depth_format( );
+    _format = static_cast<vk::image::formats>(depth_format);
     
     _width = width;
     _height = height;

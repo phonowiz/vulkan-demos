@@ -6,14 +6,17 @@ layout(location = 2) in vec2 uv_coord;
 layout(location = 3) in vec3 normal;
 
 
-layout(binding = 0) uniform UBO
+layout(binding = 0, std140) uniform UBO
 {
-    mat4 model;
     mat4 view;
     mat4 projection;
     vec3 lightPosition;
 } ubo;
 
+layout(binding = 1,std140) uniform DYNAMIC
+{
+    mat4 model;
+}dynamic_b;
 
 
 
@@ -45,10 +48,10 @@ void main()
 //    // Currently just vertex color
 //    outColor = inColor;
     
-    gl_Position = ubo.projection * ubo.view * ubo.model * vec4(pos, 1.0f);
+    gl_Position = ubo.projection * ubo.view * dynamic_b.model * vec4(pos, 1.0f);
     
-    vec4 pos_world = ubo.model * vec4(pos, 1.0f);
-    vec3 normal_world = (ubo.model * vec4(normal,1.0f)).xyz;//transpose(inverse(mat3(ubo.model))) * normalize(normal);
+    vec4 pos_world = dynamic_b.model * vec4(pos, 1.0f);
+    vec3 normal_world = (dynamic_b.model * vec4(normal,1.0f)).xyz;//transpose(inverse(mat3(dynamic.model))) * normalize(normal);
     normal_world = normalize(normal_world);
     out_normal = vec4(normal_world, 1.0f);
     out_albedo = color;

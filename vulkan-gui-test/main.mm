@@ -93,6 +93,8 @@ struct App
     
     vk::deferred_renderer::rendering_state state = vk::deferred_renderer::rendering_state::FULL_RENDERING;
     
+    std::vector<vk::obj_shape*> shapes;
+    
     bool quit = false;
     bool render_3d_texture = false;
     
@@ -127,20 +129,23 @@ void update_renderer_parameters( vk::renderer& renderer)
     std::chrono::time_point frame_time = std::chrono::high_resolution_clock::now();
     float time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>( frame_time - game_start_time ).count()/1000.0f;
     
-    app.model = glm::mat4(1.0f);//glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    app.model = glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     
     glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
     
     vk::shader_parameter::shader_params_group& vertex_params = renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     
-    //TODO: this model matrix applies to every model being submitted for drawing.  For model flexibility, look into uniform dynamic buffers example:
-    // https://github.com/SaschaWillems/Vulkan/blob/master/screenshots/dynamicuniformbuffer.jpg
-    
     app.perspective_camera->update_view_matrix();
-    vertex_params["model"] = app.model;
+    
     vertex_params["view"] = app.perspective_camera->view_matrix;
     vertex_params["projection"] =  app.perspective_camera->get_projection_matrix();
     vertex_params["lightPosition"] = temp;
+    
+    for( uint32_t i = 0; i < app.shapes.size(); ++i)
+    {
+        renderer.get_material()->get_dynamic_parameters(vk::visual_material::parameter_stage::VERTEX, 1)[i]["model"] = app.shapes[i]->transform.get_transform_matrix();
+    }
+
     
 }
 
@@ -296,6 +301,10 @@ int main()
     cube.create();
     cornell_box.create();
     
+    
+    dragon.transform.position = glm::vec3(.5f, 0.0f, 0.0f);
+    dragon.transform.update_transform_matrix();
+    
     standard_mat = material_store.GET_MAT<vk::visual_material>("standard");
     display_3d_tex_mat = material_store.GET_MAT<vk::visual_material>("display_3d_texture");
     
@@ -321,6 +330,7 @@ int main()
     vk::renderer three_d_renderer(&device, window, &swapchain, display_3d_tex_mat);
     vk::display_2d_texture_renderer display_renderer(&device, window, &swapchain, material_store);
     
+    display_renderer.get_pipeline().set_depth_enable(false);
     display_renderer.show_texture(&mario);
     display_renderer.init();
     
@@ -329,8 +339,13 @@ int main()
     
     app.deferred_renderer = &deferred_renderer;
     
-    app.deferred_renderer->add_shape(&dragon);
     app.deferred_renderer->add_shape(&cornell_box);
+    app.deferred_renderer->add_shape(&dragon);
+
+    
+    app.shapes.push_back(&dragon);
+    app.shapes.push_back(&cornell_box);
+    
     app.deferred_renderer->init();
     
     vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture();
@@ -350,8 +365,8 @@ int main()
     app.user_controller = &user_controler;
     app.texture_3d_view_controller = &texture_3d_view_controller;
     
-    //game_loop();
-    game_loop_ortho(display_renderer);
+    game_loop();
+    //game_loop_ortho(display_renderer);
     
     mario.destroy();
     deferred_renderer.destroy();

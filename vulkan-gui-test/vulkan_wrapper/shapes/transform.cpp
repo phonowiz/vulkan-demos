@@ -21,7 +21,8 @@ void transform::update_transform_matrix() {
     transform_is_valid = false;
 }
 
-const glm::mat4 & transform::get_transform_matrix() {
+const glm::mat4 & transform::get_transform_matrix()
+{
     if (transform_is_valid) { update_transform_matrix(); }
     return mat_transform;
 }

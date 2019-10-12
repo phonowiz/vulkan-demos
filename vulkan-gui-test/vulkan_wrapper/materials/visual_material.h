@@ -72,7 +72,8 @@ namespace  vk
             get_uniform_parameters(stage, binding)[parameter_name].set_vectors_array(vecs, num_vectors);
         }
 
-        shader_parameter::shader_params_group& get_uniform_parameters(parameter_stage parameterStage, uint32_t binding);
+        shader_parameter::shader_params_group& get_uniform_parameters(parameter_stage stage, uint32_t binding);
+        visual_material::object_shader_params_group& get_dynamic_parameters(parameter_stage stage, uint32_t binding);
         
         ~visual_material();
     

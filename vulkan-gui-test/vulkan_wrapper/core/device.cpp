@@ -76,7 +76,7 @@ void device::create_logical_device( VkSurfaceKHR surface)
     if (vkCreateDevice(_physical_device, &create_info, nullptr, &_logical_device) != VK_SUCCESS) {
         throw std::runtime_error("failed to create logical device!");
     }
-
+    
     vkGetDeviceQueue(_logical_device, indices.graphics_family.value(), 0, &_graphics_queue);
     vkGetDeviceQueue(_logical_device, indices.present_family.value(), 0, &_present_queue);
     vkGetDeviceQueue(_logical_device, indices.compute_family.value(), 0, &_compute_queue);
@@ -98,7 +98,6 @@ void device::create_logical_device( VkSurfaceKHR surface)
     {
         create_command_pool(indices.compute_family.value(), &_compute_command_pool);
     }
-    
 }
 
 device::queue_family_indices device::find_queue_families( VkPhysicalDevice device, VkSurfaceKHR surface) {
@@ -185,19 +184,17 @@ void device::query_swapchain_support( VkPhysicalDevice device, VkSurfaceKHR surf
 
 void device::print_stats()
 {
-    VkPhysicalDeviceProperties properties;
-    vkGetPhysicalDeviceProperties(_physical_device, &properties);
-    
-    std::cout << "Name:                     " << properties.deviceName << std::endl;
-    uint32_t apiVer = properties.apiVersion;
+
+    std::cout << "Name:                     " << _properties.deviceName << std::endl;
+    uint32_t apiVer = _properties.apiVersion;
     std::cout << "API Version:              " << VK_VERSION_MAJOR(apiVer) << "." << VK_VERSION_MINOR(apiVer) << "." << VK_VERSION_PATCH(apiVer) << std::endl;
-    std::cout << "Driver Version:           " << properties.driverVersion << std::endl;
-    std::cout << "Vendor ID:                " << properties.vendorID << std::endl;
-    std::cout << "Device ID:                " << properties.deviceID << std::endl;
-    std::cout << "Device Type:              " << properties.deviceType << std::endl;
-    std::cout << "discreteQueuePriorities:  " << properties.limits.discreteQueuePriorities << std::endl;
+    std::cout << "Driver Version:           " << _properties.driverVersion << std::endl;
+    std::cout << "Vendor ID:                " << _properties.vendorID << std::endl;
+    std::cout << "Device ID:                " << _properties.deviceID << std::endl;
+    std::cout << "Device Type:              " << _properties.deviceType << std::endl;
+    std::cout << "discreteQueuePriorities:  " << _properties.limits.discreteQueuePriorities << std::endl;
     
-    VkPhysicalDeviceFeatures features;
+    VkPhysicalDeviceFeatures features {};
     
     vkGetPhysicalDeviceFeatures(_physical_device, &features);
     std::cout << "Geometry Shader:          " << features.geometryShader << std::endl;
@@ -433,13 +430,12 @@ void device::pick_physical_device(VkSurfaceKHR surface)
     
     for (const VkPhysicalDevice& device : devices)
     {
-        VkPhysicalDeviceProperties properties;
-        vkGetPhysicalDeviceProperties(device, &properties);
+        vkGetPhysicalDeviceProperties(device, &_properties);
         
         if (is_device_suitable(device, surface))
         {
             
-            if(properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
+            if(_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
             {
                 
                 _physical_device = device;
@@ -451,7 +447,7 @@ void device::pick_physical_device(VkSurfaceKHR surface)
                 continue;
 #endif
             }
-            else if( properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+            else if( _properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
             {
                 _physical_device = device;
 #ifdef __APPLE__

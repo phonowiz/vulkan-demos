@@ -16,6 +16,9 @@
 #include "../object.h"
 #include "../graphics_pipeline.h"
 
+#include "transform.h"
+
+
 
 namespace vk {
     
@@ -33,6 +36,8 @@ namespace vk {
         virtual void create();
         static const std::string _shape_resource_path;
         
+    public:
+        vk::transform transform;
     protected:
         
         std::vector<mesh*> _meshes;

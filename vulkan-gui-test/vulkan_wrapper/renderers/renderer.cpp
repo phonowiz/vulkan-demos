@@ -145,8 +145,6 @@ void renderer::create_command_buffers(VkCommandBuffer** command_buffers, VkComma
     delete[] *command_buffers;
     *command_buffers = new VkCommandBuffer[_swapchain->_swapchain_data.image_set.get_image_count()];
     
-    
-    
     VkResult result = vkAllocateCommandBuffers(_device->_logical_device, &command_buffer_allocate_info, *command_buffers);
     ASSERT_VULKAN(result);
 }
@@ -255,9 +253,9 @@ void renderer::record_command_buffers(obj_shape** shapes, size_t number_of_shape
         vkCmdSetScissor(_command_buffers[i], 0, 1, &scissor);
         
         
-        for( size_t j = 0; j < number_of_shapes; ++j)
+        for( uint32_t j = 0; j < number_of_shapes; ++j)
         {
-            shapes[j]->draw(_command_buffers[i], _pipeline);
+            shapes[j]->draw(_command_buffers[i], _pipeline, j);
         }
         
         vkCmdEndRenderPass(_command_buffers[i]);
@@ -340,8 +338,6 @@ void renderer::create_frame_buffers()
 }
 void renderer::create_pipeline()
 {
-    _pipeline.set_depth_enable(false);
-    //_pipeline.modify_attachment_blend(0, graphics_pipeline::write_channels::RGBA, false);
     _pipeline.create(_render_pass, _swapchain->_swapchain_data.swapchain_extent.width, _swapchain->_swapchain_data.swapchain_extent.height);
 
 }
@@ -355,8 +351,6 @@ void renderer::init()
     create_semaphores_and_fences();
     create_command_buffers(&_command_buffers, _device->_present_command_pool);
     
-    //we only support 1 mesh at the moment
-    //assert(_shapes.size() == 1);
     assert(_shapes.size() != 0);
     
 }

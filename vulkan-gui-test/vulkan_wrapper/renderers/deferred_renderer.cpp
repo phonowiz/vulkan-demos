@@ -36,7 +36,7 @@ _clear_texture_3d_pipeline(device, store.GET_MAT<compute_material>("clear_3d_tex
 _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world_dimensions.z)
 {
     int binding = 0;
-    _mrt_material->init_parameter("model", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
+    
     _mrt_material->init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
     _mrt_material->init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
     _mrt_material->init_parameter("lightPosition", visual_material::parameter_stage::VERTEX, glm::vec4(0), binding);
@@ -52,6 +52,8 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     
     _clear_texture_3d_pipeline.material->set_image_sampler(&_voxel_3d_texture,
                                                            "texture_3d", material_base::parameter_stage::COMPUTE, 0, material_base::usage_type::STORAGE_IMAGE);
+    
+    _clear_texture_3d_pipeline.material->commit_parameters_to_gpu();
     
     _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
                                          visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
@@ -280,7 +282,7 @@ void deferred_renderer::create_render_pass()
     render_pass_info.attachmentCount = static_cast<uint32_t>(attachment_descriptions.size());
     render_pass_info.subpassCount = 1;
     render_pass_info.pSubpasses = &subpass;
-    render_pass_info.dependencyCount = 2;
+    render_pass_info.dependencyCount = static_cast<uint32_t>(dependencies.size());
     render_pass_info.pDependencies = dependencies.data();
     
     vkCreateRenderPass(_device->_logical_device, &render_pass_info, nullptr, &_mrt_render_pass);
@@ -457,9 +459,9 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
         scissor.extent = { VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT};
         vkCmdSetScissor(_voxelize_command_buffers[i], 0, 1, &scissor);
         
-        for( size_t j = 0; j < number_of_meshes; ++j)
+        for( uint32_t j = 0; j < number_of_meshes; ++j)
         {
-            shapes[j]->draw(_voxelize_command_buffers[i], _voxelize_pipeline);
+            shapes[j]->draw(_voxelize_command_buffers[i], _voxelize_pipeline, j);
         }
         
         vkCmdEndRenderPass(_voxelize_command_buffers[i]);
@@ -550,9 +552,9 @@ void deferred_renderer::record_command_buffers(obj_shape** shapes, size_t number
             _swapchain->_swapchain_data.swapchain_extent.height};
         vkCmdSetScissor(_offscreen_command_buffers[i], 0, 1, &scissor);
         
-        for( size_t j = 0; j < number_of_shapes; ++j)
+        for( uint32_t j = 0; j < number_of_shapes; ++j)
         {
-            shapes[j]->draw(_offscreen_command_buffers[i], _mrt_pipeline);
+            shapes[j]->draw(_offscreen_command_buffers[i], _mrt_pipeline, j);
         }
         
         vkCmdEndRenderPass(_offscreen_command_buffers[i]);
@@ -602,8 +604,8 @@ VkSemaphore deferred_renderer::generate_voxel_texture(vk::camera &camera)
     vk::shader_parameter::shader_params_group& voxelize_vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     vk::shader_parameter::shader_params_group& voxelize_frag_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2);
     
-    _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
-                                         visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
+//    _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
+//                                         visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
     
     voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
     

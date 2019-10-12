@@ -82,6 +82,7 @@ namespace vk {
         void copy_buffer( VkCommandPool commandPool, VkQueue queue, VkBuffer src, VkBuffer dest, VkDeviceSize size);
         void create_command_pool(uint32_t queueIndex, VkCommandPool* pool);
         void wait_for_all_operations_to_finish();
+        VkPhysicalDeviceProperties get_properties() { return _properties; }
         
         virtual void destroy() override;
         device();
@@ -96,6 +97,7 @@ namespace vk {
         VkCommandPool       _graphics_command_pool = VK_NULL_HANDLE;
         VkCommandPool       _present_command_pool = VK_NULL_HANDLE;
         VkCommandPool       _compute_command_pool = VK_NULL_HANDLE;
+        VkPhysicalDeviceProperties _properties {};
 
     private:
         

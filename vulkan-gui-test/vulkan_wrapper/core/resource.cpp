@@ -52,7 +52,7 @@ void resource::create_buffer(VkDevice device, VkPhysicalDevice physical_device, 
     
     VkResult result = vkCreateBuffer(device, &buffer_create_info, nullptr, &buffer);
     ASSERT_VULKAN(result);
-    VkMemoryRequirements memory_requirements;
+    VkMemoryRequirements memory_requirements {};
     vkGetBufferMemoryRequirements(device, buffer, &memory_requirements);
     
     VkMemoryAllocateInfo memory_allocate_info = {};
@@ -86,4 +86,27 @@ uint32_t resource::find_memory_type_index( VkPhysicalDevice physical_device, uin
     }
     assert( result != -1 && "memory property not found");
     return result;
+}
+
+void* resource::aligned_alloc(size_t size, size_t alignment)
+{
+    void *data = nullptr;
+#if defined(_MSC_VER) || defined(__MINGW32__)
+    data = _aligned_malloc(size, alignment);
+#else
+    int res = posix_memalign(&data, alignment, size);
+    if (res != 0)
+        data = nullptr;
+#endif
+    
+    return data;
+}
+
+void resource::aligned_free(void* data)
+{
+#if    defined(_MSC_VER) || defined(__MINGW32__)
+    _aligned_free(data);
+#else
+    free(data);
+#endif
 }

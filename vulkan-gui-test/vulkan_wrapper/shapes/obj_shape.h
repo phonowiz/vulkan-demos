@@ -15,6 +15,7 @@
 #include "mesh.h"
 #include "../core/object.h"
 #include "../pipelines/graphics_pipeline.h"
+#include "transform.h"
 
 
 namespace vk {
@@ -29,12 +30,14 @@ namespace vk {
         
         virtual void destroy() override;
         
-        void draw(VkCommandBuffer commnad_buffer, vk::graphics_pipeline& pipeline);
+        void draw(VkCommandBuffer commnad_buffer, vk::graphics_pipeline& pipeline, uint32_t obj_id);
         
         virtual void create();
         static const std::string _shape_resource_path;
         
         virtual void set_diffuse(glm::vec3 diffuse);
+        
+        vk::transform transform;
 
     protected:
         

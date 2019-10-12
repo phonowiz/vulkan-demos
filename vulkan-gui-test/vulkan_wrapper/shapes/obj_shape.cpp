@@ -66,11 +66,11 @@ void obj_shape::create()
         ++i;
     }
 }
-void obj_shape::draw(VkCommandBuffer commnad_buffer, vk::graphics_pipeline& pipeline)
+void obj_shape::draw(VkCommandBuffer commnad_buffer, vk::graphics_pipeline& pipeline, uint32_t obj_id)
 {
     for( mesh* m : _meshes)
     {
-        m->draw(commnad_buffer, pipeline);
+        m->draw(commnad_buffer, pipeline, obj_id);
     }
 }
 

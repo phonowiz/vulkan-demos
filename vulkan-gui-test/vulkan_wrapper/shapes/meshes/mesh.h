@@ -18,7 +18,6 @@
 #include "visual_material.h"
 #include "graphics_pipeline.h"
 #include "compute_pipeline.h"
-#include "transform.h"
 
 #include "tiny_obj_loader.h"
 
@@ -56,7 +55,7 @@ namespace vk
         
         static const std::string _mesh_resource_path;
         
-        void draw(VkCommandBuffer command_buffer, vk::graphics_pipeline& pipeline);
+        void draw(VkCommandBuffer command_buffer, vk::graphics_pipeline& pipeline, uint32_t object_index);
         
         virtual void destroy() override;
     
@@ -68,10 +67,6 @@ namespace vk
         {
             return _indices;
         }
-        
-        inline void update_transform() { transform.update_transform_matrix(); }
-        
-        vk::transform transform;
         
     protected:
         
