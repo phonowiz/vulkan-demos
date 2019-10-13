@@ -62,8 +62,6 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _voxelize_pipeline._material->init_parameter("project_to_voxel_screen", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
     _voxelize_pipeline._material->init_parameter("voxel_coords", visual_material::parameter_stage::FRAGMENT, glm::vec3(1.0f), 2);
     
-    
-    _voxelize_pipeline._material->init_parameter("model", visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
     _voxelize_pipeline._material->init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
     _voxelize_pipeline._material->init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
     _voxelize_pipeline._material->init_parameter("light_position", visual_material::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
@@ -592,6 +590,11 @@ void deferred_renderer::perform_final_drawing_setup()
         _setup_initialized = true;
     }
     
+    for( int i = 0; i < _shapes.size(); ++i)
+    {
+        _voxelize_pipeline._material->get_dynamic_parameters(vk::visual_material::parameter_stage::VERTEX, 3)[i]["model"] = _shapes[i]->transform.get_transform_matrix();
+    }
+    
     _voxelize_pipeline._material->commit_parameters_to_gpu();
     _mrt_pipeline._material->commit_parameters_to_gpu();
     
@@ -604,14 +607,7 @@ VkSemaphore deferred_renderer::generate_voxel_texture(vk::camera &camera)
     vk::shader_parameter::shader_params_group& voxelize_vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     vk::shader_parameter::shader_params_group& voxelize_frag_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2);
     
-//    _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
-//                                         visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
-    
     voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
-    
-    //todo: objects right now are static, but in the futre we'll start moving them
-    glm::mat4 model = glm::mat4(1.0f);
-    voxelize_vertex_params["model"] = model;
     
     //clear voxel texture
     VkSubmitInfo submit_info = {};

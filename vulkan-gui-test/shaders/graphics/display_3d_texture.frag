@@ -16,7 +16,7 @@ float   max_samples = 300;
 
 layout(location = 0) in  vec3 frag_obj_pos;
 
-layout(binding = 1) uniform UBO
+layout(binding = 1, std140) uniform UBO
 {
     vec4  box_eye_position;
     float screen_height;

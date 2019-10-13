@@ -12,7 +12,7 @@ layout(location = 3) in vec3 frag_view_vec;
 layout(location = 0) out vec4 final_color;
 layout(binding = 1 ) writeonly restrict uniform image3D voxel_texture;
 
-layout(binding = 2) uniform UBO
+layout(binding = 2, std140) uniform UBO
 {
     mat4 inverse_view_projection;
     mat4 project_to_voxel_screen;

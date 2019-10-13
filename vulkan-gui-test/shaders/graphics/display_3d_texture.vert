@@ -11,13 +11,10 @@ layout(location = 0) out vec3 frag_obj_pos;
 
 
 //this is bound using the descriptor set, at binding 0 on the vertex side
-layout(binding = 0) uniform UBO
+layout(binding = 0, std140) uniform UBO
 {
     mat4 mvp;
     mat4 model;
-    mat4 view_matrix;
-    mat4 view_matrix_inverse;
-    mat4 projection_matrix;
     
 } ubo;
 
