@@ -33,7 +33,8 @@ namespace vk
         depth_image    _depth;
         
         render_texture _voxel_2d_view;
-        texture_3d _voxel_3d_texture;
+        texture_3d _voxel_albedo_texture;
+        texture_3d _voxel_normals_texture;
         
         visual_mat_shared_ptr _mrt_material = nullptr;
         visual_mat_shared_ptr _debug_material = nullptr;
@@ -54,7 +55,7 @@ namespace vk
         
         virtual vk::visual_mat_shared_ptr &  get_material() override { return _mrt_material; }
         
-        inline texture_3d* get_voxel_texture(){ return &_voxel_3d_texture;}
+        inline texture_3d* get_voxel_texture(){ return &_voxel_albedo_texture;}
         
         
         inline texture_2d* get_voxelizer_cam_texture( ){ return &_voxel_2d_view; }

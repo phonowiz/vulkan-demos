@@ -10,7 +10,9 @@ layout(location = 2) in vec3 frag_light_vec;
 layout(location = 3) in vec3 frag_view_vec;
 
 layout(location = 0) out vec4 final_color;
-layout(binding = 1 ) writeonly restrict uniform image3D voxel_texture;
+
+layout(binding = 1 ) writeonly restrict uniform image3D voxel_albedo_texture;
+layout(binding = 4 ) writeonly restrict uniform image3D voxel_normal_texture;
 
 layout(binding = 2, std140) uniform UBO
 {
@@ -62,7 +64,9 @@ void main()
     int voxel_width = int(ceil(ubo.voxel_coords.x * ndc.x));
     ivec3 voxel = ivec3(voxel_width, voxle_height, voxel_depth);
     
-    imageStore(voxel_texture, voxel, vec4(diffuse.xyz, .8f));
+    imageStore(voxel_albedo_texture, voxel, vec4(diffuse.xyz, .8f));
+    //TODO: We can likely shrink the size of the normal texture to a vec2 instead of a vec4
+    imageStore(voxel_normal_texture, voxel, vec4(N.xyz,1.0f));
 }
 
 

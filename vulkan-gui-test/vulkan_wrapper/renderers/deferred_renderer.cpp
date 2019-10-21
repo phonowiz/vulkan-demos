@@ -26,7 +26,8 @@ _positions(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain-
 _albedo(device, swapchain->_swapchain_data.swapchain_extent.width,swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _normals(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _voxel_2d_view(device, static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), render_texture::usage::COLOR_TARGET),
-_voxel_3d_texture(device, VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH),
+_voxel_albedo_texture(device, VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH),
+_voxel_normals_texture(device,VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH),
 _depth(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height,true),
 _screen_plane(device),
 _mrt_material(store.GET_MAT<visual_material>("mrt")),
@@ -46,17 +47,19 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     
     
     
-    assert(_voxel_3d_texture.get_height() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
-    assert(_voxel_3d_texture.get_width() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
-    assert(_voxel_3d_texture.get_depth() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
+    assert(_voxel_albedo_texture.get_height() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
+    assert(_voxel_albedo_texture.get_width() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
+    assert(_voxel_albedo_texture.get_depth() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
     
-    _clear_texture_3d_pipeline.material->set_image_sampler(&_voxel_3d_texture,
+    _clear_texture_3d_pipeline.material->set_image_sampler(&_voxel_albedo_texture,
                                                            "texture_3d", material_base::parameter_stage::COMPUTE, 0, material_base::usage_type::STORAGE_IMAGE);
     
     _clear_texture_3d_pipeline.material->commit_parameters_to_gpu();
     
-    _voxelize_pipeline.set_image_sampler(&_voxel_3d_texture, "voxel_texture",
+    _voxelize_pipeline.set_image_sampler(&_voxel_albedo_texture, "voxel_albedo_texture",
                                          visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
+    _voxelize_pipeline.set_image_sampler(&_voxel_normals_texture, "voxel_normal_texture",
+                                         visual_material::parameter_stage::FRAGMENT, 4, resource::usage_type::STORAGE_IMAGE);
     
     _voxelize_pipeline._material->init_parameter("inverse_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
     _voxelize_pipeline._material->init_parameter("project_to_voxel_screen", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
@@ -76,7 +79,7 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
                                             float(_voxel_world_dimensions.y/VOXEL_CUBE_HEIGHT),
                                             float(_voxel_world_dimensions.z/VOXEL_CUBE_DEPTH), 1.0f);
     
-    _material->init_parameter("voxel_world_scale", visual_material::parameter_stage::FRAGMENT, world_scale_voxel, 5);
+    _material->init_parameter("voxel_size_in_world_space", visual_material::parameter_stage::FRAGMENT, world_scale_voxel, 5);
     
     
     setup_sampling_rays();
@@ -96,12 +99,18 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _normals.init();
     _depth.init();
     
-    _voxel_3d_texture.set_filter(image::filter::NEAREST);
-    _voxel_3d_texture.set_enable_mipmapping(true);
+    _voxel_albedo_texture.set_filter(image::filter::NEAREST);
+    _voxel_albedo_texture.set_enable_mipmapping(true);
+    
+    _voxel_normals_texture.set_filter(image::filter::NEAREST);
+    _voxel_normals_texture.set_enable_mipmapping(true);
+
+    
+    _voxel_albedo_texture.init();
+    _voxel_normals_texture.init();
+    
     
     _voxel_2d_view.set_filter(image::filter::NEAREST);
-    
-    _voxel_3d_texture.init();
     _voxel_2d_view.init();
     
     _voxelize_pipeline.set_cullmode( graphics_pipeline::cull_mode::NONE);
@@ -420,17 +429,21 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
         ASSERT_VULKAN(result);
         
         // Image memory barrier to make sure that compute shader writes are finished before sampling from the texture
-        VkImageMemoryBarrier image_memory_barrier = {};
-        image_memory_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        std::array<VkImageMemoryBarrier, 2> image_memory_barrier = {};
+        image_memory_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         
         constexpr uint32_t VK_FLAGS_NONE = 0;
         // We won't be changing the layout of the image
-        image_memory_barrier.oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-        image_memory_barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-        image_memory_barrier.image = _voxel_3d_texture.get_image();
-        image_memory_barrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-        image_memory_barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        image_memory_barrier[0].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
+        image_memory_barrier[0].newLayout = VK_IMAGE_LAYOUT_GENERAL;
+        image_memory_barrier[0].image = _voxel_albedo_texture.get_image();
+        image_memory_barrier[0].subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+        image_memory_barrier[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+        image_memory_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        
+        image_memory_barrier[1] = image_memory_barrier[0];
+        image_memory_barrier[1].image = _voxel_normals_texture.get_image();
+        
         vkCmdPipelineBarrier(
                              _voxelize_command_buffers[i],
                              VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
@@ -438,7 +451,7 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
                              VK_FLAGS_NONE,
                              0, nullptr,
                              0, nullptr,
-                             1, &image_memory_barrier);
+                             image_memory_barrier.size(), image_memory_barrier.data());
         
         vkCmdBeginRenderPass(_voxelize_command_buffers[i], &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(_voxelize_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _voxelize_pipeline._pipeline);

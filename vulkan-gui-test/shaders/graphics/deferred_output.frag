@@ -23,7 +23,7 @@ layout(binding = 5, std140) uniform _rendering_state
     vec4 world_cam_position;
     vec4 world_light_position;
     vec4 light_color;
-    vec4 voxel_world_scale;
+    vec4 voxel_size_in_world_space;
     int state;
     vec4 sampling_rays[NUM_SAMPLING_RAYS];
     mat4 vox_view_projection;
@@ -48,9 +48,9 @@ int FULL_RENDERING = 4;
 
 float num_voxels_limit = 15.0f;
 
-vec3 dimension_inverse = 1.0f/ rendering_state.voxel_world_scale.xyz;
-vec3 distance_limit = num_voxels_limit * rendering_state.voxel_world_scale.xyz;
-vec3 one_over_distance_limit = 1.0f/rendering_state.voxel_world_scale.xyz;
+vec3 dimension_inverse = 1.0f/ rendering_state.voxel_size_in_world_space.xyz;
+vec3 distance_limit = num_voxels_limit * rendering_state.voxel_size_in_world_space.xyz;
+vec3 one_over_distance_limit = 1.0f/rendering_state.voxel_size_in_world_space.xyz;
 
 
 vec4  albedo_lod_colors[NUM_MIP_MAPS];
@@ -75,8 +75,8 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
     //note: direction is assumed to be normalized
     
     //note: the point of starting at voxel box instead of 0 is that we want to
-    //start sampling above the world position, see inside while loop below.
-    vec3 j = rendering_state.voxel_world_scale.xyz;
+    //start sampling above the world position of the surface, see inside while loop below.
+    vec3 j = rendering_state.voxel_size_in_world_space.xyz;
     //distance in terms of number of voxels to travel
     //float stop = length(distance_limit);
     //step is just advancing one voxel at a time
@@ -158,10 +158,11 @@ void ambient_occlusion(vec3 j, vec3 step, vec3 world_pos, inout vec4 sample_colo
 
 vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_position)
 {
+    //magic numbers chosen here were picked because it made the rendering look good.
     vec4 ambient = vec4(0.f);
     vec3 step = distance_limit.xyz / 6.0f;
     vec3 ambient_step = distance_limit.xyz /10.0f;
-    vec3 one_over_voxel_size = vec3(1.0f)/rendering_state.voxel_world_scale.xyz;
+    vec3 one_over_voxel_size = vec3(1.0f)/rendering_state.voxel_size_in_world_space.xyz;
     
     vec4 sample_color = vec4(0.0f);
     
@@ -170,10 +171,9 @@ vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_posi
         vec3 direction = rotation * rendering_state.sampling_rays[i].xyz;
         direction = normalize(direction) ;
         
-        
         collect_lod_colors(direction, incoming_position.xyz);
         
-        vec3 j = rendering_state.voxel_world_scale.xyz;
+        vec3 j = rendering_state.voxel_size_in_world_space.xyz;
         
         float k = 1.0f;
         int l = 0;
@@ -182,9 +182,9 @@ vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_posi
         
         while( l < 5)
         {
-            vec3 world_pos = m * direction + incoming_position.xyz;
+            vec3 world_sampling_position = m * direction + incoming_position.xyz;
             
-            ambient_occlusion( m, ambient_step, incoming_position, sample_color);
+            ambient_occlusion( m, ambient_step, world_sampling_position, sample_color);
             
             //TODO: more to do here...
             ++l;
@@ -275,6 +275,7 @@ void main()
         //vec4 color = voxel_cone_tracing(rotation, world_normal, world_position);
         //out_color = color;
         
+        //out_color = color;
         //final composite shot will be assembled here
         out_color = direct_illumination(vec4(0.0f), world_normal, world_position);
         
