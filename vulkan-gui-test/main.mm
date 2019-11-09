@@ -11,6 +11,9 @@
 #include <vulkan/vulkan_core.h>
 
 
+#include <MoltenVK/vk_mvk_moltenvk.h>
+#include <MoltenVK/mvk_vulkan.h>
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -302,7 +305,7 @@ int main()
     cornell_box.create();
     
     
-    dragon.transform.position = glm::vec3(.5f, 0.0f, 0.0f);
+    dragon.transform.position = glm::vec3(.5f, .50f, 0.0f);
     dragon.transform.update_transform_matrix();
     
     standard_mat = material_store.GET_MAT<vk::visual_material>("standard");
@@ -365,8 +368,8 @@ int main()
     app.user_controller = &user_controler;
     app.texture_3d_view_controller = &texture_3d_view_controller;
     
-    game_loop();
-    //game_loop_ortho(display_renderer);
+    //game_loop();
+    game_loop_ortho(display_renderer);
     
     mario.destroy();
     deferred_renderer.destroy();

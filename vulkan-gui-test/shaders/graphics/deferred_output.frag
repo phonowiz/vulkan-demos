@@ -24,10 +24,10 @@ layout(binding = 5, std140) uniform _rendering_state
     vec4 world_light_position;
     vec4 light_color;
     vec4 voxel_size_in_world_space;
-    int state;
+    int  state;
     vec4 sampling_rays[NUM_SAMPLING_RAYS];
     mat4 vox_view_projection;
-    int num_of_lods;
+    int  num_of_lods;
     
 }rendering_state;
 
@@ -59,9 +59,10 @@ vec4  normal_lod_colors[NUM_MIP_MAPS];
 
 bool within_clipping_space( vec4 pos)
 {
-    return (pos.w <= pos.x && pos.x <= pos.w) &&
-    (pos.w <= pos.y && pos.y <= pos.w) &&
-    (0.0f <= pos.z && pos.z <= pos.w);
+    return
+    (-pos.w <= pos.x && pos.x <= pos.w) &&
+    (-pos.w <= pos.y && pos.y <= pos.w) &&
+    (0 <= pos.z && pos.z <= pos.w);
 }
 bool within_texture_bounds( vec4 pos)
 {

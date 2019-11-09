@@ -13,6 +13,7 @@
 #include "glm/glm.hpp"
 #include "texture_2d.h"
 #include "texture_3d.h"
+#include "texture_2d_array.h"
 
 #include <map>
 #include "ordered_map.h"
@@ -45,6 +46,7 @@ namespace vk
             UINT,
             SAMPLER_2D,
             SAMPLER_3D,
+            SAMPLER_2D_ARRAY,
             VEC4_ARRAY,
             NONE
             
@@ -62,6 +64,7 @@ namespace vk
             unsigned int    uintValue;
             texture_2d*   sampler2D;
             texture_3d*   sampler3D;
+            texture_2d_array* sampler_2d_array;
             
             glm::mat4 mat4;
             bool     boolean;
@@ -121,6 +124,8 @@ namespace vk
                     return sizeof(texture_2d);
                 case Type::SAMPLER_3D:
                     return sizeof(texture_3d);
+                case Type::SAMPLER_2D_ARRAY:
+                    return sizeof(texture_2d_array);
                 case Type::VEC4_ARRAY:
                     return value.buffer.num_elements * sizeof(glm::vec4);
                 case Type::NONE:
@@ -152,6 +157,8 @@ namespace vk
                     return sizeof(texture_2d);
                 case Type::SAMPLER_3D:
                     return sizeof(texture_3d);
+                case Type::SAMPLER_2D_ARRAY:
+                    return sizeof(texture_2d_array);
                 case Type::VEC4_ARRAY:
                     return 4 * sizeof(float);
                 case Type::NONE:
@@ -195,14 +202,6 @@ namespace vk
                     break;
                 case Type::VEC4:
                     result =  aligned_size(get_std140_alignment(data_type), sizeof(glm::vec4));
-                    break;
-                case Type::SAMPLER_2D:
-                    assert(0);
-                    result = sizeof (texture_2d);
-                    break;
-                case Type::SAMPLER_3D:
-                    assert(0);
-                    result = sizeof (texture_3d);
                     break;
                 default:
                 {
@@ -279,14 +278,24 @@ namespace vk
             assert(type == Type::SAMPLER_3D);
             return value.sampler3D;
         }
+        inline texture_2d_array* get_texture_2d_array()
+        {
+            assert(type == Type::SAMPLER_2D_ARRAY);
+            return value.sampler_2d_array;
+        }
         
         inline image* get_image()
         {
-            assert(type == Type::SAMPLER_2D || type == Type::SAMPLER_3D);
+            assert(type == Type::SAMPLER_2D || type == Type::SAMPLER_3D || type == Type::SAMPLER_2D_ARRAY);
             
             if(type == Type::SAMPLER_2D)
             {
                 return static_cast<image*>(value.sampler2D);
+            }
+            
+            if(type == Type::SAMPLER_2D_ARRAY)
+            {
+                return static_cast<image*>(value.sampler_2d_array);
             }
             
             return static_cast<image*>(value.sampler3D);
@@ -361,6 +370,15 @@ namespace vk
             assert( type == Type::NONE || type == Type::UINT);
             type = Type::UINT;
             this->value.intValue = value;
+            
+            return *this;
+        }
+        
+        inline shader_parameter& operator=(texture_2d_array* sampler)
+        {
+            assert( type == Type::NONE || type == Type::SAMPLER_2D_ARRAY);
+            type = Type::SAMPLER_2D_ARRAY;
+            this->value.sampler_2d_array = sampler;
             
             return *this;
         }
@@ -463,6 +481,12 @@ namespace vk
         {
             value.sampler3D = _value;
             type = Type::SAMPLER_3D;
+        }
+        
+        shader_parameter(texture_2d_array* _value)
+        {
+            value.sampler_2d_array = _value;
+            type = Type::SAMPLER_2D_ARRAY;
         }
         
     private:

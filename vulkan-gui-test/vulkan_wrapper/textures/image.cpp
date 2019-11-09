@@ -10,12 +10,10 @@
 
 using namespace vk;
 
-void image::create_image(  VkFormat format, VkImageTiling tiling,
-                         VkImageUsageFlags usage_flags, VkMemoryPropertyFlags property_flags)
+
+VkImageCreateInfo image::get_image_create_info(VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage_flags)
 {
-    
     VkImageCreateInfo image_create_info = {};
-    
     
     image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     image_create_info.pNext  = nullptr;
@@ -30,6 +28,16 @@ void image::create_image(  VkFormat format, VkImageTiling tiling,
     image_create_info.samples = VK_SAMPLE_COUNT_1_BIT;
     image_create_info.tiling = tiling;
     image_create_info.usage = usage_flags;
+    
+    return image_create_info;
+}
+
+void image::create_image(  VkFormat format, VkImageTiling tiling,
+                         VkImageUsageFlags usage_flags, VkMemoryPropertyFlags property_flags)
+{
+    
+    VkImageCreateInfo image_create_info = get_image_create_info(format, tiling, usage_flags);
+    
     //the following assignment depends on this assumption:
     assert(_device->_present_queue == _device->_graphics_queue);
     image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -53,103 +61,10 @@ void image::create_image(  VkFormat format, VkImageTiling tiling,
     
     ASSERT_VULKAN(result);
     
-    vkBindImageMemory(_device->_logical_device, _image, _image_memory, 0);
-    
+    result = vkBindImageMemory(_device->_logical_device, _image, _image_memory, 0);
+    ASSERT_VULKAN(result);
 }
 
-//the following code is based off of: https://vulkan-tutorial.com/Generating_Mipmaps
-void image::generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQueue queue,
-                             int32_t width, int32_t height, int32_t depth)
-{
-    VkCommandBuffer command_buffer = _device->start_single_time_command_buffer(command_pool);
-    
-    VkImageMemoryBarrier barrier = {};
-    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-    barrier.image = image;
-    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    barrier.subresourceRange.baseArrayLayer = 0;
-    barrier.subresourceRange.layerCount = 1;
-    barrier.subresourceRange.levelCount = 1;
-    
-    int32_t mip_width = width;
-    int32_t mip_height = height;
-    int32_t mip_depth = depth;
-    
-    for (uint32_t i = 1; i < _mip_levels; i++) {
-        
-        //this barrier will transition the previous mip level to VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL.  Upon creation
-        //the image is set to VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL.  This is because when the blit happens,
-        //the previous level must be src optimal
-        barrier.subresourceRange.baseMipLevel = i - 1;
-        barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-        barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-        barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-        
-        vkCmdPipelineBarrier(command_buffer,
-                             VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
-                             0, nullptr,
-                             0, nullptr,
-                             1, &barrier);
-        
-        //here we create the current mip level
-        VkImageBlit blit = {};
-        blit.srcOffsets[0] = {0, 0, 0};
-        blit.srcOffsets[1] = {mip_width, mip_height, mip_depth};
-        blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        blit.srcSubresource.mipLevel = i - 1;
-        blit.srcSubresource.baseArrayLayer = 0;
-        blit.srcSubresource.layerCount = 1;
-        blit.dstOffsets[0] = {0, 0, 0};
-        blit.dstOffsets[1] = { mip_width > 1 ? mip_height / 2 : 1, mip_height > 1 ? mip_height / 2 : 1,
-            mip_depth > 1 ? mip_depth /2 : 1 };
-        
-        blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        blit.dstSubresource.mipLevel = i;
-        blit.dstSubresource.baseArrayLayer = 0;
-        blit.dstSubresource.layerCount = 1;
-        
-        vkCmdBlitImage(command_buffer,
-                       image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                       image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                       1, &blit,
-                       VK_FILTER_LINEAR);
-        
-        barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-        barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        
-        //finally we switch the current mip level to VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT for shader sampling
-        vkCmdPipelineBarrier(command_buffer,
-                             VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
-                             0, nullptr,
-                             0, nullptr,
-                             1, &barrier);
-        
-        if (mip_width > 1) mip_width /= 2;
-        if (mip_height > 1) mip_height /= 2;
-        if (mip_depth > 1 ) mip_depth /= 2;
-    }
-    
-    //this last barrier is needed because the very last mip level is
-    //not set to shader read optimal by the loop above
-    barrier.subresourceRange.baseMipLevel = _mip_levels - 1;
-    barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-    
-    vkCmdPipelineBarrier(command_buffer,
-                         VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
-                         0, nullptr,
-                         0, nullptr,
-                         1, &barrier);
-    _device->end_single_time_command_buffer(queue, command_pool, command_buffer);
-    
-}
 void image::change_image_layout(VkCommandPool command_pool, VkQueue queue, VkImage image,
                                 VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout)
 {
@@ -215,7 +130,7 @@ void image::change_image_layout(VkCommandPool command_pool, VkQueue queue, VkIma
     image_memory_barrier.subresourceRange.baseMipLevel = 0;
     image_memory_barrier.subresourceRange.levelCount = _mip_levels;
     image_memory_barrier.subresourceRange.baseArrayLayer = 0;
-    image_memory_barrier.subresourceRange.layerCount = 1;
+    image_memory_barrier.subresourceRange.layerCount = _depth;
     
     vkCmdPipelineBarrier(command_buffer,
                          source_stage, //operations in this pipeline stage should occur before the barrier
@@ -246,7 +161,7 @@ void image::write_buffer_to_image(VkCommandPool commandPool, VkQueue queue, VkBu
     buffer_image_copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     buffer_image_copy.imageSubresource.mipLevel = 0;
     buffer_image_copy.imageSubresource.baseArrayLayer = 0;
-    buffer_image_copy.imageSubresource.layerCount = 1;
+    buffer_image_copy.imageSubresource.layerCount = _depth;
     buffer_image_copy.imageOffset = { 0, 0, 0};
     buffer_image_copy.imageExtent = { static_cast<uint32_t>(get_width()),
         static_cast<uint32_t>(get_height()),

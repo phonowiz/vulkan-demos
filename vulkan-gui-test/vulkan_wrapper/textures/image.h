@@ -29,6 +29,7 @@ namespace vk
         bool is_stencil_format(VkFormat format);
         
         virtual void destroy() override;
+        virtual VkImageCreateInfo get_image_create_info( VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage_flags);
         
         virtual ~image(){}
         
@@ -70,12 +71,6 @@ namespace vk
             return _depth;
         }
         
-        inline void set_enable_mipmapping(bool b)
-        {
-            _enable_mipmapping = b;
-        }
-        
-        
         device*         _device = nullptr;
         VkImage         _image =        VK_NULL_HANDLE;
         VkDeviceMemory  _image_memory =  VK_NULL_HANDLE;
@@ -106,9 +101,9 @@ namespace vk
         
         void set_filter( image::filter filter){ _filter = filter; }
         
-        void generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQueue queue, int32_t width, int32_t height, int32_t depth = 1);
         virtual const void* const get_instance_type() = 0;
         virtual void init() = 0;
+    
     protected:
         
         formats _format = formats::R8G8B8A8_SIGNED_NORMALIZED;
@@ -128,9 +123,6 @@ namespace vk
         uint32_t _height = 0;
         uint32_t _depth = 1;
         uint32_t _mip_levels = 1;
-        
-        bool _enable_mipmapping = false;
-        
     };
 }
 

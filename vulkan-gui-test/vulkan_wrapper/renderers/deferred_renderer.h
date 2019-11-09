@@ -123,8 +123,8 @@ namespace vk
         glm::vec4 _light_pos = glm::vec4(.5f, .5f, 0.0f, 1.0f);
         glm::vec4 _light_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
         
-        //TODO: on my mid 2014 macbook pro, the number of frames is 2, this could change in other platforms
-        static constexpr uint32_t NUM_OF_FRAMES = 2;
+        //TODO: on my mid 2014 macbook pro, the number of frames is 3, this could change in other platforms
+        static constexpr uint32_t NUM_OF_FRAMES = 3;
         
         
         std::array<VkFence, NUM_OF_FRAMES> _g_buffers_fence {};

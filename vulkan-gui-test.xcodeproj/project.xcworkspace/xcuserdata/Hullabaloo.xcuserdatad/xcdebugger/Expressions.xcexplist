@@ -3,10 +3,15 @@
    version = "1.0">
    <ContextStates>
       <ContextState
-         contextName = "createImage(VkDevice_T*, VkPhysicalDevice_T*, unsigned int, unsigned int, VkFormat, VkImageTiling, unsigned int, unsigned int, VkImage_T*&amp;, VkDeviceMemory_T*&amp;):vulkan_utils.h">
+         contextName = "vk::deferred_renderer::generate_voxel_texture(vk::camera&amp;):deferred_renderer.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "MVKQueueSubmission::recordResult(VkResult):MVKQueue.mm">
+         contextName = "createImage(VkDevice_T*, VkPhysicalDevice_T*, unsigned int, unsigned int, VkFormat, VkImageTiling, unsigned int, unsigned int, VkImage_T*&amp;, VkDeviceMemory_T*&amp;):vulkan_utils.h">
       </ContextState>
       <ContextState
          contextName = "ordered_map&lt;vk::material_base::parameter_stage, ordered_map&lt;unsigned int, ordered_map&lt;char const*, vk::shader_parameter&gt; &gt; &gt;::size():ordered_map.h">
@@ -15,6 +20,9 @@
                value = "_vec">
             </PersistentString>
          </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "MVKQueueSubmission::recordResult(VkResult):MVKQueue.mm">
       </ContextState>
       <ContextState
          contextName = "update_3d_texture_rendering_params(vk::renderer&amp;):main.mm">
@@ -71,15 +79,15 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
+         contextName = "vk::depth_image::get_depth_attachment():depth_image.cpp">
+      </ContextState>
+      <ContextState
          contextName = "MVKDescriptorBinding::writeBindings(unsigned int, unsigned int, unsigned int, unsigned long, void const*):MVKDescriptorSet.mm">
          <PersistentStrings>
             <PersistentString
                value = "_bufferBindings[0]">
             </PersistentString>
          </PersistentStrings>
-      </ContextState>
-      <ContextState
-         contextName = "vk::depth_image::get_depth_attachment():depth_image.cpp">
       </ContextState>
       <ContextState
          contextName = "MVKRenderSubpass::getColorAttachmentFormat(unsigned int):MVKRenderPass.mm">
@@ -229,10 +237,10 @@
          contextName = "vk::material::create_descriptor_set_layout():material.cpp">
          <PersistentStrings>
             <PersistentString
-               value = "pair.first">
+               value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
             </PersistentString>
             <PersistentString
-               value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
+               value = "pair.first">
             </PersistentString>
             <PersistentString
                value = "pair2.first">
@@ -250,6 +258,12 @@
          <PersistentStrings>
             <PersistentString
                value = "pair.second.usage_type">
+            </PersistentString>
+            <PersistentString
+               value = "descriptor_pool_sizes[count]">
+            </PersistentString>
+            <PersistentString
+               value = "pair2.second.usage_type">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -273,10 +287,10 @@
          contextName = "vk::material::create_descriptor_sets():material.cpp">
          <PersistentStrings>
             <PersistentString
-               value = "write_descriptor_sets[count].dstBinding">
+               value = "pair2.first">
             </PersistentString>
             <PersistentString
-               value = "pair2.first">
+               value = "write_descriptor_sets[count].dstBinding">
             </PersistentString>
             <PersistentString
                value = " _descriptor_set_layout_bindings[count].binding">

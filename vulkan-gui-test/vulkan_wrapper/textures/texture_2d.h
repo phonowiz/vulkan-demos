@@ -46,14 +46,27 @@ namespace vk
         virtual const void* const get_instance_type() override { return _image_type; };
         static const void* const  get_class_type(){ return _image_type; }
         
+        void generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQueue queue,
+                              int32_t width, int32_t height, int32_t depth = 1);
+        
+        inline void refresh_mimaps()
+        {
+            generate_mipmaps(_image, _device->_graphics_command_pool, _device->_graphics_queue, _width, _height, _depth);
+        }
+        
+        inline void set_enable_mipmapping(bool b)
+        {
+            _enable_mipmapping = b;
+        }
+        
         static const std::string texture_resource_path;
         
     protected:
         virtual void create_sampler() override;
+        bool _enable_mipmapping = false;
     private:
         
         static constexpr void* _image_type = nullptr;
-        
         
         bool _loaded = false;
         bool _initialized = false;

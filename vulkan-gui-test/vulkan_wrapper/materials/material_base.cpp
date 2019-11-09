@@ -48,6 +48,7 @@ void material_base::create_descriptor_sets()
         {
             descriptor_image_infos[count].sampler = pair2.second.get_image()->get_sampler();
             descriptor_image_infos[count].imageView = pair2.second.get_image()->get_image_view();
+            //TODO: the following needs to change according to the layout the texture is in, it may not always be read_only_optimal
             descriptor_image_infos[count].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             
             write_descriptor_sets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
