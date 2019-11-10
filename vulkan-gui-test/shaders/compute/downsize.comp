@@ -1,0 +1,50 @@
+
+
+#version 450
+
+// Author:    Rafael Sabino
+// Date:    04/11/2018
+
+//this shader will down sample a texture by taking the average of surrounding texels and writing this average to destination
+
+layout (local_size_x = 8, local_size_y = 8, local_size_z = 8) in;
+
+readonly layout (binding = 0, rgba32f)  uniform   image3D r_texture_1;
+readonly layout (binding = 1, rgba32f)   uniform  image3D r_texture_2;
+
+layout (binding = 2, rgba32f) uniform  writeonly image3D w_texture_1;
+layout (binding = 3, rgba32f) uniform  writeonly image3D w_texture_2;
+
+
+void main()
+{
+    ivec3 coord = ivec3(gl_GlobalInvocationID.xyz);
+    
+    //typically I would make a function that would handle this code, but at the moment passing
+    //image types to a function is being discussed by khronos, please see:
+    //https://github.com/KhronosGroup/glslang/issues/1720
+    
+    vec4 value1 = imageLoad(r_texture_1, ivec3(  coord.x * 2,    coord.y * 2,    coord.z * 2)) +
+    imageLoad(r_texture_1, ivec3(coord.x * 2 + 1, coord.y * 2,    coord.z * 2)) +
+    imageLoad(r_texture_1, ivec3(coord.x * 2,     coord.y * 2 + 1,coord.z * 2)) +
+    imageLoad(r_texture_1, ivec3(coord.x * 2 + 1, coord.y * 2 + 1,coord.z * 2)) +
+    imageLoad(r_texture_1, ivec3(coord.x * 2,     coord.y * 2,    coord.z * 2+ 1)) +
+    imageLoad(r_texture_1, ivec3(coord.x * 2 + 1, coord.y * 2,    coord.z * 2+ 1)) +
+    imageLoad(r_texture_1, ivec3(coord.x * 2,     coord.y * 2 + 1,coord.z * 2+ 1)) +
+    imageLoad(r_texture_1, ivec3(coord.x * 2 + 1, coord.y * 2 + 1,coord.z * 2+ 1));
+    value1 *= 0.125f;
+    
+    //repeated code as above, but different image
+    vec4 value2 = imageLoad(r_texture_2, ivec3(  coord.x * 2,    coord.y * 2,    coord.z * 2)) +
+    imageLoad(r_texture_2, ivec3(coord.x * 2 + 1, coord.y * 2,    coord.z * 2)) +
+    imageLoad(r_texture_2, ivec3(coord.x * 2,     coord.y * 2 + 1,coord.z * 2)) +
+    imageLoad(r_texture_2, ivec3(coord.x * 2 + 1, coord.y * 2 + 1,coord.z * 2)) +
+    imageLoad(r_texture_2, ivec3(coord.x * 2,     coord.y * 2,    coord.z * 2+ 1)) +
+    imageLoad(r_texture_2, ivec3(coord.x * 2 + 1, coord.y * 2,    coord.z * 2+ 1)) +
+    imageLoad(r_texture_2, ivec3(coord.x * 2,     coord.y * 2 + 1,coord.z * 2+ 1)) +
+    imageLoad(r_texture_2, ivec3(coord.x * 2 + 1, coord.y * 2 + 1,coord.z * 2+ 1));
+    value2 *= 0.125f;
+    
+    imageStore(w_texture_1, coord, value1);
+    imageStore(w_texture_2, coord, value2);
+}

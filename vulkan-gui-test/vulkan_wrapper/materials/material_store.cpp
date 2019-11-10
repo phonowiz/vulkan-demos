@@ -44,6 +44,7 @@ void material_store::create(device* device)
     shader_shared_ptr voxel_shader_frag = add_shader("graphics/voxelize.frag", shader::shader_type::FRAGMENT);
     
     shader_shared_ptr clear_3d_texture_comp =  add_shader("./compute/clear_3d_texture.comp", shader::shader_type::COMPUTE);
+    shader_shared_ptr avg_texture_comp = add_shader("./compute/downsize.comp", shader::shader_type::COMPUTE);
     
     
     mat_shared_ptr standard_mat = CREATE_MAT<visual_material>("standard", standard_vert, standard_frag, device);
@@ -68,6 +69,9 @@ void material_store::create(device* device)
     
     mat_shared_ptr clear_3d_texture = CREATE_MAT<compute_material>("clear_3d_texture", clear_3d_texture_comp, device);
     add_material(clear_3d_texture);
+
+    mat_shared_ptr downsize = CREATE_MAT<compute_material>("downsize", avg_texture_comp, device);
+    add_material(downsize);
 }
 
 void material_store::add_material( mat_shared_ptr material)
