@@ -119,5 +119,16 @@ public:
         _vec.push_back(p);
         return _vec.back().second;
     }
+    
+    ordered_map<_key, _value>& operator=( const ordered_map<_key, _value>& right)
+    {
+        for( auto& element : right._vec)
+        {
+            _vec.push_back(element);
+        }
+        _frozen = false;
+        return *this;
+    }
+    
 };
 

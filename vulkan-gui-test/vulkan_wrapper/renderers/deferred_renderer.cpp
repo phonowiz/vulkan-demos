@@ -12,6 +12,7 @@
 #include "../shapes/meshes/mesh.h"
 
 #include <iostream>
+#include <assert.h>
 using namespace vk;
 
 
@@ -23,18 +24,39 @@ using namespace vk;
 
 deferred_renderer::deferred_renderer(device* device, GLFWwindow* window, vk::swapchain* swapchain, vk::material_store& store):
 renderer(device, window, swapchain, store.GET_MAT<visual_material>("deferred_output")),
+
 _positions(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _albedo(device, swapchain->_swapchain_data.swapchain_extent.width,swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _normals(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _voxel_2d_view(device, static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), render_texture::usage::COLOR_TARGET),
-_voxel_albedo_texture(device, VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH),
-_voxel_normals_texture(device,VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH),
+
+_voxel_albedo_tex(device, VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH),
+
+_voxel_albedo_tex_1(device, VOXEL_CUBE_WIDTH/2, VOXEL_CUBE_WIDTH/2, VOXEL_CUBE_WIDTH/2),
+_voxel_albedo_tex_2(device, VOXEL_CUBE_WIDTH/4, VOXEL_CUBE_WIDTH/4, VOXEL_CUBE_DEPTH/4),
+_voxel_albedo_tex_3(device, VOXEL_CUBE_WIDTH/8, VOXEL_CUBE_HEIGHT/8, VOXEL_CUBE_DEPTH/8),
+
+_voxel_normals_tex_1(device, VOXEL_CUBE_WIDTH/2, VOXEL_CUBE_HEIGHT/2, VOXEL_CUBE_DEPTH/2),
+_voxel_normals_tex_2(device, VOXEL_CUBE_WIDTH/4, VOXEL_CUBE_HEIGHT/4, VOXEL_CUBE_DEPTH/4),
+_voxel_normals_tex_3(device, VOXEL_CUBE_WIDTH/8, VOXEL_CUBE_HEIGHT/8, VOXEL_CUBE_DEPTH/8),
+
+_voxel_normals_tex(device,VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH),
 _depth(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height,true),
 _screen_plane(device),
 _mrt_material(store.GET_MAT<visual_material>("mrt")),
 _mrt_pipeline(device),
 _voxelize_pipeline(device, store.GET_MAT<visual_material>("voxelizer")),
-_clear_texture_3d_pipeline(device, store.GET_MAT<compute_material>("clear_3d_texture")),
+
+_clear_texture_3d_pipeline_1(device, store.GET_MAT<compute_material>("clear_3d_texture")),
+_clear_texture_3d_pipeline_2(device, store.GET_MAT<compute_material>("clear_3d_texture")),
+_clear_texture_3d_pipeline_3(device, store.GET_MAT<compute_material>("clear_3d_texture")),
+_clear_texture_3d_pipeline_4(device, store.GET_MAT<compute_material>("clear_3d_texture")),
+
+_create_voxel_mip_maps_1(device, store.GET_MAT<compute_material>("downsize")),
+_create_voxel_mip_maps_2(device, store.GET_MAT<compute_material>("downsize")),
+_create_voxel_mip_maps_3(device, store.GET_MAT<compute_material>("downsize")),
+
+
 _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world_dimensions.z)
 {
     int binding = 0;
@@ -46,20 +68,13 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _material->init_parameter("width", visual_material::parameter_stage::VERTEX, 0.f, 0);
     _material->init_parameter("height", visual_material::parameter_stage::VERTEX, 0.f, 0);
     
+    assert(_voxel_albedo_tex.get_height() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
+    assert(_voxel_albedo_tex.get_width() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
+    assert(_voxel_albedo_tex.get_depth() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
     
-    
-    assert(_voxel_albedo_texture.get_height() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
-    assert(_voxel_albedo_texture.get_width() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
-    assert(_voxel_albedo_texture.get_depth() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
-    
-    _clear_texture_3d_pipeline.material->set_image_sampler(&_voxel_albedo_texture,
-                                                           "texture_3d", material_base::parameter_stage::COMPUTE, 0, material_base::usage_type::STORAGE_IMAGE);
-    
-    _clear_texture_3d_pipeline.material->commit_parameters_to_gpu();
-    
-    _voxelize_pipeline.set_image_sampler(&_voxel_albedo_texture, "voxel_albedo_texture",
+    _voxelize_pipeline.set_image_sampler(&_voxel_albedo_tex, "voxel_albedo_texture",
                                          visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
-    _voxelize_pipeline.set_image_sampler(&_voxel_normals_texture, "voxel_normal_texture",
+    _voxelize_pipeline.set_image_sampler(&_voxel_normals_tex, "voxel_normal_texture",
                                          visual_material::parameter_stage::FRAGMENT, 4, resource::usage_type::STORAGE_IMAGE);
     
     _voxelize_pipeline._material->init_parameter("inverse_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
@@ -86,11 +101,16 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _material->init_parameter("vox_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
     _material->init_parameter("num_of_lods", visual_material::parameter_stage::FRAGMENT, int(0), 5);
     
-    _material->set_image_sampler(&_voxel_normals_texture, "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-    _material->set_image_sampler(&_voxel_albedo_texture, "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _material->set_image_sampler(&_voxel_normals_tex, "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _material->set_image_sampler(&_voxel_albedo_tex, "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     
-
+    _material->set_image_sampler(&_voxel_albedo_tex_1, "voxel_albedos1", visual_material::parameter_stage::FRAGMENT, 8, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _material->set_image_sampler(&_voxel_albedo_tex_2, "voxel_albedos2", visual_material::parameter_stage::FRAGMENT, 9, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _material->set_image_sampler(&_voxel_albedo_tex_3, "voxel_albedos3", visual_material::parameter_stage::FRAGMENT, 10, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     
+    _material->set_image_sampler(&_voxel_normals_tex_1, "voxel_normals1", visual_material::parameter_stage::FRAGMENT, 11, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _material->set_image_sampler(&_voxel_normals_tex_2, "voxel_normals2", visual_material::parameter_stage::FRAGMENT, 12, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _material->set_image_sampler(&_voxel_normals_tex_3, "voxel_normals3", visual_material::parameter_stage::FRAGMENT, 13, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     //_material->print_uniform_argument_names();
     
     _positions.set_filter(image::filter::NEAREST);
@@ -103,21 +123,31 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _normals.init();
     _depth.init();
     
-    _voxel_albedo_texture.set_filter(image::filter::NEAREST);
+    _voxel_albedo_tex.set_filter(image::filter::NEAREST);
+    _voxel_albedo_tex_1.set_filter(image::filter::NEAREST);
+    _voxel_albedo_tex_2.set_filter(image::filter::NEAREST);
+    _voxel_albedo_tex_3.set_filter(image::filter::NEAREST);
     
-    _voxel_normals_texture.set_filter(image::filter::NEAREST);
+    _voxel_normals_tex.set_filter(image::filter::NEAREST);
+    _voxel_normals_tex_1.set_filter(image::filter::NEAREST);
+    _voxel_normals_tex_2.set_filter(image::filter::NEAREST);
+    _voxel_normals_tex_3.set_filter(image::filter::NEAREST);
 
+    _voxel_albedo_tex.init();
+    _voxel_albedo_tex_1.init();
+    _voxel_albedo_tex_2.init();
+    _voxel_albedo_tex_3.init();
     
-    _voxel_albedo_texture.init();
-    _voxel_normals_texture.init();
-    
+    _voxel_normals_tex.init();
+    _voxel_normals_tex_1.init();
+    _voxel_normals_tex_2.init();
+    _voxel_normals_tex_3.init();
     
     _voxel_2d_view.set_filter(image::filter::NEAREST);
     _voxel_2d_view.init();
     
     _voxelize_pipeline.set_cullmode( graphics_pipeline::cull_mode::NONE);
     _voxelize_pipeline.set_depth_enable(false);
-    
     
     _mrt_pipeline.set_material(_mrt_material);
     _pipeline.set_material(_material);
@@ -126,10 +156,66 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     
     create_command_buffers(&_offscreen_command_buffers, _device->_graphics_command_pool);
     create_command_buffers(&_voxelize_command_buffers, _device->_graphics_command_pool);
-    create_command_buffers(&_clear_3d_texture_command_buffers, _device->_compute_command_pool);
+    
+    create_command_buffers(&_clear_3d_texture_command_buffers_1, _device->_compute_command_pool);
+    create_command_buffers(&_clear_3d_texture_command_buffers_2, _device->_compute_command_pool);
+    create_command_buffers(&_clear_3d_texture_command_buffers_3, _device->_compute_command_pool);
+    create_command_buffers(&_clear_3d_texture_command_buffers_4, _device->_compute_command_pool);
+    
+    create_command_buffers(&_generate_3d_mip_maps_1_commands, _device->_compute_command_pool);
+    create_command_buffers(&_generate_3d_mip_maps_2_commands, _device->_compute_command_pool);
+    create_command_buffers(&_generate_3d_mip_maps_3_commands, _device->_compute_command_pool);
 }
 
+void deferred_renderer::create_voxel_texture_pipelines()
+{
+    std::array<texture_3d, 4> albedo_textures = {_voxel_albedo_tex, _voxel_albedo_tex_1, _voxel_albedo_tex_2, _voxel_albedo_tex_3};
+    std::array<texture_3d, 4> normal_textures = {_voxel_normals_tex, _voxel_normals_tex_1, _voxel_normals_tex_2, _voxel_normals_tex_3};
+    std::array<compute_pipeline, 4> clear_pipelines = {_clear_texture_3d_pipeline_1, _clear_texture_3d_pipeline_2, _clear_texture_3d_pipeline_3, _clear_texture_3d_pipeline_4};
+    std::array<compute_pipeline, 3> mip_map_pipelines = {_create_voxel_mip_maps_1, _create_voxel_mip_maps_2, _create_voxel_mip_maps_3};
+    
+    for( int i = 0; i < clear_pipelines.size(); ++i)
+    {
+        clear_pipelines[i].material->set_image_sampler(&albedo_textures[i],
+                                                               "texture_3d", material_base::parameter_stage::COMPUTE, 0, material_base::usage_type::STORAGE_IMAGE);
+        clear_pipelines[i].material->commit_parameters_to_gpu();
+    }
+    
+    for(int i =0; i < mip_map_pipelines.size(); ++i)
+    {
+        mip_map_pipelines[i].material->set_image_sampler(&albedo_textures[i], "r_texture_1", material_base::parameter_stage::COMPUTE,
+                                                        0, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        mip_map_pipelines[i].material->set_image_sampler(&normal_textures[i], "r_texture_2", material_base::parameter_stage::COMPUTE,
+                                                        1, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        mip_map_pipelines[i].material->set_image_sampler(&albedo_textures[i + 1], "w_texture_1", material_base::parameter_stage::COMPUTE,
+                                                        2, material_base::usage_type::STORAGE_IMAGE);
+        mip_map_pipelines[i].material->set_image_sampler(&normal_textures[i + 1], "w_texture_2", material_base::parameter_stage::COMPUTE,
+                                                        3, material_base::usage_type::STORAGE_IMAGE);
+        
+        mip_map_pipelines[i].material->commit_parameters_to_gpu();
+    }
+    
+    //create_3d_texture_mipmaps_pipelines();
+}
 
+//void deferred_renderer::create_3d_texture_mipmaps_pipelines()
+//{
+//    std::array<texture_3d, 4> mip_map_textures= {_voxel_albedo_tex, _voxel_albedo_tex_1, _voxel_albedo_tex_2, _voxel_albedo_tex_3};
+//    std::array<compute_pipeline, 3> mip_map_compute_pipelines = {_create_voxel_mip_maps_1, _create_voxel_mip_maps_2, _create_voxel_mip_maps_3};
+//
+//    for( int i = 0; i < mip_map_compute_pipelines.size(); ++i)
+//    {
+//        mip_map_compute_pipelines[i].material->set_image_sampler(&mip_map_textures[i],
+//            "r_texture_1", material_base::parameter_stage::COMPUTE, 0, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+//        mip_map_compute_pipelines[i].material->set_image_sampler(&mip_map_textures[i + 1],
+//            "w_texture_1", material_base::parameter_stage::COMPUTE, 2, material_base::usage_type::STORAGE_IMAGE);
+//
+//        mip_map_compute_pipelines[i].material->commit_parameters_to_gpu();
+//    }
+////    _create_texture_3d_mip_maps.material->set_image_sampler(&_voxel_albedo_texture,
+////    "w_texture_1", material_base::parameter_stage::COMPUTE, 0, material_base::usage_type::STORAGE_IMAGE);
+//
+//}
 void deferred_renderer::setup_sampling_rays()
 {
     glm::vec4 up = glm::vec4(0.0f, 1.0f, .0f, 0.0f);
@@ -307,8 +393,12 @@ void deferred_renderer::create_semaphores_and_fences()
     create_semaphore(_g_buffers_rendering_done);
     create_semaphore(_voxelize_semaphore);
     create_semaphore(_voxelize_semaphore_done);
-    create_semaphore(_clear_voxel_cube_semaphore);
-    create_semaphore(_clear_voxel_cube_smaphonre_done);
+    
+//    create_semaphore(_clear_voxel_cube_smaphonre_done_1);
+//    create_semaphore(_clear_voxel_cube_smaphonre_done_2);
+//    create_semaphore(_clear_voxel_cube_smaphonre_done_3);
+//    create_semaphore(_clear_voxel_cube_smaphonre_done_4);
+    
     create_semaphore(_generate_voxel_z_axis_semaphore);
     create_semaphore(_generate_voxel_y_axis_semaphore);
     create_semaphore(_generate_voxel_x_axis_semaphore);
@@ -318,7 +408,7 @@ void deferred_renderer::create_semaphores_and_fences()
     {
         create_fence(_g_buffers_fence[i]);
         create_fence(_voxelize_inflight_fence[i]);
-        create_fence(_clear_voxel_texture_fence[i]);
+        create_fence(_voxel_command_fence[i]);
     }
 }
 
@@ -341,6 +431,8 @@ void deferred_renderer::create_pipeline()
     _voxelize_pipeline.set_number_of_blend_attachments(1);
     _voxelize_pipeline.modify_attachment_blend(0, graphics_pipeline::write_channels::RGBA, false);
     _voxelize_pipeline.create(_voxelization_render_pass, VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT);
+    
+    create_voxel_texture_pipelines();
 }
 
 
@@ -406,7 +498,6 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
     
     std::array<VkClearValue,1> clear_values;
     clear_values[0].color = { { 1.0f, 1.0f, 1.0f, 0.0f } };
-    //clear_values[3].depthStencil = { 1.0f, 0 };
     
     for( int i = 0; i < _swapchain->_swapchain_data.image_set.get_image_count(); ++i)
     {
@@ -438,13 +529,13 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
         // We won't be changing the layout of the image
         image_memory_barrier[0].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
         image_memory_barrier[0].newLayout = VK_IMAGE_LAYOUT_GENERAL;
-        image_memory_barrier[0].image = _voxel_albedo_texture.get_image();
+        image_memory_barrier[0].image = _voxel_albedo_tex.get_image();
         image_memory_barrier[0].subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
         image_memory_barrier[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
         image_memory_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
         
         image_memory_barrier[1] = image_memory_barrier[0];
-        image_memory_barrier[1].image = _voxel_normals_texture.get_image();
+        image_memory_barrier[1].image = _voxel_normals_tex.get_image();
         
         vkCmdPipelineBarrier(
                              _voxelize_command_buffers[i],
@@ -479,7 +570,36 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
         
         vkCmdEndRenderPass(_voxelize_command_buffers[i]);
     }
+}
+
+void deferred_renderer::record_3d_mip_maps_commands()
+{
+    VkCommandBufferBeginInfo command_buffer_begin_info {};
+    command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    command_buffer_begin_info.pInheritanceInfo = nullptr;
+
+    std::array<VkCommandBuffer*, 3> generate_mip_maps_commands = { _generate_3d_mip_maps_1_commands,
+        _generate_3d_mip_maps_2_commands, _generate_3d_mip_maps_3_commands };
+    std::array<compute_pipeline, 3> mip_map_pipelines = {_create_voxel_mip_maps_1, _create_voxel_mip_maps_2,
+        _create_voxel_mip_maps_3};
     
+    assert(NUM_OF_FRAMES ==_swapchain->_swapchain_data.image_set.get_image_count());
+    for( int i = 0; i < generate_mip_maps_commands.size(); ++i)
+    {
+        for( int j = 0; j < _swapchain->_swapchain_data.image_set.get_image_count(); ++j)
+        {
+            assert((VOXEL_CUBE_WIDTH >> i) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+            assert((VOXEL_CUBE_HEIGHT >> i) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+            assert((VOXEL_CUBE_DEPTH >> i) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+
+            uint32_t local_groups_x = (VOXEL_CUBE_WIDTH >> i) / compute_pipeline::LOCAL_GROUP_SIZE;
+            uint32_t local_groups_y = (VOXEL_CUBE_HEIGHT >> i) / compute_pipeline::LOCAL_GROUP_SIZE;
+            uint32_t local_groups_z = (VOXEL_CUBE_DEPTH >> i) / compute_pipeline::LOCAL_GROUP_SIZE;
+
+            mip_map_pipelines[i].record_dispatch_commands(generate_mip_maps_commands[i][j],
+                                                                local_groups_x, local_groups_y, local_groups_z);
+        }
+    }
 }
 
 void deferred_renderer::record_clear_texture_3d_buffer()
@@ -488,22 +608,29 @@ void deferred_renderer::record_clear_texture_3d_buffer()
     command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     command_buffer_begin_info.pInheritanceInfo = nullptr;
     
+    std::array<VkCommandBuffer*, 4> clear_command_buffers = { _clear_3d_texture_command_buffers_1,
+        _clear_3d_texture_command_buffers_2, _clear_3d_texture_command_buffers_3, _clear_3d_texture_command_buffers_4 };
+    
+    std::array<compute_pipeline, 4> clear_pipelines = {_clear_texture_3d_pipeline_1, _clear_texture_3d_pipeline_2,
+        _clear_texture_3d_pipeline_3, _clear_texture_3d_pipeline_4};
+    
     assert(NUM_OF_FRAMES ==_swapchain->_swapchain_data.image_set.get_image_count());
-    
-    for( int i = 0; i < _swapchain->_swapchain_data.image_set.get_image_count(); ++i)
+    for( int i = 0; i < clear_command_buffers.size(); ++i)
     {
-        static_assert(VOXEL_CUBE_WIDTH % compute_pipeline::LOCAL_GROUP_SIZE == 0, "invalid voxel cube size, voxel texture will not clear properly");
-        static_assert(VOXEL_CUBE_HEIGHT % compute_pipeline::LOCAL_GROUP_SIZE == 0, "invalid voxel cube size, voxel texture will not clear properly");
-        static_assert(VOXEL_CUBE_DEPTH % compute_pipeline::LOCAL_GROUP_SIZE == 0, "invalid voxel cube size, voxel texture will not clear properly");
-        
-        uint32_t local_groups_x = VOXEL_CUBE_WIDTH / compute_pipeline::LOCAL_GROUP_SIZE;
-        uint32_t local_groups_y = VOXEL_CUBE_HEIGHT / compute_pipeline::LOCAL_GROUP_SIZE;
-        uint32_t local_groups_z = VOXEL_CUBE_DEPTH / compute_pipeline::LOCAL_GROUP_SIZE;
-        
-        _clear_texture_3d_pipeline.record_dispatch_commands(_clear_3d_texture_command_buffers[i],
-                                                            local_groups_x, local_groups_y, local_groups_z);
+        for( int j = 0; j < _swapchain->_swapchain_data.image_set.get_image_count(); ++j)
+        {
+            assert((VOXEL_CUBE_WIDTH >> i) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+            assert((VOXEL_CUBE_HEIGHT >> i) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+            assert((VOXEL_CUBE_DEPTH >> i) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+            
+            uint32_t local_groups_x = (VOXEL_CUBE_WIDTH >> i) / compute_pipeline::LOCAL_GROUP_SIZE;
+            uint32_t local_groups_y = (VOXEL_CUBE_HEIGHT >> i) / compute_pipeline::LOCAL_GROUP_SIZE;
+            uint32_t local_groups_z = (VOXEL_CUBE_DEPTH >> i) / compute_pipeline::LOCAL_GROUP_SIZE;
+            
+            clear_pipelines[i].record_dispatch_commands(clear_command_buffers[i][j],
+                                                                local_groups_x, local_groups_y, local_groups_z);
+        }
     }
-    
 }
 
 void deferred_renderer::record_command_buffers(obj_shape** shapes, size_t number_of_shapes)
@@ -575,6 +702,7 @@ void deferred_renderer::record_command_buffers(obj_shape** shapes, size_t number
     
     record_voxelize_command_buffers(shapes, number_of_shapes);
     record_clear_texture_3d_buffer();
+    record_3d_mip_maps_commands();
     
     std::array<obj_shape*, 1> screen_plane_array = { &_screen_plane };
     renderer::record_command_buffers(screen_plane_array.data(), screen_plane_array.size());
@@ -601,8 +729,8 @@ void deferred_renderer::perform_final_drawing_setup()
         _pipeline.set_image_sampler(&_albedo, "albedo", visual_material::parameter_stage::FRAGMENT, 2, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(&_positions, "positions", visual_material::parameter_stage::FRAGMENT, 3, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(&_depth, "depth", visual_material::parameter_stage::FRAGMENT, 4, resource::usage_type::COMBINED_IMAGE_SAMPLER);
-        _pipeline.set_image_sampler(&_voxel_normals_texture, "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-        _pipeline.set_image_sampler(&_voxel_albedo_texture, "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        _pipeline.set_image_sampler(&_voxel_normals_tex, "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        _pipeline.set_image_sampler(&_voxel_albedo_tex, "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
         _setup_initialized = true;
     }
     
@@ -614,11 +742,63 @@ void deferred_renderer::perform_final_drawing_setup()
     _voxelize_pipeline._material->commit_parameters_to_gpu();
     _mrt_pipeline._material->commit_parameters_to_gpu();
     
-    
     renderer::perform_final_drawing_setup();
 }
 
-VkSemaphore deferred_renderer::generate_voxel_texture(vk::camera &camera)
+void deferred_renderer::clear_voxels_textures()
+{
+    
+    std::array<VkCommandBuffer*, 4> clear_command_buffers = {_clear_3d_texture_command_buffers_1, _clear_3d_texture_command_buffers_2, _clear_3d_texture_command_buffers_3,
+        _clear_3d_texture_command_buffers_4};
+    
+    std::array<VkCommandBuffer, 4> clear_commands {};
+    
+    for( int i =0; i < clear_command_buffers.size(); ++i)
+    {
+        clear_commands[i] = clear_command_buffers[i][_deferred_image_index];
+    }
+    //The clearing of voxels happens in parallel
+    VkSubmitInfo submit_info = {};
+    submit_info.commandBufferCount = clear_commands.size();
+    submit_info.pCommandBuffers = clear_commands.data();
+    submit_info.waitSemaphoreCount = 0;
+    submit_info.pWaitSemaphores = nullptr;
+    submit_info.pSignalSemaphores = nullptr;
+    submit_info.signalSemaphoreCount = 0;
+    
+    VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _voxel_command_fence[_deferred_image_index]);
+
+    ASSERT_VULKAN(result);
+    
+    //voxels must be cleared before proceeding with the rendering
+    vkWaitForFences(_device->_logical_device, 1, &_voxel_command_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(_device->_logical_device, 1, &_voxel_command_fence[_deferred_image_index]);
+}
+
+void deferred_renderer::generate_voxel_mip_maps()
+{
+    std::array<VkCommandBuffer*, 3> generate_mip_maps_commands = { _generate_3d_mip_maps_1_commands,
+        _generate_3d_mip_maps_2_commands, _generate_3d_mip_maps_3_commands };
+    
+    for( int i = 0; i < generate_mip_maps_commands.size(); ++i)
+    {
+        VkSubmitInfo submit_info = {};
+        submit_info.commandBufferCount = 1;
+        submit_info.pCommandBuffers = generate_mip_maps_commands[i];
+        submit_info.waitSemaphoreCount = 0;
+        submit_info.pWaitSemaphores = nullptr;
+        submit_info.pSignalSemaphores = nullptr;
+        submit_info.signalSemaphoreCount = 0;
+        
+        VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _voxel_command_fence[_deferred_image_index]);
+        ASSERT_VULKAN(result);
+        
+        vkWaitForFences(_device->_logical_device, 1, &_voxel_command_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+        vkResetFences(_device->_logical_device, 1, &_voxel_command_fence[_deferred_image_index]);
+    }
+}
+
+VkSemaphore deferred_renderer::generate_voxel_textures(vk::camera &camera)
 {
     vk::shader_parameter::shader_params_group& voxelize_vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     vk::shader_parameter::shader_params_group& voxelize_frag_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2);
@@ -626,34 +806,19 @@ VkSemaphore deferred_renderer::generate_voxel_texture(vk::camera &camera)
     
     voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
     
-    //clear voxel texture
-    VkSubmitInfo submit_info = {};
-    submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &_clear_3d_texture_command_buffers[_deferred_image_index];
-    submit_info.waitSemaphoreCount = 0;
-    submit_info.pWaitSemaphores = nullptr;
-    submit_info.pSignalSemaphores = &_clear_voxel_cube_smaphonre_done;
-    submit_info.signalSemaphoreCount = 1;
-    
-    vkWaitForFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_device->_logical_device, 1, &_clear_voxel_texture_fence[_deferred_image_index]);
-    
-    VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _clear_voxel_texture_fence[_deferred_image_index]);
-    ASSERT_VULKAN(result);
+    clear_voxels_textures();
 
     std::array<glm::vec3, 3> cam_positions = {  glm::vec3(0.0f, 0.0f, -8.f),glm::vec3(0.0f, 8.f, 0.0f), glm::vec3(8.0f, 0.0f, 0.0f)};
     std::array<glm::vec3, 3> up_vectors = { glm::vec3 {0.0f, 1.0f, 0.0f}, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)};
-    std::array<VkSemaphore, 4> semaphores = {_clear_voxel_cube_smaphonre_done, _generate_voxel_z_axis_semaphore,
+    std::array<VkSemaphore, 3> semaphores = { _generate_voxel_z_axis_semaphore,
         _generate_voxel_y_axis_semaphore, _generate_voxel_x_axis_semaphore};
     
     glm::mat4 project_to_voxel_screen = glm::mat4(1.0f);
     size_t i = 0;
+    
+    //voxelize, we are going to build the voxel texture from cam_positions.size() views.
     for( ; i < cam_positions.size(); ++i)
     {
-        //voxelize
-        vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-        vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index]);
-        
         _ortho_camera.position = cam_positions[i];
         _ortho_camera.forward = -_ortho_camera.position;
         _ortho_camera.up = up_vectors[i];
@@ -675,20 +840,26 @@ VkSemaphore deferred_renderer::generate_voxel_texture(vk::camera &camera)
         voxelize_vertex_params["eye_position"] = camera.position;
         _voxelize_pipeline._material->commit_parameters_to_gpu();
         
-        submit_info = {};
+        //todo: it might be possible here to bulk all of these submissions into one
+        VkSubmitInfo submit_info = {};
         submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submit_info.commandBufferCount = 1;
-        submit_info.waitSemaphoreCount = 1;
-        submit_info.pWaitSemaphores = &semaphores[i];
+        submit_info.waitSemaphoreCount = i == 0 ? 0 : 1;
+        submit_info.pWaitSemaphores = i == 0 ? nullptr : &semaphores[i - 1];
+        
+        //todo: is next line right?
         submit_info.pCommandBuffers = &(_voxelize_command_buffers[_deferred_image_index]);
         submit_info.signalSemaphoreCount = 1;
-        submit_info.pSignalSemaphores = &semaphores[i + 1];
+        submit_info.pSignalSemaphores = &semaphores[i];
         vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _voxelize_inflight_fence[_deferred_image_index]);
+        
+        vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+        vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index]);
     }
     
-    //_voxel_albedo_texture.refresh_mimaps();
-    //_voxel_normals_texture.refresh_mimaps();
-    return semaphores[i];
+    generate_voxel_mip_maps();
+    
+    return semaphores[semaphores.size() -1];
 }
 
 
@@ -714,7 +885,7 @@ void deferred_renderer::draw(camera& camera)
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain,
                           std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &_deferred_image_index);
     
-    VkSemaphore voxel_texture_semaphore = generate_voxel_texture(camera);
+    VkSemaphore voxel_texture_semaphore = generate_voxel_textures(camera);
     
     vkWaitForFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     vkResetFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index]);
@@ -778,8 +949,8 @@ void deferred_renderer::destroy()
     vkDestroySemaphore(_device->_logical_device, _g_buffers_rendering_done, nullptr);
     vkDestroySemaphore(_device->_logical_device, _voxelize_semaphore, nullptr);
     vkDestroySemaphore(_device->_logical_device, _voxelize_semaphore_done, nullptr);
-    vkDestroySemaphore(_device->_logical_device, _clear_voxel_cube_semaphore, nullptr);
-    vkDestroySemaphore(_device->_logical_device, _clear_voxel_cube_smaphonre_done, nullptr);
+
+    //vkDestroySemaphore(_device->_logical_device, _clear_voxel_cube_smaphonre_done_1, nullptr);
     vkDestroySemaphore(_device->_logical_device, _generate_voxel_x_axis_semaphore, nullptr);
     vkDestroySemaphore(_device->_logical_device, _generate_voxel_y_axis_semaphore, nullptr);
     vkDestroySemaphore(_device->_logical_device, _generate_voxel_z_axis_semaphore, nullptr);
@@ -791,6 +962,18 @@ void deferred_renderer::destroy()
     
     vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool,
                          static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _voxelize_command_buffers);
+    
+    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool,
+                         static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _generate_3d_mip_maps_1_commands);
+    
+    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _clear_3d_texture_command_buffers_1);
+    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _clear_3d_texture_command_buffers_2);
+    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _clear_3d_texture_command_buffers_3);
+    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _clear_3d_texture_command_buffers_4);
+    
+    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _generate_3d_mip_maps_1_commands);
+    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _generate_3d_mip_maps_2_commands);
+    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _generate_3d_mip_maps_3_commands);
     
     
     delete[] _offscreen_command_buffers;
@@ -804,7 +987,25 @@ void deferred_renderer::destroy()
     
     _mrt_pipeline.destroy();
     _voxelize_pipeline.destroy();
-    _clear_texture_3d_pipeline.destroy();
+    
+    _voxel_albedo_tex.destroy();
+    _voxel_albedo_tex_1.destroy();
+    _voxel_albedo_tex_2.destroy();
+    _voxel_albedo_tex_3.destroy();
+    
+    _voxel_normals_tex.destroy();
+    _voxel_normals_tex_1.destroy();
+    _voxel_normals_tex_2.destroy();
+    _voxel_normals_tex_3.destroy();
+
+    _clear_texture_3d_pipeline_1.destroy();
+    _clear_texture_3d_pipeline_2.destroy();
+    _clear_texture_3d_pipeline_3.destroy();
+    _clear_texture_3d_pipeline_4.destroy();
+    
+    _create_voxel_mip_maps_1.destroy();
+    _create_voxel_mip_maps_2.destroy();
+    _create_voxel_mip_maps_3.destroy();
     
     vkDestroyRenderPass(_device->_logical_device, _mrt_render_pass, nullptr);
     vkDestroyRenderPass(_device->_logical_device, _voxelization_render_pass, nullptr);

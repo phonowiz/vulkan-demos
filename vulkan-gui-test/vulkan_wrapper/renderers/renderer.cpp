@@ -153,7 +153,7 @@ void renderer::create_command_buffers(VkCommandBuffer** command_buffers, VkComma
 
 void renderer::create_semaphore(VkSemaphore& semaphore)
 {
-    VkSemaphoreCreateInfo semaphore_create_info;
+    VkSemaphoreCreateInfo semaphore_create_info {};
     semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
     semaphore_create_info.pNext = nullptr;
     semaphore_create_info.flags = 0;

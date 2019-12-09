@@ -46,6 +46,8 @@ namespace vk
     {
     public:
         
+        material_base()
+        {}
         material_base( device* device, const char* name ){ _device = device; _name = name; }
         
         enum class parameter_stage
@@ -98,6 +100,9 @@ namespace vk
             return bytes;
         };
         
+        virtual material_base& operator=( const material_base& right);
+        void set_in_use(){ _in_use = true; }
+        bool get_in_use(){ return _in_use; }
         
         virtual void destroy() override {   _initialized = false; }
         void set_image_sampler(image* texture, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage);
@@ -107,8 +112,7 @@ namespace vk
         
         virtual VkPipelineShaderStageCreateInfo* get_shader_stages() = 0;
         virtual size_t get_shader_stages_size() = 0;
-        
-        
+        virtual const char* const *get_instance_type() = 0;
         const char* _name = nullptr;
         
     protected:
@@ -156,6 +160,7 @@ namespace vk
         uint32_t _uniform_parameters_added_on_init = 0;
         uint32_t _uniform_dynamic_parameters_added_on_init = 0;
         uint32_t _samplers_added_on_init = 0;
+        bool _in_use = false;
     };
     
     using mat_shared_ptr = std::shared_ptr<material_base>;

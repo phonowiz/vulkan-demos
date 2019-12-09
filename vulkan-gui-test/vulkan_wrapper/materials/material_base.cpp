@@ -424,3 +424,33 @@ void material_base::commit_parameters_to_gpu( )
     assert(uniform_parameters_count == _uniform_parameters_added_on_init &&
            " you've added more uniform parameters after initialization of material, please check code");
 }
+
+material_base& material_base::operator=( const material_base& right)
+{
+    if( this != &right)
+    {
+        _descriptor_set_layout = right._descriptor_set_layout;
+        _descriptor_pool = right._descriptor_pool;
+        _descriptor_set = right._descriptor_set;
+        
+        _uniform_buffers = right._uniform_buffers;
+        _uniform_parameters = right._uniform_parameters;
+        _uniform_dynamic_buffers = right._uniform_dynamic_buffers;
+        _uniform_dynamic_parameters = right._uniform_dynamic_parameters;
+        _sampler_buffers = right._sampler_buffers;
+        _descriptor_set_layout_bindings = right._descriptor_set_layout_bindings;
+        _pipeline_shader_stages = right._pipeline_shader_stages;
+        _device = right._device;
+        _initialized = false;
+        _uniform_parameters_added_on_init = right._uniform_parameters_added_on_init;
+        _uniform_dynamic_parameters_added_on_init = right._uniform_dynamic_parameters_added_on_init;
+        _samplers_added_on_init = right._samplers_added_on_init;
+        
+        for(int i = 0; i < _pipeline_shader_stages.size(); ++i)
+        {
+            _pipeline_shader_stages[i] = right._pipeline_shader_stages[i];
+        }
+    }
+
+    return *this;
+}

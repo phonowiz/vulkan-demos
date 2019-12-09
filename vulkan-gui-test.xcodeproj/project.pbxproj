@@ -19,7 +19,6 @@
 		B938D04D219534B7004F759E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B938D04C219534B7004F759E /* Assets.xcassets */; };
 		B93FDCA623036C29000AECBE /* texture_3d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCA223036C29000AECBE /* texture_3d.cpp */; };
 		B93FDCA723036C29000AECBE /* texture_2d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCA323036C29000AECBE /* texture_2d.cpp */; };
-		B93FDCAE23036D70000AECBE /* swapchain_image_set.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCA923036D70000AECBE /* swapchain_image_set.cpp */; };
 		B93FDCAF23036D70000AECBE /* image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCAA23036D70000AECBE /* image.cpp */; };
 		B93FDCB023036D70000AECBE /* render_texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCAD23036D70000AECBE /* render_texture.cpp */; };
 		B93FDCB323036DDE000AECBE /* depth_image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCB123036DDE000AECBE /* depth_image.cpp */; };
@@ -48,6 +47,7 @@
 		B978316822E5480700E5DE71 /* perspective_camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B978316622E5480700E5DE71 /* perspective_camera.cpp */; };
 		B978317022E54DEC00E5DE71 /* first_person_controller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B978316F22E54DEC00E5DE71 /* first_person_controller.cpp */; };
 		B991089B2372B8AC00990E39 /* texture_2d_array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B99108992372B8AC00990E39 /* texture_2d_array.cpp */; };
+		B9C43E532397B7C40072365C /* swapchain_image_set.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9C43E522397B7C40072365C /* swapchain_image_set.cpp */; };
 		B9CD5A472202CB01006D4C39 /* models in Resources */ = {isa = PBXBuildFile; fileRef = B9CD5A462202CB01006D4C39 /* models */; };
 		B9DE4A6223517578003559DC /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627E7219B48D700D1358A /* AppKit.framework */; };
 		B9F4EFF622FD2CE20058B38E /* obj_shape.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4EFF422FD2CE20058B38E /* obj_shape.cpp */; };
@@ -74,7 +74,6 @@
 		B93FDCA423036C29000AECBE /* texture_3d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = texture_3d.h; sourceTree = "<group>"; };
 		B93FDCA523036C29000AECBE /* texture_2d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = texture_2d.h; sourceTree = "<group>"; };
 		B93FDCA823036D70000AECBE /* render_texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = render_texture.h; sourceTree = "<group>"; };
-		B93FDCA923036D70000AECBE /* swapchain_image_set.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = swapchain_image_set.cpp; sourceTree = "<group>"; };
 		B93FDCAA23036D70000AECBE /* image.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = image.cpp; sourceTree = "<group>"; };
 		B93FDCAB23036D70000AECBE /* swapchain_image_set.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = swapchain_image_set.h; sourceTree = "<group>"; };
 		B93FDCAC23036D70000AECBE /* image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = image.h; sourceTree = "<group>"; };
@@ -132,6 +131,7 @@
 		B978316E22E54DEC00E5DE71 /* first_person_controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = first_person_controller.h; sourceTree = "<group>"; };
 		B978316F22E54DEC00E5DE71 /* first_person_controller.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = first_person_controller.cpp; sourceTree = "<group>"; };
 		B99108992372B8AC00990E39 /* texture_2d_array.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = texture_2d_array.cpp; sourceTree = "<group>"; };
+		B9C43E522397B7C40072365C /* swapchain_image_set.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = swapchain_image_set.cpp; sourceTree = "<group>"; };
 		B9CD5A462202CB01006D4C39 /* models */ = {isa = PBXFileReference; lastKnownFileType = folder; name = models; path = "vulkan-gui-test/models"; sourceTree = "<group>"; };
 		B9F4EFF422FD2CE20058B38E /* obj_shape.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = obj_shape.cpp; sourceTree = "<group>"; };
 		B9F4EFF522FD2CE20058B38E /* obj_shape.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = obj_shape.h; sourceTree = "<group>"; };
@@ -234,7 +234,7 @@
 				B93FDCAC23036D70000AECBE /* image.h */,
 				B93FDCAD23036D70000AECBE /* render_texture.cpp */,
 				B93FDCA823036D70000AECBE /* render_texture.h */,
-				B93FDCA923036D70000AECBE /* swapchain_image_set.cpp */,
+				B9C43E522397B7C40072365C /* swapchain_image_set.cpp */,
 				B93FDCAB23036D70000AECBE /* swapchain_image_set.h */,
 				B93FDCA323036C29000AECBE /* texture_2d.cpp */,
 				B93FDCA523036C29000AECBE /* texture_2d.h */,
@@ -474,6 +474,7 @@
 				B9F4F00E230369620058B38E /* renderer.cpp in Sources */,
 				B93FDCDA23037064000AECBE /* object.cpp in Sources */,
 				B93FDCE723037359000AECBE /* shader.cpp in Sources */,
+				B9C43E532397B7C40072365C /* swapchain_image_set.cpp in Sources */,
 				B93FDCBE23036EB0000AECBE /* compute_material.cpp in Sources */,
 				B96AB61D22EE5C4000F33807 /* transform.h in Sources */,
 				B93FDCB323036DDE000AECBE /* depth_image.cpp in Sources */,
@@ -486,7 +487,6 @@
 				B96AB61F22EE5E5000F33807 /* transform.cpp in Sources */,
 				B9F4EFF622FD2CE20058B38E /* obj_shape.cpp in Sources */,
 				B93FDCAF23036D70000AECBE /* image.cpp in Sources */,
-				B93FDCAE23036D70000AECBE /* swapchain_image_set.cpp in Sources */,
 				B9F4F014230369D20058B38E /* deferred_renderer.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -31,9 +31,18 @@ layout(binding = 5, std140) uniform _rendering_state
     
 }rendering_state;
 
-
+//zeroth levels
 layout(binding = 6) uniform sampler3D voxel_normals;
 layout(binding = 7) uniform sampler3D voxel_albedos;
+
+//mipmap levels
+layout(binding = 8) uniform sampler3D voxel_albedos1;
+layout(binding = 9) uniform sampler3D voxel_albedos2;
+layout(binding = 10) uniform sampler3D voxel_albedos3;
+
+layout(binding = 11) uniform sampler3D voxel_normals1;
+layout(binding = 12) uniform sampler3D voxel_normals2;
+layout(binding = 13) uniform sampler3D voxel_normals3;
 
 
 

@@ -25,6 +25,14 @@
          contextName = "MVKQueueSubmission::recordResult(VkResult):MVKQueue.mm">
       </ContextState>
       <ContextState
+         contextName = "MVKQueueCommandBufferSubmission::MVKQueueCommandBufferSubmission(MVKQueue*, VkSubmitInfo const*, VkFence_T*):MVKQueue.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "pSubmit-&gt;pCommandBuffers[i]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "update_3d_texture_rendering_params(vk::renderer&amp;):main.mm">
          <PersistentStrings>
             <PersistentString
@@ -240,10 +248,10 @@
                value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
             </PersistentString>
             <PersistentString
-               value = "pair.first">
+               value = "pair2.first">
             </PersistentString>
             <PersistentString
-               value = "pair2.first">
+               value = "pair.first">
             </PersistentString>
             <PersistentString
                value = "_sampler_buffers.size()">
@@ -287,13 +295,13 @@
          contextName = "vk::material::create_descriptor_sets():material.cpp">
          <PersistentStrings>
             <PersistentString
+               value = " _descriptor_set_layout_bindings[count].binding">
+            </PersistentString>
+            <PersistentString
                value = "pair2.first">
             </PersistentString>
             <PersistentString
                value = "write_descriptor_sets[count].dstBinding">
-            </PersistentString>
-            <PersistentString
-               value = " _descriptor_set_layout_bindings[count].binding">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -327,6 +335,9 @@
                value = "descSet-&gt;_bindings">
             </PersistentString>
          </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "MVKDispatchableVulkanAPIObject::getDispatchableObject(void*):MVKVulkanAPIObject.h">
       </ContextState>
       <ContextState
          contextName = "vk::Material::createDescriptorSetLayout():material.cpp">

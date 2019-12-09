@@ -43,9 +43,9 @@ void material_store::create(device* device)
     shader_shared_ptr voxel_shader_vert = add_shader("graphics/voxelize.vert", shader::shader_type::VERTEX);
     shader_shared_ptr voxel_shader_frag = add_shader("graphics/voxelize.frag", shader::shader_type::FRAGMENT);
     
-    shader_shared_ptr clear_3d_texture_comp =  add_shader("./compute/clear_3d_texture.comp", shader::shader_type::COMPUTE);
-    shader_shared_ptr avg_texture_comp = add_shader("./compute/downsize.comp", shader::shader_type::COMPUTE);
-    
+    shader_shared_ptr clear_3d_texture_comp =  add_shader("compute/clear_3d_texture.comp", shader::shader_type::COMPUTE);
+    shader_shared_ptr avg_texture_comp = add_shader("compute/downsize.comp", shader::shader_type::COMPUTE);
+    shader_shared_ptr avg_texture_comp2 = add_shader("compute/downsize.comp", shader::shader_type::COMPUTE);
     
     mat_shared_ptr standard_mat = CREATE_MAT<visual_material>("standard", standard_vert, standard_frag, device);
     add_material(standard_mat);
@@ -100,7 +100,20 @@ shader_shared_ptr material_store::add_shader(const char *shaderPath, shader::sha
 mat_shared_ptr material_store::get_material(const char* name) const
 {
     assert(material_database.count(name) != 0);
-    return material_database[name];
+    mat_shared_ptr tmp = material_database[name];
+    if(material_database[name]->get_in_use())
+    {
+       if( material_database[name]->get_instance_type() == visual_material::get_material_type())
+       {
+           tmp = CREATE_MAT<visual_material>( static_cast<const visual_material&> (*material_database[name]) );
+       }
+       else
+       {
+           tmp = CREATE_MAT<compute_material>( static_cast<const compute_material&> (*material_database[name]) );
+       }
+    }
+    tmp->set_in_use();
+    return tmp;
 }
 
 shader_shared_ptr const   material_store::find_shader_using_path(const char* path)const

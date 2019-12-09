@@ -351,7 +351,7 @@ int main()
     
     app.deferred_renderer->init();
     
-    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture();
+    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(3);
     app.three_d_renderer->get_material()->set_image_sampler(voxel_texture, "texture_3d",
                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
     
@@ -368,8 +368,8 @@ int main()
     app.user_controller = &user_controler;
     app.texture_3d_view_controller = &texture_3d_view_controller;
     
-    //game_loop();
-    game_loop_ortho(display_renderer);
+    game_loop();
+    //game_loop_ortho(display_renderer);
     
     mario.destroy();
     deferred_renderer.destroy();

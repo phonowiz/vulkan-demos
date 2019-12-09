@@ -17,6 +17,10 @@ namespace vk
     class compute_material : public material_base
     {
     public:
+        compute_material( const compute_material& original)
+        {
+            operator=(original);
+        }
         compute_material(const char* name, shader_shared_ptr compute_shader, device* device):
         material_base(device, name)
         {
@@ -29,10 +33,25 @@ namespace vk
             
             return _pipeline_shader_stages.data();
         }
+        
+        virtual const char* const * get_instance_type() override { return &_type; }
+        static const char* const * get_material_type() { return &_type; }
+        
         virtual size_t get_shader_stages_size() override { return 1; }
         
-    private:
+        inline compute_material& operator=( const compute_material& right)
+        {
+            if( this != &right)
+            {
+                material_base::operator=(static_cast<const material_base&>(right));
+                _compute_shader = right._compute_shader;
+            }
+            
+            return *this;
+        }
         
+    private:
+        static constexpr char const* const _type = nullptr;
         shader_shared_ptr _compute_shader;
     };
     

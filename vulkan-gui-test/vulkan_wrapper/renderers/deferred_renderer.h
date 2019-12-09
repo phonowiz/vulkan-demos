@@ -33,8 +33,17 @@ namespace vk
         depth_image    _depth;
         
         render_texture _voxel_2d_view;
-        texture_3d _voxel_albedo_texture;
-        texture_3d _voxel_normals_texture;
+        
+        //texture 3d textures mip maps are not supported moltenvk,so we create our own
+        texture_3d _voxel_albedo_tex;
+        texture_3d _voxel_albedo_tex_1;
+        texture_3d _voxel_albedo_tex_2;
+        texture_3d _voxel_albedo_tex_3;
+        
+        texture_3d _voxel_normals_tex;
+        texture_3d _voxel_normals_tex_1;
+        texture_3d _voxel_normals_tex_2;
+        texture_3d _voxel_normals_tex_3;
         
         visual_mat_shared_ptr _mrt_material = nullptr;
         visual_mat_shared_ptr _debug_material = nullptr;
@@ -54,9 +63,11 @@ namespace vk
         };
         
         virtual vk::visual_mat_shared_ptr &  get_material() override { return _mrt_material; }
-        
-        inline texture_3d* get_voxel_texture(){ return &_voxel_albedo_texture;}
-        
+        inline texture_3d* get_voxel_texture(uint32_t index ){
+            std::array<texture_3d*, 4> textures = {&_voxel_albedo_tex, &_voxel_albedo_tex_1, &_voxel_albedo_tex_2, &_voxel_albedo_tex_3};
+            assert(index < textures.size());
+            return textures[index];
+        }
         
         inline texture_2d* get_voxelizer_cam_texture( ){ return &_voxel_2d_view; }
         inline void set_rendering_state( rendering_state state ){ _rendering_state = state; }
@@ -67,22 +78,25 @@ namespace vk
         virtual void destroy() override;
         virtual void draw(camera& camera) override;
         
-        
-        
     private:
         virtual void create_render_pass()   override;
         virtual void create_frame_buffers() override;
         virtual void create_pipeline()      override;
         virtual void create_semaphores_and_fences() override;
         virtual void destroy_framebuffers() override;
-        VkSemaphore generate_voxel_texture(vk::camera& camera);
+        VkSemaphore generate_voxel_textures(vk::camera& camera);
         
         void compute(VkCommandBuffer command_buffer, vk::compute_pipeline& pipeline);
         void record_command_buffers(obj_shape** shapes, size_t number_of_shapes) override;
         void record_voxelize_command_buffers(obj_shape** shapes, size_t number_of_shapes);
         void record_clear_texture_3d_buffer ();
+        void record_3d_mip_maps_commands();
+        //void create_3d_texture_mipmaps_pipelines();
+        void clear_voxels_textures();
+        void generate_voxel_mip_maps();
         
         void create_voxelization_render_pass();
+        void create_voxel_texture_pipelines();
         void setup_sampling_rays();
         
         virtual void perform_final_drawing_setup() override;
@@ -90,11 +104,29 @@ namespace vk
         VkSampler       _color_sampler = VK_NULL_HANDLE;
         VkCommandBuffer *_offscreen_command_buffers = VK_NULL_HANDLE;
         VkCommandBuffer *_voxelize_command_buffers = VK_NULL_HANDLE;
-        VkCommandBuffer *_clear_3d_texture_command_buffers = VK_NULL_HANDLE;
+        
+        VkCommandBuffer *_generate_3d_mip_maps_1_commands = VK_NULL_HANDLE;
+        VkCommandBuffer *_generate_3d_mip_maps_2_commands = VK_NULL_HANDLE;
+        VkCommandBuffer *_generate_3d_mip_maps_3_commands = VK_NULL_HANDLE;
+        
         
         graphics_pipeline _mrt_pipeline;
         graphics_pipeline _voxelize_pipeline;
-        compute_pipeline  _clear_texture_3d_pipeline;
+        
+        compute_pipeline  _clear_texture_3d_pipeline_1;
+        compute_pipeline  _clear_texture_3d_pipeline_2;
+        compute_pipeline  _clear_texture_3d_pipeline_3;
+        compute_pipeline  _clear_texture_3d_pipeline_4;
+        
+        VkCommandBuffer *_clear_3d_texture_command_buffers_1 = VK_NULL_HANDLE;
+        VkCommandBuffer *_clear_3d_texture_command_buffers_2 = VK_NULL_HANDLE;
+        VkCommandBuffer *_clear_3d_texture_command_buffers_3 = VK_NULL_HANDLE;
+        VkCommandBuffer *_clear_3d_texture_command_buffers_4 = VK_NULL_HANDLE;
+        
+        compute_pipeline  _create_voxel_mip_maps_1;
+        compute_pipeline  _create_voxel_mip_maps_2;
+        compute_pipeline  _create_voxel_mip_maps_3;
+    
         
         VkRenderPass        _mrt_render_pass = VK_NULL_HANDLE;
         VkRenderPass        _voxelization_render_pass = VK_NULL_HANDLE;
@@ -103,8 +135,8 @@ namespace vk
         VkSemaphore _g_buffers_rendering_done = VK_NULL_HANDLE;
         VkSemaphore _voxelize_semaphore = VK_NULL_HANDLE;
         VkSemaphore _voxelize_semaphore_done = VK_NULL_HANDLE;
-        VkSemaphore _clear_voxel_cube_semaphore = VK_NULL_HANDLE;
-        VkSemaphore _clear_voxel_cube_smaphonre_done = VK_NULL_HANDLE;
+        
+
         VkSemaphore _generate_voxel_x_axis_semaphore = VK_NULL_HANDLE;
         VkSemaphore _generate_voxel_y_axis_semaphore = VK_NULL_HANDLE;
         VkSemaphore _generate_voxel_z_axis_semaphore = VK_NULL_HANDLE;
@@ -114,8 +146,6 @@ namespace vk
         rendering_state _rendering_state = rendering_state::FULL_RENDERING;
         
         uint32_t _deferred_image_index = 0;
-        
-        
         
         orthographic_camera _ortho_camera;
         screen_plane        _screen_plane;
@@ -129,7 +159,7 @@ namespace vk
         
         std::array<VkFence, NUM_OF_FRAMES> _g_buffers_fence {};
         std::array<VkFence, NUM_OF_FRAMES> _voxelize_inflight_fence {};
-        std::array<VkFence, NUM_OF_FRAMES> _clear_voxel_texture_fence {};
+        std::array<VkFence, NUM_OF_FRAMES> _voxel_command_fence {};
         
         
         static constexpr uint32_t VOXEL_CUBE_WIDTH = 256u;

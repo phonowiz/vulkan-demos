@@ -28,6 +28,10 @@ namespace  vk
     {
     public:
         
+        visual_material( const visual_material& original)
+        {
+            operator=(original);
+        }
         visual_material(const char* name, shader_shared_ptr vertex_shader, shader_shared_ptr fragment_shader, device* device );
 
         virtual VkPipelineShaderStageCreateInfo* get_shader_stages() override
@@ -38,6 +42,9 @@ namespace  vk
             return _pipeline_shader_stages.data();
         }
         virtual size_t get_shader_stages_size() override { return 2; }
+        
+        virtual const char* const * get_instance_type() override { return &_type; }
+        static const char* const * get_material_type() { return &_type; }
 
         virtual void destroy() override;
         
@@ -72,6 +79,19 @@ namespace  vk
             get_uniform_parameters(stage, binding)[parameter_name].set_vectors_array(vecs, num_vectors);
         }
 
+        inline visual_material& operator=( const visual_material& right)
+        {
+            if( this != &right)
+            {
+                this->material_base::operator=(static_cast<const visual_material&>(right));
+                
+                _vertex_shader = right._vertex_shader;
+                _fragment_shader = right._fragment_shader;
+            }
+            
+            return *this;
+        }
+        
         shader_parameter::shader_params_group& get_uniform_parameters(parameter_stage stage, uint32_t binding);
         visual_material::object_shader_params_group& get_dynamic_parameters(parameter_stage stage, uint32_t binding);
         
@@ -81,6 +101,8 @@ namespace  vk
         
         shader_shared_ptr _vertex_shader = nullptr;
         shader_shared_ptr _fragment_shader = nullptr;
+            
+        static constexpr char const* const _type = nullptr;
     };
     
     using visual_mat_shared_ptr = std::shared_ptr<visual_material>;
