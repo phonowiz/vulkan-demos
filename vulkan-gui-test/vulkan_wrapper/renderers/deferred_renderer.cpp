@@ -194,28 +194,8 @@ void deferred_renderer::create_voxel_texture_pipelines()
         
         mip_map_pipelines[i].material->commit_parameters_to_gpu();
     }
-    
-    //create_3d_texture_mipmaps_pipelines();
 }
 
-//void deferred_renderer::create_3d_texture_mipmaps_pipelines()
-//{
-//    std::array<texture_3d, 4> mip_map_textures= {_voxel_albedo_tex, _voxel_albedo_tex_1, _voxel_albedo_tex_2, _voxel_albedo_tex_3};
-//    std::array<compute_pipeline, 3> mip_map_compute_pipelines = {_create_voxel_mip_maps_1, _create_voxel_mip_maps_2, _create_voxel_mip_maps_3};
-//
-//    for( int i = 0; i < mip_map_compute_pipelines.size(); ++i)
-//    {
-//        mip_map_compute_pipelines[i].material->set_image_sampler(&mip_map_textures[i],
-//            "r_texture_1", material_base::parameter_stage::COMPUTE, 0, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-//        mip_map_compute_pipelines[i].material->set_image_sampler(&mip_map_textures[i + 1],
-//            "w_texture_1", material_base::parameter_stage::COMPUTE, 2, material_base::usage_type::STORAGE_IMAGE);
-//
-//        mip_map_compute_pipelines[i].material->commit_parameters_to_gpu();
-//    }
-////    _create_texture_3d_mip_maps.material->set_image_sampler(&_voxel_albedo_texture,
-////    "w_texture_1", material_base::parameter_stage::COMPUTE, 0, material_base::usage_type::STORAGE_IMAGE);
-//
-//}
 void deferred_renderer::setup_sampling_rays()
 {
     glm::vec4 up = glm::vec4(0.0f, 1.0f, .0f, 0.0f);
@@ -393,11 +373,6 @@ void deferred_renderer::create_semaphores_and_fences()
     create_semaphore(_g_buffers_rendering_done);
     create_semaphore(_voxelize_semaphore);
     create_semaphore(_voxelize_semaphore_done);
-    
-//    create_semaphore(_clear_voxel_cube_smaphonre_done_1);
-//    create_semaphore(_clear_voxel_cube_smaphonre_done_2);
-//    create_semaphore(_clear_voxel_cube_smaphonre_done_3);
-//    create_semaphore(_clear_voxel_cube_smaphonre_done_4);
     
     create_semaphore(_generate_voxel_z_axis_semaphore);
     create_semaphore(_generate_voxel_y_axis_semaphore);
@@ -727,7 +702,7 @@ void deferred_renderer::perform_final_drawing_setup()
     {
         _pipeline.set_image_sampler(&_normals, "normals", visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(&_albedo, "albedo", visual_material::parameter_stage::FRAGMENT, 2, resource::usage_type::COMBINED_IMAGE_SAMPLER);
-        _pipeline.set_image_sampler(&_positions, "positions", visual_material::parameter_stage::FRAGMENT, 3, resource::usage_type::COMBINED_IMAGE_SAMPLER);
+        _pipeline.set_image_sampler(&_positions, "world_positions", visual_material::parameter_stage::FRAGMENT, 3, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(&_depth, "depth", visual_material::parameter_stage::FRAGMENT, 4, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(&_voxel_normals_tex, "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(&_voxel_albedo_tex, "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
@@ -814,10 +789,9 @@ VkSemaphore deferred_renderer::generate_voxel_textures(vk::camera &camera)
         _generate_voxel_y_axis_semaphore, _generate_voxel_x_axis_semaphore};
     
     glm::mat4 project_to_voxel_screen = glm::mat4(1.0f);
-    size_t i = 0;
     
     //voxelize, we are going to build the voxel texture from cam_positions.size() views.
-    for( ; i < cam_positions.size(); ++i)
+    for( size_t i = 0; i < cam_positions.size(); ++i)
     {
         _ortho_camera.position = cam_positions[i];
         _ortho_camera.forward = -_ortho_camera.position;

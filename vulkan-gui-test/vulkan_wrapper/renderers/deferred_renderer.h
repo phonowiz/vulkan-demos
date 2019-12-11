@@ -150,7 +150,7 @@ namespace vk
         orthographic_camera _ortho_camera;
         screen_plane        _screen_plane;
         
-        glm::vec4 _light_pos = glm::vec4(.5f, .5f, 0.0f, 1.0f);
+        glm::vec4 _light_pos = glm::vec4(0.0f, 3.f, 0.0f, 1.0f);
         glm::vec4 _light_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
         
         //TODO: on my mid 2014 macbook pro, the number of frames is 3, this could change in other platforms

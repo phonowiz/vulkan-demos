@@ -46,6 +46,9 @@
             <PersistentString
                value = "pair.second.usage_type">
             </PersistentString>
+            <PersistentString
+               value = "pair.second.binding">
+            </PersistentString>
          </PersistentStrings>
       </ContextState>
       <ContextState
@@ -245,13 +248,13 @@
          contextName = "vk::material::create_descriptor_set_layout():material.cpp">
          <PersistentStrings>
             <PersistentString
+               value = "pair.first">
+            </PersistentString>
+            <PersistentString
                value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
             </PersistentString>
             <PersistentString
                value = "pair2.first">
-            </PersistentString>
-            <PersistentString
-               value = "pair.first">
             </PersistentString>
             <PersistentString
                value = "_sampler_buffers.size()">
@@ -295,13 +298,13 @@
          contextName = "vk::material::create_descriptor_sets():material.cpp">
          <PersistentStrings>
             <PersistentString
-               value = " _descriptor_set_layout_bindings[count].binding">
+               value = "write_descriptor_sets[count].dstBinding">
             </PersistentString>
             <PersistentString
                value = "pair2.first">
             </PersistentString>
             <PersistentString
-               value = "write_descriptor_sets[count].dstBinding">
+               value = " _descriptor_set_layout_bindings[count].binding">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -493,6 +496,9 @@
       <ContextState
          contextName = "vk::material_base::create_descriptor_sets():material_base.cpp">
          <PersistentStrings>
+            <PersistentString
+               value = "_descriptor_set_layout_bindings[count].binding">
+            </PersistentString>
             <PersistentString
                value = "pair.second.size">
             </PersistentString>

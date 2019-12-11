@@ -53,11 +53,7 @@ void main()
 
     //scale to range [0,1], that is the texture range
     ndc.xy = (ndc.xy + 1) * .5f;
-    ndc.y = 1.0f - ndc.y;
-    
-    //this is so that the texture stores informations in alignment with world space, x seems
-    //to be pointing in opposite direction
-    ndc.x = 1.0f - ndc.x;
+    ndc.xy = 1.0f - ndc.xy;
     
     int voxel_depth = int(ceil(ubo.voxel_coords.z * ndc.z));
     int voxle_height = int(ceil(ubo.voxel_coords.y * ndc.y));

@@ -302,11 +302,13 @@ int main()
     dragon.set_diffuse(glm::vec3(0.0f, 0.0f, .70f));
     dragon.create();
     cube.create();
-    cornell_box.create();
     
-    
-    dragon.transform.position = glm::vec3(.5f, .50f, 0.0f);
+    dragon.transform.position = glm::vec3(0.80f, 0.00f, -.80f);
     dragon.transform.update_transform_matrix();
+    
+    cornell_box.transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
+    cornell_box.transform.update_transform_matrix();
+    cornell_box.create();
     
     standard_mat = material_store.GET_MAT<vk::visual_material>("standard");
     display_3d_tex_mat = material_store.GET_MAT<vk::visual_material>("display_3d_texture");
@@ -319,7 +321,7 @@ int main()
     
     
     app.perspective_camera = &perspective_camera;
-    app.perspective_camera->position = glm::vec3(0.0f, 0.0f, -5.0f);
+    app.perspective_camera->position = glm::vec3(0.0f, .0f, -5.0f);
     app.perspective_camera->forward = -perspective_camera.position;
     
     
@@ -345,13 +347,13 @@ int main()
     app.deferred_renderer->add_shape(&cornell_box);
     app.deferred_renderer->add_shape(&dragon);
 
-    
-    app.shapes.push_back(&dragon);
     app.shapes.push_back(&cornell_box);
+    app.shapes.push_back(&dragon);
+
     
     app.deferred_renderer->init();
     
-    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(3);
+    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(1);
     app.three_d_renderer->get_material()->set_image_sampler(voxel_texture, "texture_3d",
                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
     
