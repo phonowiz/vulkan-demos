@@ -6,7 +6,7 @@ Purpose
 ----------
 I want to create renderer that I could use to prototype ideas quickly, game engines are very good for this, but I'd rather implement everything from scratch because you learn more that way.  The need came about because Apple will deprecate OpenGL soon, and I need to port my other project to Vulkan, you can check it out here: https://github.com/phonowiz/voxel-cone-tracing
 
-This code is not very organized as of now, there is still lots of code moving all over the place as I try what I think is right.  The meaningful work can be found in the folder "vulkan_wrapper" which you can look at here: https://github.com/phonowiz/vulkan-gui-test/tree/master/vulkan-gui-test/vulkan_wrapper.  Inside of the classes you'll notice that members are all public, that's because am still settling down on what is public vs private.   
+This code is not very organized as of now, there is still lots of code moving all over the place as I try what I think is right.  The meaningful work can be found in the folder "vulkan_wrapper" which you can look at here: https://github.com/phonowiz/vulkan-gui-test/tree/master/vulkan-gui-test/vulkan_wrapper.  
 
 
 For an example of how I think the renderer api will work, check this out:
@@ -101,3 +101,7 @@ Here are screenshots of my deferred renderings, these will be used for voxel con
 #### 3D Texture Visualization
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/3d-texture visualization.png">
 The streaks you see here are as result of the ray marching am doing to render the 3D texture.  This view is mostly for debugging purposes and designed to show me what the 3D texture content is, how I visualize this doesn't contribute to the final cone traced image, but the contents of the 3D texture will contrinbute to final cone traced image.   
+
+#### Ambient Occlusion
+<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/ambient_occlusion.png">
+

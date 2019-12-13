@@ -303,10 +303,11 @@ int main()
     dragon.create();
     cube.create();
     
-    dragon.transform.position = glm::vec3(0.80f, 0.00f, -.80f);
+    dragon.transform.position = glm::vec3(0.60f, -.500f, -.20f);
     dragon.transform.update_transform_matrix();
     
     cornell_box.transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
+    cornell_box.transform.rotation.y = 3.14159f;
     cornell_box.transform.update_transform_matrix();
     cornell_box.create();
     
@@ -321,7 +322,7 @@ int main()
     
     
     app.perspective_camera = &perspective_camera;
-    app.perspective_camera->position = glm::vec3(0.0f, .0f, -5.0f);
+    app.perspective_camera->position = glm::vec3(0.0f, .2f, -5.0f);
     app.perspective_camera->forward = -perspective_camera.position;
     
     

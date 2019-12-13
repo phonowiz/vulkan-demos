@@ -173,22 +173,18 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
 vec4 get_lod_color(float dist, vec4 lod_colors[NUM_MIP_MAPS], uint min_lod)
 {
     
-//    float travel = dist * one_over_distance_limit.x;//length(one_over_distance_limit.xyz) * .08f;
-//
-//    float fractional = float(rendering_state.num_of_lods) * travel;
-//    uint lod = uint(floor(fractional));
-//
-//    fractional = fract(fractional);
-//    lod = min(lod, uint(rendering_state.num_of_lods - 1.0));
-//    lod = max(min_lod, lod);
-//    uint next = uint((lod != (rendering_state.num_of_lods-1)));
-//    uint lod2 = lod + next;
+    float travel = dist * one_over_distance_limit.x;//length(one_over_distance_limit.xyz) * .08f;
+
+    float fractional = float(rendering_state.num_of_lods) * travel;
+    uint lod = uint(floor(fractional));
+
+    fractional = fract(fractional);
+    lod = min(lod, uint(rendering_state.num_of_lods - 1.0));
+    lod = max(min_lod, lod);
+    uint next = uint((lod != (rendering_state.num_of_lods-1)));
+    uint lod2 = lod + next;
     
-    //vec4 blend_color = mix(lod_colors[lod], lod_colors[lod2], fractional);
-    //vec4 blend_color = mix(lod_colors[2], lod_colors[3], fractional);
-    vec4 blend_color = lod_colors[2];
-    //if( lod2 == rendering_state.num_of_lods -1 )
-    //    blend_color = vec4(1);
+    vec4 blend_color = mix(lod_colors[lod], lod_colors[lod2], fractional);
     return blend_color;
 }
 
@@ -197,24 +193,29 @@ vec4 get_lod_color(float distance, vec4 lod_colors[NUM_MIP_MAPS])
     return get_lod_color(distance, lod_colors, 0u);
 }
 
-void ambient_occlusion(vec3 j, vec3 step, vec3 world_pos, inout vec4 sample_color )
-{
-    float lambda = 10.50f;
-    
-    vec4 projection = rendering_state.vox_view_projection * vec4(world_pos, 1.0f);
-    
-    if(within_clipping_space( projection ))
-    {
-        float len = length(j);
+//In attempt to reduce the amount of texture fetches in this shader
+//I've decided to not use this function for a simpler way of capturing the
+//the ambient occlusion.
+//
+//void ambient_occlusion(vec3 j, vec3 step, vec3 world_pos, inout vec4 sample_color )
+//{
+//    float lambda = 10.50f;
+//
+//    vec4 projection = rendering_state.vox_view_projection * vec4(world_pos, 1.0f);
+//
+//    if(within_clipping_space( projection ))
+//    {
+//        float len = length(j);
 //        float attenuation = (1/(1 + len*lambda));
 //        attenuation =  10.f * pow(attenuation, 2.0f);
-        vec4 from_lod = get_lod_color(len, albedo_lod_colors);
-        sample_color = from_lod;
+//        vec4 from_lod = get_lod_color(len, albedo_lod_colors);
+//
 //        from_lod.a = pow((1 -(1 - from_lod.a)), length(step * dimension_inverse));
 //        sample_color.a += (1 - sample_color.a) * from_lod.a * attenuation;
-        sample_color.a = 1 - sample_color.a;
-    }
-}
+//        sample_color.a = 1 - sample_color.a;
+//        sample_color.xyz = 1 - vec3(sample_color.a);
+//    }
+//}
 
 
 vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_position)
@@ -226,6 +227,7 @@ vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_posi
     vec3 one_over_voxel_size = vec3(1.0f)/rendering_state.voxel_size_in_world_space.xyz;
     
     vec4 sample_color = vec4(0.0f);
+
     
     for( uint i = 0; i < NUM_SAMPLING_RAYS; ++i)
     {
@@ -233,6 +235,9 @@ vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_posi
         direction = normalize(direction) ;
         
         collect_lod_colors(direction, incoming_position.xyz);
+        
+        if(i == 0)
+            sample_color.a = 1.0 - albedo_lod_colors[1].a * 2.0f;
         
         vec3 j = rendering_state.voxel_size_in_world_space.xyz;
         
@@ -245,18 +250,18 @@ vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_posi
         {
             vec3 world_sampling_position = m * direction + incoming_position.xyz;
             vec3 diff = m - incoming_position;
-            ambient_occlusion( diff,  ambient_step, world_sampling_position, sample_color);
+            //ambient_occlusion( diff,  ambient_step, world_sampling_position, sample_color);
             
             //TODO: more to do here...
             ++l;
-            m += ambient_step;
+            //m += ambient_step;
         }
         
         //sample_color = vec4(sample_color.a, sample_color.a, sample_color.a, 1.0f) * 10.0f;
-        sample_color = albedo_lod_colors[2] * 10.f;
         break;
     }
     
+    sample_color.xyz = vec3(sample_color.a);
     return vec4(sample_color.xyz, 1.0f);
 }
 
