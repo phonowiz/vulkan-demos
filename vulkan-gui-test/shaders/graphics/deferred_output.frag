@@ -55,7 +55,7 @@ int POSITIONS = 2;
 int DEPTH = 3;
 int FULL_RENDERING = 4;
 
-float num_voxels_limit = 15.0f;
+float num_voxels_limit = 10.0f;
 
 vec3 dimension_inverse = 1.0f/ rendering_state.voxel_size_in_world_space.xyz;
 vec3 distance_limit = num_voxels_limit * rendering_state.voxel_size_in_world_space.xyz;
@@ -66,6 +66,53 @@ vec4  albedo_lod_colors[NUM_MIP_MAPS];
 vec4  normal_lod_colors[NUM_MIP_MAPS];
 
 
+
+//note: moltenvk doesn't support lod's for sampler3D textures, it only supports lods for texture2d arrays
+//this is the reason I have this function here
+vec4 sample_lod_texture(int texture_type, vec3 coord, uint level)
+{
+    level = min(level, 3);
+    if( texture_type == ALBEDO )
+    {
+        if( level == 0)
+        {
+            return texture(voxel_albedos, coord);
+        }
+        else if( level == 1)
+        {
+            return texture(voxel_albedos1, coord);
+        }
+        else if( level == 2)
+        {
+            return texture(voxel_albedos2, coord);
+        }
+        else if( level == 3)
+        {
+            return texture(voxel_albedos3, coord);
+        }
+    }
+    else // texture_type == NORMALS
+    {
+        if( level == 0)
+        {
+            return texture(voxel_normals, coord);
+        }
+        else if( level == 1)
+        {
+            return texture(voxel_normals1, coord);
+        }
+        else if( level == 2)
+        {
+            return texture(voxel_normals2, coord);
+        }
+        else if( level == 3)
+        {
+            return texture(voxel_normals3, coord);
+        }
+    }
+    
+    return vec4(1.0f);
+}
 bool within_clipping_space( vec4 pos)
 {
     return
@@ -87,57 +134,61 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
     //note: the point of starting at voxel box instead of 0 is that we want to
     //start sampling above the world position of the surface, see inside while loop below.
     vec3 j = rendering_state.voxel_size_in_world_space.xyz;
-    //distance in terms of number of voxels to travel
-    //float stop = length(distance_limit);
-    //step is just advancing one voxel at a time
-    //vec3 step = distance_limit.xyz / rendering_state.num_of_lods;
-    
-    uint lod = 0;
-    vec3 world_pos = world_position;
-    vec4 texture_space = rendering_state.vox_view_projection * vec4( world_pos, 1.f);
-    
-    //to NDC
-    texture_space /= texture_space.w;
-    //to 3D texture space, remember that z is already between [0,1] in vulkan
-    texture_space.xy += 1.0f;
-    texture_space.xy *= .5f;
-    //also remember that in vulkan, y is flipped
-    texture_space.y = 1.0f - texture_space.y;
-    direction *= j;
-    while(lod != rendering_state.num_of_lods)
+    uint lod = 1;
+    vec3 step = j*2.5f;//(3.0f * distance_limit ) / rendering_state.num_of_lods;
+    j += step;
+
+    while(j.x < distance_limit.x  && j.y < distance_limit.y && j.z < distance_limit.z &&
+          lod != rendering_state.num_of_lods)
     {
-        texture_space.xyz *= direction * (lod + 1);
+        vec3 world_pos = world_position + j * direction;
+        vec4 texture_space = rendering_state.vox_view_projection * vec4( world_pos, 1.f);
+        //texture_space.xyz *= direction * (lod + 1);
+        
         //test if within voxel world clip space
-        if( within_texture_bounds( texture_space ))
+        if( within_clipping_space( texture_space ))
         {
-            albedo_lod_colors[lod] = textureLod(voxel_albedos, texture_space.xyz, lod);
-            normal_lod_colors[lod] = textureLod(voxel_normals, texture_space.xyz, lod);
+            //to NDC
+            texture_space /= texture_space.w;
+            //to 3D texture space, remember that z is already between [0,1] in vulkan
+            texture_space.xy += 1.0f;
+            texture_space.xy *= .5f;
+            //also remember that in vulkan, y is flipped
+            texture_space.xy = 1.0f - texture_space.xy;
+            
+            albedo_lod_colors[lod-1] = sample_lod_texture(ALBEDO, texture_space.xyz, lod+1);
+            //normal_lod_colors[lod] = sample_lod_texture(NORMALS, texture_space.xyz, lod);        }
         }
         else
+        {
             break;
+        }
+
         lod += 1;
-        //proj +=
-        //j += step;
-        //lod = min(lod, rendering_state.num_of_lods);
+        j += step;
+        lod = min(lod, rendering_state.num_of_lods);
     }
 }
 
 vec4 get_lod_color(float dist, vec4 lod_colors[NUM_MIP_MAPS], uint min_lod)
 {
     
-    float travel = dist * length(one_over_distance_limit.xyz);
+//    float travel = dist * one_over_distance_limit.x;//length(one_over_distance_limit.xyz) * .08f;
+//
+//    float fractional = float(rendering_state.num_of_lods) * travel;
+//    uint lod = uint(floor(fractional));
+//
+//    fractional = fract(fractional);
+//    lod = min(lod, uint(rendering_state.num_of_lods - 1.0));
+//    lod = max(min_lod, lod);
+//    uint next = uint((lod != (rendering_state.num_of_lods-1)));
+//    uint lod2 = lod + next;
     
-    float fractional = float(rendering_state.num_of_lods) * travel;
-    uint lod = uint(floor(fractional));
-    
-    fractional = fract(fractional);
-    lod = min(lod, uint(rendering_state.num_of_lods - 1.0));
-    lod = max(min_lod, lod);
-    uint next = uint((lod != (rendering_state.num_of_lods-1)));
-    uint lod2 = lod + next;
-    
-    vec4 blend_color = mix(lod_colors[lod], lod_colors[lod2], fractional);
-    
+    //vec4 blend_color = mix(lod_colors[lod], lod_colors[lod2], fractional);
+    //vec4 blend_color = mix(lod_colors[2], lod_colors[3], fractional);
+    vec4 blend_color = lod_colors[2];
+    //if( lod2 == rendering_state.num_of_lods -1 )
+    //    blend_color = vec4(1);
     return blend_color;
 }
 
@@ -155,23 +206,23 @@ void ambient_occlusion(vec3 j, vec3 step, vec3 world_pos, inout vec4 sample_colo
     if(within_clipping_space( projection ))
     {
         float len = length(j);
-        float attenuation = (1/(1 + len*lambda));
-        attenuation =  10.f * pow(attenuation, 2.0f);
+//        float attenuation = (1/(1 + len*lambda));
+//        attenuation =  10.f * pow(attenuation, 2.0f);
         vec4 from_lod = get_lod_color(len, albedo_lod_colors);
-        from_lod.a = pow((1 -(1 - from_lod.a)), length(step * dimension_inverse));
-        sample_color.a += (1 - sample_color.a) * from_lod.a * attenuation;
+        sample_color = from_lod;
+//        from_lod.a = pow((1 -(1 - from_lod.a)), length(step * dimension_inverse));
+//        sample_color.a += (1 - sample_color.a) * from_lod.a * attenuation;
         sample_color.a = 1 - sample_color.a;
     }
-    
 }
 
 
 vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_position)
 {
     //magic numbers chosen here were picked because it made the rendering look good.
-    vec4 ambient = vec4(0.f);
-    vec3 step = distance_limit.xyz / 6.0f;
-    vec3 ambient_step = distance_limit.xyz /10.0f;
+    //vec4 ambient = vec4(0.f);
+    //vec3 step = distance_limit.xyz / 6.0f;
+    vec3 ambient_step = distance_limit / rendering_state.num_of_lods;//distance_limit.xyz /10.0f;
     vec3 one_over_voxel_size = vec3(1.0f)/rendering_state.voxel_size_in_world_space.xyz;
     
     vec4 sample_color = vec4(0.0f);
@@ -193,16 +244,20 @@ vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_posi
         while( l < 5)
         {
             vec3 world_sampling_position = m * direction + incoming_position.xyz;
-            
-            ambient_occlusion( m, ambient_step, world_sampling_position, sample_color);
+            vec3 diff = m - incoming_position;
+            ambient_occlusion( diff,  ambient_step, world_sampling_position, sample_color);
             
             //TODO: more to do here...
             ++l;
             m += ambient_step;
         }
+        
+        //sample_color = vec4(sample_color.a, sample_color.a, sample_color.a, 1.0f) * 10.0f;
+        sample_color = albedo_lod_colors[2] * 10.f;
+        break;
     }
     
-    return vec4(sample_color.a, sample_color.a, sample_color.a, 1.0f);
+    return vec4(sample_color.xyz, 1.0f);
 }
 
 vec4 direct_illumination(vec4 illumination, vec3 world_normal, vec3 world_position)
@@ -282,12 +337,16 @@ void main()
         vec3 world_position = texture(world_positions, frag_uv_coord).xyz;
         branchless_onb(world_normal, rotation);
         
-        //vec4 color = voxel_cone_tracing(rotation, world_normal, world_position);
-        //out_color = color;
-        
+        out_color = vec4(0);
+        if(world_position != vec3(0))
+        {
+            vec4 color = voxel_cone_tracing(rotation, world_normal, world_position);
+            out_color = color;
+        }
+
         //out_color = color;
         //final composite shot will be assembled here
-        out_color = direct_illumination(vec4(0.0f), world_normal, world_position);
+        //out_color = direct_illumination(vec4(0.0f), world_normal, world_position);
         
     }
 }

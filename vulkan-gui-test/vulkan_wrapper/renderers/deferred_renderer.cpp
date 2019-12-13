@@ -99,7 +99,7 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _material->init_parameter("state", visual_material::parameter_stage::FRAGMENT, int(0), 5);
     _material->init_parameter("sampling_rays", visual_material::parameter_stage::FRAGMENT, _sampling_rays.data(), _sampling_rays.size(), 5);
     _material->init_parameter("vox_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
-    _material->init_parameter("num_of_lods", visual_material::parameter_stage::FRAGMENT, int(0), 5);
+    _material->init_parameter("num_of_lods", visual_material::parameter_stage::FRAGMENT, int(4), 5);
     
     _material->set_image_sampler(&_voxel_normals_tex, "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     _material->set_image_sampler(&_voxel_albedo_tex, "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
@@ -123,10 +123,10 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _normals.init();
     _depth.init();
     
-    _voxel_albedo_tex.set_filter(image::filter::NEAREST);
-    _voxel_albedo_tex_1.set_filter(image::filter::NEAREST);
-    _voxel_albedo_tex_2.set_filter(image::filter::NEAREST);
-    _voxel_albedo_tex_3.set_filter(image::filter::NEAREST);
+    _voxel_albedo_tex.set_filter(image::filter::LINEAR);
+    _voxel_albedo_tex_1.set_filter(image::filter::LINEAR);
+    _voxel_albedo_tex_2.set_filter(image::filter::LINEAR);
+    _voxel_albedo_tex_3.set_filter(image::filter::LINEAR);
     
     _voxel_normals_tex.set_filter(image::filter::NEAREST);
     _voxel_normals_tex_1.set_filter(image::filter::NEAREST);

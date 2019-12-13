@@ -65,8 +65,9 @@ namespace vk
         virtual vk::visual_mat_shared_ptr &  get_material() override { return _mrt_material; }
         inline texture_3d* get_voxel_texture(uint32_t index ){
             std::array<texture_3d*, 4> textures = {&_voxel_albedo_tex, &_voxel_albedo_tex_1, &_voxel_albedo_tex_2, &_voxel_albedo_tex_3};
-            assert(index < textures.size());
-            return textures[index];
+            std::array<texture_3d*, 4> normals = {&_voxel_normals_tex, &_voxel_normals_tex_1, &_voxel_normals_tex_2, &_voxel_normals_tex_3};
+            assert(index < normals.size());
+            return normals[index];
         }
         
         inline texture_2d* get_voxelizer_cam_texture( ){ return &_voxel_2d_view; }
