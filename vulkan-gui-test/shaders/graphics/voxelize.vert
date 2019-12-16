@@ -39,17 +39,14 @@ layout(binding = 3, std140) uniform DYNAMIC_UBO
 void main()
 {
     gl_Position = ubo.projection * ubo.view * d_ubo.model * vec4(pos, 1.0f);
-
-    mat4 inverse_model = inverse(d_ubo.model);
     
-    vec4 obj_light_position = inverse_model * vec4(ubo.light_position, 1.0f);
-    vec4 obj_eye_position =  inverse_model * vec4(ubo.eye_position, 1.0f);
+    vec4 world_pos = d_ubo.model * vec4(pos,1.f);
     
-    vec3 obj_space_light_vec = obj_light_position.xyz - pos;
-    vec3 obj_space_view_vec = obj_eye_position.xyz - pos;
+    vec3 wrold_space_light_vec = ubo.light_position.xyz - world_pos.xyz;
+    vec3 world_space_view_vec = ubo.eye_position.xyz - world_pos.xyz;
     
     vertex_color = color;
-    out_normal = normal;
-    out_light_vec = obj_space_light_vec;
-    out_view_vec = obj_space_view_vec;;
+    out_normal = (d_ubo.model * vec4(normal,1)).xyz;
+    out_light_vec = wrold_space_light_vec;
+    out_view_vec = world_space_view_vec;
 }
