@@ -52,15 +52,12 @@ void main()
     ndc = voxel_proj / voxel_proj.w;
 
     //scale to range [0,1], that is the texture range
-    ndc.xy = (ndc.xy + 1) * .5f;
+    ndc.xy = (ndc.xy + 1.f) * .5f;
     ndc.xy = 1.0f - ndc.xy;
-    
-    int voxel_depth = int(ceil(ubo.voxel_coords.z * ndc.z));
-    int voxle_height = int(ceil(ubo.voxel_coords.y * ndc.y));
-    int voxel_width = int(ceil(ubo.voxel_coords.x * ndc.x));
-    ivec3 voxel = ivec3(voxel_width, voxle_height, voxel_depth);
-    
-    imageStore(voxel_albedo_texture, voxel, vec4(diffuse.xyz, .8f));
+
+    ivec3 voxel = ivec3(imageSize(voxel_albedo_texture) * ndc.xyz);
+    imageStore(voxel_albedo_texture, voxel, vec4(diffuse, 1.f));
+
     //TODO: We can likely shrink the size of the normal texture to a vec2 instead of a vec4
     imageStore(voxel_normal_texture, voxel, vec4(N.xyz,1.0f));
 }
