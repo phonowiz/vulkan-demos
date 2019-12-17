@@ -129,7 +129,7 @@ namespace vk
         VkDescriptorPool      _descriptor_pool =        VK_NULL_HANDLE;
         VkDescriptorSet       _descriptor_set =         VK_NULL_HANDLE;
         
-        //todo: check out the VkPhysicalDeviceLimits structure: https://vulkan.lunarg.com/doc/view/1.0.30.0/linux/vkspec.chunked/ch31s02.html
+        //TODO: check out the VkPhysicalDeviceLimits structure: https://vulkan.lunarg.com/doc/view/1.0.30.0/linux/vkspec.chunked/ch31s02.html
         static const int BINDING_MAX = 30;
         
         ordered_map<parameter_stage, resource::buffer_info>                       _uniform_buffers;

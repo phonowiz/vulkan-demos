@@ -71,8 +71,10 @@ void main()
     out_color =  vec4(0.0f);
 
     
-    IntersectBox(eye, aabb, tnear, tfar);
+    bool result = IntersectBox(eye, aabb, tnear, tfar);
+    if(result)
     {
+        out_color = vec4(0.0f, 0.0f, 0.0f, 1.0f);
         if (tnear < 0.0) tnear = 0.0;
 
         vec3 ray_start = eye.Origin + eye.Dir * tnear;
@@ -93,7 +95,6 @@ void main()
             //vec3 s = vec3(pos.x, 1- pos.y, pos.z);
             out_color += texture(texture_3d, pos);
         }
-
         //out_color = vec4(frag_obj_pos.x,0.0f, 0.0f, 1.0f);
 
     }

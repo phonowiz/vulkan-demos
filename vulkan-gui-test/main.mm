@@ -186,6 +186,7 @@ void game_loop()
         }
         else
         {
+            app.device->wait_for_all_operations_to_finish();
             update_3d_texture_rendering_params(*app.three_d_renderer);
             app.three_d_renderer->draw(*app.three_d_texture_camera);
         }
@@ -299,14 +300,14 @@ int main()
     vk::obj_shape cube(&device, "cube.obj");
     vk::cornell_box cornell_box(&device);
     
-    dragon.set_diffuse(glm::vec3(0.0f, 0.0f, .70f));
+    dragon.set_diffuse(glm::vec3(.70f, 0.0f, .70f));
     dragon.create();
     cube.create();
     
-    dragon.transform.position = glm::vec3(0.60f, -.500f, -.20f);
+    dragon.transform.position = glm::vec3(0.25f, -.5f, -.20f);
     dragon.transform.update_transform_matrix();
     
-    cornell_box.transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
+    cornell_box.transform.position = glm::vec3(0.0f, 0.00f, 0.0f);
     cornell_box.transform.rotation.y = 3.14159f;
     cornell_box.transform.update_transform_matrix();
     cornell_box.create();
@@ -319,6 +320,8 @@ int main()
     
     vk::perspective_camera three_d_texture_cam(glm::radians(45.0f),
                                                swapchain._swapchain_data.swapchain_extent.width/ swapchain._swapchain_data.swapchain_extent.height, .01f, 100.0f);
+    
+    //vk::orthographic_camera ortho_cam(8.0f, 8.0f, 8.0f);
     
     
     app.perspective_camera = &perspective_camera;
@@ -346,10 +349,10 @@ int main()
     app.deferred_renderer = &deferred_renderer;
     
     app.deferred_renderer->add_shape(&cornell_box);
-    app.deferred_renderer->add_shape(&dragon);
+    //app.deferred_renderer->add_shape(&dragon);
 
     app.shapes.push_back(&cornell_box);
-    app.shapes.push_back(&dragon);
+    //app.shapes.push_back(&dragon);
 
     
     app.deferred_renderer->init();

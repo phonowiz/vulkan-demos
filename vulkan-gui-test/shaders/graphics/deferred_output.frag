@@ -65,8 +65,6 @@ vec3 one_over_distance_limit = 1.0f/rendering_state.voxel_size_in_world_space.xy
 vec4  albedo_lod_colors[NUM_MIP_MAPS];
 vec4  normal_lod_colors[NUM_MIP_MAPS];
 
-
-
 //note: moltenvk doesn't support lod's for sampler3D textures, it only supports lods for texture2d arrays
 //this is the reason I have this function here
 vec4 sample_lod_texture(int texture_type, vec3 coord, uint level)
@@ -127,6 +125,22 @@ bool within_texture_bounds( vec4 pos)
     (0.0f <= pos.z && pos.z <= 1.0f);
 }
 
+void branchless_onb(vec3 n, out mat3 rotation)
+{
+    //based off of "Building Orthonormal Basis, Revisited", Pixar Animation Studios
+    //https://graphics.pixar.com/library/OrthonormalB/paper.pdf
+    float s = int(n.z >= 0) - int(n.z < 0);
+    float a = -1.0f / (s + n.z);
+    float b = n.x * n.y * a;
+    vec3 b1 = vec3(1.0f + s * n.x * n.x * a, s * b, -s * n.x);
+    vec3 b2 = vec3(b, s + n.y * n.y * a, -n.y);
+    
+    rotation[0] = b1;
+    rotation[1] = n;
+    rotation[2] = b2;
+}
+
+
 void collect_lod_colors( vec3 direction, vec3 world_position)
 {
     //note: direction is assumed to be normalized
@@ -135,7 +149,7 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
     //start sampling above the world position of the surface, see inside while loop below.
     vec3 j = rendering_state.voxel_size_in_world_space.xyz;
     uint lod = 1;
-    vec3 step = j*2.5f;//(3.0f * distance_limit ) / rendering_state.num_of_lods;
+    vec3 step = j*2.5f;
     j += step;
 
     while(j.x < distance_limit.x  && j.y < distance_limit.y && j.z < distance_limit.z &&
@@ -157,7 +171,7 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
             texture_space.xy = 1.0f - texture_space.xy;
             
             albedo_lod_colors[lod-1] = sample_lod_texture(ALBEDO, texture_space.xyz, lod+1);
-            //normal_lod_colors[lod] = sample_lod_texture(NORMALS, texture_space.xyz, lod);        }
+            normal_lod_colors[lod-1] = sample_lod_texture(NORMALS, texture_space.xyz, lod+1);
         }
         else
         {
@@ -168,30 +182,6 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
         j += step;
         lod = min(lod, rendering_state.num_of_lods);
     }
-}
-
-vec4 get_lod_color(float dist, vec4 lod_colors[NUM_MIP_MAPS], uint min_lod)
-{
-    
-    float travel = dist * one_over_distance_limit.x;//length(one_over_distance_limit.xyz) * .08f;
-
-    float fractional = float(rendering_state.num_of_lods) * travel;
-    uint lod = uint(floor(fractional));
-
-    fractional = fract(fractional);
-    lod = min(lod, uint(rendering_state.num_of_lods - 1.0));
-    lod = max(min_lod, lod);
-    uint next = uint((lod != (rendering_state.num_of_lods-1)));
-    uint lod2 = lod + next;
-    
-    lod2 = max(lod2, 4);
-    vec4 blend_color = mix(lod_colors[lod], lod_colors[lod2], fractional);
-    return blend_color;
-}
-
-vec4 get_lod_color(float distance, vec4 lod_colors[NUM_MIP_MAPS])
-{
-    return get_lod_color(distance, lod_colors, 1u);
 }
 
 void ambient_occlusion(vec3 world_pos, inout vec4 sample_color )
@@ -217,12 +207,108 @@ void ambient_occlusion(vec3 world_pos, inout vec4 sample_color )
     }
 }
 
+float toksvig_factor(vec3 normal, float s)
+{
+    
+    //based off of "Mipmapping Normal Maps", Nvidia
+    //https://developer.download.nvidia.com/whitepapers/2006/Mipmapping_Normal_Maps.pdf
+    float rlen = 1.0f/clamp(length(normal), 0.0f, 1.0f);
+    //sigma = |N|/(|N| + s(1 - |N|)).  Below, we just devided numerator and denominator by |N|
+    return 1.0f/(1.0f + s * (rlen - 1.0f));
+}
+
+//TODO: untested function.  Is part of the original algorithm, but I don't use it because
+//results still look good
+
+//float get_variance(float distance)
+//{
+//    vec3 travel = distance * one_over_distance_limit;
+//
+//    vec3 fractional = float(NUM_MIP_MAPS) * travel;
+//    uint lod = uint(floor(length(fractional)));
+//
+//    fractional = fract(fractional);
+//    lod = min(lod, NUM_MIP_MAPS);
+//
+//    uint next = uint((lod == (NUM_MIP_MAPS-1)));
+//    uint lod2 = lod + next;
+//
+//    float variance = mix(coneVariances[lod], coneVariances[lod2], fractional);
+//    return variance;
+//}
+
+//section 7 and 8.1 of the paper
+vec4 indirect_illumination( vec3 world_normal, vec3 world_pos, vec3 direction)
+{
+    vec3 j = rendering_state.voxel_size_in_world_space.xyz;
+    uint lod = 1;
+    vec3 step = j*2.5f;
+    j += step;
+    
+    //return vec4(abs(world_normal), 1.0f);
+    
+    vec4 final_color = vec4(0);
+    while(j.x < distance_limit.x  && j.y < distance_limit.y && j.z < distance_limit.z &&
+          lod != rendering_state.num_of_lods)
+    {
+        vec4 avg_normal = normal_lod_colors[lod];
+        vec4 avg_albedo = albedo_lod_colors[lod];
+        
+        float sqrd = avg_normal.x * avg_normal.x + avg_normal.y * avg_normal.y + avg_normal.z * avg_normal.z;
+        vec3 sampling_pos = world_pos + j * direction;
+        //this is to avoid division by zero
+ 
+        if( sqrd > 0.0f)
+        {
+            vec3 full_size_normal = normalize(avg_normal.xyz);
+            mat3 normal_rotation;
+            branchless_onb(full_size_normal, normal_rotation );
+
+            //from here on out, we work on the sampling point space. The multiply here is out of order
+            //because the end result of this is transforming world_normal to object space normal
+            //TODO: should we do inverse transpose?
+            
+            vec3 obj_space_normal = world_normal * normal_rotation;
+            vec3 dir_in_obj_space = sampling_pos.xyz - world_pos.xyz ;
+            dir_in_obj_space = dir_in_obj_space.xyz * normal_rotation ;
+            
+            //return avg_normal;//vec4(worlavg_normald_normal, 1.0f);
+            
+            vec3 view = normalize(dir_in_obj_space);
+            //in sampling point space, the normal is always up
+            vec3 up = vec3(0.f, 1.0f, 0.0f);
+            
+            //float variance = get_variance(j);
+            //the paper does have instructions to use gaussian lobe distribution, but this wasn't giving me
+            //visually pleasing results, commented out for this reason, but will leave here for reference
+            //float gauss = gaussianLobeDistribution( view, variance);
+            
+            vec3 light_direction = view;
+            //Blinn Phong
+            // this is equivalent to normalize(view + lightDirection); because view = lightDirection
+            vec3 h = view;
+            float ndoth = clamp(dot(up, h), 0.0f, 1.0f);
+            //todo: we need a specular map where this power comes from, for now it is constant
+            float s = .005f;
+            float gloss = toksvig_factor(avg_normal.xyz, s);
+            
+            float p = s * gloss;
+            float spec = pow(ndoth, p)* (1 + gloss*s)/(1 + s);
+            
+            float ndotl = clamp(dot(up, light_direction), 0.0f, 1.0f);
+            final_color +=  (avg_albedo + avg_albedo * spec)  * ndotl * gloss ;
+        }
+        
+        ++lod;
+        j += step;
+        break;
+    }
+    
+    return vec4(final_color.xyz, 1.0f) * 1.0f;
+}
 
 vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_position)
 {
-    //magic numbers chosen here were picked because it made the rendering look good.
-    //vec4 ambient = vec4(0.f);
-    //vec3 step = distance_limit.xyz / 6.0f;
     vec3 ambient_step = distance_limit / rendering_state.num_of_lods;//distance_limit.xyz /10.0f;
     vec3 one_over_voxel_size = vec3(1.0f)/rendering_state.voxel_size_in_world_space.xyz;
     
@@ -233,11 +319,16 @@ vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_posi
     {
         vec3 direction = rotation * rendering_state.sampling_rays[i].xyz;
         direction = normalize(direction) ;
+        //return vec4(abs(direction),1.0f);
         
         collect_lod_colors(direction, incoming_position.xyz);
+        
         ambient_occlusion(incoming_position, sample_color);
-//        if(i == 0)
-//            sample_color.a = 1.0 - albedo_lod_colors[1].a * 2.0f;
+        
+//        vec4 ambient_color = indirect_illumination(incoming_normal, incoming_position, direction);
+//        sample_color.xyz += ambient_color.xyz ;
+        //break;
+
 //
 //        vec3 j = rendering_state.voxel_size_in_world_space.xyz;
 //
@@ -296,21 +387,6 @@ vec4 direct_illumination(vec4 illumination, vec3 world_normal, vec3 world_positi
     
     //final.xyz += (illumination.xyz);
     return vec4(final, 1.0f);
-}
-
-void branchless_onb(vec3 n, out mat3 rotation)
-{
-    //based off of "Building Orthonormal Basis, Revisited", Pixar Animation Studios
-    //https://graphics.pixar.com/library/OrthonormalB/paper.pdf
-    float s = int(n.z >= 0) - int(n.z < 0);
-    float a = -1.0f / (s + n.z);
-    float b = n.x * n.y * a;
-    vec3 b1 = vec3(1.0f + s * n.x * n.x * a, s * b, -s * n.x);
-    vec3 b2 = vec3(b, s + n.y * n.y * a, -n.y);
-    
-    rotation[0] = b1;
-    rotation[1] = n;
-    rotation[2] = b2;
 }
 
 void main()

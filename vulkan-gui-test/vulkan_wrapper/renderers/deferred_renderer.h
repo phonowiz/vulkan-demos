@@ -34,16 +34,9 @@ namespace vk
         
         render_texture _voxel_2d_view;
         
-        //texture 3d textures mip maps are not supported moltenvk,so we create our own
-        texture_3d _voxel_albedo_tex;
-        texture_3d _voxel_albedo_tex_1;
-        texture_3d _voxel_albedo_tex_2;
-        texture_3d _voxel_albedo_tex_3;
-        
-        texture_3d _voxel_normals_tex;
-        texture_3d _voxel_normals_tex_1;
-        texture_3d _voxel_normals_tex_2;
-        texture_3d _voxel_normals_tex_3;
+        //texture 3d mip maps are not supported moltenvk,so we create our own
+        std::array< texture_3d, 4> _voxel_albedo_textures;
+        std::array< texture_3d, 4> _voxel_normal_textures;
         
         visual_mat_shared_ptr _mrt_material = nullptr;
         visual_mat_shared_ptr _debug_material = nullptr;
@@ -63,11 +56,11 @@ namespace vk
         };
         
         virtual vk::visual_mat_shared_ptr &  get_material() override { return _mrt_material; }
-        inline texture_3d* get_voxel_texture(uint32_t index ){
-            std::array<texture_3d*, 4> textures = {&_voxel_albedo_tex, &_voxel_albedo_tex_1, &_voxel_albedo_tex_2, &_voxel_albedo_tex_3};
-            std::array<texture_3d*, 4> normals = {&_voxel_normals_tex, &_voxel_normals_tex_1, &_voxel_normals_tex_2, &_voxel_normals_tex_3};
-            assert(index < normals.size());
-            return normals[index];
+        
+        inline texture_3d* get_voxel_texture(uint32_t index )
+        {
+            assert(index < _voxel_albedo_textures.size());
+            return &_voxel_albedo_textures[index];
         }
         
         inline texture_2d* get_voxelizer_cam_texture( ){ return &_voxel_2d_view; }
@@ -92,9 +85,9 @@ namespace vk
         void record_voxelize_command_buffers(obj_shape** shapes, size_t number_of_shapes);
         void record_clear_texture_3d_buffer ();
         void record_3d_mip_maps_commands();
-        //void create_3d_texture_mipmaps_pipelines();
+
         void clear_voxels_textures();
-        void generate_voxel_mip_maps();
+        VkSemaphore generate_voxel_mip_maps();
         
         void create_voxelization_render_pass();
         void create_voxel_texture_pipelines();
@@ -141,6 +134,10 @@ namespace vk
         VkSemaphore _generate_voxel_x_axis_semaphore = VK_NULL_HANDLE;
         VkSemaphore _generate_voxel_y_axis_semaphore = VK_NULL_HANDLE;
         VkSemaphore _generate_voxel_z_axis_semaphore = VK_NULL_HANDLE;
+        VkSemaphore _clear_voxel_textures =  VK_NULL_HANDLE;
+        
+        std::array<VkSemaphore, 4> _mip_map_semaphores;
+        
         
         std::vector<VkFramebuffer>  _deferred_swapchain_frame_buffers;
         std::vector<VkFramebuffer>  _voxelize_frame_buffers;
@@ -151,7 +148,7 @@ namespace vk
         orthographic_camera _ortho_camera;
         screen_plane        _screen_plane;
         
-        glm::vec4 _light_pos = glm::vec4(0.0f, 3.f, 0.0f, 1.0f);
+        glm::vec4 _light_pos = glm::vec4(0.0f, .8f, 0.0f, 1.0f);
         glm::vec4 _light_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
         
         //TODO: on my mid 2014 macbook pro, the number of frames is 3, this could change in other platforms
@@ -171,7 +168,7 @@ namespace vk
         
         std::array<glm::vec4, NUM_SAMPLING_RAYS> _sampling_rays = {};
         
-        static constexpr glm::vec3 _voxel_world_dimensions = glm::vec3(6.0f, 6.0f, 10.f);
+        static constexpr glm::vec3 _voxel_world_dimensions = glm::vec3(10.0f, 10.0f, 10.0f);
         bool _setup_initialized = false;
         
         

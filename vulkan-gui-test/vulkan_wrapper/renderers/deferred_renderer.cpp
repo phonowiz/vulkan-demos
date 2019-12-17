@@ -30,17 +30,6 @@ _albedo(device, swapchain->_swapchain_data.swapchain_extent.width,swapchain->_sw
 _normals(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height, render_texture::usage::COLOR_TARGET),
 _voxel_2d_view(device, static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), render_texture::usage::COLOR_TARGET),
 
-_voxel_albedo_tex(device, VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH),
-
-_voxel_albedo_tex_1(device, VOXEL_CUBE_WIDTH/2, VOXEL_CUBE_WIDTH/2, VOXEL_CUBE_WIDTH/2),
-_voxel_albedo_tex_2(device, VOXEL_CUBE_WIDTH/4, VOXEL_CUBE_WIDTH/4, VOXEL_CUBE_DEPTH/4),
-_voxel_albedo_tex_3(device, VOXEL_CUBE_WIDTH/8, VOXEL_CUBE_HEIGHT/8, VOXEL_CUBE_DEPTH/8),
-
-_voxel_normals_tex_1(device, VOXEL_CUBE_WIDTH/2, VOXEL_CUBE_HEIGHT/2, VOXEL_CUBE_DEPTH/2),
-_voxel_normals_tex_2(device, VOXEL_CUBE_WIDTH/4, VOXEL_CUBE_HEIGHT/4, VOXEL_CUBE_DEPTH/4),
-_voxel_normals_tex_3(device, VOXEL_CUBE_WIDTH/8, VOXEL_CUBE_HEIGHT/8, VOXEL_CUBE_DEPTH/8),
-
-_voxel_normals_tex(device,VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH),
 _depth(device, swapchain->_swapchain_data.swapchain_extent.width, swapchain->_swapchain_data.swapchain_extent.height,true),
 _screen_plane(device),
 _mrt_material(store.GET_MAT<visual_material>("mrt")),
@@ -61,20 +50,34 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
 {
     int binding = 0;
     
+    for( size_t i = 0; i < _voxel_albedo_textures.size(); ++i)
+    {
+        _voxel_albedo_textures[i].set_device(device);
+        _voxel_albedo_textures[i].set_dimensions(VOXEL_CUBE_WIDTH >> i,  VOXEL_CUBE_HEIGHT >> i, VOXEL_CUBE_DEPTH >> i );
+        
+        _voxel_normal_textures[i].set_device(device);
+        _voxel_normal_textures[i].set_dimensions(VOXEL_CUBE_WIDTH >> i,  VOXEL_CUBE_HEIGHT >> i, VOXEL_CUBE_DEPTH >> i );
+        
+        _voxel_albedo_textures[i].set_filter(image::filter::LINEAR);
+        _voxel_normal_textures[i].set_filter(image::filter::LINEAR);
+        
+        assert(_voxel_albedo_textures[i].get_height() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
+        assert(_voxel_albedo_textures[i].get_width() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
+        assert(_voxel_albedo_textures[i].get_depth() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
+    }
+    
     _mrt_material->init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
     _mrt_material->init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
     _mrt_material->init_parameter("lightPosition", visual_material::parameter_stage::VERTEX, glm::vec4(0), binding);
     
-    _material->init_parameter("width", visual_material::parameter_stage::VERTEX, 0.f, 0);
-    _material->init_parameter("height", visual_material::parameter_stage::VERTEX, 0.f, 0);
+    _pipeline._material->init_parameter("width", visual_material::parameter_stage::VERTEX, 0.f, 0);
+    _pipeline._material->init_parameter("height", visual_material::parameter_stage::VERTEX, 0.f, 0);
     
-    assert(_voxel_albedo_tex.get_height() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
-    assert(_voxel_albedo_tex.get_width() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
-    assert(_voxel_albedo_tex.get_depth() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
+
     
-    _voxelize_pipeline.set_image_sampler(&_voxel_albedo_tex, "voxel_albedo_texture",
+    _voxelize_pipeline.set_image_sampler(&_voxel_albedo_textures[0], "voxel_albedo_texture",
                                          visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
-    _voxelize_pipeline.set_image_sampler(&_voxel_normals_tex, "voxel_normal_texture",
+    _voxelize_pipeline.set_image_sampler(&_voxel_normal_textures[0], "voxel_normal_texture",
                                          visual_material::parameter_stage::FRAGMENT, 4, resource::usage_type::STORAGE_IMAGE);
     
     _voxelize_pipeline._material->init_parameter("inverse_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
@@ -92,25 +95,25 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
                                             float(_voxel_world_dimensions.y/VOXEL_CUBE_HEIGHT),
                                             float(_voxel_world_dimensions.z/VOXEL_CUBE_DEPTH), 1.0f);
     
-    _material->init_parameter("world_cam_position", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
-    _material->init_parameter("world_light_position", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
-    _material->init_parameter("light_color", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
-    _material->init_parameter("voxel_size_in_world_space", visual_material::parameter_stage::FRAGMENT, world_scale_voxel, 5);
-    _material->init_parameter("state", visual_material::parameter_stage::FRAGMENT, int(0), 5);
-    _material->init_parameter("sampling_rays", visual_material::parameter_stage::FRAGMENT, _sampling_rays.data(), _sampling_rays.size(), 5);
-    _material->init_parameter("vox_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
-    _material->init_parameter("num_of_lods", visual_material::parameter_stage::FRAGMENT, int(4), 5);
+    _pipeline._material->init_parameter("world_cam_position", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+    _pipeline._material->init_parameter("world_light_position", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+    _pipeline._material->init_parameter("light_color", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+    _pipeline._material->init_parameter("voxel_size_in_world_space", visual_material::parameter_stage::FRAGMENT, world_scale_voxel, 5);
+    _pipeline._material->init_parameter("state", visual_material::parameter_stage::FRAGMENT, int(0), 5);
+    _pipeline._material->init_parameter("sampling_rays", visual_material::parameter_stage::FRAGMENT, _sampling_rays.data(), _sampling_rays.size(), 5);
+    _pipeline._material->init_parameter("vox_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
+    _pipeline._material->init_parameter("num_of_lods", visual_material::parameter_stage::FRAGMENT, int(4), 5);
     
-    _material->set_image_sampler(&_voxel_normals_tex, "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-    _material->set_image_sampler(&_voxel_albedo_tex, "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _pipeline._material->set_image_sampler(&_voxel_normal_textures[0], "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _pipeline._material->set_image_sampler(&_voxel_albedo_textures[0], "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     
-    _material->set_image_sampler(&_voxel_albedo_tex_1, "voxel_albedos1", visual_material::parameter_stage::FRAGMENT, 8, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-    _material->set_image_sampler(&_voxel_albedo_tex_2, "voxel_albedos2", visual_material::parameter_stage::FRAGMENT, 9, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-    _material->set_image_sampler(&_voxel_albedo_tex_3, "voxel_albedos3", visual_material::parameter_stage::FRAGMENT, 10, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _pipeline._material->set_image_sampler(&_voxel_albedo_textures[1], "voxel_albedos1", visual_material::parameter_stage::FRAGMENT, 8, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _pipeline._material->set_image_sampler(&_voxel_albedo_textures[2], "voxel_albedos2", visual_material::parameter_stage::FRAGMENT, 9, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _pipeline._material->set_image_sampler(&_voxel_albedo_textures[3], "voxel_albedos3", visual_material::parameter_stage::FRAGMENT, 10, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     
-    _material->set_image_sampler(&_voxel_normals_tex_1, "voxel_normals1", visual_material::parameter_stage::FRAGMENT, 11, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-    _material->set_image_sampler(&_voxel_normals_tex_2, "voxel_normals2", visual_material::parameter_stage::FRAGMENT, 12, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-    _material->set_image_sampler(&_voxel_normals_tex_3, "voxel_normals3", visual_material::parameter_stage::FRAGMENT, 13, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _pipeline._material->set_image_sampler(&_voxel_normal_textures[1], "voxel_normals1", visual_material::parameter_stage::FRAGMENT, 11, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _pipeline._material->set_image_sampler(&_voxel_normal_textures[2], "voxel_normals2", visual_material::parameter_stage::FRAGMENT, 12, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _pipeline._material->set_image_sampler(&_voxel_normal_textures[3], "voxel_normals3", visual_material::parameter_stage::FRAGMENT, 13, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     //_material->print_uniform_argument_names();
     
     _positions.set_filter(image::filter::NEAREST);
@@ -123,25 +126,11 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _normals.init();
     _depth.init();
     
-    _voxel_albedo_tex.set_filter(image::filter::LINEAR);
-    _voxel_albedo_tex_1.set_filter(image::filter::LINEAR);
-    _voxel_albedo_tex_2.set_filter(image::filter::LINEAR);
-    _voxel_albedo_tex_3.set_filter(image::filter::LINEAR);
-    
-    _voxel_normals_tex.set_filter(image::filter::NEAREST);
-    _voxel_normals_tex_1.set_filter(image::filter::NEAREST);
-    _voxel_normals_tex_2.set_filter(image::filter::NEAREST);
-    _voxel_normals_tex_3.set_filter(image::filter::NEAREST);
-
-    _voxel_albedo_tex.init();
-    _voxel_albedo_tex_1.init();
-    _voxel_albedo_tex_2.init();
-    _voxel_albedo_tex_3.init();
-    
-    _voxel_normals_tex.init();
-    _voxel_normals_tex_1.init();
-    _voxel_normals_tex_2.init();
-    _voxel_normals_tex_3.init();
+    for( size_t i = 0; i < _voxel_normal_textures.size(); ++i)
+    {
+        _voxel_albedo_textures[i].init();
+        _voxel_normal_textures[i].init();
+    }
     
     _voxel_2d_view.set_filter(image::filter::NEAREST);
     _voxel_2d_view.init();
@@ -150,8 +139,6 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _voxelize_pipeline.set_depth_enable(false);
     
     _mrt_pipeline.set_material(_mrt_material);
-    _pipeline.set_material(_material);
-    
     _screen_plane.create();
     
     create_command_buffers(&_offscreen_command_buffers, _device->_graphics_command_pool);
@@ -169,27 +156,26 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
 
 void deferred_renderer::create_voxel_texture_pipelines()
 {
-    std::array<texture_3d, 4> albedo_textures = {_voxel_albedo_tex, _voxel_albedo_tex_1, _voxel_albedo_tex_2, _voxel_albedo_tex_3};
-    std::array<texture_3d, 4> normal_textures = {_voxel_normals_tex, _voxel_normals_tex_1, _voxel_normals_tex_2, _voxel_normals_tex_3};
     std::array<compute_pipeline, 4> clear_pipelines = {_clear_texture_3d_pipeline_1, _clear_texture_3d_pipeline_2, _clear_texture_3d_pipeline_3, _clear_texture_3d_pipeline_4};
     std::array<compute_pipeline, 3> mip_map_pipelines = {_create_voxel_mip_maps_1, _create_voxel_mip_maps_2, _create_voxel_mip_maps_3};
     
+    //TODO: you'll need to clear normals as well
     for( int i = 0; i < clear_pipelines.size(); ++i)
     {
-        clear_pipelines[i].material->set_image_sampler(&albedo_textures[i],
+        clear_pipelines[i].material->set_image_sampler(&_voxel_albedo_textures[i],
                                                                "texture_3d", material_base::parameter_stage::COMPUTE, 0, material_base::usage_type::STORAGE_IMAGE);
         clear_pipelines[i].material->commit_parameters_to_gpu();
     }
     
     for(int i =0; i < mip_map_pipelines.size(); ++i)
     {
-        mip_map_pipelines[i].material->set_image_sampler(&albedo_textures[i], "r_texture_1", material_base::parameter_stage::COMPUTE,
+        mip_map_pipelines[i].material->set_image_sampler(&_voxel_albedo_textures[i], "r_texture_1", material_base::parameter_stage::COMPUTE,
                                                         0, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-        mip_map_pipelines[i].material->set_image_sampler(&normal_textures[i], "r_texture_2", material_base::parameter_stage::COMPUTE,
+        mip_map_pipelines[i].material->set_image_sampler(&_voxel_normal_textures[i], "r_texture_2", material_base::parameter_stage::COMPUTE,
                                                         1, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-        mip_map_pipelines[i].material->set_image_sampler(&albedo_textures[i + 1], "w_texture_1", material_base::parameter_stage::COMPUTE,
+        mip_map_pipelines[i].material->set_image_sampler(&_voxel_albedo_textures[i + 1], "w_texture_1", material_base::parameter_stage::COMPUTE,
                                                         2, material_base::usage_type::STORAGE_IMAGE);
-        mip_map_pipelines[i].material->set_image_sampler(&normal_textures[i + 1], "w_texture_2", material_base::parameter_stage::COMPUTE,
+        mip_map_pipelines[i].material->set_image_sampler(&_voxel_normal_textures[i + 1], "w_texture_2", material_base::parameter_stage::COMPUTE,
                                                         3, material_base::usage_type::STORAGE_IMAGE);
         
         mip_map_pipelines[i].material->commit_parameters_to_gpu();
@@ -378,6 +364,13 @@ void deferred_renderer::create_semaphores_and_fences()
     create_semaphore(_generate_voxel_y_axis_semaphore);
     create_semaphore(_generate_voxel_x_axis_semaphore);
     
+    create_semaphore(_clear_voxel_textures);
+    
+    for( size_t i = 0; i < _mip_map_semaphores.size(); ++i)
+    {
+        create_semaphore(_mip_map_semaphores[i]);
+    }
+    
     assert(NUM_OF_FRAMES == _swapchain->_swapchain_data.image_set.get_image_count());
     for(int i = 0; i < _swapchain->_swapchain_data.image_set.get_image_count(); ++i)
     {
@@ -504,13 +497,13 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
         // We won't be changing the layout of the image
         image_memory_barrier[0].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
         image_memory_barrier[0].newLayout = VK_IMAGE_LAYOUT_GENERAL;
-        image_memory_barrier[0].image = _voxel_albedo_tex.get_image();
+        image_memory_barrier[0].image = _voxel_albedo_textures[0].get_image();
         image_memory_barrier[0].subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
         image_memory_barrier[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
         image_memory_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
         
         image_memory_barrier[1] = image_memory_barrier[0];
-        image_memory_barrier[1].image = _voxel_normals_tex.get_image();
+        image_memory_barrier[1].image = _voxel_normal_textures[0].get_image();
         
         vkCmdPipelineBarrier(
                              _voxelize_command_buffers[i],
@@ -704,8 +697,8 @@ void deferred_renderer::perform_final_drawing_setup()
         _pipeline.set_image_sampler(&_albedo, "albedo", visual_material::parameter_stage::FRAGMENT, 2, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(&_positions, "world_positions", visual_material::parameter_stage::FRAGMENT, 3, resource::usage_type::COMBINED_IMAGE_SAMPLER);
         _pipeline.set_image_sampler(&_depth, "depth", visual_material::parameter_stage::FRAGMENT, 4, resource::usage_type::COMBINED_IMAGE_SAMPLER);
-        _pipeline.set_image_sampler(&_voxel_normals_tex, "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-        _pipeline.set_image_sampler(&_voxel_albedo_tex, "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        _pipeline.set_image_sampler(&_voxel_normal_textures[0], "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        _pipeline.set_image_sampler(&_voxel_albedo_textures[0], "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
         _setup_initialized = true;
     }
     
@@ -738,19 +731,15 @@ void deferred_renderer::clear_voxels_textures()
     submit_info.pCommandBuffers = clear_commands.data();
     submit_info.waitSemaphoreCount = 0;
     submit_info.pWaitSemaphores = nullptr;
-    submit_info.pSignalSemaphores = nullptr;
-    submit_info.signalSemaphoreCount = 0;
+    submit_info.pSignalSemaphores = &_clear_voxel_textures;
+    submit_info.signalSemaphoreCount = 1;
     
-    VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _voxel_command_fence[_deferred_image_index]);
+    VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _voxel_command_fence[0]);
 
     ASSERT_VULKAN(result);
-    
-    //voxels must be cleared before proceeding with the rendering
-    vkWaitForFences(_device->_logical_device, 1, &_voxel_command_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_device->_logical_device, 1, &_voxel_command_fence[_deferred_image_index]);
 }
 
-void deferred_renderer::generate_voxel_mip_maps()
+VkSemaphore deferred_renderer::generate_voxel_mip_maps()
 {
     std::array<VkCommandBuffer*, 3> generate_mip_maps_commands = { _generate_3d_mip_maps_1_commands,
         _generate_3d_mip_maps_2_commands, _generate_3d_mip_maps_3_commands };
@@ -760,17 +749,16 @@ void deferred_renderer::generate_voxel_mip_maps()
         VkSubmitInfo submit_info = {};
         submit_info.commandBufferCount = 1;
         submit_info.pCommandBuffers = generate_mip_maps_commands[i];
-        submit_info.waitSemaphoreCount = 0;
-        submit_info.pWaitSemaphores = nullptr;
-        submit_info.pSignalSemaphores = nullptr;
-        submit_info.signalSemaphoreCount = 0;
+        submit_info.waitSemaphoreCount =  1;
+        submit_info.pWaitSemaphores = i == 0 ? &_generate_voxel_x_axis_semaphore : &_mip_map_semaphores[i-1];
+        submit_info.pSignalSemaphores = &_mip_map_semaphores[i];
+        submit_info.signalSemaphoreCount = 1;
         
-        VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _voxel_command_fence[_deferred_image_index]);
+        VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _voxel_command_fence[0]);
         ASSERT_VULKAN(result);
-        
-        vkWaitForFences(_device->_logical_device, 1, &_voxel_command_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-        vkResetFences(_device->_logical_device, 1, &_voxel_command_fence[_deferred_image_index]);
     }
+    
+    return _mip_map_semaphores[generate_mip_maps_commands.size()-1];
 }
 
 VkSemaphore deferred_renderer::generate_voxel_textures(vk::camera &camera)
@@ -782,7 +770,7 @@ VkSemaphore deferred_renderer::generate_voxel_textures(vk::camera &camera)
     voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
     
     clear_voxels_textures();
-
+    
     std::array<glm::vec3, 3> cam_positions = {  glm::vec3(0.0f, 0.0f, -8.f),glm::vec3(0.0f, 8.f, 0.0f), glm::vec3(8.0f, 0.0f, 0.0f)};
     std::array<glm::vec3, 3> up_vectors = { glm::vec3 {0.0f, 1.0f, 0.0f}, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)};
     std::array<VkSemaphore, 3> semaphores = { _generate_voxel_z_axis_semaphore,
@@ -814,26 +802,24 @@ VkSemaphore deferred_renderer::generate_voxel_textures(vk::camera &camera)
         voxelize_vertex_params["eye_position"] = camera.position;
         _voxelize_pipeline._material->commit_parameters_to_gpu();
         
-        //todo: it might be possible here to bulk all of these submissions into one
+        //TODO: it might be possible here to bulk all of these submissions into one
         VkSubmitInfo submit_info = {};
         submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submit_info.commandBufferCount = 1;
-        submit_info.waitSemaphoreCount = i == 0 ? 0 : 1;
-        submit_info.pWaitSemaphores = i == 0 ? nullptr : &semaphores[i - 1];
+        submit_info.waitSemaphoreCount =  1;
+        submit_info.pWaitSemaphores = i == 0 ? &_clear_voxel_textures : &semaphores[i - 1];
         
-        //todo: is next line right?
+        //TODO: is next line right?
         submit_info.pCommandBuffers = &(_voxelize_command_buffers[_deferred_image_index]);
         submit_info.signalSemaphoreCount = 1;
         submit_info.pSignalSemaphores = &semaphores[i];
-        vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _voxelize_inflight_fence[_deferred_image_index]);
+        vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _voxelize_inflight_fence[0]);
         
-        vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-        vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index]);
+        vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[0], VK_TRUE, std::numeric_limits<uint64_t>::max());
+        vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[0]);
     }
     
-    generate_voxel_mip_maps();
-    
-    return semaphores[semaphores.size() -1];
+    return generate_voxel_mip_maps();
 }
 
 
@@ -855,22 +841,24 @@ void deferred_renderer::draw(camera& camera)
     
     perform_final_drawing_setup();
     
+    VkSemaphore voxel_texture_semaphore = generate_voxel_textures(camera);
     //todo: acquire image at the very last minute, not in the very beginning
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain,
                           std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &_deferred_image_index);
     
-    VkSemaphore voxel_texture_semaphore = generate_voxel_textures(camera);
+    
     
     vkWaitForFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     vkResetFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index]);
     
+    std::array<VkSemaphore, 3> wait_semaphores{_semaphore_image_available, voxel_texture_semaphore, _g_buffers_rendering_done};
     //render g-buffers
     VkResult result = {};
     VkSubmitInfo submit_info = {};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = nullptr;
-    submit_info.waitSemaphoreCount = 0;
-    submit_info.pWaitSemaphores = nullptr;
+    submit_info.waitSemaphoreCount = wait_semaphores.size();
+    submit_info.pWaitSemaphores = wait_semaphores.data();
     VkPipelineStageFlags wait_stage_mask[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submit_info.pWaitDstStageMask = wait_stage_mask;
     submit_info.commandBufferCount = 1;
@@ -882,11 +870,9 @@ void deferred_renderer::draw(camera& camera)
     result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _g_buffers_fence[_deferred_image_index]);
     ASSERT_VULKAN(result);
     //render scene with g buffers and 3d voxel texture
-    
     vkWaitForFences(_device->_logical_device, 1, &_composite_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     vkResetFences(_device->_logical_device, 1, &_composite_fence[_deferred_image_index]);
 
-    std::array<VkSemaphore, 3> wait_semaphores{_semaphore_image_available, voxel_texture_semaphore, _g_buffers_rendering_done};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = nullptr;
     submit_info.waitSemaphoreCount = wait_semaphores.size();
@@ -898,6 +884,7 @@ void deferred_renderer::draw(camera& camera)
     submit_info.pSignalSemaphores = &_semaphore_rendering_done;
 
     result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _composite_fence[_deferred_image_index]);
+
     ASSERT_VULKAN(result);
     //present the scene to viewer
     VkPresentInfoKHR present_info {};
@@ -928,6 +915,13 @@ void deferred_renderer::destroy()
     vkDestroySemaphore(_device->_logical_device, _generate_voxel_x_axis_semaphore, nullptr);
     vkDestroySemaphore(_device->_logical_device, _generate_voxel_y_axis_semaphore, nullptr);
     vkDestroySemaphore(_device->_logical_device, _generate_voxel_z_axis_semaphore, nullptr);
+    vkDestroySemaphore(_device->_logical_device, _clear_voxel_textures, nullptr);
+    
+    for( size_t i = 0; i < _mip_map_semaphores.size(); ++i)
+    {
+        vkDestroySemaphore(_device->_logical_device, _mip_map_semaphores[i], nullptr);
+    }
+    
     _deferred_semaphore_image_available = VK_NULL_HANDLE;
     _g_buffers_rendering_done = VK_NULL_HANDLE;
     
@@ -962,15 +956,11 @@ void deferred_renderer::destroy()
     _mrt_pipeline.destroy();
     _voxelize_pipeline.destroy();
     
-    _voxel_albedo_tex.destroy();
-    _voxel_albedo_tex_1.destroy();
-    _voxel_albedo_tex_2.destroy();
-    _voxel_albedo_tex_3.destroy();
-    
-    _voxel_normals_tex.destroy();
-    _voxel_normals_tex_1.destroy();
-    _voxel_normals_tex_2.destroy();
-    _voxel_normals_tex_3.destroy();
+    for( size_t i  = 0; i < _voxel_normal_textures.size(); ++i)
+    {
+        _voxel_albedo_textures[i].destroy();
+        _voxel_normal_textures[i].destroy();
+    }
 
     _clear_texture_3d_pipeline_1.destroy();
     _clear_texture_3d_pipeline_2.destroy();

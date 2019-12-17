@@ -56,6 +56,13 @@ namespace vk
             return _channels;
         }
         
+        void set_dimensions(uint32_t width, uint32_t height, uint32_t depth)
+        {
+            _width = width;
+            _height = height;
+            _depth = depth;
+        }
+        
         inline uint32_t get_width()
         {
             return _width;
@@ -97,6 +104,11 @@ namespace vk
         inline formats get_format()
         {
             return _format;
+        }
+        
+        void set_format(formats f)
+        {
+            _format = f;
         }
         
         void set_filter( image::filter filter){ _filter = filter; }

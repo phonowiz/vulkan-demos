@@ -31,7 +31,7 @@ glm::vec3 transform::forward() { return glm::quat(rotation) * glm::vec3(0, 0, 1)
 glm::vec3 transform::up() { return glm::quat(rotation) * glm::vec3(0, 1, 0); }
 glm::vec3 transform::right() { return glm::quat(rotation) * glm::vec3(-1, 0, 0); }
 
-std::ostream & operator<<(std::ostream & os, const transform & t) {
+std::ostream & vk::operator<<(std::ostream & os, const transform & t) {
     os << "- - - transform - - -" << std::endl;
     os << "position: " << t.position.x << ", " << t.position.y << ", " << t.position.z << std::endl;
     os << "rotation: " << t.rotation.x << ", " << t.rotation.y << ", " << t.rotation.z << std::endl;

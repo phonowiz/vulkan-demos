@@ -26,6 +26,8 @@ namespace vk {
             _depth = depth;
         }
 
+        texture_3d():image(){};
+        
         virtual const void* const get_instance_type() override { return _image_type; } 
         static const void* const  get_class_type(){ return _image_type; }
         
