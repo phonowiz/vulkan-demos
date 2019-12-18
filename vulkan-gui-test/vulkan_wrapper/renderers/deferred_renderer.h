@@ -60,7 +60,7 @@ namespace vk
         inline texture_3d* get_voxel_texture(uint32_t index )
         {
             assert(index < _voxel_albedo_textures.size());
-            return &_voxel_albedo_textures[index];
+            return &_voxel_normal_textures[index];
         }
         
         inline texture_2d* get_voxelizer_cam_texture( ){ return &_voxel_2d_view; }

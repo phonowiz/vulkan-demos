@@ -96,8 +96,8 @@ void main()
             out_color += texture(texture_3d, pos);
         }
         //out_color = vec4(frag_obj_pos.x,0.0f, 0.0f, 1.0f);
-
     }
+    out_color = abs(out_color);
     
 
 }

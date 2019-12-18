@@ -107,6 +107,7 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _pipeline._material->init_parameter("sampling_rays", visual_material::parameter_stage::FRAGMENT, _sampling_rays.data(), _sampling_rays.size(), 5);
     _pipeline._material->init_parameter("vox_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
     _pipeline._material->init_parameter("num_of_lods", visual_material::parameter_stage::FRAGMENT, int(4), 5);
+    _pipeline._material->init_parameter("eye_in_world_space", visual_material::parameter_stage::FRAGMENT, glm::vec3(0), 5);
     
     _pipeline._material->set_image_sampler(&_voxel_normal_textures[0], "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     _pipeline._material->set_image_sampler(&_voxel_albedo_textures[0], "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
@@ -841,6 +842,7 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
         if( i == 0)
         {
             deferred_output_params["vox_view_projection"] = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
+            deferred_output_params["eye_in_world_space"] = camera.position;
         }
         
         project_to_voxel_screen = (i == 0) ? _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix : project_to_voxel_screen;
