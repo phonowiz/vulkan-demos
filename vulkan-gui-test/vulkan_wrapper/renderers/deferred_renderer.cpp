@@ -498,13 +498,20 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
         image_memory_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
         
         constexpr uint32_t VK_FLAGS_NONE = 0;
+
+        
+        vkCmdBeginRenderPass(_voxelize_command_buffers[i], &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBindPipeline(_voxelize_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _voxelize_pipeline._pipeline);
+        
         // We won't be changing the layout of the image
         image_memory_barrier[0].oldLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[0].get_image_layout());
         image_memory_barrier[0].newLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[0].get_image_layout());
         image_memory_barrier[0].image = _voxel_albedo_textures[0].get_image();
         image_memory_barrier[0].subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-        image_memory_barrier[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        image_memory_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        image_memory_barrier[0].srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT;
+        image_memory_barrier[0].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+        image_memory_barrier[0].srcQueueFamilyIndex = _device->_indices.graphics_family.value();
+        image_memory_barrier[0].dstQueueFamilyIndex = _device->_indices.graphics_family.value();
         
         image_memory_barrier[1] = image_memory_barrier[0];
         image_memory_barrier[1].image = _voxel_normal_textures[0].get_image();
@@ -512,15 +519,12 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
         image_memory_barrier[1].newLayout = static_cast<VkImageLayout>(_voxel_normal_textures[0].get_image_layout());
         vkCmdPipelineBarrier(
                              _voxelize_command_buffers[i],
-                             VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                              VK_FLAGS_NONE,
                              0, nullptr,
                              0, nullptr,
                              image_memory_barrier.size(), image_memory_barrier.data());
-        
-        vkCmdBeginRenderPass(_voxelize_command_buffers[i], &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(_voxelize_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _voxelize_pipeline._pipeline);
         
         VkViewport viewport {};
         viewport.x = 0.0f;
@@ -542,6 +546,7 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
         }
         
         vkCmdEndRenderPass(_voxelize_command_buffers[i]);
+        vkEndCommandBuffer(_voxelize_command_buffers[i]);
     }
 }
 
@@ -571,36 +576,39 @@ void deferred_renderer::record_3d_mip_maps_commands()
 
             if( i != 0)
             {
-                std::array<VkImageMemoryBarrier, 2> image_memory_barrier {};
-                image_memory_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                image_memory_barrier[0].pNext = nullptr;
-                image_memory_barrier[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-                image_memory_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+                 mip_map_pipelines[i].record_begin_commands( [=]()
+                 {
+                     std::array<VkImageMemoryBarrier, 2> image_memory_barrier {};
+                     image_memory_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                     image_memory_barrier[0].pNext = nullptr;
+                     image_memory_barrier[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+                     image_memory_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-                image_memory_barrier[0].oldLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[i-1].get_image_layout());;
-                image_memory_barrier[0].newLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[i-1].get_image_layout());
-                image_memory_barrier[0].image = _voxel_albedo_textures[i-1].get_image();
-                image_memory_barrier[0].subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-                image_memory_barrier[0].srcQueueFamilyIndex = _device->_indices.graphics_family.value();
-                image_memory_barrier[0].dstQueueFamilyIndex = _device->_indices.graphics_family.value();
+                     image_memory_barrier[0].oldLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[i-1].get_image_layout());;
+                     image_memory_barrier[0].newLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[i-1].get_image_layout());
+                     image_memory_barrier[0].image = _voxel_albedo_textures[i-1].get_image();
+                     image_memory_barrier[0].subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+                     image_memory_barrier[0].srcQueueFamilyIndex = _device->_indices.graphics_family.value();
+                     image_memory_barrier[0].dstQueueFamilyIndex = _device->_indices.graphics_family.value();
 
-                image_memory_barrier[1] = image_memory_barrier[0];
-                image_memory_barrier[1].image = _voxel_normal_textures[i-1].get_image();
-                image_memory_barrier[1].oldLayout = static_cast<VkImageLayout>(_voxel_normal_textures[i-1].get_image_layout());;
-                image_memory_barrier[1].newLayout = static_cast<VkImageLayout>(_voxel_normal_textures[i-1].get_image_layout());
-                constexpr uint32_t VK_FLAGS_NONE = 0;
+                     image_memory_barrier[1] = image_memory_barrier[0];
+                     image_memory_barrier[1].image = _voxel_normal_textures[i-1].get_image();
+                     image_memory_barrier[1].oldLayout = static_cast<VkImageLayout>(_voxel_normal_textures[i-1].get_image_layout());;
+                     image_memory_barrier[1].newLayout = static_cast<VkImageLayout>(_voxel_normal_textures[i-1].get_image_layout());
+                     constexpr uint32_t VK_FLAGS_NONE = 0;
 
-                vkCmdPipelineBarrier(
-                                     generate_mip_maps_commands[i][j],
-                                     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                                     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
-                                     VK_FLAGS_NONE,
-                                     0, nullptr,
-                                     0, nullptr,
-                                     image_memory_barrier.size(), image_memory_barrier.data());
+                     vkCmdPipelineBarrier(
+                                          generate_mip_maps_commands[i][j],
+                                          VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                                          VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                          VK_FLAGS_NONE,
+                                          0, nullptr,
+                                          0, nullptr,
+                                          image_memory_barrier.size(), image_memory_barrier.data());
+                 } );
             }
 
-            
+
             mip_map_pipelines[i].record_dispatch_commands(generate_mip_maps_commands[i][j],
                                                                 local_groups_x, local_groups_y, local_groups_z);
 
@@ -704,6 +712,7 @@ void deferred_renderer::record_command_buffers(obj_shape** shapes, size_t number
         }
         
         vkCmdEndRenderPass(_offscreen_command_buffers[i]);
+        vkEndCommandBuffer(_offscreen_command_buffers[i]);
     }
     
     record_voxelize_command_buffers(shapes, number_of_shapes);
@@ -773,7 +782,9 @@ void deferred_renderer::clear_voxels_textures()
     submit_info.signalSemaphoreCount = 1;
     
     VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _voxel_command_fence[0]);
-
+    
+    vkResetFences(_device->_logical_device, 1, &_voxel_command_fence[0]);
+    vkWaitForFences(_device->_logical_device, 1, &_voxel_command_fence[0], VK_TRUE, std::numeric_limits<uint64_t>::max());
     ASSERT_VULKAN(result);
 }
 
@@ -837,12 +848,12 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
         voxelize_frag_params["project_to_voxel_screen"] = project_to_voxel_screen;
         voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
         voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
-        //glm::vec3 light_pos;
-        //light_pos.x = _light_pos.x; light_pos.y = _light_pos.y; light_pos.z = _light_pos.z;
+
         voxelize_vertex_params["light_position"] = _light_pos;
         voxelize_vertex_params["eye_position"] = camera.position;
         _voxelize_pipeline._material->commit_parameters_to_gpu();
         
+       
         //TODO: it might be possible here to bulk all of these submissions into one
         VkSubmitInfo submit_info = {};
         submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -852,12 +863,11 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
         submit_info.pCommandBuffers = &(_voxelize_command_buffers[_deferred_image_index]);
         submit_info.signalSemaphoreCount = 1;
         submit_info.pSignalSemaphores = &semaphores[i];
-        vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _voxelize_inflight_fence[0]);
         
-        vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[0], VK_TRUE, std::numeric_limits<uint64_t>::max());
-        vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[0]);
-        
-        _device->wait_for_all_operations_to_finish();
+        vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index]);
+        vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _voxelize_inflight_fence[_deferred_image_index]);
+
+        vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     }
     
     generate_voxel_mip_maps();
@@ -886,11 +896,7 @@ void deferred_renderer::draw(camera& camera)
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain,
                           std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &_deferred_image_index);
     
-    
     generate_voxel_textures(camera);
-    
-    vkWaitForFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index]);
     
     std::array<VkSemaphore, 2> wait_semaphores{_semaphore_image_available, _g_buffers_rendering_done};
     //render g-buffers
@@ -907,12 +913,13 @@ void deferred_renderer::draw(camera& camera)
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &_g_buffers_rendering_done;
 
-
+    vkResetFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index]);
     result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _g_buffers_fence[_deferred_image_index]);
+    vkWaitForFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    
     ASSERT_VULKAN(result);
     //render scene with g buffers and 3d voxel texture
-    vkWaitForFences(_device->_logical_device, 1, &_composite_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_device->_logical_device, 1, &_composite_fence[_deferred_image_index]);
+
 
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = nullptr;
@@ -924,7 +931,9 @@ void deferred_renderer::draw(camera& camera)
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &_semaphore_rendering_done;
 
+    vkResetFences(_device->_logical_device, 1, &_composite_fence[_deferred_image_index]);
     result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _composite_fence[_deferred_image_index]);
+    vkWaitForFences(_device->_logical_device, 1, &_composite_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
 
     ASSERT_VULKAN(result);
     //present the scene to viewer

@@ -49,7 +49,6 @@ void compute_pipeline::record_dispatch_commands( VkCommandBuffer&  command_buffe
         create();
     }
     
-    
     VkCommandBufferBeginInfo command_buffer_begin_info {};
     command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     command_buffer_begin_info.pInheritanceInfo = nullptr;
@@ -57,7 +56,8 @@ void compute_pipeline::record_dispatch_commands( VkCommandBuffer&  command_buffe
     VkResult result = vkBeginCommandBuffer(command_buffer, &command_buffer_begin_info);
     ASSERT_VULKAN(result);
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipeline);
-    //todo: dynamic ubos needed here? not sure..
+
+    _on_begin();
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipeline_layout, 0, 1, material->get_descriptor_set(), 0, 0);
     
     vkCmdDispatch(command_buffer, local_groups_in_x, local_groups_in_y, local_groups_in_z);

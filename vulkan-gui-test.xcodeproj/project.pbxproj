@@ -111,7 +111,6 @@
 		B93FDCE423037359000AECBE /* shader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = shader.cpp; sourceTree = "<group>"; };
 		B93FDCE523037359000AECBE /* shader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shader.h; sourceTree = "<group>"; };
 		B93FDCE623037359000AECBE /* shader_parameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shader_parameter.h; sourceTree = "<group>"; };
-		B93FDCE92303D215000AECBE /* vulkan-gui-test.profdata */ = {isa = PBXFileReference; lastKnownFileType = file; path = "vulkan-gui-test.profdata"; sourceTree = "<group>"; };
 		B93FDCED230D2C6B000AECBE /* ordered_map.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ordered_map.h; sourceTree = "<group>"; };
 		B94CEB982248243F001AEDEE /* tiny_obj_loader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tiny_obj_loader.h; sourceTree = "<group>"; };
 		B94CEB9922482516001AEDEE /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
@@ -174,7 +173,6 @@
 				B938D045219534B7004F759E /* vulkan-gui-test */,
 				B938D044219534B7004F759E /* Products */,
 				B938D05A21953D34004F759E /* Frameworks */,
-				B93FDCE82303D215000AECBE /* OptimizationProfiles */,
 			);
 			sourceTree = "<group>";
 		};
@@ -302,14 +300,6 @@
 				B93FDCD223037064000AECBE /* swapchain.h */,
 			);
 			path = core;
-			sourceTree = "<group>";
-		};
-		B93FDCE82303D215000AECBE /* OptimizationProfiles */ = {
-			isa = PBXGroup;
-			children = (
-				B93FDCE92303D215000AECBE /* vulkan-gui-test.profdata */,
-			);
-			path = OptimizationProfiles;
 			sourceTree = "<group>";
 		};
 		B96AB61B22EE5BBA00F33807 /* shapes */ = {

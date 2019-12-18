@@ -44,12 +44,17 @@ namespace vk
         void record_dispatch_commands(VkCommandBuffer&  command_buffer,
                                        uint32_t local_groups_in_x, uint32_t local_groups_in_y, uint32_t local_groups_in_z);
         
+        inline void record_begin_commands(  std::function<void()> f){ _on_begin = f; };
+        
         //LOCAL_GROUP_SIZE was chosen here because of an example I saw on the internet, if you decide to change this number
         //make sure the local group sizes in  your particular shader is changed as well. Or maybe this needs to be configurable by
         //the client
         static constexpr uint32_t LOCAL_GROUP_SIZE = 8u;
         
     private:
+        
+        std::function<void()> _on_begin = [](){};
+        
         void create();
     };
 };
