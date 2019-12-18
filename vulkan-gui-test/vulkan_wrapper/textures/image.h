@@ -94,6 +94,18 @@ namespace vk
             DEPTH_24_STENCIL_8 = VK_FORMAT_D24_UNORM_S8_UINT
         };
         
+        enum class image_layouts
+        {
+            PREINITIALIZED = VK_IMAGE_LAYOUT_PREINITIALIZED,
+            DEPTH_STENCIL_ATTACHMENT_OPTIMAL = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            DEPTH_STENCIL_READ_ONLY_OPTIAML = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
+            SHADER_READ_ONLY_OPTIMAL = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            TRANSFER_SOURCE_OPTIMAL = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            TRANSFER_DESTINATION_OPTIMAL = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            COLOR_ATTACHMENT_OPTIMAL = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            PRESENT_KHR = VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR
+        };
+        
         enum class filter
         {
             LINEAR = VkFilter::VK_FILTER_LINEAR,
@@ -106,9 +118,19 @@ namespace vk
             return _format;
         }
         
-        void set_format(formats f)
+        inline void set_format(formats f)
         {
             _format = f;
+        }
+        
+        inline void set_image_layout( image_layouts layout)
+        {
+            _image_layout = layout;
+        }
+        
+        inline image_layouts get_image_layout()
+        {
+            return _image_layout;
         }
         
         void set_filter( image::filter filter){ _filter = filter; }
@@ -120,6 +142,7 @@ namespace vk
         
         formats _format = formats::R8G8B8A8_SIGNED_NORMALIZED;
         filter  _filter = filter::LINEAR;
+        image_layouts _image_layout = image_layouts::PREINITIALIZED;
         
         virtual void create_sampler() = 0;
         virtual void create_image_view( VkImage image, VkFormat format,

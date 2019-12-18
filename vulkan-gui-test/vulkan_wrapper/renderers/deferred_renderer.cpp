@@ -61,6 +61,10 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
         _voxel_albedo_textures[i].set_filter(image::filter::LINEAR);
         _voxel_normal_textures[i].set_filter(image::filter::LINEAR);
         
+        _voxel_normal_textures[i].set_image_layout(image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
+        _voxel_albedo_textures[i].set_image_layout(image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
+
+        
         assert(_voxel_albedo_textures[i].get_height() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
         assert(_voxel_albedo_textures[i].get_width() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
         assert(_voxel_albedo_textures[i].get_depth() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
@@ -96,7 +100,7 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
                                             float(_voxel_world_dimensions.z/VOXEL_CUBE_DEPTH), 1.0f);
     
     _pipeline._material->init_parameter("world_cam_position", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
-    _pipeline._material->init_parameter("world_light_position", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+    _pipeline._material->init_parameter("world_light_position", visual_material::parameter_stage::FRAGMENT, glm::vec3(0.0f), 5);
     _pipeline._material->init_parameter("light_color", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
     _pipeline._material->init_parameter("voxel_size_in_world_space", visual_material::parameter_stage::FRAGMENT, world_scale_voxel, 5);
     _pipeline._material->init_parameter("state", visual_material::parameter_stage::FRAGMENT, int(0), 5);
@@ -495,8 +499,8 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
         
         constexpr uint32_t VK_FLAGS_NONE = 0;
         // We won't be changing the layout of the image
-        image_memory_barrier[0].oldLayout = VK_IMAGE_LAYOUT_GENERAL;
-        image_memory_barrier[0].newLayout = VK_IMAGE_LAYOUT_GENERAL;
+        image_memory_barrier[0].oldLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[0].get_image_layout());
+        image_memory_barrier[0].newLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[0].get_image_layout());
         image_memory_barrier[0].image = _voxel_albedo_textures[0].get_image();
         image_memory_barrier[0].subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
         image_memory_barrier[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
@@ -504,7 +508,8 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
         
         image_memory_barrier[1] = image_memory_barrier[0];
         image_memory_barrier[1].image = _voxel_normal_textures[0].get_image();
-        
+        image_memory_barrier[1].oldLayout = static_cast<VkImageLayout>(_voxel_normal_textures[0].get_image_layout());
+        image_memory_barrier[1].newLayout = static_cast<VkImageLayout>(_voxel_normal_textures[0].get_image_layout());
         vkCmdPipelineBarrier(
                              _voxelize_command_buffers[i],
                              VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
@@ -564,8 +569,41 @@ void deferred_renderer::record_3d_mip_maps_commands()
             uint32_t local_groups_y = (VOXEL_CUBE_HEIGHT >> i) / compute_pipeline::LOCAL_GROUP_SIZE;
             uint32_t local_groups_z = (VOXEL_CUBE_DEPTH >> i) / compute_pipeline::LOCAL_GROUP_SIZE;
 
+            if( i != 0)
+            {
+                std::array<VkImageMemoryBarrier, 2> image_memory_barrier {};
+                image_memory_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                image_memory_barrier[0].pNext = nullptr;
+                image_memory_barrier[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+                image_memory_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+                image_memory_barrier[0].oldLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[i-1].get_image_layout());;
+                image_memory_barrier[0].newLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[i-1].get_image_layout());
+                image_memory_barrier[0].image = _voxel_albedo_textures[i-1].get_image();
+                image_memory_barrier[0].subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+                image_memory_barrier[0].srcQueueFamilyIndex = _device->_indices.graphics_family.value();
+                image_memory_barrier[0].dstQueueFamilyIndex = _device->_indices.graphics_family.value();
+
+                image_memory_barrier[1] = image_memory_barrier[0];
+                image_memory_barrier[1].image = _voxel_normal_textures[i-1].get_image();
+                image_memory_barrier[1].oldLayout = static_cast<VkImageLayout>(_voxel_normal_textures[i-1].get_image_layout());;
+                image_memory_barrier[1].newLayout = static_cast<VkImageLayout>(_voxel_normal_textures[i-1].get_image_layout());
+                constexpr uint32_t VK_FLAGS_NONE = 0;
+
+                vkCmdPipelineBarrier(
+                                     generate_mip_maps_commands[i][j],
+                                     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                                     VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+                                     VK_FLAGS_NONE,
+                                     0, nullptr,
+                                     0, nullptr,
+                                     image_memory_barrier.size(), image_memory_barrier.data());
+            }
+
+            
             mip_map_pipelines[i].record_dispatch_commands(generate_mip_maps_commands[i][j],
                                                                 local_groups_x, local_groups_y, local_groups_z);
+
         }
     }
 }
@@ -739,29 +777,32 @@ void deferred_renderer::clear_voxels_textures()
     ASSERT_VULKAN(result);
 }
 
-VkSemaphore deferred_renderer::generate_voxel_mip_maps()
+void deferred_renderer::generate_voxel_mip_maps()
 {
     std::array<VkCommandBuffer*, 3> generate_mip_maps_commands = { _generate_3d_mip_maps_1_commands,
         _generate_3d_mip_maps_2_commands, _generate_3d_mip_maps_3_commands };
     
+    //TODO: batch these into one submit...
     for( int i = 0; i < generate_mip_maps_commands.size(); ++i)
     {
         VkSubmitInfo submit_info = {};
         submit_info.commandBufferCount = 1;
-        submit_info.pCommandBuffers = generate_mip_maps_commands[i];
-        submit_info.waitSemaphoreCount =  1;
-        submit_info.pWaitSemaphores = i == 0 ? &_generate_voxel_x_axis_semaphore : &_mip_map_semaphores[i-1];
-        submit_info.pSignalSemaphores = &_mip_map_semaphores[i];
-        submit_info.signalSemaphoreCount = 1;
+        submit_info.pCommandBuffers = &generate_mip_maps_commands[i][_deferred_image_index];
+        submit_info.waitSemaphoreCount =  0;//1;
+        submit_info.pWaitSemaphores = nullptr;
+        submit_info.pSignalSemaphores = nullptr;//&_mip_map_semaphores[i];
+        submit_info.signalSemaphoreCount = 0;//1;
         
-        VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _voxel_command_fence[0]);
+        VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info,
+                                        i == generate_mip_maps_commands.size() -1 ? _voxel_command_fence[0] : nullptr);
         ASSERT_VULKAN(result);
     }
     
-    return _mip_map_semaphores[generate_mip_maps_commands.size()-1];
+    vkWaitForFences(_device->_logical_device, 1, &_voxel_command_fence[0], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(_device->_logical_device, 1, &_voxel_command_fence[0]);
 }
 
-VkSemaphore deferred_renderer::generate_voxel_textures(vk::camera &camera)
+void deferred_renderer::generate_voxel_textures(vk::camera &camera)
 {
     vk::shader_parameter::shader_params_group& voxelize_vertex_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     vk::shader_parameter::shader_params_group& voxelize_frag_params = _voxelize_pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2);
@@ -779,7 +820,7 @@ VkSemaphore deferred_renderer::generate_voxel_textures(vk::camera &camera)
     glm::mat4 project_to_voxel_screen = glm::mat4(1.0f);
     
     //voxelize, we are going to build the voxel texture from cam_positions.size() views.
-    for( size_t i = 0; i < cam_positions.size(); ++i)
+    for( size_t i = 0; i < 3; ++i)
     {
         _ortho_camera.position = cam_positions[i];
         _ortho_camera.forward = -_ortho_camera.position;
@@ -796,9 +837,9 @@ VkSemaphore deferred_renderer::generate_voxel_textures(vk::camera &camera)
         voxelize_frag_params["project_to_voxel_screen"] = project_to_voxel_screen;
         voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
         voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
-        glm::vec3 light_pos;
-        light_pos.x = _light_pos.x; light_pos.y = _light_pos.y; light_pos.z = _light_pos.z;
-        voxelize_vertex_params["light_position"] = light_pos;
+        //glm::vec3 light_pos;
+        //light_pos.x = _light_pos.x; light_pos.y = _light_pos.y; light_pos.z = _light_pos.z;
+        voxelize_vertex_params["light_position"] = _light_pos;
         voxelize_vertex_params["eye_position"] = camera.position;
         _voxelize_pipeline._material->commit_parameters_to_gpu();
         
@@ -808,8 +849,6 @@ VkSemaphore deferred_renderer::generate_voxel_textures(vk::camera &camera)
         submit_info.commandBufferCount = 1;
         submit_info.waitSemaphoreCount =  1;
         submit_info.pWaitSemaphores = i == 0 ? &_clear_voxel_textures : &semaphores[i - 1];
-        
-        //TODO: is next line right?
         submit_info.pCommandBuffers = &(_voxelize_command_buffers[_deferred_image_index]);
         submit_info.signalSemaphoreCount = 1;
         submit_info.pSignalSemaphores = &semaphores[i];
@@ -817,9 +856,11 @@ VkSemaphore deferred_renderer::generate_voxel_textures(vk::camera &camera)
         
         vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[0], VK_TRUE, std::numeric_limits<uint64_t>::max());
         vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[0]);
+        
+        _device->wait_for_all_operations_to_finish();
     }
     
-    return generate_voxel_mip_maps();
+    generate_voxel_mip_maps();
 }
 
 
@@ -841,17 +882,17 @@ void deferred_renderer::draw(camera& camera)
     
     perform_final_drawing_setup();
     
-    VkSemaphore voxel_texture_semaphore = generate_voxel_textures(camera);
     //todo: acquire image at the very last minute, not in the very beginning
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->_swapchain_data.swapchain,
                           std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &_deferred_image_index);
     
     
+    generate_voxel_textures(camera);
     
     vkWaitForFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     vkResetFences(_device->_logical_device, 1, &_g_buffers_fence[_deferred_image_index]);
     
-    std::array<VkSemaphore, 3> wait_semaphores{_semaphore_image_available, voxel_texture_semaphore, _g_buffers_rendering_done};
+    std::array<VkSemaphore, 2> wait_semaphores{_semaphore_image_available, _g_buffers_rendering_done};
     //render g-buffers
     VkResult result = {};
     VkSubmitInfo submit_info = {};

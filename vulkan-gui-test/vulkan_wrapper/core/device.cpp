@@ -32,13 +32,13 @@ device::device()
 void device::create_logical_device( VkSurfaceKHR surface)
 {
     pick_physical_device(surface);
-    device::queue_family_indices indices = find_queue_families(_physical_device, surface);
+    _indices = find_queue_families(_physical_device, surface);
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies = {indices.graphics_family.value(), indices.present_family.value()};
+    std::set<uint32_t> unique_queue_families = {_indices.graphics_family.value(), _indices.present_family.value()};
 
     float queuePriority = 1.0f;
-    for (uint32_t queueFamily : uniqueQueueFamilies) {
+    for (uint32_t queueFamily : unique_queue_families) {
         VkDeviceQueueCreateInfo queueCreateInfo = {};
         queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
         queueCreateInfo.queueFamilyIndex = queueFamily;
@@ -77,26 +77,26 @@ void device::create_logical_device( VkSurfaceKHR surface)
         throw std::runtime_error("failed to create logical device!");
     }
     
-    vkGetDeviceQueue(_logical_device, indices.graphics_family.value(), 0, &_graphics_queue);
-    vkGetDeviceQueue(_logical_device, indices.present_family.value(), 0, &_present_queue);
-    vkGetDeviceQueue(_logical_device, indices.compute_family.value(), 0, &_compute_queue);
+    vkGetDeviceQueue(_logical_device, _indices.graphics_family.value(), 0, &_graphics_queue);
+    vkGetDeviceQueue(_logical_device, _indices.present_family.value(), 0, &_present_queue);
+    vkGetDeviceQueue(_logical_device, _indices.compute_family.value(), 0, &_compute_queue);
     
-    create_command_pool(indices.graphics_family.value(), &_graphics_command_pool);
+    create_command_pool(_indices.graphics_family.value(), &_graphics_command_pool);
     
     _present_command_pool = _graphics_command_pool;
-    if(indices.graphics_family != indices.present_family)
+    if(_indices.graphics_family != _indices.present_family)
     {
-        create_command_pool(indices.present_family.value(), &_present_command_pool);
+        create_command_pool(_indices.present_family.value(), &_present_command_pool);
     }
     _compute_command_pool = _present_command_pool;
     
-    if(indices.graphics_family == indices.compute_family)
+    if(_indices.graphics_family == _indices.compute_family)
     {
         _compute_command_pool = _graphics_command_pool;
     }
-    else if( indices.compute_family != indices.present_family)
+    else if( _indices.compute_family != _indices.present_family)
     {
-        create_command_pool(indices.compute_family.value(), &_compute_command_pool);
+        create_command_pool(_indices.compute_family.value(), &_compute_command_pool);
     }
 }
 

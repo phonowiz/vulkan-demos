@@ -78,7 +78,7 @@ namespace vk
         virtual void create_pipeline()      override;
         virtual void create_semaphores_and_fences() override;
         virtual void destroy_framebuffers() override;
-        VkSemaphore generate_voxel_textures(vk::camera& camera);
+        void generate_voxel_textures(vk::camera& camera);
         
         void compute(VkCommandBuffer command_buffer, vk::compute_pipeline& pipeline);
         void record_command_buffers(obj_shape** shapes, size_t number_of_shapes) override;
@@ -87,7 +87,7 @@ namespace vk
         void record_3d_mip_maps_commands();
 
         void clear_voxels_textures();
-        VkSemaphore generate_voxel_mip_maps();
+        void generate_voxel_mip_maps();
         
         void create_voxelization_render_pass();
         void create_voxel_texture_pipelines();
@@ -148,7 +148,7 @@ namespace vk
         orthographic_camera _ortho_camera;
         screen_plane        _screen_plane;
         
-        glm::vec4 _light_pos = glm::vec4(0.0f, .8f, 0.0f, 1.0f);
+        glm::vec3 _light_pos = glm::vec3(0.0f, .8f, 0.0f);
         glm::vec4 _light_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
         
         //TODO: on my mid 2014 macbook pro, the number of frames is 3, this could change in other platforms

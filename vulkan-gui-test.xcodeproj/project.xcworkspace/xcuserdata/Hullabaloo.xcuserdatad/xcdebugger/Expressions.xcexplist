@@ -223,6 +223,14 @@
          contextName = "::vkCreatePipelineLayout(VkDevice, const VkPipelineLayoutCreateInfo *, const VkAllocationCallbacks *, VkPipelineLayout *):vulkan.mm">
       </ContextState>
       <ContextState
+         contextName = "vk::deferred_renderer::draw(vk::camera&amp;):deferred_renderer.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "_deferred_image_index">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "vk::Renderer::recordCommandBuffers():renderer.cpp">
       </ContextState>
       <ContextState

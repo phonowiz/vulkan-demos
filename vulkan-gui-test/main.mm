@@ -144,8 +144,10 @@ void update_renderer_parameters( vk::renderer& renderer)
     vertex_params["projection"] =  app.perspective_camera->get_projection_matrix();
     vertex_params["lightPosition"] = temp;
     
+    
     for( uint32_t i = 0; i < app.shapes.size(); ++i)
     {
+        //app.shapes[i]->transform.mat_transform = app.model*  app.shapes[i]->transform.mat_transform;
         renderer.get_material()->get_dynamic_parameters(vk::visual_material::parameter_stage::VERTEX, 1)[i]["model"] = app.shapes[i]->transform.get_transform_matrix();
     }
 
@@ -321,9 +323,6 @@ int main()
     vk::perspective_camera three_d_texture_cam(glm::radians(45.0f),
                                                swapchain._swapchain_data.swapchain_extent.width/ swapchain._swapchain_data.swapchain_extent.height, .01f, 100.0f);
     
-    //vk::orthographic_camera ortho_cam(8.0f, 8.0f, 8.0f);
-    
-    
     app.perspective_camera = &perspective_camera;
     app.perspective_camera->position = glm::vec3(0.0f, .2f, -5.0f);
     app.perspective_camera->forward = -perspective_camera.position;
@@ -349,15 +348,15 @@ int main()
     app.deferred_renderer = &deferred_renderer;
     
     app.deferred_renderer->add_shape(&cornell_box);
-    //app.deferred_renderer->add_shape(&dragon);
+    app.deferred_renderer->add_shape(&dragon);
 
     app.shapes.push_back(&cornell_box);
-    //app.shapes.push_back(&dragon);
+    app.shapes.push_back(&dragon);
 
     
     app.deferred_renderer->init();
     
-    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(1);
+    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(0);
     app.three_d_renderer->get_material()->set_image_sampler(voxel_texture, "texture_3d",
                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
     
