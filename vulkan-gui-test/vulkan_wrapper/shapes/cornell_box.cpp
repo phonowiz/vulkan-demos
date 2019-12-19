@@ -14,13 +14,13 @@ using namespace vk;
 cornell_box::cornell_box( vk::device* device):
 obj_shape(device, "cornell_box.obj")
 {    
-    _wall_colors[0] = glm::vec3(0.0f, 1.0f, 0.0f);
-    _wall_colors[1] = glm::vec3(1.0f); //bottom
-    _wall_colors[2] = glm::vec3(1.0f); //top
-    _wall_colors[3] = glm::vec3(1.0f, 0.0f, 0.0f);
-    _wall_colors[4] = glm::vec3(1.0f); //back
-    _wall_colors[5] = glm::vec3(1.0f);
-    _wall_colors[6] = glm::vec3(1.0f);
+    _wall_colors[0] = glm::vec3(0.0f, .60f, 0.0f);
+    _wall_colors[1] = glm::vec3(0.0f,.6f, 0.60f); //bottom
+    _wall_colors[2] = glm::vec3(.60f); //top
+    _wall_colors[3] = glm::vec3(.60f, 0.0f, 0.0f);
+    _wall_colors[4] = glm::vec3(0.6f,.60f, 0.f); //back
+    _wall_colors[5] = glm::vec3(.60f);
+    _wall_colors[6] = glm::vec3(.60f);
 }
 
 

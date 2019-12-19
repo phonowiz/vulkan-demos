@@ -60,7 +60,7 @@ namespace vk
         inline texture_3d* get_voxel_texture(uint32_t index )
         {
             assert(index < _voxel_albedo_textures.size());
-            return &_voxel_normal_textures[index];
+            return &_voxel_albedo_textures[index];
         }
         
         inline texture_2d* get_voxelizer_cam_texture( ){ return &_voxel_2d_view; }
@@ -148,7 +148,6 @@ namespace vk
         orthographic_camera _ortho_camera;
         screen_plane        _screen_plane;
         
-        glm::vec3 _light_pos = glm::vec3(0.0f, .8f, 0.0f);
         glm::vec4 _light_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
         
         //TODO: on my mid 2014 macbook pro, the number of frames is 3, this could change in other platforms
@@ -162,7 +161,7 @@ namespace vk
         
         static constexpr uint32_t VOXEL_CUBE_WIDTH = 256u;
         static constexpr uint32_t VOXEL_CUBE_HEIGHT = 256u;
-        static constexpr uint32_t VOXEL_CUBE_DEPTH  = 256u;
+        static constexpr uint32_t VOXEL_CUBE_DEPTH  =  256u;
         
         static constexpr size_t   NUM_SAMPLING_RAYS = 5;
         
@@ -171,6 +170,8 @@ namespace vk
         static constexpr glm::vec3 _voxel_world_dimensions = glm::vec3(10.0f, 10.0f, 10.0f);
         bool _setup_initialized = false;
         
+    public:
+        glm::vec3 _light_pos = glm::vec3(0.0f, .8f, 0.0f);
         
     };
 }

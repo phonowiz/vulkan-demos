@@ -127,15 +127,17 @@ void update_3d_texture_rendering_params( vk::renderer& renderer)
 }
 
 
-void update_renderer_parameters( vk::renderer& renderer)
+void update_renderer_parameters( vk::deferred_renderer& renderer)
 {
     std::chrono::time_point frame_time = std::chrono::high_resolution_clock::now();
     float time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>( frame_time - game_start_time ).count()/1000.0f;
     
     app.model = glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     
-    glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
+    //glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
+    glm::vec3 temp = glm::vec3(sinf(float(time_since_start * 0.67)), sinf(float(time_since_start * 0.78)), cosf(float(time_since_start * 0.67))) * .6f;
     
+    renderer._light_pos = temp;//glm::vec3(temp.x, temp.y, temp.z);
     vk::shader_parameter::shader_params_group& vertex_params = renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     
     app.perspective_camera->update_view_matrix();
@@ -298,16 +300,17 @@ int main()
     mario.set_enable_mipmapping(true);
     mario.init();
     
-    vk::obj_shape dragon(&device, "dragon.obj");
+    vk::obj_shape buddha(&device, "buddha.obj");
     vk::obj_shape cube(&device, "cube.obj");
     vk::cornell_box cornell_box(&device);
     
-    dragon.set_diffuse(glm::vec3(.70f, 0.0f, .70f));
-    dragon.create();
+    buddha.set_diffuse(glm::vec3(.50f, 0.50f, .500f));
+    buddha.create();
     cube.create();
     
-    dragon.transform.position = glm::vec3(0.25f, -.5f, -.20f);
-    dragon.transform.update_transform_matrix();
+    buddha.transform.position = glm::vec3(0.25f, -.5f, -.20f);
+    buddha.transform.scale = glm::vec3(1.5f, 1.5f, 1.5f);
+    buddha.transform.update_transform_matrix();
     
     cornell_box.transform.position = glm::vec3(0.0f, 0.00f, 0.0f);
     cornell_box.transform.rotation.y = 3.14159f;
@@ -348,10 +351,10 @@ int main()
     app.deferred_renderer = &deferred_renderer;
     
     app.deferred_renderer->add_shape(&cornell_box);
-    app.deferred_renderer->add_shape(&dragon);
+    app.deferred_renderer->add_shape(&buddha);
 
     app.shapes.push_back(&cornell_box);
-    app.shapes.push_back(&dragon);
+    app.shapes.push_back(&buddha);
 
     
     app.deferred_renderer->init();
@@ -383,7 +386,7 @@ int main()
     
     swapchain.destroy();
     material_store.destroy();
-    dragon.destroy();
+    buddha.destroy();
     cube.destroy();
     cornell_box.destroy();
     device.destroy();

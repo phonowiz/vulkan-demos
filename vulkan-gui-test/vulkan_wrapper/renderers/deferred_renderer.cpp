@@ -72,7 +72,7 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     
     _mrt_material->init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
     _mrt_material->init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
-    _mrt_material->init_parameter("lightPosition", visual_material::parameter_stage::VERTEX, glm::vec4(0), binding);
+    _mrt_material->init_parameter("lightPosition", visual_material::parameter_stage::VERTEX, glm::vec3(0), binding);
     
     _pipeline._material->init_parameter("width", visual_material::parameter_stage::VERTEX, 0.f, 0);
     _pipeline._material->init_parameter("height", visual_material::parameter_stage::VERTEX, 0.f, 0);

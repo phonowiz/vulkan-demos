@@ -187,7 +187,7 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
 
 void ambient_occlusion(vec3 world_pos, inout vec4 sample_color )
 {
-    float lambda = 2.5f;
+    float lambda = 3.f;
 
     vec4 projection = rendering_state.vox_view_projection * vec4(world_pos, 1.0f);
     vec3 j = rendering_state.voxel_size_in_world_space.xyz;
@@ -213,16 +213,31 @@ float toksvig_factor(vec3 normal, float s)
     
     //based off of "Mipmapping Normal Maps", Nvidia
     //https://developer.download.nvidia.com/whitepapers/2006/Mipmapping_Normal_Maps.pdf
+    //example implementation here: http://www.selfshadow.com/sandbox/gloss.html
+    
     float rlen = 1.0f/clamp(length(normal), 0.0f, 1.0f);
     //sigma = |N|/(|N| + s(1 - |N|)).  Below, we just devided numerator and denominator by |N|
     return 1.0f/(1.0f + s * (rlen - 1.0f));
 }
 
-//TODO: untested function.  Is part of the original algorithm, but I don't use it because
-//results still look good
 
-//float get_variance(float distance)
-//{
+float gaussian_lobe_distribution(vec3 normal, float variance)
+{
+    //based off of: https://math.stackexchange.com/questions/434629/3-d-generalization-of-the-gaussian-point-spread-function
+    float sigma = variance;
+    float e = 2.71828f;
+    float pi = 3.14159f;
+    float N = pow(2.0f, 3.0f) * pow(sigma, 2.0 * 3.0f) * pow(pi, 3.0f);
+    N = 1.0f/sqrt(N);
+    float power = -(normal.x * normal.x + normal.y * normal.y + normal.z * normal.z)/(sigma * sigma);
+    float gauss = N * pow(e, power);
+    
+    return gauss;
+}
+
+
+float get_variance(float distance)
+{
 //    vec3 travel = distance * one_over_distance_limit;
 //
 //    vec3 fractional = float(NUM_MIP_MAPS) * travel;
@@ -235,22 +250,22 @@ float toksvig_factor(vec3 normal, float s)
 //    uint lod2 = lod + next;
 //
 //    float variance = mix(coneVariances[lod], coneVariances[lod2], fractional);
-//    return variance;
-//}
+    float variance = distance == 0 ? 0 : (1 - distance)/distance;
+    return variance;
+}
 
 //section 7 and 8.1 of the paper
 vec4 indirect_illumination( vec3 world_normal, vec3 world_pos, vec3 direction)
 {
     vec3 j = rendering_state.voxel_size_in_world_space.xyz;
     uint lod = 1;
-    vec3 step = j;
+    vec3 step = j * 2.5f;
     j += step;
     
     //return vec4(abs(world_normal), 1.0f);
     
     vec4 final_color = vec4(0);
-    while(/*j.x < distance_limit.x  && j.y < distance_limit.y && j.z < distance_limit.z &&*/
-          lod != rendering_state.num_of_lods)
+    while(lod != rendering_state.num_of_lods)
     {
         vec4 avg_normal = normal_lod_colors[lod];
         vec4 avg_albedo = albedo_lod_colors[lod];
@@ -261,13 +276,6 @@ vec4 indirect_illumination( vec3 world_normal, vec3 world_pos, vec3 direction)
         //this is to avoid division by zero
         if( sqrd > 0.0f)
         {
-            vec3 full_size_normal = normalize(avg_normal.xyz);
-            mat3 normal_rotation;
-            branchless_onb(full_size_normal, normal_rotation );
-
-            //from here on out, we work on the sampling point space. The multiply here is out of order
-            //because the end result of this is transforming world_normal to object space normal
-            //TODO: should we do inverse transpose?
             
             vec3 light_dir_in_world_space = sampling_pos.xyz - world_pos.xyz;
             
@@ -275,26 +283,29 @@ vec4 indirect_illumination( vec3 world_normal, vec3 world_pos, vec3 direction)
 
             vec3 up = world_normal;
             
-            //float variance = get_variance(j);
-            //the paper does have instructions to use gaussian lobe distribution, but this wasn't giving me
-            //visually pleasing results, commented out for this reason, but will leave here for reference
-            //float gauss = gaussianLobeDistribution( view, variance);
+            float variance = get_variance(length(avg_normal.xyz));
+            
+            //TODO: the paper does have instructions to use gaussian lobe distribution, but this wasn't giving me
+            //visually pleasing results, commented out for this reason, but will leave here for reference.  I think
+            //am doing something wrong somewhere...
+            
+            //float gauss = gaussian_lobe_distribution( view, variance) ;
+            float gauss = 1.0f;
             
             //Blinn Phong
-            
             vec3 light_direction = normalize(light_dir_in_world_space);
             
-            vec3 h = (view + light_direction)/length(view + light_direction);
+            vec3 h = normalize(view + light_direction);
             float ndoth = clamp(dot(up, h), 0.0f, 1.0f);
             //todo: we need a specular map where this power comes from, for now it is constant
             float s = .005f;
-            float gloss = toksvig_factor(avg_normal.xyz, s);
+            float gloss = toksvig_factor(avg_normal.xyz, gauss);
             
             float p = s * gloss;
-            float spec = pow(ndoth, p)* (1 + gloss*s)/(1 + s);
+            float spec = pow(ndoth, p);
             
             float ndotl = clamp(dot(up, light_direction), 0.0f, 1.0f);
-            final_color +=   (avg_albedo + avg_albedo * spec) * ndotl * gloss;
+            final_color += (avg_albedo + avg_albedo * spec) * ndotl * gauss;  //(avg_albedo + avg_albedo * spec) * ndotl * gloss;
         }
         
         ++lod;
@@ -302,7 +313,7 @@ vec4 indirect_illumination( vec3 world_normal, vec3 world_pos, vec3 direction)
         break;
     }
     
-    return vec4(final_color.xyz, 1.0f) ;
+    return vec4(final_color.xyz, 1.0f) * 2.5f ;
 }
 
 vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_position)
@@ -317,48 +328,23 @@ vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_posi
     {
         vec3 direction = rotation * rendering_state.sampling_rays[i].xyz;
         direction = normalize(direction) ;
-        //return vec4(abs(direction),1.0f);
         
         collect_lod_colors(direction, incoming_position.xyz);
         
-//        ambient_occlusion(incoming_position, sample_color);
+        ambient_occlusion(incoming_position, sample_color);
         
         vec4 ambient_color = indirect_illumination(incoming_normal, incoming_position, direction);
         sample_color.xyz += ambient_color.xyz ;
-        //break;
-
-//
-//        vec3 j = rendering_state.voxel_size_in_world_space.xyz;
-//
-//        float k = 1.0f;
-//        int l = 0;
-//        //we are advancing by a voxel and a half for every iteration
-//        vec3 m = j + j * .5f;
-//
-//        while( l < 5)
-//        {
-//            vec3 world_sampling_position = m * direction + incoming_position.xyz;
-//            vec3 diff = m - incoming_position;
-//            //ambient_occlusion( diff,  ambient_step, world_sampling_position, sample_color);
-//
-//            //TODO: more to do here...
-//            ++l;
-//            //m += ambient_step;
-//        }
-//
-//        //sample_color = vec4(sample_color.a, sample_color.a, sample_color.a, 1.0f) * 10.0f;
-//        break;
     }
     
-//    sample_color.xyz =  1 - vec3(sample_color.a);
-    return vec4(sample_color.xyz, 1.0f);
+    return sample_color;
 }
 
-vec4 direct_illumination(vec4 illumination, vec3 world_normal, vec3 world_position)
+vec4 global_illumination(vec4 illumination, vec3 world_normal, vec3 world_position)
 {
     vec3 surface_color = texture(albedo, frag_uv_coord).xyz;
     
-    vec3 v = rendering_state.world_cam_position.xyz - world_position;
+    vec3 v = rendering_state.eye_in_world_space.xyz - world_position;
     v = normalize(v);
     
     vec3 n = normalize(world_normal);
@@ -374,17 +360,19 @@ vec4 direct_illumination(vec4 illumination, vec3 world_normal, vec3 world_positi
             l = normalize(l);
             vec3 h = normalize( v + l);
             float ndoth = clamp( dot(n, h), 0.0f, 1.0f);
+            
             float s = .65f;
             float spec = pow(ndoth, s);
-            
-            float ndotl = max(dot(n, l),0.0f);
-            
-            final += (surface_color + spec * surface_color) * ndotl * rendering_state.light_color.xyz ;
+
+            float ndotl = max(dot(n, l),0);
+            final += (surface_color + spec * surface_color)* ndotl * rendering_state.light_color.xyz ;
         }
     }
     
     //final.xyz += (illumination.xyz);
+
     return vec4(final, 1.0f);
+    //return vec4(world_position, 1.0f);
 }
 
 void main()
@@ -419,8 +407,16 @@ void main()
         out_color = vec4(0);
         if(world_position != vec3(0))
         {
-            vec4 color = voxel_cone_tracing(rotation, world_normal, world_position);
-            out_color = color;
+            vec4 ambience = voxel_cone_tracing(rotation, world_normal, world_position);
+            vec4 direct = global_illumination(ambience, world_normal, world_position);
+            
+            direct.xyz += ambience.xyz;
+            direct.xyz *= (1.0f - ambience.a);
+            //out_color = vec4(direct.xyz, 1.0f);
+            out_color.xyz = direct.xyz;
+            out_color.a = 1.0f;
+            
+            //out_color.xyz = (1.0f - ambience.aaa);
         }
 
         //out_color = color;
