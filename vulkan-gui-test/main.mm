@@ -265,8 +265,19 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
     if( key == GLFW_KEY_6 && action == GLFW_PRESS)
     {
+        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::AMBIENT_OCCLUSION);
+        app.render_3d_texture = false;
+    }
+    if( key == GLFW_KEY_7 && action == GLFW_PRESS)
+    {
+        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::AMBIENT_LIGHT);
+        app.render_3d_texture = false;
+    }
+    if( key == GLFW_KEY_8 && action == GLFW_PRESS)
+    {
         app.render_3d_texture = true;
     }
+    
     if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
         app.quit = true;
@@ -300,7 +311,7 @@ int main()
     mario.set_enable_mipmapping(true);
     mario.init();
     
-    vk::obj_shape buddha(&device, "buddha.obj");
+    vk::obj_shape buddha(&device, "dragon.obj");
     vk::obj_shape cube(&device, "cube.obj");
     vk::cornell_box cornell_box(&device);
     
@@ -308,7 +319,7 @@ int main()
     buddha.create();
     cube.create();
     
-    buddha.transform.position = glm::vec3(0.25f, -.5f, -.20f);
+    buddha.transform.position = glm::vec3(0.25f, -.5f, .00f);
     buddha.transform.scale = glm::vec3(1.5f, 1.5f, 1.5f);
     buddha.transform.update_transform_matrix();
     
@@ -359,7 +370,7 @@ int main()
     
     app.deferred_renderer->init();
     
-    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(0);
+    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(1);
     app.three_d_renderer->get_material()->set_image_sampler(voxel_texture, "texture_3d",
                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
     

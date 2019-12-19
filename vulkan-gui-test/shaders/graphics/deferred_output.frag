@@ -55,7 +55,10 @@ int NORMALS = 1;
 int POSITIONS = 2;
 int DEPTH = 3;
 int FULL_RENDERING = 4;
+int AMBIENT_OCCLUSION = 5;
+int AMBIENT_LIGHT = 6;
 
+float voxel_jump = 2.3;
 float num_voxels_limit = 10.0f;
 
 vec3 dimension_inverse = 1.0f/ rendering_state.voxel_size_in_world_space.xyz;
@@ -150,11 +153,10 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
     //start sampling above the world position of the surface, see inside while loop below.
     vec3 j = rendering_state.voxel_size_in_world_space.xyz;
     uint lod = 1;
-    vec3 step = j*2.5f;
+    vec3 step = j*voxel_jump;
     j += step;
 
-    while(j.x < distance_limit.x  && j.y < distance_limit.y && j.z < distance_limit.z &&
-          lod != rendering_state.num_of_lods)
+    while( lod != rendering_state.num_of_lods)
     {
         vec3 world_pos = world_position + j * direction;
         vec4 texture_space = rendering_state.vox_view_projection * vec4( world_pos, 1.f);
@@ -187,12 +189,12 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
 
 void ambient_occlusion(vec3 world_pos, inout vec4 sample_color )
 {
-    float lambda = 3.f;
+    float lambda = 1.2f;
 
     vec4 projection = rendering_state.vox_view_projection * vec4(world_pos, 1.0f);
     vec3 j = rendering_state.voxel_size_in_world_space.xyz;
     uint lod = 1;
-    vec3 step = j*2.5f;
+    vec3 step = j*voxel_jump;
     j += step;
     
     while(j.x < distance_limit.x  && j.y < distance_limit.y && j.z < distance_limit.z &&
@@ -259,10 +261,8 @@ vec4 indirect_illumination( vec3 world_normal, vec3 world_pos, vec3 direction)
 {
     vec3 j = rendering_state.voxel_size_in_world_space.xyz;
     uint lod = 1;
-    vec3 step = j * 2.5f;
-    j += step;
-    
-    //return vec4(abs(world_normal), 1.0f);
+    vec3 step = j * voxel_jump;
+    j += step ;
     
     vec4 final_color = vec4(0);
     while(lod != rendering_state.num_of_lods)
@@ -340,7 +340,7 @@ vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_posi
     return sample_color;
 }
 
-vec4 global_illumination(vec4 illumination, vec3 world_normal, vec3 world_position)
+vec4 direct_illumination( vec3 world_normal, vec3 world_position)
 {
     vec3 surface_color = texture(albedo, frag_uv_coord).xyz;
     
@@ -394,7 +394,7 @@ void main()
     else if( rendering_state.state == DEPTH )
     {
         out_color = texture(depth, frag_uv_coord );
-        out_color.x = 1 - out_color.x;
+        out_color.xyz = 1 - out_color.xxx;
         out_color.x *= 90.0f;
     }
     else
@@ -408,21 +408,28 @@ void main()
         if(world_position != vec3(0))
         {
             vec4 ambience = voxel_cone_tracing(rotation, world_normal, world_position);
-            vec4 direct = global_illumination(ambience, world_normal, world_position);
             
-            direct.xyz += ambience.xyz;
-            direct.xyz *= (1.0f - ambience.a);
-            //out_color = vec4(direct.xyz, 1.0f);
-            out_color.xyz = direct.xyz;
-            out_color.a = 1.0f;
+            if( rendering_state.state == AMBIENT_OCCLUSION)
+            {
+                out_color.xyz = (1.0f - ambience.aaa);
+                out_color.a = 1.0f;
+            }
             
-            //out_color.xyz = (1.0f - ambience.aaa);
+            else if( rendering_state.state == AMBIENT_LIGHT)
+            {
+                out_color.xyz = ambience.xyz;
+                out_color.a = 1.0f;
+            }
+            else
+            {
+                vec4 direct = direct_illumination( world_normal, world_position);
+                //full ambient light plus direct light
+                direct.xyz += ambience.xyz;
+                direct.xyz *= (1.0f - ambience.a);
+                out_color.xyz = direct.xyz;
+                out_color.a = 1.0f;
+            }
         }
-
-        //out_color = color;
-        //final composite shot will be assembled here
-        //out_color = direct_illumination(vec4(0.0f), world_normal, world_position);
-        
     }
 }
 

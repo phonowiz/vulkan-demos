@@ -106,7 +106,7 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _pipeline._material->init_parameter("state", visual_material::parameter_stage::FRAGMENT, int(0), 5);
     _pipeline._material->init_parameter("sampling_rays", visual_material::parameter_stage::FRAGMENT, _sampling_rays.data(), _sampling_rays.size(), 5);
     _pipeline._material->init_parameter("vox_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
-    _pipeline._material->init_parameter("num_of_lods", visual_material::parameter_stage::FRAGMENT, int(4), 5);
+    _pipeline._material->init_parameter("1", visual_material::parameter_stage::FRAGMENT, int(4), 5);
     _pipeline._material->init_parameter("eye_in_world_space", visual_material::parameter_stage::FRAGMENT, glm::vec3(0), 5);
     
     _pipeline._material->set_image_sampler(&_voxel_normal_textures[0], "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
@@ -115,10 +115,12 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _pipeline._material->set_image_sampler(&_voxel_albedo_textures[1], "voxel_albedos1", visual_material::parameter_stage::FRAGMENT, 8, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     _pipeline._material->set_image_sampler(&_voxel_albedo_textures[2], "voxel_albedos2", visual_material::parameter_stage::FRAGMENT, 9, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     _pipeline._material->set_image_sampler(&_voxel_albedo_textures[3], "voxel_albedos3", visual_material::parameter_stage::FRAGMENT, 10, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _pipeline._material->set_image_sampler(&_voxel_albedo_textures[3], "voxel_albedos4", visual_material::parameter_stage::FRAGMENT, 14, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     
     _pipeline._material->set_image_sampler(&_voxel_normal_textures[1], "voxel_normals1", visual_material::parameter_stage::FRAGMENT, 11, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     _pipeline._material->set_image_sampler(&_voxel_normal_textures[2], "voxel_normals2", visual_material::parameter_stage::FRAGMENT, 12, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     _pipeline._material->set_image_sampler(&_voxel_normal_textures[3], "voxel_normals3", visual_material::parameter_stage::FRAGMENT, 13, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _pipeline._material->set_image_sampler(&_voxel_normal_textures[3], "voxel_normals4", visual_material::parameter_stage::FRAGMENT, 15, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     //_material->print_uniform_argument_names();
     
     _positions.set_filter(image::filter::NEAREST);

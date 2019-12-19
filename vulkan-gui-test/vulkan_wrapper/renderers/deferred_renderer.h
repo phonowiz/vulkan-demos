@@ -34,9 +34,10 @@ namespace vk
         
         render_texture _voxel_2d_view;
         
+        static constexpr unsigned int TOTAL_LODS = 4;
         //texture 3d mip maps are not supported moltenvk,so we create our own
-        std::array< texture_3d, 4> _voxel_albedo_textures;
-        std::array< texture_3d, 4> _voxel_normal_textures;
+        std::array< texture_3d, TOTAL_LODS> _voxel_albedo_textures;
+        std::array< texture_3d, TOTAL_LODS> _voxel_normal_textures;
         
         visual_mat_shared_ptr _mrt_material = nullptr;
         visual_mat_shared_ptr _debug_material = nullptr;
@@ -52,7 +53,9 @@ namespace vk
             NORMALS,
             POSITIONS,
             DEPTH,
-            FULL_RENDERING
+            FULL_RENDERING,
+            AMBIENT_OCCLUSION,
+            AMBIENT_LIGHT
         };
         
         virtual vk::visual_mat_shared_ptr &  get_material() override { return _mrt_material; }
