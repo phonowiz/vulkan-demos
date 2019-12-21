@@ -36,11 +36,6 @@ _mrt_material(store.GET_MAT<visual_material>("mrt")),
 _mrt_pipeline(device),
 _voxelize_pipeline(device, store.GET_MAT<visual_material>("voxelizer")),
 
-_clear_texture_3d_pipeline_1(device, store.GET_MAT<compute_material>("clear_3d_texture")),
-_clear_texture_3d_pipeline_2(device, store.GET_MAT<compute_material>("clear_3d_texture")),
-_clear_texture_3d_pipeline_3(device, store.GET_MAT<compute_material>("clear_3d_texture")),
-_clear_texture_3d_pipeline_4(device, store.GET_MAT<compute_material>("clear_3d_texture")),
-
 _create_voxel_mip_maps_1(device, store.GET_MAT<compute_material>("downsize")),
 _create_voxel_mip_maps_2(device, store.GET_MAT<compute_material>("downsize")),
 _create_voxel_mip_maps_3(device, store.GET_MAT<compute_material>("downsize")),
@@ -52,6 +47,9 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     
     for( size_t i = 0; i < _voxel_albedo_textures.size(); ++i)
     {
+        _clear_voxel_texture_pipeline[i].set_device(_device);
+        _clear_voxel_texture_pipeline[i].set_material(store.GET_MAT<compute_material>("clear_3d_texture"));
+        
         _voxel_albedo_textures[i].set_device(device);
         _voxel_albedo_textures[i].set_dimensions(VOXEL_CUBE_WIDTH >> i,  VOXEL_CUBE_HEIGHT >> i, VOXEL_CUBE_DEPTH >> i );
         
@@ -165,15 +163,14 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
 
 void deferred_renderer::create_voxel_texture_pipelines()
 {
-    std::array<compute_pipeline, 4> clear_pipelines = {_clear_texture_3d_pipeline_1, _clear_texture_3d_pipeline_2, _clear_texture_3d_pipeline_3, _clear_texture_3d_pipeline_4};
     std::array<compute_pipeline, 3> mip_map_pipelines = {_create_voxel_mip_maps_1, _create_voxel_mip_maps_2, _create_voxel_mip_maps_3};
     
     //TODO: you'll need to clear normals as well
-    for( int i = 0; i < clear_pipelines.size(); ++i)
+    for( int i = 0; i < _clear_voxel_texture_pipeline.size(); ++i)
     {
-        clear_pipelines[i].material->set_image_sampler(&_voxel_albedo_textures[i],
+        _clear_voxel_texture_pipeline[i].material->set_image_sampler(&_voxel_albedo_textures[i],
                                                                "texture_3d", material_base::parameter_stage::COMPUTE, 0, material_base::usage_type::STORAGE_IMAGE);
-        clear_pipelines[i].material->commit_parameters_to_gpu();
+        _clear_voxel_texture_pipeline[i].material->commit_parameters_to_gpu();
     }
     
     for(int i =0; i < mip_map_pipelines.size(); ++i)
@@ -628,9 +625,6 @@ void deferred_renderer::record_clear_texture_3d_buffer()
     std::array<VkCommandBuffer*, 4> clear_command_buffers = { _clear_3d_texture_command_buffers_1,
         _clear_3d_texture_command_buffers_2, _clear_3d_texture_command_buffers_3, _clear_3d_texture_command_buffers_4 };
     
-    std::array<compute_pipeline, 4> clear_pipelines = {_clear_texture_3d_pipeline_1, _clear_texture_3d_pipeline_2,
-        _clear_texture_3d_pipeline_3, _clear_texture_3d_pipeline_4};
-    
     assert(NUM_OF_FRAMES ==_swapchain->_swapchain_data.image_set.get_image_count());
     for( int i = 0; i < clear_command_buffers.size(); ++i)
     {
@@ -644,7 +638,7 @@ void deferred_renderer::record_clear_texture_3d_buffer()
             uint32_t local_groups_y = (VOXEL_CUBE_HEIGHT >> i) / compute_pipeline::LOCAL_GROUP_SIZE;
             uint32_t local_groups_z = (VOXEL_CUBE_DEPTH >> i) / compute_pipeline::LOCAL_GROUP_SIZE;
             
-            clear_pipelines[i].record_dispatch_commands(clear_command_buffers[i][j],
+            _clear_voxel_texture_pipeline[i].record_dispatch_commands(clear_command_buffers[i][j],
                                                                 local_groups_x, local_groups_y, local_groups_z);
         }
     }
@@ -1007,12 +1001,9 @@ void deferred_renderer::destroy()
     {
         _voxel_albedo_textures[i].destroy();
         _voxel_normal_textures[i].destroy();
+        _clear_voxel_texture_pipeline[i].destroy();
     }
 
-    _clear_texture_3d_pipeline_1.destroy();
-    _clear_texture_3d_pipeline_2.destroy();
-    _clear_texture_3d_pipeline_3.destroy();
-    _clear_texture_3d_pipeline_4.destroy();
     
     _create_voxel_mip_maps_1.destroy();
     _create_voxel_mip_maps_2.destroy();

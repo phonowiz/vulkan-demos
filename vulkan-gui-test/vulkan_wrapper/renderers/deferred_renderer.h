@@ -106,11 +106,8 @@ namespace vk
     
         graphics_pipeline _mrt_pipeline;
         graphics_pipeline _voxelize_pipeline;
-        
-        compute_pipeline  _clear_texture_3d_pipeline_1;
-        compute_pipeline  _clear_texture_3d_pipeline_2;
-        compute_pipeline  _clear_texture_3d_pipeline_3;
-        compute_pipeline  _clear_texture_3d_pipeline_4;
+  
+        std::array<compute_pipeline, TOTAL_LODS> _clear_voxel_texture_pipeline {};
         
         VkCommandBuffer *_clear_3d_texture_command_buffers_1 = VK_NULL_HANDLE;
         VkCommandBuffer *_clear_3d_texture_command_buffers_2 = VK_NULL_HANDLE;

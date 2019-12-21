@@ -20,12 +20,18 @@ namespace vk
     {
     public:
         
+        compute_pipeline(){}
+        
         compute_pipeline(device* device, compute_mat_shared_ptr material) :
         pipeline(device),
         material(material)
         {
         }
         
+        inline void set_material(compute_mat_shared_ptr mat)
+        {
+            material = mat;
+        }
         inline void set_image_sampler(texture_2d* texture, const char* parameter_name, uint32_t binding, resource::usage_type usage)
         {
             assert(material != nullptr && " no material assigned to this compute pipeline");

@@ -17,11 +17,13 @@ namespace vk
     {
     public:
         
+        pipeline(){}
         pipeline( device* device)
         {
             _device = device;
         }
         
+        void set_device(device* dev){ _device = dev; }
         virtual ~pipeline(){};
         
         inline void destroy()
@@ -35,6 +37,8 @@ namespace vk
         
         VkPipeline _pipeline = VK_NULL_HANDLE;
         VkPipelineLayout _pipeline_layout = VK_NULL_HANDLE;
+        
+    protected:
         device* _device = nullptr;
         
     };
