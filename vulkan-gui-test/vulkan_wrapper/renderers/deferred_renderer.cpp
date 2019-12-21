@@ -962,11 +962,17 @@ void deferred_renderer::destroy()
     vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool,
                          static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _voxelize_command_buffers);
   
-    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool,
-                         static_cast<uint32_t>(_clear_3d_texture_command_buffers.size()), *_clear_3d_texture_command_buffers.data());
-    
-    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool,
-                         static_cast<uint32_t>(_genered_3d_mip_maps_commands.size()), *_genered_3d_mip_maps_commands.data());
+    for(int i = 0; i < _clear_3d_texture_command_buffers.size(); ++i)
+    {
+        vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool,
+                             static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _clear_3d_texture_command_buffers[i]) ;
+    }
+
+    for(int i = 0; i < _genered_3d_mip_maps_commands.size(); ++i)
+    {
+        vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool,
+                             static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _genered_3d_mip_maps_commands[i]) ;
+    }
 
     
     
