@@ -102,11 +102,8 @@ namespace vk
         VkCommandBuffer *_offscreen_command_buffers = VK_NULL_HANDLE;
         VkCommandBuffer *_voxelize_command_buffers = VK_NULL_HANDLE;
         
-        VkCommandBuffer *_generate_3d_mip_maps_1_commands = VK_NULL_HANDLE;
-        VkCommandBuffer *_generate_3d_mip_maps_2_commands = VK_NULL_HANDLE;
-        VkCommandBuffer *_generate_3d_mip_maps_3_commands = VK_NULL_HANDLE;
-        
-        
+        std::array<VkCommandBuffer*, TOTAL_LODS -1> _genered_3d_mip_maps_commands {};
+    
         graphics_pipeline _mrt_pipeline;
         graphics_pipeline _voxelize_pipeline;
         

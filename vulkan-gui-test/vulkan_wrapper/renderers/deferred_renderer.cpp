@@ -156,9 +156,11 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     create_command_buffers(&_clear_3d_texture_command_buffers_3, _device->_compute_command_pool);
     create_command_buffers(&_clear_3d_texture_command_buffers_4, _device->_compute_command_pool);
     
-    create_command_buffers(&_generate_3d_mip_maps_1_commands, _device->_compute_command_pool);
-    create_command_buffers(&_generate_3d_mip_maps_2_commands, _device->_compute_command_pool);
-    create_command_buffers(&_generate_3d_mip_maps_3_commands, _device->_compute_command_pool);
+    for(int i = 0; i < _genered_3d_mip_maps_commands.size(); ++i)
+    {
+        create_command_buffers(&_genered_3d_mip_maps_commands[i], _device->_compute_command_pool);
+    }
+
 }
 
 void deferred_renderer::create_voxel_texture_pipelines()
@@ -559,13 +561,11 @@ void deferred_renderer::record_3d_mip_maps_commands()
     command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     command_buffer_begin_info.pInheritanceInfo = nullptr;
 
-    std::array<VkCommandBuffer*, 3> generate_mip_maps_commands = { _generate_3d_mip_maps_1_commands,
-        _generate_3d_mip_maps_2_commands, _generate_3d_mip_maps_3_commands };
     std::array<compute_pipeline, 3> mip_map_pipelines = {_create_voxel_mip_maps_1, _create_voxel_mip_maps_2,
         _create_voxel_mip_maps_3};
     
     assert(NUM_OF_FRAMES ==_swapchain->_swapchain_data.image_set.get_image_count());
-    for( int i = 0; i < generate_mip_maps_commands.size(); ++i)
+    for( int i = 0; i < _genered_3d_mip_maps_commands.size(); ++i)
     {
         for( int j = 0; j < _swapchain->_swapchain_data.image_set.get_image_count(); ++j)
         {
@@ -601,7 +601,7 @@ void deferred_renderer::record_3d_mip_maps_commands()
                      constexpr uint32_t VK_FLAGS_NONE = 0;
 
                      vkCmdPipelineBarrier(
-                                          generate_mip_maps_commands[i][j],
+                                          _genered_3d_mip_maps_commands[i][j],
                                           VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
                                           VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
                                           VK_FLAGS_NONE,
@@ -612,7 +612,7 @@ void deferred_renderer::record_3d_mip_maps_commands()
             }
 
 
-            mip_map_pipelines[i].record_dispatch_commands(generate_mip_maps_commands[i][j],
+            mip_map_pipelines[i].record_dispatch_commands(_genered_3d_mip_maps_commands[i][j],
                                                                 local_groups_x, local_groups_y, local_groups_z);
 
         }
@@ -784,31 +784,28 @@ void deferred_renderer::clear_voxels_textures()
     submit_info.pSignalSemaphores = &_clear_voxel_textures;
     submit_info.signalSemaphoreCount = 1;
     
-    VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _voxel_command_fence[0]);
+    VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, _voxel_command_fence[_deferred_image_index]);
     
-    vkResetFences(_device->_logical_device, 1, &_voxel_command_fence[0]);
-    vkWaitForFences(_device->_logical_device, 1, &_voxel_command_fence[0], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    vkResetFences(_device->_logical_device, 1, &_voxel_command_fence[_deferred_image_index]);
+    vkWaitForFences(_device->_logical_device, 1, &_voxel_command_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     ASSERT_VULKAN(result);
 }
 
 void deferred_renderer::generate_voxel_mip_maps()
 {
-    std::array<VkCommandBuffer*, 3> generate_mip_maps_commands = { _generate_3d_mip_maps_1_commands,
-        _generate_3d_mip_maps_2_commands, _generate_3d_mip_maps_3_commands };
-    
     //TODO: batch these into one submit...
-    for( int i = 0; i < generate_mip_maps_commands.size(); ++i)
+    for( int i = 0; i < _genered_3d_mip_maps_commands.size(); ++i)
     {
         VkSubmitInfo submit_info = {};
         submit_info.commandBufferCount = 1;
-        submit_info.pCommandBuffers = &generate_mip_maps_commands[i][_deferred_image_index];
+        submit_info.pCommandBuffers = &_genered_3d_mip_maps_commands[i][_deferred_image_index];
         submit_info.waitSemaphoreCount =  0;//1;
         submit_info.pWaitSemaphores = nullptr;
         submit_info.pSignalSemaphores = nullptr;//&_mip_map_semaphores[i];
         submit_info.signalSemaphoreCount = 0;//1;
         
         VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info,
-                                        i == generate_mip_maps_commands.size() -1 ? _voxel_command_fence[0] : nullptr);
+                                        i == _genered_3d_mip_maps_commands.size() -1 ? _voxel_command_fence[0] : nullptr);
         ASSERT_VULKAN(result);
     }
     
@@ -965,7 +962,6 @@ void deferred_renderer::destroy()
     vkDestroySemaphore(_device->_logical_device, _voxelize_semaphore, nullptr);
     vkDestroySemaphore(_device->_logical_device, _voxelize_semaphore_done, nullptr);
 
-    //vkDestroySemaphore(_device->_logical_device, _clear_voxel_cube_smaphonre_done_1, nullptr);
     vkDestroySemaphore(_device->_logical_device, _generate_voxel_x_axis_semaphore, nullptr);
     vkDestroySemaphore(_device->_logical_device, _generate_voxel_y_axis_semaphore, nullptr);
     vkDestroySemaphore(_device->_logical_device, _generate_voxel_z_axis_semaphore, nullptr);
@@ -985,17 +981,14 @@ void deferred_renderer::destroy()
     vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool,
                          static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _voxelize_command_buffers);
     
-    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool,
-                         static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _generate_3d_mip_maps_1_commands);
-    
     vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _clear_3d_texture_command_buffers_1);
     vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _clear_3d_texture_command_buffers_2);
     vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _clear_3d_texture_command_buffers_3);
     vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _clear_3d_texture_command_buffers_4);
-    
-    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _generate_3d_mip_maps_1_commands);
-    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _generate_3d_mip_maps_2_commands);
-    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _generate_3d_mip_maps_3_commands);
+  
+    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool,
+                         static_cast<uint32_t>(_genered_3d_mip_maps_commands.size()), *_genered_3d_mip_maps_commands.data());
+
     
     
     delete[] _offscreen_command_buffers;
