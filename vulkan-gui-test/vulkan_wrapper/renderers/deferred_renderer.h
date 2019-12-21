@@ -102,17 +102,15 @@ namespace vk
         VkCommandBuffer *_offscreen_command_buffers = VK_NULL_HANDLE;
         VkCommandBuffer *_voxelize_command_buffers = VK_NULL_HANDLE;
         
-        std::array<VkCommandBuffer*, TOTAL_LODS -1> _genered_3d_mip_maps_commands {};
+
     
         graphics_pipeline _mrt_pipeline;
         graphics_pipeline _voxelize_pipeline;
   
         std::array<compute_pipeline, TOTAL_LODS> _clear_voxel_texture_pipeline {};
         std::array<VkCommandBuffer*, TOTAL_LODS> _clear_3d_texture_command_buffers {};
-        
-        compute_pipeline  _create_voxel_mip_maps_1;
-        compute_pipeline  _create_voxel_mip_maps_2;
-        compute_pipeline  _create_voxel_mip_maps_3;
+        std::array<VkCommandBuffer*, TOTAL_LODS -1> _genered_3d_mip_maps_commands {};
+        std::array<compute_pipeline, TOTAL_LODS -1> _create_voxel_mip_maps_pipelines {};
     
         
         VkRenderPass        _mrt_render_pass = VK_NULL_HANDLE;
