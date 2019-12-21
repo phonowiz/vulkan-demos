@@ -58,7 +58,7 @@ int FULL_RENDERING = 4;
 int AMBIENT_OCCLUSION = 5;
 int AMBIENT_LIGHT = 6;
 
-float voxel_jump = 2.3;
+float voxel_jump = 1.8f;
 float num_voxels_limit = 10.0f;
 
 vec3 dimension_inverse = 1.0f/ rendering_state.voxel_size_in_world_space.xyz;

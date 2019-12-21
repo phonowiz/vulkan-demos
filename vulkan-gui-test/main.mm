@@ -315,7 +315,7 @@ int main()
     vk::obj_shape cube(&device, "cube.obj");
     vk::cornell_box cornell_box(&device);
     
-    buddha.set_diffuse(glm::vec3(.50f, 0.50f, .500f));
+    buddha.set_diffuse(glm::vec3(.00f, 0.00f, .50f));
     buddha.create();
     cube.create();
     

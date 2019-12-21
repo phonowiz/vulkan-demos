@@ -812,8 +812,8 @@ void deferred_renderer::generate_voxel_mip_maps()
         ASSERT_VULKAN(result);
     }
     
-    vkWaitForFences(_device->_logical_device, 1, &_voxel_command_fence[0], VK_TRUE, std::numeric_limits<uint64_t>::max());
     vkResetFences(_device->_logical_device, 1, &_voxel_command_fence[0]);
+    vkWaitForFences(_device->_logical_device, 1, &_voxel_command_fence[0], VK_TRUE, std::numeric_limits<uint64_t>::max());
 }
 
 void deferred_renderer::generate_voxel_textures(vk::camera &camera)
