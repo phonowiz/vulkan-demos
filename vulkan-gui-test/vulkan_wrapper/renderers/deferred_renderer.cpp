@@ -149,10 +149,10 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     create_command_buffers(&_offscreen_command_buffers, _device->_graphics_command_pool);
     create_command_buffers(&_voxelize_command_buffers, _device->_graphics_command_pool);
     
-    create_command_buffers(&_clear_3d_texture_command_buffers_1, _device->_compute_command_pool);
-    create_command_buffers(&_clear_3d_texture_command_buffers_2, _device->_compute_command_pool);
-    create_command_buffers(&_clear_3d_texture_command_buffers_3, _device->_compute_command_pool);
-    create_command_buffers(&_clear_3d_texture_command_buffers_4, _device->_compute_command_pool);
+    for( int i = 0; i < _clear_3d_texture_command_buffers.size(); ++i)
+    {
+        create_command_buffers(&_clear_3d_texture_command_buffers[i], _device->_compute_command_pool);
+    }
     
     for(int i = 0; i < _genered_3d_mip_maps_commands.size(); ++i)
     {
@@ -622,11 +622,8 @@ void deferred_renderer::record_clear_texture_3d_buffer()
     command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     command_buffer_begin_info.pInheritanceInfo = nullptr;
     
-    std::array<VkCommandBuffer*, 4> clear_command_buffers = { _clear_3d_texture_command_buffers_1,
-        _clear_3d_texture_command_buffers_2, _clear_3d_texture_command_buffers_3, _clear_3d_texture_command_buffers_4 };
-    
     assert(NUM_OF_FRAMES ==_swapchain->_swapchain_data.image_set.get_image_count());
-    for( int i = 0; i < clear_command_buffers.size(); ++i)
+    for( int i = 0; i < _clear_3d_texture_command_buffers.size(); ++i)
     {
         for( int j = 0; j < _swapchain->_swapchain_data.image_set.get_image_count(); ++j)
         {
@@ -638,7 +635,7 @@ void deferred_renderer::record_clear_texture_3d_buffer()
             uint32_t local_groups_y = (VOXEL_CUBE_HEIGHT >> i) / compute_pipeline::LOCAL_GROUP_SIZE;
             uint32_t local_groups_z = (VOXEL_CUBE_DEPTH >> i) / compute_pipeline::LOCAL_GROUP_SIZE;
             
-            _clear_voxel_texture_pipeline[i].record_dispatch_commands(clear_command_buffers[i][j],
+            _clear_voxel_texture_pipeline[i].record_dispatch_commands(_clear_3d_texture_command_buffers[i][j],
                                                                 local_groups_x, local_groups_y, local_groups_z);
         }
     }
@@ -759,15 +756,14 @@ void deferred_renderer::perform_final_drawing_setup()
 
 void deferred_renderer::clear_voxels_textures()
 {
-    
-    std::array<VkCommandBuffer*, 4> clear_command_buffers = {_clear_3d_texture_command_buffers_1, _clear_3d_texture_command_buffers_2, _clear_3d_texture_command_buffers_3,
-        _clear_3d_texture_command_buffers_4};
+//    std::array<VkCommandBuffer*, 4> clear_command_buffers = {_clear_3d_texture_command_buffers_1, _clear_3d_texture_command_buffers_2, _clear_3d_texture_command_buffers_3,
+//        _clear_3d_texture_command_buffers_4};
     
     std::array<VkCommandBuffer, 4> clear_commands {};
     
-    for( int i =0; i < clear_command_buffers.size(); ++i)
+    for( int i =0; i < _clear_3d_texture_command_buffers.size(); ++i)
     {
-        clear_commands[i] = clear_command_buffers[i][_deferred_image_index];
+        clear_commands[i] = _clear_3d_texture_command_buffers[i][_deferred_image_index];
     }
     //The clearing of voxels happens in parallel
     VkSubmitInfo submit_info = {};
@@ -974,12 +970,10 @@ void deferred_renderer::destroy()
     
     vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool,
                          static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _voxelize_command_buffers);
-    
-    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _clear_3d_texture_command_buffers_1);
-    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _clear_3d_texture_command_buffers_2);
-    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _clear_3d_texture_command_buffers_3);
-    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool, 1, _clear_3d_texture_command_buffers_4);
   
+    vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool,
+                         static_cast<uint32_t>(_clear_3d_texture_command_buffers.size()), *_clear_3d_texture_command_buffers.data());
+    
     vkFreeCommandBuffers(_device->_logical_device, _device->_compute_command_pool,
                          static_cast<uint32_t>(_genered_3d_mip_maps_commands.size()), *_genered_3d_mip_maps_commands.data());
 
