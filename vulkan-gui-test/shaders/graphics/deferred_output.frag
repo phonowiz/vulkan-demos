@@ -36,14 +36,19 @@ layout(binding = 5, std140) uniform _rendering_state
 layout(binding = 6) uniform sampler3D voxel_normals;
 layout(binding = 7) uniform sampler3D voxel_albedos;
 
-//mipmap levels
+//mipmap levels.  moltenvk doesn't support mip maps for sampler3D, only texture2d_array
 layout(binding = 8) uniform sampler3D voxel_albedos1;
 layout(binding = 9) uniform sampler3D voxel_albedos2;
 layout(binding = 10) uniform sampler3D voxel_albedos3;
+layout(binding = 11) uniform sampler3D voxel_albedos4;
+layout(binding = 12) uniform sampler3D voxel_albedos5;
 
-layout(binding = 11) uniform sampler3D voxel_normals1;
-layout(binding = 12) uniform sampler3D voxel_normals2;
-layout(binding = 13) uniform sampler3D voxel_normals3;
+
+layout(binding = 13) uniform sampler3D voxel_normals1;
+layout(binding = 14) uniform sampler3D voxel_normals2;
+layout(binding = 15) uniform sampler3D voxel_normals3;
+layout(binding = 16) uniform sampler3D voxel_normals4;
+layout(binding = 17) uniform sampler3D voxel_normals5;
 
 
 
@@ -92,6 +97,14 @@ vec4 sample_lod_texture(int texture_type, vec3 coord, uint level)
         {
             return texture(voxel_albedos3, coord);
         }
+        else if( level == 4)
+        {
+            return texture(voxel_albedos4, coord);
+        }
+        else if( level == 5)
+        {
+            return texture(voxel_albedos5, coord);
+        }
     }
     else // texture_type == NORMALS
     {
@@ -110,6 +123,14 @@ vec4 sample_lod_texture(int texture_type, vec3 coord, uint level)
         else if( level == 3)
         {
             return texture(voxel_normals3, coord);
+        }
+        else if( level == 4)
+        {
+            return texture(voxel_normals4, coord);
+        }
+        else if( level == 5)
+        {
+            return texture(voxel_normals5, coord);
         }
     }
     
@@ -182,7 +203,7 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
         }
 
         lod += 1;
-        j += step;
+        j += step * .8f;
         lod = min(lod, rendering_state.num_of_lods);
     }
 }
@@ -307,13 +328,14 @@ vec4 indirect_illumination( vec3 world_normal, vec3 world_pos, vec3 direction)
             float ndotl = clamp(dot(up, light_direction), 0.0f, 1.0f);
             final_color += (avg_albedo + avg_albedo * spec) * ndotl * gauss;  //(avg_albedo + avg_albedo * spec) * ndotl * gloss;
         }
+        //final_color += albedo_lod_colors[4];
         
         ++lod;
         j += step;
         break;
     }
     
-    return vec4(final_color.xyz, 1.0f) * 2.5f ;
+    return vec4(final_color.xyz, 1.0f) * 4.5f ;
 }
 
 vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_position)
@@ -368,11 +390,8 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position)
             final += (surface_color + spec * surface_color)* ndotl * rendering_state.light_color.xyz ;
         }
     }
-    
-    //final.xyz += (illumination.xyz);
 
     return vec4(final, 1.0f);
-    //return vec4(world_position, 1.0f);
 }
 
 void main()

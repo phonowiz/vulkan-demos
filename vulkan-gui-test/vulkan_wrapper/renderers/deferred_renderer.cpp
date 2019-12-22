@@ -98,21 +98,30 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _pipeline._material->init_parameter("state", visual_material::parameter_stage::FRAGMENT, int(0), 5);
     _pipeline._material->init_parameter("sampling_rays", visual_material::parameter_stage::FRAGMENT, _sampling_rays.data(), _sampling_rays.size(), 5);
     _pipeline._material->init_parameter("vox_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
-    _pipeline._material->init_parameter("1", visual_material::parameter_stage::FRAGMENT, int(4), 5);
+    _pipeline._material->init_parameter("num_of_lods", visual_material::parameter_stage::FRAGMENT, int(TOTAL_LODS), 5);
     _pipeline._material->init_parameter("eye_in_world_space", visual_material::parameter_stage::FRAGMENT, glm::vec3(0), 5);
     
     _pipeline._material->set_image_sampler(&_voxel_normal_textures[0], "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     _pipeline._material->set_image_sampler(&_voxel_albedo_textures[0], "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     
-    _pipeline._material->set_image_sampler(&_voxel_albedo_textures[1], "voxel_albedos1", visual_material::parameter_stage::FRAGMENT, 8, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline._material->set_image_sampler(&_voxel_albedo_textures[2], "voxel_albedos2", visual_material::parameter_stage::FRAGMENT, 9, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline._material->set_image_sampler(&_voxel_albedo_textures[3], "voxel_albedos3", visual_material::parameter_stage::FRAGMENT, 10, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline._material->set_image_sampler(&_voxel_albedo_textures[3], "voxel_albedos4", visual_material::parameter_stage::FRAGMENT, 14, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    std::string voxel_level;
+    std::string normals_level;
     
-    _pipeline._material->set_image_sampler(&_voxel_normal_textures[1], "voxel_normals1", visual_material::parameter_stage::FRAGMENT, 11, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline._material->set_image_sampler(&_voxel_normal_textures[2], "voxel_normals2", visual_material::parameter_stage::FRAGMENT, 12, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline._material->set_image_sampler(&_voxel_normal_textures[3], "voxel_normals3", visual_material::parameter_stage::FRAGMENT, 13, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline._material->set_image_sampler(&_voxel_normal_textures[3], "voxel_normals4", visual_material::parameter_stage::FRAGMENT, 15, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    int binding_index = 8;
+    int offset = 5;
+    
+    static const char* albedo_names[6] = {"voxel_albedos", "voxel_albedos1", "voxel_albedos2", "voxel_albedos3", "voxel_albedos4", "voxel_albedos5"};
+    static const char* normal_names[6] = {"voxel_normals", "voxel_normals1","voxel_normals2", "voxel_normals3", "voxel_normals4", "voxel_normals5"};
+    for( int i = 1; i < _voxel_albedo_textures.size(); ++i)
+    {
+
+        _pipeline._material->set_image_sampler(&_voxel_albedo_textures[i], albedo_names[i], visual_material::parameter_stage::FRAGMENT, binding_index, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        _pipeline._material->set_image_sampler(&_voxel_normal_textures[i], normal_names[i], visual_material::parameter_stage::FRAGMENT, binding_index + offset, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        normals_level.clear();
+
+        binding_index++;
+    }
+    
     //_material->print_uniform_argument_names();
     
     _positions.set_filter(image::filter::NEAREST);
@@ -747,10 +756,7 @@ void deferred_renderer::perform_final_drawing_setup()
 
 void deferred_renderer::clear_voxels_textures()
 {
-//    std::array<VkCommandBuffer*, 4> clear_command_buffers = {_clear_3d_texture_command_buffers_1, _clear_3d_texture_command_buffers_2, _clear_3d_texture_command_buffers_3,
-//        _clear_3d_texture_command_buffers_4};
-    
-    std::array<VkCommandBuffer, 4> clear_commands {};
+    std::array<VkCommandBuffer, TOTAL_LODS> clear_commands {};
     
     for( int i =0; i < _clear_3d_texture_command_buffers.size(); ++i)
     {
@@ -801,9 +807,9 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
     vk::shader_parameter::shader_params_group& deferred_output_params = _pipeline._material->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5);
     
     voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
-    
+
     clear_voxels_textures();
-    
+
     std::array<glm::vec3, 3> cam_positions = {  glm::vec3(0.0f, 0.0f, -8.f),glm::vec3(0.0f, 8.f, 0.0f), glm::vec3(8.0f, 0.0f, 0.0f)};
     std::array<glm::vec3, 3> up_vectors = { glm::vec3 {0.0f, 1.0f, 0.0f}, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)};
     std::array<VkSemaphore, 3> semaphores = { _generate_voxel_z_axis_semaphore,
@@ -974,7 +980,6 @@ void deferred_renderer::destroy()
                              static_cast<uint32_t>(_swapchain->_swapchain_data.image_set.get_image_count()), _genered_3d_mip_maps_commands[i]) ;
     }
 
-    
     
     delete[] _offscreen_command_buffers;
     

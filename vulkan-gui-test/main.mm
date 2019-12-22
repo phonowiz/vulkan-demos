@@ -370,7 +370,7 @@ int main()
     
     app.deferred_renderer->init();
     
-    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(1);
+    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(3);
     app.three_d_renderer->get_material()->set_image_sampler(voxel_texture, "texture_3d",
                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
     

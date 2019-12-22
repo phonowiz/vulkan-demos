@@ -34,7 +34,7 @@ namespace vk
         
         render_texture _voxel_2d_view;
         
-        static constexpr unsigned int TOTAL_LODS = 4;
+        static constexpr unsigned int TOTAL_LODS = 6;
         //texture 3d mip maps are not supported moltenvk,so we create our own
         std::array< texture_3d, TOTAL_LODS> _voxel_albedo_textures;
         std::array< texture_3d, TOTAL_LODS> _voxel_normal_textures;

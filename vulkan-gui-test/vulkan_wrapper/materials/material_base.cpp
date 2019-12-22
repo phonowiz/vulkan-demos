@@ -262,7 +262,9 @@ void material_base::init_shader_parameters()
         shader_parameter::shader_params_group& group = _uniform_parameters[pair.first];
         for (std::pair<std::string_view , shader_parameter > pair : group)
         {
-            //std::string_view name = pair.first;
+            std::string_view name = pair.first;
+            
+            std::cout << name << std::endl;
             shader_parameter setting = pair.second;
             total_size += setting.get_max_std140_aligned_size_in_bytes();
             ++_uniform_parameters_added_on_init;
@@ -323,6 +325,10 @@ void material_base::set_image_sampler(image* texture, const char* parameter_name
     mem.usage_type = usage;
 
     _sampler_parameters[stage][parameter_name] = texture;
+    
+//    VkPhysicalDeviceProperties props {};
+//    vkGetPhysicalDeviceProperties( _device->_physical_device, &props);
+//    assert(_sampler_parameters[stage].size() < props.limits.maxDescriptorSetSamplers);
 }
 
 void material_base::set_image_smapler(texture_2d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage)
