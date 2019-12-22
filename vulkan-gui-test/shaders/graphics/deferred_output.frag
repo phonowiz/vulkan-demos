@@ -210,7 +210,7 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
 
 void ambient_occlusion(vec3 world_pos, inout vec4 sample_color )
 {
-    float lambda = 1.2f;
+    float lambda = 3.2f;
 
     vec4 projection = rendering_state.vox_view_projection * vec4(world_pos, 1.0f);
     vec3 j = rendering_state.voxel_size_in_world_space.xyz;
@@ -335,7 +335,9 @@ vec4 indirect_illumination( vec3 world_normal, vec3 world_pos, vec3 direction)
         break;
     }
     
-    return vec4(final_color.xyz, 1.0f) * 4.5f ;
+    //TODO: tweak numbers above...
+    float hack = 2.5f;
+    return vec4(final_color.xyz, 1.0f) * hack ;
 }
 
 vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_position)

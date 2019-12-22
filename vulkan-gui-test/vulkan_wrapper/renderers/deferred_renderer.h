@@ -152,7 +152,7 @@ namespace vk
         
         static constexpr uint32_t VOXEL_CUBE_WIDTH = 256u;
         static constexpr uint32_t VOXEL_CUBE_HEIGHT = 256u;
-        static constexpr uint32_t VOXEL_CUBE_DEPTH  =  256u;
+        static constexpr uint32_t VOXEL_CUBE_DEPTH  =  256u ;
         
         static constexpr size_t   NUM_SAMPLING_RAYS = 5;
         
