@@ -103,8 +103,8 @@ Here are screenshots of my deferred renderings, these will be used for voxel con
 The streaks you see here are as result of the ray marching am doing to render the 3D texture.  This view is mostly for debugging purposes and designed to show me what the 3D texture content is, how I visualize this doesn't contribute to the final cone traced image, but the contents of the 3D texture will contrinbute to final cone traced image.   
 
 #### Ambient Occlusion
-<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/ambient+direct.png">
+<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/ambient_occlusion.png">
 
 #### Direct Lighting with Ambient Occlusion
-<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/ambient_occlusion.png">
+<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/ambient+direct.png">
 
