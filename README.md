@@ -76,13 +76,6 @@ If you have ever used vulkan api directly to do all of this, you know there is a
 
 My philosophy is to make something that satisfies my needs specifically and only expose exactly what I need from Vulkan, the rest can stay hidden with default values. As my development gets more sophisticated, I'll keep exposing more and more of the API, just enough to get what I need done.  It keeps things simpler. 
 
-
-Here is a screenshot of my first Vulkan scene:
-
-<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/dragon.png">
-
-At 1024x768 resolution and about 800,000 polygons, this sample app can run at around 150 frames a second, more than twice as fast as what OpenGL can do on my MacBook Pro 2015 with the same scene.  That is amazing! 
-
 ## Deferred Rendering
 Here are screenshots of my deferred renderings, these will be used for voxel cone tracing. 
 
