@@ -94,7 +94,7 @@ struct App
     vk::camera*     three_d_texture_camera = nullptr;
     vk::swapchain*  swapchain = nullptr;
     
-    vk::deferred_renderer::rendering_state state = vk::deferred_renderer::rendering_state::FULL_RENDERING;
+    vk::deferred_renderer::rendering_mode state = vk::deferred_renderer::rendering_mode::FULL_RENDERING;
     
     std::vector<vk::obj_shape*> shapes;
     
@@ -236,46 +236,51 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     
     if (key == GLFW_KEY_1 && action == GLFW_PRESS)
     {
-        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::FULL_RENDERING);
+        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::FULL_RENDERING);
         app.render_3d_texture = false;
     }
     
     if (key == GLFW_KEY_2 && action == GLFW_PRESS)
     {
-        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::ALBEDO);
+        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::ALBEDO);
         app.render_3d_texture = false;
     }
     
     if (key == GLFW_KEY_3 && action == GLFW_PRESS)
     {
-        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::NORMALS);
+        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::NORMALS);
         app.render_3d_texture = false;
     }
     
     if( key == GLFW_KEY_4 && action == GLFW_PRESS)
     {
-        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::POSITIONS);
+        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::POSITIONS);
         app.render_3d_texture = false;
     }
     
     if( key == GLFW_KEY_5 && action == GLFW_PRESS)
     {
-        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::DEPTH);
+        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::DEPTH);
         app.render_3d_texture = false;
     }
     if( key == GLFW_KEY_6 && action == GLFW_PRESS)
     {
-        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::AMBIENT_OCCLUSION);
+        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::AMBIENT_OCCLUSION);
         app.render_3d_texture = false;
     }
     if( key == GLFW_KEY_7 && action == GLFW_PRESS)
     {
-        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_state::AMBIENT_LIGHT);
+        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::AMBIENT_LIGHT);
         app.render_3d_texture = false;
     }
     if( key == GLFW_KEY_8 && action == GLFW_PRESS)
     {
         app.render_3d_texture = true;
+    }
+    if( key == GLFW_KEY_9 && action == GLFW_PRESS)
+    {
+        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::DIRECT_LIGHT);
+        app.render_3d_texture = false;
     }
     
     if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -320,7 +325,7 @@ int main()
     cube.create();
     
     buddha.transform.position = glm::vec3(0.25f, -.5f, .00f);
-    buddha.transform.scale = glm::vec3(1.5f, 1.5f, 1.5f);
+    //buddha.transform.scale = glm::vec3(.8f, .8f, .8f);
     buddha.transform.update_transform_matrix();
     
     cornell_box.transform.position = glm::vec3(0.0f, 0.00f, 0.0f);
@@ -370,7 +375,7 @@ int main()
     
     app.deferred_renderer->init();
     
-    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(3);
+    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(5);
     app.three_d_renderer->get_material()->set_image_sampler(voxel_texture, "texture_3d",
                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
     

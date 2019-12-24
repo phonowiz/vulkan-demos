@@ -24,7 +24,7 @@ layout(binding = 5, std140) uniform _rendering_state
     vec4 world_light_position;
     vec4 light_color;
     vec4 voxel_size_in_world_space;
-    int  state;
+    int  mode;
     vec4 sampling_rays[NUM_SAMPLING_RAYS];
     mat4 vox_view_projection;
     int  num_of_lods;
@@ -62,6 +62,7 @@ int DEPTH = 3;
 int FULL_RENDERING = 4;
 int AMBIENT_OCCLUSION = 5;
 int AMBIENT_LIGHT = 6;
+int DIRECT_LIGHT = 7;
 
 float voxel_jump = 1.8f;
 float num_voxels_limit = 10.0f;
@@ -78,7 +79,6 @@ vec4  normal_lod_colors[NUM_MIP_MAPS];
 //this is the reason I have this function here
 vec4 sample_lod_texture(int texture_type, vec3 coord, uint level)
 {
-    level = min(level, 3);
     if( texture_type == ALBEDO )
     {
         if( level == 0)
@@ -101,7 +101,7 @@ vec4 sample_lod_texture(int texture_type, vec3 coord, uint level)
         {
             return texture(voxel_albedos4, coord);
         }
-        else if( level == 5)
+        else
         {
             return texture(voxel_albedos5, coord);
         }
@@ -128,13 +128,13 @@ vec4 sample_lod_texture(int texture_type, vec3 coord, uint level)
         {
             return texture(voxel_normals4, coord);
         }
-        else if( level == 5)
+        else
         {
             return texture(voxel_normals5, coord);
         }
     }
     
-    return vec4(1.0f);
+    return vec4(0.0f);
 }
 bool within_clipping_space( vec4 pos)
 {
@@ -173,7 +173,7 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
     //note: the point of starting at voxel box instead of 0 is that we want to
     //start sampling above the world position of the surface, see inside while loop below.
     vec3 j = rendering_state.voxel_size_in_world_space.xyz;
-    uint lod = 1;
+    uint lod = 2;
     vec3 step = j*voxel_jump;
     j += step;
 
@@ -194,8 +194,8 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
             //also remember that in vulkan, y is flipped
             texture_space.xy = 1.0f - texture_space.xy;
             
-            albedo_lod_colors[lod-1] = sample_lod_texture(ALBEDO, texture_space.xyz, lod+1);
-            normal_lod_colors[lod-1] = sample_lod_texture(NORMALS, texture_space.xyz, lod+1);
+            albedo_lod_colors[lod] = sample_lod_texture(ALBEDO, texture_space.xyz, lod);
+            normal_lod_colors[lod] = sample_lod_texture(NORMALS, texture_space.xyz, lod);
         }
         else
         {
@@ -210,16 +210,15 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
 
 void ambient_occlusion(vec3 world_pos, inout vec4 sample_color )
 {
-    float lambda = 3.2f;
+    float lambda = 2.0f;
 
     vec4 projection = rendering_state.vox_view_projection * vec4(world_pos, 1.0f);
     vec3 j = rendering_state.voxel_size_in_world_space.xyz;
-    uint lod = 1;
+    uint lod = 2;
     vec3 step = j*voxel_jump;
     j += step;
     
-    while(j.x < distance_limit.x  && j.y < distance_limit.y && j.z < distance_limit.z &&
-          lod != rendering_state.num_of_lods)
+    while(lod != rendering_state.num_of_lods)
     {
         float len = length(j);
         float attenuation = (1/(1 + len*lambda));
@@ -281,7 +280,7 @@ float get_variance(float distance)
 vec4 indirect_illumination( vec3 world_normal, vec3 world_pos, vec3 direction)
 {
     vec3 j = rendering_state.voxel_size_in_world_space.xyz;
-    uint lod = 1;
+    uint lod = 3;
     vec3 step = j * voxel_jump;
     j += step ;
     
@@ -326,17 +325,15 @@ vec4 indirect_illumination( vec3 world_normal, vec3 world_pos, vec3 direction)
             float spec = pow(ndoth, p);
             
             float ndotl = clamp(dot(up, light_direction), 0.0f, 1.0f);
-            final_color += (avg_albedo + avg_albedo * spec) * ndotl * gauss;  //(avg_albedo + avg_albedo * spec) * ndotl * gloss;
+            final_color += (avg_albedo + avg_albedo * spec) * ndotl * spec;  //(avg_albedo + avg_albedo * spec) * ndotl * gloss;
         }
-        //final_color += albedo_lod_colors[4];
         
         ++lod;
         j += step;
-        break;
     }
     
     //TODO: tweak numbers above...
-    float hack = 2.5f;
+    float hack = 1.6f;
     return vec4(final_color.xyz, 1.0f) * hack ;
 }
 
@@ -398,21 +395,21 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position)
 
 void main()
 {
-    if( rendering_state.state == ALBEDO )
+    if( rendering_state.mode == ALBEDO )
     {
         out_color = texture(albedo, frag_uv_coord);
     }
     
-    else if( rendering_state.state == NORMALS )
+    else if( rendering_state.mode == NORMALS )
     {
         out_color = texture(normals, frag_uv_coord);
     }
     
-    else if( rendering_state.state == POSITIONS)
+    else if( rendering_state.mode == POSITIONS)
     {
         out_color = texture(world_positions, frag_uv_coord);
     }
-    else if( rendering_state.state == DEPTH )
+    else if( rendering_state.mode == DEPTH )
     {
         out_color = texture(depth, frag_uv_coord );
         out_color.xyz = 1 - out_color.xxx;
@@ -430,15 +427,21 @@ void main()
         {
             vec4 ambience = voxel_cone_tracing(rotation, world_normal, world_position);
             
-            if( rendering_state.state == AMBIENT_OCCLUSION)
+            if( rendering_state.mode == AMBIENT_OCCLUSION)
             {
                 out_color.xyz = (1.0f - ambience.aaa);
                 out_color.a = 1.0f;
             }
             
-            else if( rendering_state.state == AMBIENT_LIGHT)
+            else if( rendering_state.mode == AMBIENT_LIGHT)
             {
                 out_color.xyz = ambience.xyz;
+                out_color.a = 1.0f;
+            }
+            else if ( rendering_state.mode == DIRECT_LIGHT)
+            {
+                vec4 direct = direct_illumination( world_normal, world_position);
+                out_color = direct;
                 out_color.a = 1.0f;
             }
             else

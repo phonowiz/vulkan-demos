@@ -95,7 +95,7 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _pipeline._material->init_parameter("world_light_position", visual_material::parameter_stage::FRAGMENT, glm::vec3(0.0f), 5);
     _pipeline._material->init_parameter("light_color", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
     _pipeline._material->init_parameter("voxel_size_in_world_space", visual_material::parameter_stage::FRAGMENT, world_scale_voxel, 5);
-    _pipeline._material->init_parameter("state", visual_material::parameter_stage::FRAGMENT, int(0), 5);
+    _pipeline._material->init_parameter("mode", visual_material::parameter_stage::FRAGMENT, int(0), 5);
     _pipeline._material->init_parameter("sampling_rays", visual_material::parameter_stage::FRAGMENT, _sampling_rays.data(), _sampling_rays.size(), 5);
     _pipeline._material->init_parameter("vox_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
     _pipeline._material->init_parameter("num_of_lods", visual_material::parameter_stage::FRAGMENT, int(TOTAL_LODS), 5);
@@ -870,7 +870,7 @@ void deferred_renderer::draw(camera& camera)
     display_fragment_params["world_cam_position"] = glm::vec4(camera.position, 1.0f);
     display_fragment_params["world_light_position"] = _light_pos;
     display_fragment_params["light_color"] = _light_color;
-    display_fragment_params["state"] = static_cast<int>(_rendering_state);
+    display_fragment_params["mode"] = static_cast<int>(_rendering_mode);
     
     int binding = 0;
     vk::shader_parameter::shader_params_group& display_params =   renderer::get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, binding);

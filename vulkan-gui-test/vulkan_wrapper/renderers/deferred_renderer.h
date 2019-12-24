@@ -47,7 +47,7 @@ namespace vk
         
         
         //note: these are tied to deferred_output.frag values, if these values change, then change shader accordingly
-        enum class rendering_state
+        enum class rendering_mode
         {
             ALBEDO = 0,
             NORMALS,
@@ -55,7 +55,8 @@ namespace vk
             DEPTH,
             FULL_RENDERING,
             AMBIENT_OCCLUSION,
-            AMBIENT_LIGHT
+            AMBIENT_LIGHT,
+            DIRECT_LIGHT
         };
         
         virtual vk::visual_mat_shared_ptr &  get_material() override { return _mrt_material; }
@@ -67,8 +68,8 @@ namespace vk
         }
         
         inline texture_2d* get_voxelizer_cam_texture( ){ return &_voxel_2d_view; }
-        inline void set_rendering_state( rendering_state state ){ _rendering_state = state; }
-        inline rendering_state get_rendering_state() { return _rendering_state; }
+        inline void set_rendering_state( rendering_mode state ){ _rendering_mode = state; }
+        inline rendering_mode get_rendering_state() { return _rendering_mode; }
         
         
         void wait_for_all_fences();
@@ -132,7 +133,7 @@ namespace vk
         
         std::vector<VkFramebuffer>  _deferred_swapchain_frame_buffers;
         std::vector<VkFramebuffer>  _voxelize_frame_buffers;
-        rendering_state _rendering_state = rendering_state::FULL_RENDERING;
+        rendering_mode _rendering_mode = rendering_mode::FULL_RENDERING;
         
         uint32_t _deferred_image_index = 0;
         
