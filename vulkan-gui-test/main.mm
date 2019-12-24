@@ -325,7 +325,7 @@ int main()
     cube.create();
     
     buddha.transform.position = glm::vec3(0.25f, -.5f, .00f);
-    //buddha.transform.scale = glm::vec3(.8f, .8f, .8f);
+    buddha.transform.scale = glm::vec3(1.5f, 1.5f, 1.5f);
     buddha.transform.update_transform_matrix();
     
     cornell_box.transform.position = glm::vec3(0.0f, 0.00f, 0.0f);
