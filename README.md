@@ -98,6 +98,6 @@ The streaks you see here are as result of the ray marching am doing to render th
 #### Ambient Occlusion
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/ambient_occlusion.png">
 
-#### Direct Lighting with Ambient Occlusion
+#### Direct+Ambient Lighting with Ambient Occlusion
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/ambient+direct.png">
 
