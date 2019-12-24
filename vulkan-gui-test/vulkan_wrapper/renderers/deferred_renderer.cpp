@@ -524,8 +524,8 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
         image_memory_barrier[1].newLayout = static_cast<VkImageLayout>(_voxel_normal_textures[0].get_image_layout());
         vkCmdPipelineBarrier(
                              _voxelize_command_buffers[i],
-                             VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                             VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
                              VK_FLAGS_NONE,
                              0, nullptr,
                              0, nullptr,
