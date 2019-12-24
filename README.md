@@ -100,4 +100,5 @@ The streaks you see here are as result of the ray marching am doing to render th
 
 #### Direct+Ambient Lighting with Ambient Occlusion
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/ambient+direct.png">
+<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-gui-test/screenshots/ambient+direct+backlit.png">
 
