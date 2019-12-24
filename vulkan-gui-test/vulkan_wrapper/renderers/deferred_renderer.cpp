@@ -786,10 +786,10 @@ void deferred_renderer::generate_voxel_mip_maps()
         VkSubmitInfo submit_info = {};
         submit_info.commandBufferCount = 1;
         submit_info.pCommandBuffers = &_genered_3d_mip_maps_commands[i][_deferred_image_index];
-        submit_info.waitSemaphoreCount =  0;//1;
-        submit_info.pWaitSemaphores = nullptr;
-        submit_info.pSignalSemaphores = nullptr;//&_mip_map_semaphores[i];
-        submit_info.signalSemaphoreCount = 0;//1;
+        submit_info.waitSemaphoreCount =  i == 0 ? 0 : 1;
+        submit_info.pWaitSemaphores = i == 0 ? nullptr : &_mip_map_semaphores[i-1];
+        submit_info.pSignalSemaphores = &_mip_map_semaphores[i];
+        submit_info.signalSemaphoreCount = 1;
         
         VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info,
                                         i == _genered_3d_mip_maps_commands.size() -1 ? _voxel_command_fence[0] : nullptr);

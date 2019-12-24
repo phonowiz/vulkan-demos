@@ -128,7 +128,7 @@ namespace vk
         VkSemaphore _generate_voxel_z_axis_semaphore = VK_NULL_HANDLE;
         VkSemaphore _clear_voxel_textures =  VK_NULL_HANDLE;
         
-        std::array<VkSemaphore, 4> _mip_map_semaphores;
+        std::array<VkSemaphore, TOTAL_LODS-1> _mip_map_semaphores;
         
         
         std::vector<VkFramebuffer>  _deferred_swapchain_frame_buffers;
