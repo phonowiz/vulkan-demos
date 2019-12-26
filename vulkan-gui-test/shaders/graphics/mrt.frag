@@ -21,7 +21,7 @@ vec2 encode (vec3 n)
 
 void main()
 {
-    outNormal.xyz = -1.f *normalize(inNormal.xyz);
+    outNormal.xyz = normalize(inNormal.xyz);
     outNormal.xy = encode( outNormal.xyz);
     outNormal.zw = vec2(0.0f,1.f);
     outAlbedo = inAlbedo;
