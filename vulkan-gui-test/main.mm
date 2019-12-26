@@ -320,7 +320,7 @@ int main()
     vk::obj_shape cube(&device, "cube.obj");
     vk::cornell_box cornell_box(&device);
     
-    buddha.set_diffuse(glm::vec3(.00f, 0.00f, .50f));
+    buddha.set_diffuse(glm::vec3(.00f, 0.00f, .80f));
     buddha.create();
     cube.create();
     
@@ -375,7 +375,7 @@ int main()
     
     app.deferred_renderer->init();
     
-    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(5);
+    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(2);
     app.three_d_renderer->get_material()->set_image_sampler(voxel_texture, "texture_3d",
                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
     

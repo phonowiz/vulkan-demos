@@ -393,6 +393,21 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position)
     return vec4(final, 1.0f);
 }
 
+// based off of https://aras-p.info/texts/CompactNormalStorage.html
+//and http://en.wikipedia.org/wiki/Lambert_azimuthal_equal-area_projection
+vec3 decode (vec2 enc)
+{
+    //sphere map transform.  The idea here is that the normal is mapped to a 2D plane and then
+    //transformed back to sphere.  Please see links
+    vec2 fenc = enc*4.f-2.f;
+    float f = dot(fenc,fenc);
+    float g = sqrt(1-f/4);
+    vec3 n;
+    n.xy = fenc*g;
+    n.z = 1-f/2;
+    return n;
+}
+
 void main()
 {
     if( rendering_state.mode == ALBEDO )
@@ -419,6 +434,10 @@ void main()
     {
         mat3 rotation;
         vec3 world_normal = texture(normals, frag_uv_coord).xyz;
+        
+        world_normal = decode(world_normal.xy);
+        world_normal *= -1.0f;
+        
         vec3 world_position = texture(world_positions, frag_uv_coord).xyz;
         branchless_onb(world_normal, rotation);
         

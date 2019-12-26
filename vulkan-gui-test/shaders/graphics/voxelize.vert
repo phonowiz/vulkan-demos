@@ -46,7 +46,7 @@ void main()
     vec3 world_space_view_vec = ubo.eye_position.xyz - world_pos.xyz;
     
     vertex_color = color;
-    out_normal = (d_ubo.model * vec4(normal,1)).xyz;
+    out_normal = (d_ubo.model * vec4(normal,0)).xyz;
     out_light_vec = wrold_space_light_vec;
     out_view_vec = world_space_view_vec;
 }

@@ -9,22 +9,21 @@ layout (location = 0) out vec4 outNormal;
 layout (location = 1) out vec4 outAlbedo;
 layout (location = 2) out vec4 outWorldPos;
 
+
+//based off of: https://aras-p.info/texts/CompactNormalStorage.html and
+//https://en.wikipedia.org/wiki/Lambert_azimuthal_equal-area_projection
+
+vec2 encode (vec3 n)
+{
+    float f = sqrt(8.0f*n.z+8.0f);
+    return n.xy / f + 0.5;
+}
+
 void main()
 {
-//    outPosition = vec4(inWorldPos, 1.0);
-//
-//    // Calculate normal in tangent space
-//    vec3 N = normalize(inNormal);
-//    N.y = -N.y;
-//    vec3 T = normalize(inTangent);
-//    vec3 B = cross(N, T);
-//    mat3 TBN = mat3(T, B, N);
-//    vec3 tnorm = TBN * normalize(texture(samplerNormalMap, inUV).xyz * 2.0 - vec3(1.0));
-//    outNormal = vec4(tnorm, 1.0);
-//
-//    outAlbedo = texture(samplerColor, inUV);
-    
-    outNormal = inNormal;
+    outNormal.xyz = -1.f *normalize(inNormal.xyz);
+    outNormal.xy = encode( outNormal.xyz);
+    outNormal.zw = vec2(0.0f,1.f);
     outAlbedo = inAlbedo;
     outWorldPos = inWorldPos;
 }

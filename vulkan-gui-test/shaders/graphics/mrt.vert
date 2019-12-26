@@ -28,30 +28,10 @@ layout (location = 2) out vec4 out_world_pos;
 
 void main()
 {
-//    vec4 tmpPos = inPos + ubo.instancePos[gl_InstanceIndex];
-//
-//    gl_Position = ubo.projection * ubo.view * ubo.model * tmpPos;
-//
-//    outUV = inUV;
-//    outUV.t = 1.0 - outUV.t;
-//
-//    // Vertex position in world space
-//    outWorldPos = vec3(ubo.model * tmpPos);
-//    // GL to Vulkan coord space
-//    outWorldPos.y = -outWorldPos.y;
-//
-//    // Normal in world space
-//    mat3 mNormal = transpose(inverse(mat3(ubo.model)));
-//    outNormal = mNormal * normalize(inNormal);
-//    outTangent = mNormal * normalize(inTangent);
-//
-//    // Currently just vertex color
-//    outColor = inColor;
-    
     gl_Position = ubo.projection * ubo.view * dynamic_b.model * vec4(pos, 1.0f);
     
     vec4 pos_world = dynamic_b.model * vec4(pos, 1.0f);
-    vec3 normal_world = (dynamic_b.model * vec4(normal,0.0f)).xyz;//transpose(inverse(mat3(dynamic.model))) * normalize(normal);
+    vec3 normal_world = (dynamic_b.model * vec4(normal,0.0f)).xyz;
     normal_world = normalize(normal_world);
     out_normal = vec4(normal_world, 1.0f);
     out_albedo = color;
