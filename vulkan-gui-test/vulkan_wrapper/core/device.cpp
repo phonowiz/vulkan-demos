@@ -439,22 +439,12 @@ void device::pick_physical_device(VkSurfaceKHR surface)
             {
                 
                 _physical_device = device;
-#ifdef __APPLE__
-                //For my macbook pro, the integrated device runs much better than the discrete gpu,
-                //I cannot explain why this happens.
-                break;
-#else
                 continue;
-#endif
             }
             else if( _properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
             {
                 _physical_device = device;
-#ifdef __APPLE__
-                continue;
-#else
                 break;
-#endif
             }
             else
             {
