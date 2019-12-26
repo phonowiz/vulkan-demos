@@ -26,6 +26,8 @@ namespace vk {
 
         virtual void destroy() override;
         virtual void create_sampler() override;
+        virtual void set_format( formats f) override;
+        
         VkAttachmentDescription get_depth_attachment();
         
     protected:

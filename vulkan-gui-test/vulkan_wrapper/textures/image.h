@@ -52,7 +52,6 @@ namespace vk
         
         inline int get_channels()
         {
-            assert(_channels == 4);
             return _channels;
         }
         
@@ -83,6 +82,8 @@ namespace vk
         VkDeviceMemory  _image_memory =  VK_NULL_HANDLE;
         VkImageView     _image_view =   VK_NULL_HANDLE;
         
+        //note: if adding new formats, please make sure to adjust the set_format function
+        //to automatically set the right number of necessary channels
         enum class formats
         {
             R8G8B8A8_UNSIGNED_NORMALIZED = VK_FORMAT_R8G8B8A8_UNORM,
@@ -91,7 +92,8 @@ namespace vk
             R8G8B8A8_SIGNED_NORMALIZED = VK_FORMAT_R8G8B8A8_SNORM,
             DEPTH_32_FLOAT = VK_FORMAT_D32_SFLOAT,
             DEPTH_32_STENCIL_8 = VK_FORMAT_D32_SFLOAT_S8_UINT,
-            DEPTH_24_STENCIL_8 = VK_FORMAT_D24_UNORM_S8_UINT
+            DEPTH_24_STENCIL_8 = VK_FORMAT_D24_UNORM_S8_UINT,
+            R8G8_SIGNED_NORMALIZED =  VK_FORMAT_R8G8_SNORM 
         };
         
         enum class image_layouts
@@ -118,8 +120,15 @@ namespace vk
             return _format;
         }
         
-        inline void set_format(formats f)
+        virtual void set_format(formats f)
         {
+            set_channels(4);
+            _aspect_flag = VK_IMAGE_ASPECT_COLOR_BIT;
+            
+            if(formats::R8G8_SIGNED_NORMALIZED == f)
+            {
+                set_channels(2);
+            }
             _format = f;
         }
         
@@ -140,18 +149,22 @@ namespace vk
     
     protected:
         
+        inline void set_channels(uint32_t channels)
+        {
+            _channels = channels;
+        }
+        
         formats _format = formats::R8G8B8A8_SIGNED_NORMALIZED;
         filter  _filter = filter::LINEAR;
         image_layouts _image_layout = image_layouts::PREINITIALIZED;
         
         virtual void create_sampler() = 0;
-        virtual void create_image_view( VkImage image, VkFormat format,
-                                       VkImageAspectFlags aspectFlags, VkImageView& image_view) = 0;
+        virtual void create_image_view( VkImage image, VkFormat format, VkImageView& image_view) = 0;
         void write_buffer_to_image(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer);
         
     protected:
         VkSampler _sampler = VK_NULL_HANDLE;
-        //TODO: we only support 4 channels at the moment
+        VkImageAspectFlags _aspect_flag = VK_IMAGE_ASPECT_COLOR_BIT;
         uint32_t _channels = 4;
         
         uint32_t _width = 0;

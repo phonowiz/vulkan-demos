@@ -34,10 +34,6 @@ void render_texture::create(uint32_t width, uint32_t height)
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     
 
-    VkImageAspectFlags aspect_flag = (_format == formats::R8G8B8A8_UNSIGNED_NORMALIZED ) ?
-                    VK_IMAGE_ASPECT_COLOR_BIT : VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
-    
-    
-    create_image_view(_image, static_cast<VkFormat>(_format), aspect_flag, _image_view);
+    create_image_view(_image, static_cast<VkFormat>(_format), _image_view);
 }
 

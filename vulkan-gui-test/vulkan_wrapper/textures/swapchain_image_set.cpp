@@ -22,7 +22,7 @@ void swapchain_image_set::create_image_views(VkFormat format)
 {
     for(int i = 0; i < _image_count; ++i)
     {
-        create_image_view(_images[i], format, VK_IMAGE_ASPECT_COLOR_BIT, _imageViews[i]);
+        create_image_view(_images[i], format, _imageViews[i]);
     }
 }
 

@@ -144,11 +144,11 @@ void texture_2d::create(uint32_t width, uint32_t height)
     vkDestroyBuffer(_device->_logical_device, staging_buffer, nullptr);
     vkFreeMemory(_device->_logical_device, staging_buffer_memory, nullptr);
     
-    create_image_view(_image, static_cast<VkFormat>(_format), VK_IMAGE_ASPECT_COLOR_BIT, _image_view);
+    create_image_view(_image, static_cast<VkFormat>(_format), _image_view);
     _initialized = true;
 }
 
-void texture_2d::create_image_view(VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, VkImageView& image_view)
+void texture_2d::create_image_view(VkImage image, VkFormat format, VkImageView& image_view)
 {
     VkImageViewCreateInfo image_view_create_info {};
     
@@ -162,7 +162,7 @@ void texture_2d::create_image_view(VkImage image, VkFormat format, VkImageAspect
     image_view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
     image_view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
     image_view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-    image_view_create_info.subresourceRange.aspectMask = aspect_flags;
+    image_view_create_info.subresourceRange.aspectMask = _aspect_flag;
     image_view_create_info.subresourceRange.baseMipLevel = 0;
     image_view_create_info.subresourceRange.levelCount = _mip_levels;
     image_view_create_info.subresourceRange.baseArrayLayer = 0;

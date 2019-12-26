@@ -37,8 +37,7 @@ namespace vk {
         static constexpr void* _image_type = nullptr;
         
         virtual void create_sampler()  override;
-        virtual void create_image_view( VkImage image, VkFormat format,
-                                       VkImageAspectFlags aspectFlags, VkImageView& image_view) override;
+        virtual void create_image_view( VkImage image, VkFormat format, VkImageView& image_view) override;
 
     };
 }

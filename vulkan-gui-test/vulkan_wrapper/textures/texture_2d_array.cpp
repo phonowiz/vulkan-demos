@@ -23,7 +23,7 @@ void texture_2d_array::init()
                  VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     
-    create_image_view(_image, static_cast<VkFormat>(_format), VK_IMAGE_ASPECT_COLOR_BIT,_image_view);
+    create_image_view(_image, static_cast<VkFormat>(_format),_image_view);
     
     if(_enable_mipmapping)
         refresh_mimaps();
@@ -78,7 +78,7 @@ void texture_2d_array::create_sampler()
     ASSERT_VULKAN(result);
 }
 
-void texture_2d_array::create_image_view( VkImage image, VkFormat format, VkImageAspectFlags aspect_flags, VkImageView& image_view)
+void texture_2d_array::create_image_view( VkImage image, VkFormat format, VkImageView& image_view)
 {
     VkImageViewCreateInfo image_view_create_info {};
     
@@ -92,7 +92,7 @@ void texture_2d_array::create_image_view( VkImage image, VkFormat format, VkImag
     image_view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
     image_view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
     image_view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-    image_view_create_info.subresourceRange.aspectMask = aspect_flags;
+    image_view_create_info.subresourceRange.aspectMask = _aspect_flag;
     image_view_create_info.subresourceRange.baseMipLevel = 0;
     image_view_create_info.subresourceRange.levelCount = _mip_levels;
     image_view_create_info.subresourceRange.baseArrayLayer = 0;

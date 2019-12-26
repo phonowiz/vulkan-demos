@@ -52,6 +52,7 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
         
         _voxel_albedo_textures[i].set_filter(image::filter::LINEAR);
         _voxel_normal_textures[i].set_filter(image::filter::LINEAR);
+        //_voxel_normal_textures[i].set_format(image::formats::R8G8_SIGNED_NORMALIZED);
         
         _voxel_normal_textures[i].set_image_layout(image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
         _voxel_albedo_textures[i].set_image_layout(image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
@@ -127,6 +128,8 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _positions.set_filter(image::filter::NEAREST);
     _albedo.set_filter(image::filter::NEAREST);
     _normals.set_filter(image::filter::NEAREST);
+    _normals.set_format(image::formats::R8G8_SIGNED_NORMALIZED);
+    
     _depth.set_filter(image::filter::NEAREST);
     
     _positions.init();
@@ -396,8 +399,7 @@ void deferred_renderer::create_pipeline()
                      _swapchain->_swapchain_data.swapchain_extent.height);
     
     _mrt_pipeline.set_number_of_blend_attachments(3);
-    bool enable_blend = true;
-    _mrt_pipeline.modify_attachment_blend(0, graphics_pipeline::write_channels::RGBA, enable_blend);
+    _mrt_pipeline.modify_attachment_blend(0, graphics_pipeline::write_channels::RGBA, false);
     _mrt_pipeline.modify_attachment_blend(1, graphics_pipeline::write_channels::RGBA, false);
     _mrt_pipeline.modify_attachment_blend(2, graphics_pipeline::write_channels::RGBA, false);
     
