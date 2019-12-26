@@ -31,9 +31,9 @@ void main()
     gl_Position = ubo.projection * ubo.view * dynamic_b.model * vec4(pos, 1.0f);
     
     vec4 pos_world = dynamic_b.model * vec4(pos, 1.0f);
-    vec3 normal_world = (dynamic_b.model * vec4(normal,0.0f)).xyz;
-    normal_world = normalize(normal_world);
-    out_normal = vec4(normal_world, 1.0f);
+    vec3 normal_view = ( ubo.view * dynamic_b.model * vec4(normal,0.0f)).xyz;
+    normal_view = normalize(normal_view);
+    out_normal = vec4(normal_view, 1.0f);
     out_albedo = color;
     out_world_pos = pos_world;
 }

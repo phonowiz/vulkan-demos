@@ -29,6 +29,7 @@ layout(binding = 5, std140) uniform _rendering_state
     mat4 vox_view_projection;
     int  num_of_lods;
     vec3 eye_in_world_space;
+    mat4 eye_inverse_view_matrix;
     
 }rendering_state;
 
@@ -436,7 +437,7 @@ void main()
         vec3 world_normal = texture(normals, frag_uv_coord).xyz;
         
         world_normal = decode(world_normal.xy);
-        world_normal *= -1.0f;
+        world_normal = (rendering_state.eye_inverse_view_matrix * vec4(world_normal.xyz,0.0f)).xyz;
         
         vec3 world_position = texture(world_positions, frag_uv_coord).xyz;
         branchless_onb(world_normal, rotation);
