@@ -6,3 +6,5 @@ vulkan-gui-test\.xcodeproj/project\.xcworkspace/xcuserdata/Hullabaloo\.xcuserdat
 vulkan-gui-test\.xcodeproj/xcuserdata/Hullabaloo\.xcuserdatad/xcdebugger/Breakpoints_v2\.xcbkptlist
 
 *.xcuserstate
+
+*.xcbkptlist

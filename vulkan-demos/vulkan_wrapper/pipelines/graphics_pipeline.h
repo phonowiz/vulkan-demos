@@ -91,6 +91,8 @@ namespace vk
             _blend_attachments[blend_attachment_id].blendEnable = enable_blend ? VK_TRUE : VK_FALSE;
         };
         
+        void create_frame_buffer();
+        
         ~graphics_pipeline(){};
         
     public:

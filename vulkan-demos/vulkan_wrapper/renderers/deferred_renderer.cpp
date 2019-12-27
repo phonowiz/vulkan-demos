@@ -231,16 +231,10 @@ void deferred_renderer::create_voxelization_render_pass()
     
     attachment_descriptions[0].format = static_cast<VkFormat>(_voxel_2d_view.get_format());
     
-    std::array<VkAttachmentReference, NUMBER_OUTPUT_ATTACHMENTS> color_references {};
-    //note: the first integer in the instruction is the attachment location specified in the shader
-    
-    //todo: eventually this color attachment will not be needed, please remove, for now, it is here for debugging purposes
-    color_references[0] = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
-    
     VkSubpassDescription subpass = {};
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.pColorAttachments = color_references.data();
-    subpass.colorAttachmentCount = static_cast<uint32_t>(color_references.size());
+    subpass.pColorAttachments = nullptr;
+    subpass.colorAttachmentCount = 0;
     subpass.pDepthStencilAttachment = nullptr;
     
     
@@ -328,36 +322,14 @@ void deferred_renderer::create_render_pass()
     subpass.colorAttachmentCount = static_cast<uint32_t>(color_references.size());
     subpass.pDepthStencilAttachment = &depth_reference;
     
-    
-    // Use subpass dependencies for attachment layput transitions
-    std::array<VkSubpassDependency, 2> dependencies {};
-    
-    dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-    dependencies[0].dstSubpass = 0;
-    dependencies[0].srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-    dependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-    dependencies[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-    dependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-    dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-    
-    dependencies[1].srcSubpass = 0;
-    dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-    dependencies[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-    dependencies[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-    dependencies[1].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-    dependencies[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-    dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-    
-    
     VkRenderPassCreateInfo render_pass_info = {};
     render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     render_pass_info.pAttachments = attachment_descriptions.data();
     render_pass_info.attachmentCount = static_cast<uint32_t>(attachment_descriptions.size());
     render_pass_info.subpassCount = 1;
     render_pass_info.pSubpasses = &subpass;
-    render_pass_info.dependencyCount = static_cast<uint32_t>(dependencies.size());
-    render_pass_info.pDependencies = dependencies.data();
-    
+    render_pass_info.dependencyCount = 0;
+    render_pass_info.pDependencies = nullptr;    
     vkCreateRenderPass(_device->_logical_device, &render_pass_info, nullptr, &_mrt_render_pass);
     
     create_voxelization_render_pass();

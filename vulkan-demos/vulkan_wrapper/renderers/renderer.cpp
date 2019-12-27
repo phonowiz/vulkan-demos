@@ -89,29 +89,9 @@ void renderer::create_render_pass()
     subpass_description.preserveAttachmentCount = 0;
     subpass_description.pPreserveAttachments = nullptr;
     
-    //Use subpass dependencies for attachment layput transitions.
-    //Based off of this example: https://github.com/SaschaWillems/Vulkan/blob/master/examples/deferred/deferred.cpp
-    std::array<VkSubpassDependency, 2> subpass_dependencies;
-    
     //note: for a great explanation of VK_SUBPASS_EXTERNAL:
     //https://stackoverflow.com/questions/53984863/what-exactly-is-vk-subpass-external?rq=1
-    subpass_dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-    subpass_dependencies[0].dstSubpass = 0;
-    subpass_dependencies[0].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    subpass_dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    subpass_dependencies[0].srcAccessMask = 0;
-    subpass_dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    subpass_dependencies[0].dependencyFlags = 0;
-    
-    
-    subpass_dependencies[1].srcSubpass = 0;
-    subpass_dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-    subpass_dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    subpass_dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-    subpass_dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-    subpass_dependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-    subpass_dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-    
+
     //note: because we state the images initial layout upon entering the renderpass and the layouts the subpasses
     //need for them to do their work, transitions are implicit and will happen automatically as the renderpass excecutes.
     
@@ -123,8 +103,11 @@ void renderer::create_render_pass()
     render_pass_create_info.pAttachments = attachment_descriptions.data();
     render_pass_create_info.subpassCount = 1;
     render_pass_create_info.pSubpasses = &subpass_description;
-    render_pass_create_info.dependencyCount = 2;
-    render_pass_create_info.pDependencies = subpass_dependencies.data();
+    render_pass_create_info.dependencyCount = 0;
+    //note that there are implicit subpass dependecies grom from external subpass to
+    //defined subpass and another from our defined subpass to the subpass external:
+    //https://www.reddit.com/r/vulkan/comments/8arvcj/a_question_about_subpass_dependencies/
+    render_pass_create_info.pDependencies = nullptr;///subpass_dependencies.data();
     
     VkResult result = vkCreateRenderPass(_device->_logical_device, &render_pass_create_info, nullptr, &_render_pass);
     
