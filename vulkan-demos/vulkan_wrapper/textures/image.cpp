@@ -42,7 +42,7 @@ void image::create_image(  VkFormat format, VkImageTiling tiling,
     assert(_device->_present_queue == _device->_graphics_queue);
     image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     
-    uint32_t graphics_fam_index = _device->_indices.graphics_family.value();
+    uint32_t graphics_fam_index = _device->_queue_family_indices.graphics_family.value();
     image_create_info.queueFamilyIndexCount = 1;
     image_create_info.pQueueFamilyIndices = &graphics_fam_index;
     image_create_info.initialLayout = static_cast<VkImageLayout>(_image_layout);

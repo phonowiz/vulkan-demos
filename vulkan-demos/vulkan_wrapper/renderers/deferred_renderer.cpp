@@ -52,7 +52,6 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
         
         _voxel_albedo_textures[i].set_filter(image::filter::LINEAR);
         _voxel_normal_textures[i].set_filter(image::filter::LINEAR);
-        //_voxel_normal_textures[i].set_format(image::formats::R8G8_SIGNED_NORMALIZED);
         
         _voxel_normal_textures[i].set_image_layout(image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
         _voxel_albedo_textures[i].set_image_layout(image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
@@ -501,38 +500,8 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
         VkResult result = vkBeginCommandBuffer(_voxelize_command_buffers[i], &command_buffer_begin_info);
         ASSERT_VULKAN(result);
         
-        // Image memory barrier to make sure that compute shader writes are finished before sampling from the texture
-        std::array<VkImageMemoryBarrier, 2> image_memory_barrier = {};
-        image_memory_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-        
-        constexpr uint32_t VK_FLAGS_NONE = 0;
-
-        
         vkCmdBeginRenderPass(_voxelize_command_buffers[i], &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
         vkCmdBindPipeline(_voxelize_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _voxelize_pipeline._pipeline);
-        
-        // We won't be changing the layout of the image
-        image_memory_barrier[0].oldLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[0].get_image_layout());
-        image_memory_barrier[0].newLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[0].get_image_layout());
-        image_memory_barrier[0].image = _voxel_albedo_textures[0].get_image();
-        image_memory_barrier[0].subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-        image_memory_barrier[0].srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT;
-        image_memory_barrier[0].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-        image_memory_barrier[0].srcQueueFamilyIndex = _device->_indices.graphics_family.value();
-        image_memory_barrier[0].dstQueueFamilyIndex = _device->_indices.graphics_family.value();
-        
-        image_memory_barrier[1] = image_memory_barrier[0];
-        image_memory_barrier[1].image = _voxel_normal_textures[0].get_image();
-        image_memory_barrier[1].oldLayout = static_cast<VkImageLayout>(_voxel_normal_textures[0].get_image_layout());
-        image_memory_barrier[1].newLayout = static_cast<VkImageLayout>(_voxel_normal_textures[0].get_image_layout());
-        vkCmdPipelineBarrier(
-                             _voxelize_command_buffers[i],
-                             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                             VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
-                             VK_FLAGS_NONE,
-                             0, nullptr,
-                             0, nullptr,
-                             image_memory_barrier.size(), image_memory_barrier.data());
         
         VkViewport viewport {};
         viewport.x = 0.0f;
@@ -591,8 +560,8 @@ void deferred_renderer::record_3d_mip_maps_commands()
                      image_memory_barrier[0].newLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[i-1].get_image_layout());
                      image_memory_barrier[0].image = _voxel_albedo_textures[i-1].get_image();
                      image_memory_barrier[0].subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-                     image_memory_barrier[0].srcQueueFamilyIndex = _device->_indices.graphics_family.value();
-                     image_memory_barrier[0].dstQueueFamilyIndex = _device->_indices.graphics_family.value();
+                     image_memory_barrier[0].srcQueueFamilyIndex = _device->_queue_family_indices.graphics_family.value();
+                     image_memory_barrier[0].dstQueueFamilyIndex = _device->_queue_family_indices.graphics_family.value();
 
                      image_memory_barrier[1] = image_memory_barrier[0];
                      image_memory_barrier[1].image = _voxel_normal_textures[i-1].get_image();
@@ -602,8 +571,8 @@ void deferred_renderer::record_3d_mip_maps_commands()
 
                      vkCmdPipelineBarrier(
                                           _genered_3d_mip_maps_commands[i][j],
-                                          VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
-                                          VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                          VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
                                           VK_FLAGS_NONE,
                                           0, nullptr,
                                           0, nullptr,

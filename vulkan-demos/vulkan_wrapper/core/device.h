@@ -98,7 +98,7 @@ namespace vk {
         VkCommandPool       _present_command_pool = VK_NULL_HANDLE;
         VkCommandPool       _compute_command_pool = VK_NULL_HANDLE;
         VkPhysicalDeviceProperties _properties {};
-        device::queue_family_indices _indices;
+        device::queue_family_indices _queue_family_indices;
     private:
 
         
