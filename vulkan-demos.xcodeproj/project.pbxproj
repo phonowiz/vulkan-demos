@@ -613,12 +613,8 @@
 				DEVELOPMENT_TEAM = 5662ABGNXL;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/vulkan-gui-test/moltenvk-1.0.38/Package/Debug/MoltenVK/macOS/framework",
-					"$(PROJECT_DIR)/vulkan-gui-test/moltenvk-1.0.38/Package/Debug/MoltenVK/include/MoltenVK",
-					"$(PROJECT_DIR)/vulkan-gui-test/moltenvk-1.0.38/Package/Debug/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/framework",
-					"$(PROJECT_DIR)/vulkan-gui-test/moltenvk-1.0.38/Package/Release/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/framework",
-					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVK/macOS/framework",
-					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/framework",
+					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/framework/",
+					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVK/macOS/framework",
 				);
 				HEADER_SEARCH_PATHS = (
 					"./vulkan-demos/vulkan_wrapper",
@@ -638,8 +634,6 @@
 					"$(PROJECT_DIR)/vulkan-demos/Libraries/Mac/Debug",
 					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVK/macOS/dynamic",
 					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/dynamic",
-					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/dynamic",
-					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVK/macOS/dynamic",
 				);
 				OTHER_LDFLAGS = (
 					"-lglfw3",
@@ -665,13 +659,8 @@
 				DEVELOPMENT_TEAM = 5662ABGNXL;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(PROJECT_DIR)/vulkan-gui-test/vulkansdk-macos-1.1.85.0/macOS/Frameworks",
-					"$(PROJECT_DIR)/vulkan-gui-test/vulkansdk-macos-1.1.85.0/MoltenVK/macOS/release",
-					"$(PROJECT_DIR)/vulkan-gui-test/moltenvk-1.0.38/Package/Debug/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/framework",
-					"$(PROJECT_DIR)/vulkan-gui-test/moltenvk-1.0.38/Package/Debug/MoltenVK/macOS/framework",
-					"$(PROJECT_DIR)/vulkan-gui-test/moltenvk-1.0.38/Package/Release/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/framework",
+					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/framework/",
 					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVK/macOS/framework",
-					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/framework",
 				);
 				HEADER_SEARCH_PATHS = (
 					"./vulkan-demos/vulkan_wrapper",
@@ -691,8 +680,6 @@
 					"$(PROJECT_DIR)/vulkan-demos/vulkansdk-macos-1.1.85.0/MoltenVK/macOS/release",
 					"$(PROJECT_DIR)/vulkan-demos/Libraries/Mac/Release",
 					"$(PROJECT_DIR)/vulkan-demos/vulkansdk-macos-1.1.85.0/MoltenVK/macOS/debug",
-					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVK/macOS/dynamic",
-					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/dynamic",
 					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/dynamic",
 					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVK/macOS/dynamic",
 				);
