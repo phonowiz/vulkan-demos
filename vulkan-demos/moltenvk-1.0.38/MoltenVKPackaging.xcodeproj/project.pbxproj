@@ -441,6 +441,7 @@
 		A975D59D2140586700D4834F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

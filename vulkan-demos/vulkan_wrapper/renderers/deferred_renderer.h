@@ -14,7 +14,7 @@
 #include "compute_pipeline.h"
 #include "material_store.h"
 #include "./shapes/screen_plane.h"
-#include "depth_image.h"
+#include "depth_texture.h"
 #include "cameras/orthographic_camera.h"
 
 namespace vk
@@ -30,7 +30,7 @@ namespace vk
         render_texture _positions;
         render_texture _normals;
         render_texture _albedo;
-        depth_image    _depth;
+        depth_texture    _depth;
         
         render_texture _voxel_2d_view;
         

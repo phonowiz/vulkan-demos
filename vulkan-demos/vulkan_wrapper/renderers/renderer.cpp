@@ -14,7 +14,7 @@
 #include "renderer.h"
 #include "device.h"
 #include "swapchain.h"
-#include "depth_image.h"
+#include "depth_texture.h"
 #include "vertex.h"
 #include "vulkan_wrapper/shapes/obj_shape.h"
 #include "shader.h"

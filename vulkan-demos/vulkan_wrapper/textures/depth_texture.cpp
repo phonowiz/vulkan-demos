@@ -6,11 +6,11 @@
 //  Copyright © 2019 Rafael Sabino. All rights reserved.
 //
 
-#include "depth_image.h"
+#include "depth_texture.h"
 
 using namespace vk;
 
-void depth_image::create(uint32_t width, uint32_t height)
+void depth_texture::create(uint32_t width, uint32_t height)
 {
     assert(!_created);
     
@@ -36,7 +36,7 @@ void depth_image::create(uint32_t width, uint32_t height)
     create_sampler();
     _created = true;
 }
-void depth_image::create_sampler()
+void depth_texture::create_sampler()
 {
     VkSamplerCreateInfo sampler_create_info = {};
     
@@ -56,7 +56,7 @@ void depth_image::create_sampler()
     ASSERT_VULKAN(result);
 }
 
-void depth_image::set_format(vk::image::formats f)
+void depth_texture::set_format(vk::image::formats f)
 {
     assert(f == formats::DEPTH_32_FLOAT || f == formats::DEPTH_32_STENCIL_8 ||
            f == formats::DEPTH_24_STENCIL_8 );
@@ -65,7 +65,7 @@ void depth_image::set_format(vk::image::formats f)
     _aspect_flag = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 }
 
-void depth_image::destroy()
+void depth_texture::destroy()
 {
     if(_created)
     {
@@ -80,7 +80,7 @@ void depth_image::destroy()
     }
 }
 
-VkAttachmentDescription depth_image::get_depth_attachment()
+VkAttachmentDescription depth_texture::get_depth_attachment()
 {
     VkAttachmentDescription depth_attachment = {};
     

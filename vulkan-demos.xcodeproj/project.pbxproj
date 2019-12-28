@@ -20,7 +20,7 @@
 		B93FDCA723036C29000AECBE /* texture_2d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCA323036C29000AECBE /* texture_2d.cpp */; };
 		B93FDCAF23036D70000AECBE /* image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCAA23036D70000AECBE /* image.cpp */; };
 		B93FDCB023036D70000AECBE /* render_texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCAD23036D70000AECBE /* render_texture.cpp */; };
-		B93FDCB323036DDE000AECBE /* depth_image.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCB123036DDE000AECBE /* depth_image.cpp */; };
+		B93FDCB323036DDE000AECBE /* depth_texture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCB123036DDE000AECBE /* depth_texture.cpp */; };
 		B93FDCBD23036EB0000AECBE /* material_store.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCB723036EB0000AECBE /* material_store.cpp */; };
 		B93FDCBE23036EB0000AECBE /* compute_material.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCB823036EB0000AECBE /* compute_material.cpp */; };
 		B93FDCBF23036EB0000AECBE /* material_base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCBA23036EB0000AECBE /* material_base.cpp */; };
@@ -34,15 +34,16 @@
 		B93FDCDD23037064000AECBE /* swapchain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCD523037064000AECBE /* swapchain.cpp */; };
 		B93FDCE32303709B000AECBE /* display_plane.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCE02303709B000AECBE /* display_plane.cpp */; };
 		B93FDCE723037359000AECBE /* shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCE423037359000AECBE /* shader.cpp */; };
+		B95FF50823B7389100F8580F /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B95FF50723B7389100F8580F /* libMoltenVK.dylib */; };
+		B95FF50A23B738C400F8580F /* libMoltenVKGLSLToSPIRVConverter.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B95FF50923B738C400F8580F /* libMoltenVKGLSLToSPIRVConverter.dylib */; };
+		B95FF50B23B738EF00F8580F /* libMoltenVKGLSLToSPIRVConverter.dylib in Resources */ = {isa = PBXBuildFile; fileRef = B95FF50923B738C400F8580F /* libMoltenVKGLSLToSPIRVConverter.dylib */; };
+		B95FF50C23B738F300F8580F /* libMoltenVK.dylib in Resources */ = {isa = PBXBuildFile; fileRef = B95FF50723B7389100F8580F /* libMoltenVK.dylib */; };
+		B95FF50F23B739F800F8580F /* render_pass.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B95FF50D23B739F800F8580F /* render_pass.cpp */; };
 		B960021C23B5DFA60025A8AF /* MoltenVK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B960021B23B5DFA60025A8AF /* MoltenVK.framework */; };
 		B960021E23B5DFDA0025A8AF /* MoltenVKGLSLToSPIRVConverter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B960021D23B5DFDA0025A8AF /* MoltenVKGLSLToSPIRVConverter.framework */; };
 		B960022023B5E0290025A8AF /* textures in Resources */ = {isa = PBXBuildFile; fileRef = B960021F23B5E0290025A8AF /* textures */; };
 		B960022223B5E04A0025A8AF /* models in Resources */ = {isa = PBXBuildFile; fileRef = B960022123B5E04A0025A8AF /* models */; };
 		B960022423B5E05D0025A8AF /* shaders in Resources */ = {isa = PBXBuildFile; fileRef = B960022323B5E05C0025A8AF /* shaders */; };
-		B960022623B5E0DD0025A8AF /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B960022523B5E0DD0025A8AF /* libMoltenVK.dylib */; };
-		B960022823B5E0F60025A8AF /* libMoltenVKGLSLToSPIRVConverter.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B960022723B5E0F60025A8AF /* libMoltenVKGLSLToSPIRVConverter.dylib */; };
-		B960022923B5E1390025A8AF /* libMoltenVKGLSLToSPIRVConverter.dylib in Resources */ = {isa = PBXBuildFile; fileRef = B960022723B5E0F60025A8AF /* libMoltenVKGLSLToSPIRVConverter.dylib */; };
-		B960022A23B5E13E0025A8AF /* libMoltenVK.dylib in Resources */ = {isa = PBXBuildFile; fileRef = B960022523B5E0DD0025A8AF /* libMoltenVK.dylib */; };
 		B96AB61D22EE5C4000F33807 /* transform.h in Sources */ = {isa = PBXBuildFile; fileRef = B96AB61C22EE5C4000F33807 /* transform.h */; };
 		B96AB61F22EE5E5000F33807 /* transform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B96AB61E22EE5E5000F33807 /* transform.cpp */; };
 		B978316222E541B000E5DE71 /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B978316022E541AF00E5DE71 /* camera.cpp */; };
@@ -79,8 +80,8 @@
 		B93FDCAB23036D70000AECBE /* swapchain_image_set.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = swapchain_image_set.h; sourceTree = "<group>"; };
 		B93FDCAC23036D70000AECBE /* image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = image.h; sourceTree = "<group>"; };
 		B93FDCAD23036D70000AECBE /* render_texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = render_texture.cpp; sourceTree = "<group>"; };
-		B93FDCB123036DDE000AECBE /* depth_image.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = depth_image.cpp; sourceTree = "<group>"; };
-		B93FDCB223036DDE000AECBE /* depth_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = depth_image.h; sourceTree = "<group>"; };
+		B93FDCB123036DDE000AECBE /* depth_texture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = depth_texture.cpp; sourceTree = "<group>"; };
+		B93FDCB223036DDE000AECBE /* depth_texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = depth_texture.h; sourceTree = "<group>"; };
 		B93FDCB523036EB0000AECBE /* visual_material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = visual_material.h; sourceTree = "<group>"; };
 		B93FDCB623036EB0000AECBE /* compute_material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = compute_material.h; sourceTree = "<group>"; };
 		B93FDCB723036EB0000AECBE /* material_store.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = material_store.cpp; sourceTree = "<group>"; };
@@ -115,13 +116,15 @@
 		B93FDCED230D2C6B000AECBE /* ordered_map.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ordered_map.h; sourceTree = "<group>"; };
 		B94CEB982248243F001AEDEE /* tiny_obj_loader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tiny_obj_loader.h; sourceTree = "<group>"; };
 		B94CEB9922482516001AEDEE /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
+		B95FF50723B7389100F8580F /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = "vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVK/macOS/dynamic/libMoltenVK.dylib"; sourceTree = "<group>"; };
+		B95FF50923B738C400F8580F /* libMoltenVKGLSLToSPIRVConverter.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVKGLSLToSPIRVConverter.dylib; path = "vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/dynamic/libMoltenVKGLSLToSPIRVConverter.dylib"; sourceTree = "<group>"; };
+		B95FF50D23B739F800F8580F /* render_pass.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = render_pass.cpp; sourceTree = "<group>"; };
+		B95FF50E23B739F800F8580F /* render_pass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = render_pass.h; sourceTree = "<group>"; };
 		B960021B23B5DFA60025A8AF /* MoltenVK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MoltenVK.framework; path = "vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVK/macOS/framework/MoltenVK.framework"; sourceTree = "<group>"; };
 		B960021D23B5DFDA0025A8AF /* MoltenVKGLSLToSPIRVConverter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MoltenVKGLSLToSPIRVConverter.framework; path = "vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/framework/MoltenVKGLSLToSPIRVConverter.framework"; sourceTree = "<group>"; };
 		B960021F23B5E0290025A8AF /* textures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = textures; path = "vulkan-demos/textures"; sourceTree = "<group>"; };
 		B960022123B5E04A0025A8AF /* models */ = {isa = PBXFileReference; lastKnownFileType = folder; name = models; path = "vulkan-demos/models"; sourceTree = "<group>"; };
 		B960022323B5E05C0025A8AF /* shaders */ = {isa = PBXFileReference; lastKnownFileType = folder; name = shaders; path = "vulkan-demos/shaders"; sourceTree = "<group>"; };
-		B960022523B5E0DD0025A8AF /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = "vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVK/macOS/dynamic/libMoltenVK.dylib"; sourceTree = "<group>"; };
-		B960022723B5E0F60025A8AF /* libMoltenVKGLSLToSPIRVConverter.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVKGLSLToSPIRVConverter.dylib; path = "vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/dynamic/libMoltenVKGLSLToSPIRVConverter.dylib"; sourceTree = "<group>"; };
 		B96AB61C22EE5C4000F33807 /* transform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = transform.h; sourceTree = "<group>"; };
 		B96AB61E22EE5E5000F33807 /* transform.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = transform.cpp; sourceTree = "<group>"; };
 		B978316022E541AF00E5DE71 /* camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = camera.cpp; sourceTree = "<group>"; };
@@ -156,12 +159,12 @@
 			files = (
 				B9DE4A6223517578003559DC /* AppKit.framework in Frameworks */,
 				B92627E5219B481700D1358A /* IOKit.framework in Frameworks */,
-				B960022623B5E0DD0025A8AF /* libMoltenVK.dylib in Frameworks */,
+				B95FF50823B7389100F8580F /* libMoltenVK.dylib in Frameworks */,
 				B960021E23B5DFDA0025A8AF /* MoltenVKGLSLToSPIRVConverter.framework in Frameworks */,
 				B92627E2219B47CB00D1358A /* CoreVideo.framework in Frameworks */,
 				B92627DF219B476200D1358A /* CoreGraphics.framework in Frameworks */,
 				B960021C23B5DFA60025A8AF /* MoltenVK.framework in Frameworks */,
-				B960022823B5E0F60025A8AF /* libMoltenVKGLSLToSPIRVConverter.dylib in Frameworks */,
+				B95FF50A23B738C400F8580F /* libMoltenVKGLSLToSPIRVConverter.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -205,8 +208,8 @@
 		B938D05A21953D34004F759E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				B960022723B5E0F60025A8AF /* libMoltenVKGLSLToSPIRVConverter.dylib */,
-				B960022523B5E0DD0025A8AF /* libMoltenVK.dylib */,
+				B95FF50923B738C400F8580F /* libMoltenVKGLSLToSPIRVConverter.dylib */,
+				B95FF50723B7389100F8580F /* libMoltenVK.dylib */,
 				B960021D23B5DFDA0025A8AF /* MoltenVKGLSLToSPIRVConverter.framework */,
 				B960021B23B5DFA60025A8AF /* MoltenVK.framework */,
 				B92627E7219B48D700D1358A /* AppKit.framework */,
@@ -230,8 +233,8 @@
 		B93FDCA123036C29000AECBE /* textures */ = {
 			isa = PBXGroup;
 			children = (
-				B93FDCB123036DDE000AECBE /* depth_image.cpp */,
-				B93FDCB223036DDE000AECBE /* depth_image.h */,
+				B93FDCB123036DDE000AECBE /* depth_texture.cpp */,
+				B93FDCB223036DDE000AECBE /* depth_texture.h */,
 				B93FDCAA23036D70000AECBE /* image.cpp */,
 				B93FDCAC23036D70000AECBE /* image.h */,
 				B93FDCAD23036D70000AECBE /* render_texture.cpp */,
@@ -368,6 +371,8 @@
 				B9F4F010230369A10058B38E /* display_2d_texture_renderer.h */,
 				B9F4F00C230369610058B38E /* renderer.h */,
 				B9F4F00D230369610058B38E /* renderer.cpp */,
+				B95FF50D23B739F800F8580F /* render_pass.cpp */,
+				B95FF50E23B739F800F8580F /* render_pass.h */,
 			);
 			path = renderers;
 			sourceTree = "<group>";
@@ -429,8 +434,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B960022A23B5E13E0025A8AF /* libMoltenVK.dylib in Resources */,
-				B960022923B5E1390025A8AF /* libMoltenVKGLSLToSPIRVConverter.dylib in Resources */,
+				B95FF50C23B738F300F8580F /* libMoltenVK.dylib in Resources */,
+				B95FF50B23B738EF00F8580F /* libMoltenVKGLSLToSPIRVConverter.dylib in Resources */,
 				B960022223B5E04A0025A8AF /* models in Resources */,
 				B960022423B5E05D0025A8AF /* shaders in Resources */,
 				B92627E9219B48E000D1358A /* AppKit.framework in Resources */,
@@ -471,7 +476,7 @@
 				B9C43E532397B7C40072365C /* swapchain_image_set.cpp in Sources */,
 				B93FDCBE23036EB0000AECBE /* compute_material.cpp in Sources */,
 				B96AB61D22EE5C4000F33807 /* transform.h in Sources */,
-				B93FDCB323036DDE000AECBE /* depth_image.cpp in Sources */,
+				B93FDCB323036DDE000AECBE /* depth_texture.cpp in Sources */,
 				B991089B2372B8AC00990E39 /* texture_2d_array.cpp in Sources */,
 				B93FDCD923037064000AECBE /* resource.cpp in Sources */,
 				B93FDCBF23036EB0000AECBE /* material_base.cpp in Sources */,
@@ -481,6 +486,7 @@
 				B96AB61F22EE5E5000F33807 /* transform.cpp in Sources */,
 				B9F4EFF622FD2CE20058B38E /* obj_shape.cpp in Sources */,
 				B93FDCAF23036D70000AECBE /* image.cpp in Sources */,
+				B95FF50F23B739F800F8580F /* render_pass.cpp in Sources */,
 				B9F4F014230369D20058B38E /* deferred_renderer.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -522,7 +528,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -544,6 +550,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Debug;
 		};
@@ -596,6 +603,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Release;
 		};
@@ -610,6 +618,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 5662ABGNXL;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -682,6 +691,8 @@
 					"$(PROJECT_DIR)/vulkan-demos/vulkansdk-macos-1.1.85.0/MoltenVK/macOS/debug",
 					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/dynamic",
 					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVK/macOS/dynamic",
+					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVK/macOS/dynamic",
+					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/dynamic",
 				);
 				OTHER_LDFLAGS = (
 					"-lglfw3",

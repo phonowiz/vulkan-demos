@@ -15,12 +15,12 @@ namespace vk {
     
     class device;
     
-    class depth_image : public texture_2d
+    class depth_texture : public texture_2d
     {
     public:
         
-        depth_image(bool write_to_texture){ _write_to_texture = write_to_texture; };
-        depth_image(vk::device* device, uint32_t width, uint32_t height, bool write_to_texture )
+        depth_texture(bool write_to_texture){ _write_to_texture = write_to_texture; };
+        depth_texture(vk::device* device, uint32_t width, uint32_t height, bool write_to_texture )
             :texture_2d(device, width, height){ _write_to_texture = write_to_texture; }
         
 
@@ -36,10 +36,10 @@ namespace vk {
         
         virtual void create(uint32_t width, uint32_t height) override;
         
-        depth_image(const depth_image&) = delete;
-        depth_image(depth_image&&) = delete;
-        depth_image& operator=(const depth_image &) = delete;
-        depth_image& operator=(depth_image&&) = delete;
+        depth_texture(const depth_texture&) = delete;
+        depth_texture(depth_texture&&) = delete;
+        depth_texture& operator=(const depth_texture &) = delete;
+        depth_texture& operator=(depth_texture&&) = delete;
     };
 }
 

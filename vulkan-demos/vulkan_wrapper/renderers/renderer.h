@@ -14,7 +14,7 @@
 
 #include <vector>
 #include "visual_material.h"
-#include "depth_image.h"
+#include "depth_texture.h"
 #include "graphics_pipeline.h"
 #include "./cameras/camera.h"
 
@@ -24,7 +24,7 @@ namespace vk
 {
     class device;
     class swapchain;
-    class depth_image;
+    class depth_texture;
     class obj_shape;
     class texture_2d;
     
@@ -103,7 +103,7 @@ namespace vk
         
         bool _pipeline_created = false;
         
-        depth_image _depth_image;
+        depth_texture _depth_image;
 
     };
 }

@@ -14,7 +14,7 @@
 
 #include "device.h"
 #include <vector>
-#include "depth_image.h"
+#include "depth_texture.h"
 #include "texture_2d.h"
 #include "swapchain_image_set.h"
 
