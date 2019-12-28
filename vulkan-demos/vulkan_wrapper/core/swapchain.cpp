@@ -115,6 +115,8 @@ void swapchain::create_swapchain()
         image_count = swapchain_support.capabilities.maxImageCount;
     }
     
+    assert(image_count == NUM_SWAPCHAIN_IMAGES && "other code depends on this number to be correct, please consider matching");
+    
     VkSwapchainCreateInfoKHR create_info = {};
     create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     create_info.surface = _surface;

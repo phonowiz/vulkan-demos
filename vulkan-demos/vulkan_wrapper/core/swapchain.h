@@ -32,7 +32,7 @@ namespace vk
         
     public:
         
-        static const int MAX_SWAPCHAIN_IMAGES = 5;
+        static constexpr int NUM_SWAPCHAIN_IMAGES = 3;
         struct swapchain_data
         {
             VkSwapchainKHR          swapchain = VK_NULL_HANDLE;

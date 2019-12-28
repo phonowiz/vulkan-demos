@@ -23,7 +23,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
-
+#include "../core/swapchain.h"
 
 namespace vk
 {
@@ -35,9 +35,9 @@ namespace vk
     class render_pass
     {
     public:
-        render_pass(device* device, bool _off_screen_rendering, size_t swap_chain_images, glm::vec2 dimensions);
+        render_pass(device* device, bool _off_screen_rendering, glm::vec2 dimensions);
         
-        void add_rendering_attachment(std::vector<texture_2d*>& rendering_texture);
+        void set_rendering_attachments(std::array<std::vector<texture_2d*>, swapchain::NUM_SWAPCHAIN_IMAGES>& rendering_texture);
         inline void set_clear_value(size_t attachment_index, glm::vec4 value)
         {
             assert(_vk_frame_buffers.size() > attachment_index);
@@ -55,23 +55,23 @@ namespace vk
             _vk_frame_buffers[attachment_index]._clear_value.depthStencil.stencil =  stencil_clear;
         }
         
-        void set_depth_attachment(std::vector<depth_texture*> depths){_depth_textures = depths;};
+        void set_depth_attachments(std::array<depth_texture*, vk::swapchain::NUM_SWAPCHAIN_IMAGES>& depths){_depth_textures = &depths;};
         
         void init();
         
         void record_draw_commands(obj_shape**, size_t num_shapes);
         
-        inline VkRenderPass get_render_pass(size_t i){ return _vk_render_passes[i]; };
+        inline VkRenderPass get_render_pass(size_t i)
+        {
+            assert( i < _vk_render_passes.size());
+            return _vk_render_passes[i];
+            
+        };
     private:
         
         void create_frame_buffer();
         
     private:
-        std::vector<std::vector<texture_2d*>> _attachments;
-        bool _off_screen_rendering = true;
-        std::vector<depth_texture*> _depth_textures;
-        
-        static constexpr uint32_t MAX_NUMBER_OF_ATTACHMENTS = 5;
         
         struct frame_buffer_info
         {
@@ -79,8 +79,19 @@ namespace vk
             VkClearValue  _clear_value = {};
         };
         
-        std::vector<VkRenderPass>       _vk_render_passes ;
-        std::vector<frame_buffer_info>  _vk_frame_buffers;
+        //note: we rely on NUM_SWAPCHAIN_IMAGES to declare in these arrays, in the future if that is no longer
+        //the way to go, templatize this class.
+        
+        std::array<std::vector<texture_2d*>, vk::swapchain::NUM_SWAPCHAIN_IMAGES>*  _attachments = nullptr;
+        std::array<depth_texture*, vk::swapchain::NUM_SWAPCHAIN_IMAGES>*             _depth_textures = nullptr;
+        std::array<VkRenderPass, swapchain::NUM_SWAPCHAIN_IMAGES>       _vk_render_passes {};
+        std::array<frame_buffer_info, swapchain::NUM_SWAPCHAIN_IMAGES>  _vk_frame_buffers {};
+        
+        bool _off_screen_rendering = true;
+
+        static constexpr uint32_t MAX_NUMBER_OF_ATTACHMENTS = 5;
+        
+
         glm::vec2 _dimensions {};
         device* _device = nullptr;
         
