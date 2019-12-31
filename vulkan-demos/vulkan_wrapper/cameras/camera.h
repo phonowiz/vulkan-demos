@@ -8,6 +8,10 @@
 
 #pragma once
 
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_SILENT_WARNINGS
+
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace vk

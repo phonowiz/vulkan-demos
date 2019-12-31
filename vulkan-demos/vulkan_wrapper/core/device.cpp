@@ -232,7 +232,7 @@ void device::create_instance()
     VkApplicationInfo appInfo;
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pNext = nullptr;
-    appInfo.pApplicationName = "Vulkan Tutorial";
+    appInfo.pApplicationName = "Rafael's Demo";
     appInfo.applicationVersion = VK_MAKE_VERSION(0, 0, 0);
     appInfo.pEngineName = "Super Vulkan Engine Turbo Mega";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);

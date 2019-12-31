@@ -64,7 +64,7 @@ void start_glfw() {
     glfwSwapInterval(DEFAULT_VSYNC);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     
-    window = glfwCreateWindow(width, height, "Vulkan Tutorial", nullptr, nullptr);
+    window = glfwCreateWindow(width, height, "Rafael's Demo", nullptr, nullptr);
 }
 
 //render target
@@ -86,6 +86,7 @@ struct App
     vk::device* device = nullptr;
     vk::deferred_renderer*   deferred_renderer = nullptr;
     vk::renderer*   three_d_renderer = nullptr;
+    vk::display_2d_texture_renderer * display_renderer = nullptr;
     
     first_person_controller* user_controller = nullptr;
     first_person_controller* texture_3d_view_controller = nullptr;
@@ -97,10 +98,17 @@ struct App
     vk::deferred_renderer::rendering_mode state = vk::deferred_renderer::rendering_mode::FULL_RENDERING;
     
     std::vector<vk::obj_shape*> shapes;
+     
+    enum class render_mode
+    {
+        RENDER_3D_TEXTURE,
+        RENDER_VOXEL_CAM_TEXTURE,
+        RENDER_DEFFERED
+    };
     
     bool quit = false;
-    bool render_3d_texture = false;
-    
+    //bool render_3d_texture = false;
+    render_mode mode = render_mode::RENDER_DEFFERED;
     glm::mat4 model = glm::mat4(1.0f);
     
 };
@@ -183,16 +191,22 @@ void game_loop()
         
         app.user_controller->update();
         app.texture_3d_view_controller->update();
-        if(!app.render_3d_texture)
+        if(app.mode == App::render_mode::RENDER_DEFFERED)
         {
             update_renderer_parameters( *app.deferred_renderer );
             app.deferred_renderer->draw(*app.perspective_camera);
         }
-        else
+        else if (app.mode == App::render_mode::RENDER_3D_TEXTURE)
         {
             app.device->wait_for_all_operations_to_finish();
             update_3d_texture_rendering_params(*app.three_d_renderer);
             app.three_d_renderer->draw(*app.three_d_texture_camera);
+        }
+        else
+        {
+            app.device->wait_for_all_operations_to_finish();
+            update_ortho_parameters(*app.display_renderer);
+            app.display_renderer->draw(*app.perspective_camera);
         }
     }
     
@@ -237,50 +251,58 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_1 && action == GLFW_PRESS)
     {
         app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::FULL_RENDERING);
-        app.render_3d_texture = false;
+        app.mode = App::render_mode::RENDER_DEFFERED;
     }
     
     if (key == GLFW_KEY_2 && action == GLFW_PRESS)
     {
         app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::ALBEDO);
-        app.render_3d_texture = false;
+        app.mode = App::render_mode::RENDER_DEFFERED;
     }
     
     if (key == GLFW_KEY_3 && action == GLFW_PRESS)
     {
         app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::NORMALS);
-        app.render_3d_texture = false;
+        app.mode = App::render_mode::RENDER_DEFFERED;
     }
     
     if( key == GLFW_KEY_4 && action == GLFW_PRESS)
     {
         app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::POSITIONS);
-        app.render_3d_texture = false;
+        app.mode = App::render_mode::RENDER_DEFFERED;
     }
     
     if( key == GLFW_KEY_5 && action == GLFW_PRESS)
     {
         app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::DEPTH);
-        app.render_3d_texture = false;
+        app.mode = App::render_mode::RENDER_DEFFERED;
     }
     if( key == GLFW_KEY_6 && action == GLFW_PRESS)
     {
         app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::AMBIENT_OCCLUSION);
-        app.render_3d_texture = false;
+        app.mode = App::render_mode::RENDER_DEFFERED;;
     }
     if( key == GLFW_KEY_7 && action == GLFW_PRESS)
     {
         app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::AMBIENT_LIGHT);
-        app.render_3d_texture = false;
+        app.mode = App::render_mode::RENDER_DEFFERED;;
     }
     if( key == GLFW_KEY_8 && action == GLFW_PRESS)
     {
-        app.render_3d_texture = true;
+        app.mode = App::render_mode::RENDER_3D_TEXTURE;
     }
     if( key == GLFW_KEY_9 && action == GLFW_PRESS)
     {
         app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::DIRECT_LIGHT);
-        app.render_3d_texture = false;
+        app.mode = App::render_mode::RENDER_DEFFERED;
+    }
+    if( key == GLFW_KEY_O && action == GLFW_PRESS)
+    {
+        vk::shader_parameter::shader_params_group& vertex_params =  app.display_renderer->get_material()
+                                                ->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+        vertex_params["width"] = width;
+        vertex_params["height"] = height;
+        app.mode = App::render_mode::RENDER_VOXEL_CAM_TEXTURE;
     }
     
     if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -316,19 +338,19 @@ int main()
     mario.set_enable_mipmapping(true);
     mario.init();
     
-    vk::obj_shape buddha(&device, "dragon.obj");
+    vk::obj_shape model(&device, "dragon.obj");
     vk::obj_shape cube(&device, "cube.obj");
     vk::cornell_box cornell_box(&device);
     
-    buddha.set_diffuse(glm::vec3(.00f, 0.00f, .80f));
-    buddha.create();
+    model.set_diffuse(glm::vec3(.00f, 0.00f, .80f));
+    model.create();
     cube.create();
     
-    buddha.transform.position = glm::vec3(0.25f, -.5f, .00f);
-    buddha.transform.scale = glm::vec3(1.5f, 1.5f, 1.5f);
-    buddha.transform.update_transform_matrix();
+    model.transform.position = glm::vec3(0.5f, -.50f, .0f);
+    model.transform.scale = glm::vec3(1.5f, 1.5f, 1.5f);
+    model.transform.update_transform_matrix();
     
-    cornell_box.transform.position = glm::vec3(0.0f, 0.00f, 0.0f);
+    cornell_box.transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
     cornell_box.transform.rotation.y = 3.14159f;
     cornell_box.transform.update_transform_matrix();
     cornell_box.create();
@@ -358,24 +380,26 @@ int main()
     vk::display_2d_texture_renderer display_renderer(&device, window, &swapchain, material_store);
     
     display_renderer.get_pipeline().set_depth_enable(false);
-    display_renderer.show_texture(&mario);
+    display_renderer.show_texture(deferred_renderer.get_voxelizer_cam_texture());
+    //display_renderer.show_texture(&mario);
     display_renderer.init();
     
+    app.display_renderer = &display_renderer;
     
     app.three_d_renderer = &three_d_renderer;
     
     app.deferred_renderer = &deferred_renderer;
     
     app.deferred_renderer->add_shape(&cornell_box);
-    app.deferred_renderer->add_shape(&buddha);
+    app.deferred_renderer->add_shape(&model);
 
     app.shapes.push_back(&cornell_box);
-    app.shapes.push_back(&buddha);
+    app.shapes.push_back(&model);
 
     
     app.deferred_renderer->init();
     
-    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(2);
+    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(0);
     app.three_d_renderer->get_material()->set_image_sampler(voxel_texture, "texture_3d",
                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
     
@@ -402,7 +426,7 @@ int main()
     
     swapchain.destroy();
     material_store.destroy();
-    buddha.destroy();
+    model.destroy();
     cube.destroy();
     cornell_box.destroy();
     device.destroy();

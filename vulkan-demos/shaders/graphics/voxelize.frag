@@ -40,6 +40,7 @@ void main()
     //TODO: if you ever add specular cones, this needs to be put back in
     //vec3 specular = pow(max(dot(R,V), 0.0f), 16.0f) * vec3(1.35f, 1.35f, 1.35f);
     
+    //good reference for this math: https://www.derschmale.com/2014/09/28/unprojections-explained/
     
     vec4 ndc = vec4(float(gl_FragCoord.x)/ubo.voxel_coords.x, float(gl_FragCoord.y)/ubo.voxel_coords.y, gl_FragCoord.z, 1.0f);
     //scale to range[-1,1], that's the ndc range
@@ -60,6 +61,9 @@ void main()
 
     //TODO: We can likely shrink the size of the normal texture to a vec2 instead of a vec4
     imageStore(voxel_normal_texture, voxel, vec4(N.xyz,1.0f));
+    
+    final_color = vec4(diffuse, 1.0f);
+
 }
 
 

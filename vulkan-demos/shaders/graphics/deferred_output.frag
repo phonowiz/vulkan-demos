@@ -200,7 +200,8 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
         }
         else
         {
-            break;
+            albedo_lod_colors[lod] = vec4(0);
+            normal_lod_colors[lod] = vec4(0);
         }
 
         lod += 1;
@@ -215,7 +216,7 @@ void ambient_occlusion(vec3 world_pos, inout vec4 sample_color )
 
     vec4 projection = rendering_state.vox_view_projection * vec4(world_pos, 1.0f);
     vec3 j = rendering_state.voxel_size_in_world_space.xyz;
-    uint lod = 2;
+    uint lod = 3;
     vec3 step = j*voxel_jump;
     j += step;
     
@@ -333,8 +334,8 @@ vec4 indirect_illumination( vec3 world_normal, vec3 world_pos, vec3 direction)
         j += step;
     }
     
-    //TODO: tweak numbers above...
-    float hack = 1.6f;
+    //TODO: this hack should go away when we start using HDR values
+    float hack = 1.2f;
     return vec4(final_color.xyz, 1.0f) * hack ;
 }
 

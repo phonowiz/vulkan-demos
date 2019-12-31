@@ -55,12 +55,15 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
         
         _voxel_normal_textures[i].set_image_layout(image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
         _voxel_albedo_textures[i].set_image_layout(image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
+        //_voxel_albedo_textures[i].set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
 
         
         assert(_voxel_albedo_textures[i].get_height() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
         assert(_voxel_albedo_textures[i].get_width() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
         assert(_voxel_albedo_textures[i].get_depth() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
     }
+    
+    _voxel_2d_view.set_image_layout(image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
     
     _mrt_material->init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
     _mrt_material->init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
@@ -232,10 +235,18 @@ void deferred_renderer::create_voxelization_render_pass()
     
     attachment_descriptions[0].format = static_cast<VkFormat>(_voxel_2d_view.get_format());
     
+    std::array<VkAttachmentReference, 1> color_references {};
+    color_references[0] = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+    
+//    VkAttachmentReference depth_reference = {};
+//    //note: in this code, the last attachement is the depth
+//    depth_reference.attachment = attachment_descriptions.size() -1;
+//    depth_reference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    
     VkSubpassDescription subpass = {};
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-    subpass.pColorAttachments = nullptr;
-    subpass.colorAttachmentCount = 0;
+    subpass.pColorAttachments = color_references.data();
+    subpass.colorAttachmentCount = static_cast<uint32_t>(color_references.size());
     subpass.pDepthStencilAttachment = nullptr;
     
     VkRenderPassCreateInfo render_pass_info = {};
@@ -733,7 +744,8 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
     deferred_output_params["eye_inverse_view_matrix"] = glm::inverse(camera.view_matrix);
     clear_voxels_textures();
 
-    std::array<glm::vec3, 3> cam_positions = {  glm::vec3(0.0f, 0.0f, -8.f),glm::vec3(0.0f, 8.f, 0.0f), glm::vec3(8.0f, 0.0f, 0.0f)};
+    constexpr float distance = 8.f;
+    std::array<glm::vec3, 3> cam_positions = {  glm::vec3(0.0f, 0.0f, -distance),glm::vec3(0.0f, distance, 0.0f), glm::vec3(distance, 0.0f, 0.0f)};
     std::array<glm::vec3, 3> up_vectors = { glm::vec3 {0.0f, 1.0f, 0.0f}, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)};
     std::array<VkSemaphore, 3> semaphores = { _generate_voxel_z_axis_semaphore,
         _generate_voxel_y_axis_semaphore, _generate_voxel_x_axis_semaphore};
@@ -741,10 +753,12 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
     glm::mat4 project_to_voxel_screen = glm::mat4(1.0f);
     
     //voxelize, we are going to build the voxel texture from cam_positions.size() views.
-    for( size_t i = 0; i < 3; ++i)
+    for( size_t i = 0; i < cam_positions.size(); ++i)
     {
         _ortho_camera.position = cam_positions[i];
         _ortho_camera.forward = -_ortho_camera.position;
+        
+        std::cout << " forward: " << _ortho_camera.forward.x << " " << _ortho_camera.forward.y << " " << _ortho_camera.forward.z << std::endl;
         _ortho_camera.up = up_vectors[i];
         _ortho_camera.update_view_matrix();
         
@@ -752,11 +766,11 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
         {
             deferred_output_params["vox_view_projection"] = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
             deferred_output_params["eye_in_world_space"] = camera.position;
+            project_to_voxel_screen = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
+            voxelize_frag_params["project_to_voxel_screen"] = project_to_voxel_screen;
         }
         
-        project_to_voxel_screen = (i == 0) ? _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix : project_to_voxel_screen;
         voxelize_frag_params["inverse_view_projection"] = glm::inverse( _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix);
-        voxelize_frag_params["project_to_voxel_screen"] = project_to_voxel_screen;
         voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
         voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
 
