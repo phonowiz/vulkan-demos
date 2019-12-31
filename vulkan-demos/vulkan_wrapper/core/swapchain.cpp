@@ -121,7 +121,7 @@ void swapchain::create_swapchain()
     create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     create_info.surface = _surface;
     
-    create_info.minImageCount = image_count;
+    create_info.minImageCount = NUM_SWAPCHAIN_IMAGES;
     create_info.imageFormat = surface_format.format;
     create_info.imageColorSpace = surface_format.colorSpace;
     create_info.imageExtent = extent;

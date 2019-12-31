@@ -41,7 +41,12 @@ void render_pass::init()
         assert(_attachments[swapchain_index].size() != 0);
         
         std::array<VkAttachmentDescription, MAX_NUMBER_OF_ATTACHMENTS> attachment_descriptions {};
+        //an excellent explanation of what the heck are these attachment references:
+        //https://stackoverflow.com/questions/49652207/what-is-the-purpose-of-vkattachmentreference
         std::array<VkAttachmentReference, MAX_NUMBER_OF_ATTACHMENTS> color_references {};
+        
+        //here is article about subpasses and input attachments and how they are all tied togethere
+        //https://www.saschawillems.de/blog/2018/07/19/vulkan-input-attachments-and-sub-passes/
         
         for( uint32_t attachment_index = 0; attachment_index < _attachments[swapchain_index].size()-2; ++swapchain_index)
         {
@@ -57,11 +62,19 @@ void render_pass::init()
             attachment_descriptions[attachment_index].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             attachment_descriptions[attachment_index].finalLayout = _off_screen_rendering ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL :VK_IMAGE_LAYOUT_PRESENT_SRC_KHR ;
             attachment_descriptions[attachment_index].format = static_cast<VkFormat>(_attachments->at(swapchain_index)[attachment_index]->get_format());
+            
+            //this is the layout the attahment will be used during the subpass.  The driver decides if there should be a
+            //transition or not given the 'initialLayout' specified in the attachment description
+            
+            //the first integer in the instruction is the attachment location specified in the shader
             color_references[swapchain_index] = {attachment_index, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
         }
         
+        //an excellent explanation of what the heck are these attachment references:
+        //https://stackoverflow.com/questions/49652207/what-is-the-purpose-of-vkattachmentreference
+        
         VkAttachmentReference depth_reference {};
-        VkSubpassDescription subpass = {};
+        VkSubpassDescription subpass {};
         
         if(_depth_textures->size())
         {
@@ -69,6 +82,7 @@ void render_pass::init()
             assert(height == _depth_textures->at(swapchain_index)->get_height());
             
             assert(_depth_textures->size() == _attachments->size() && "Each rendering pass must have it's own depth attachment");
+            //note: in this code, the last attachement is the depth
             attachment_descriptions[_attachments[swapchain_index].size()-1] =  _depth_textures->at(swapchain_index)->get_depth_attachment();
             depth_reference.attachment = attachment_descriptions.size()-1;
             depth_reference.layout = static_cast<VkImageLayout>(_depth_textures->at(swapchain_index)->get_image_layout());
@@ -80,6 +94,12 @@ void render_pass::init()
         subpass.colorAttachmentCount = static_cast<uint32_t>(color_references.size());
         subpass.pDepthStencilAttachment = &depth_reference;
 
+        //note: for a great explanation of VK_SUBPASS_EXTERNAL:
+        //https://stackoverflow.com/questions/53984863/what-exactly-is-vk-subpass-external?rq=1
+        
+        //note: because we state the images initial layout upon entering the renderpass and the layouts the subpasses
+        //need for them to do their work, transitions are implicit and will happen automatically as the renderpass excecutes.
+        
         VkRenderPassCreateInfo render_pass_info = {};
         render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         render_pass_info.pAttachments = attachment_descriptions.data();
@@ -89,31 +109,31 @@ void render_pass::init()
         render_pass_info.dependencyCount = 0;
         render_pass_info.pDependencies = nullptr;
 
-        vkCreateRenderPass(_device->_logical_device, &render_pass_info, nullptr, &_vk_render_passes[swapchain_index]);
-
-        create_frame_buffer();
+        VkResult result = vkCreateRenderPass(_device->_logical_device, &render_pass_info, nullptr, &_vk_render_passes[swapchain_index]);
+        ASSERT_VULKAN(result);
     }
     
-
+    create_frame_buffers();
 }
 
-void render_pass::create_frame_buffer()
+void render_pass::create_frame_buffers()
 {
     
-    for( size_t swapchain_index = 0; swapchain_index < _vk_frame_buffers.size(); ++swapchain_index)
+    for( size_t swapchain_index = 0; swapchain_index < _vk_frame_buffer_infos.size(); ++swapchain_index)
     {
-        for( size_t i = 0; i < _vk_frame_buffers.size(); ++i)
+        for( size_t frame_buffer_id = 0; frame_buffer_id < _vk_frame_buffer_infos.size(); ++frame_buffer_id)
         {
             std::array<VkImageView, MAX_NUMBER_OF_ATTACHMENTS> attachment_views {};
             
-            assert(_attachments->at(i).size() < MAX_NUMBER_OF_ATTACHMENTS);
-            for( size_t j = 0; j < _attachments[i].size()-2; ++j)
+            assert(_attachments->at(frame_buffer_id).size() < MAX_NUMBER_OF_ATTACHMENTS);
+            for( size_t j = 0; j < _attachments[frame_buffer_id].size()-2; ++j)
             {
-                attachment_views[j] = _attachments->at(i)[j]->_image_view;
+                attachment_views[j] = _attachments->at(frame_buffer_id)[j]->_image_view;
             }
             if(_depth_textures->size() != 0)
             {
-                attachment_views[_attachments[i].size()-1]  = _depth_textures->at(swapchain_index)->_image_view;
+                //the render pass assume this as well...
+                attachment_views[_attachments[frame_buffer_id].size()-1]  = _depth_textures->at(swapchain_index)->_image_view;
             }
             
             VkFramebufferCreateInfo framebuffer_create_info {};
@@ -129,13 +149,25 @@ void render_pass::create_frame_buffer()
             framebuffer_create_info.height = _attachments->at(0)[0]->get_height();
             framebuffer_create_info.layers = 1;
             
-            VkResult result = vkCreateFramebuffer(_device->_logical_device, &framebuffer_create_info, nullptr, &(_vk_frame_buffers[swapchain_index]._frame_buffer));
+            VkResult result = vkCreateFramebuffer(_device->_logical_device, &framebuffer_create_info, nullptr, &(_vk_frame_buffer_infos[swapchain_index]._frame_buffer));
             ASSERT_VULKAN(result)
         }
     }
 
 }
 
+void render_pass::destroy()
+{
+    for( int i =0 ; i < _vk_frame_buffer_infos.size(); ++i)
+    {
+        vkDestroyFramebuffer(_device->_logical_device, _vk_frame_buffer_infos[i]._frame_buffer, nullptr);
+    }
+    
+    for( int i = 0; i < _vk_render_passes.size(); ++i)
+    {
+        vkDestroyRenderPass(_device->_logical_device, _vk_render_passes[i], nullptr);
+    }
+}
 
 void render_pass::record_draw_commands(obj_shape ** shapes, size_t num_shapes)
 {

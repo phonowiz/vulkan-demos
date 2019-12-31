@@ -758,7 +758,6 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
         _ortho_camera.position = cam_positions[i];
         _ortho_camera.forward = -_ortho_camera.position;
         
-        std::cout << " forward: " << _ortho_camera.forward.x << " " << _ortho_camera.forward.y << " " << _ortho_camera.forward.z << std::endl;
         _ortho_camera.up = up_vectors[i];
         _ortho_camera.update_view_matrix();
         
