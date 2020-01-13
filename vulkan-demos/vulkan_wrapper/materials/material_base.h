@@ -114,7 +114,9 @@ namespace vk
         virtual size_t get_shader_stages_size() = 0;
         virtual const char* const *get_instance_type() = 0;
         const char* _name = nullptr;
-        
+    
+    public:
+            using object_shader_params_group = ordered_map<uint32_t, shader_parameter::shader_params_group >  ;
     protected:
         
         struct dynamic_buffer_info : public resource::buffer_info
@@ -135,7 +137,7 @@ namespace vk
         ordered_map<parameter_stage, resource::buffer_info>                       _uniform_buffers;
         ordered_map<parameter_stage, shader_parameter::shader_params_group>       _uniform_parameters;
         
-        using object_shader_params_group = ordered_map<uint32_t, shader_parameter::shader_params_group >  ;
+
         
         //todo: for dynamic buffers, I think we won't need parameter stage, verify that that statement is true
         //dynamic uniform buffers are shared by the stages

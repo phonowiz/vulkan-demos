@@ -20,7 +20,7 @@ void texture_3d::init()
     create_image(
                  static_cast<VkFormat>(_format),
                  VK_IMAGE_TILING_OPTIMAL,
-                 VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                 VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     
     create_image_view(_image, static_cast<VkFormat>(_format), _image_view);

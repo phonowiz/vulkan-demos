@@ -31,6 +31,7 @@ image(device)
 
 void texture_2d::init()
 {
+    assert(_device != nullptr);
     _mip_levels = _enable_mipmapping ? static_cast<uint32_t>( std::floor(std::log2( std::max( _width, _height)))) + 1 : 1;
     create_sampler();
     create(_width, _height);
@@ -108,8 +109,9 @@ void texture_2d::create(uint32_t width, uint32_t height)
     VkDeviceMemory staging_buffer_memory {};
     
     
+    VkMemoryPropertyFlagBits flags = _path.empty() ? static_cast<VkMemoryPropertyFlagBits>(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) : VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
     create_buffer(_device->_logical_device, _device->_physical_device, image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                  staging_buffer, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, staging_buffer_memory);
+                  staging_buffer, flags, staging_buffer_memory);
     
     if(_loaded)
     {

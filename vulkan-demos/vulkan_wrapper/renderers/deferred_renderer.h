@@ -19,31 +19,13 @@
 
 namespace vk
 {
-    class swapchain;
+    class glfw_swapchain;
     class image;
     
     class deferred_renderer : public renderer
     {
-        
-    private:
-        
-        render_texture _positions;
-        render_texture _normals;
-        render_texture _albedo;
-        depth_texture    _depth;
-        
-        render_texture _voxel_2d_view;
-        
-        static constexpr unsigned int TOTAL_LODS = 6;
-        //texture 3d mip maps are not supported moltenvk,so we create our own
-        std::array< texture_3d, TOTAL_LODS> _voxel_albedo_textures;
-        std::array< texture_3d, TOTAL_LODS> _voxel_normal_textures;
-        
-        visual_mat_shared_ptr _mrt_material = nullptr;
-        visual_mat_shared_ptr _debug_material = nullptr;
-        
     public:
-        deferred_renderer(device* device, GLFWwindow* window, swapchain* swapchain, material_store& store);
+        deferred_renderer(device* device, GLFWwindow* window, glfw_swapchain* swapchain, material_store& store, std::vector<obj_shape*>& _shapes);
         
         
         //note: these are tied to deferred_output.frag values, if these values change, then change shader accordingly
@@ -59,15 +41,12 @@ namespace vk
             DIRECT_LIGHT
         };
         
-        virtual vk::visual_mat_shared_ptr &  get_material() override { return _mrt_material; }
-        
-        inline texture_3d* get_voxel_texture(uint32_t index )
+        inline std::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& get_voxel_texture( )
         {
-            assert(index < _voxel_albedo_textures.size());
-            return &_voxel_albedo_textures[index];
+            return _voxel_albedo_textures[0];
         }
         
-        inline texture_2d* get_voxelizer_cam_texture( ){ return &_voxel_2d_view; }
+        inline texture_2d* get_voxelizer_cam_texture( ){ return  &_voxel_2d_view[0][0]; }
         inline void set_rendering_state( rendering_mode state ){ _rendering_mode = state; }
         inline rendering_mode get_rendering_state() { return _rendering_mode; }
         
@@ -76,12 +55,14 @@ namespace vk
         virtual void destroy() override;
         virtual void draw(camera& camera) override;
         
+        static constexpr uint32_t VOXEL_CUBE_WIDTH = 256u;
+        static constexpr uint32_t VOXEL_CUBE_HEIGHT = 256u;
+        static constexpr uint32_t VOXEL_CUBE_DEPTH  =  256u ;
+        
     private:
         virtual void create_render_pass()   override;
-        virtual void create_frame_buffers() override;
         virtual void create_pipeline()      override;
         virtual void create_semaphores_and_fences() override;
-        virtual void destroy_framebuffers() override;
         void generate_voxel_textures(vk::camera& camera);
         
         void compute(VkCommandBuffer command_buffer, vk::compute_pipeline& pipeline);
@@ -103,19 +84,20 @@ namespace vk
         VkCommandBuffer *_offscreen_command_buffers = VK_NULL_HANDLE;
         VkCommandBuffer *_voxelize_command_buffers = VK_NULL_HANDLE;
         
-
-    
         graphics_pipeline _mrt_pipeline;
         graphics_pipeline _voxelize_pipeline;
   
-        std::array<compute_pipeline, TOTAL_LODS> _clear_voxel_texture_pipeline {};
+        static constexpr unsigned int TOTAL_LODS = 6;
+        
+        std::array<std::array<compute_pipeline, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS> _clear_voxel_texture_pipeline {};
+        
         std::array<VkCommandBuffer*, TOTAL_LODS> _clear_3d_texture_command_buffers {};
         std::array<VkCommandBuffer*, TOTAL_LODS -1> _genered_3d_mip_maps_commands {};
-        std::array<compute_pipeline, TOTAL_LODS -1> _create_voxel_mip_maps_pipelines {};
+        std::array<std::array<compute_pipeline, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS -1> _create_voxel_mip_maps_pipelines {};
     
         
-        VkRenderPass        _mrt_render_pass = VK_NULL_HANDLE;
-        VkRenderPass        _voxelization_render_pass = VK_NULL_HANDLE;
+        render_pass<render_texture, 3>        _mrt_render_pass;
+        render_pass<render_texture, 1>        _voxelization_render_pass;
         
         VkSemaphore _deferred_semaphore_image_available = VK_NULL_HANDLE;
         VkSemaphore _g_buffers_rendering_done = VK_NULL_HANDLE;
@@ -130,9 +112,6 @@ namespace vk
         
         std::array<VkSemaphore, TOTAL_LODS-1> _mip_map_semaphores;
         
-        
-        std::vector<VkFramebuffer>  _deferred_swapchain_frame_buffers;
-        std::vector<VkFramebuffer>  _voxelize_frame_buffers;
         rendering_mode _rendering_mode = rendering_mode::FULL_RENDERING;
         
         uint32_t _deferred_image_index = 0;
@@ -142,18 +121,10 @@ namespace vk
         
         glm::vec4 _light_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
         
-        //TODO: on my mid 2014 macbook pro, the number of frames is 3, this could change in other platforms
-        static constexpr uint32_t NUM_OF_FRAMES = 3;
+        std::array<VkFence, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _g_buffers_fence {};
+        std::array<VkFence, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _voxelize_inflight_fence {};
+        std::array<VkFence, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _voxel_command_fence {};
         
-        
-        std::array<VkFence, NUM_OF_FRAMES> _g_buffers_fence {};
-        std::array<VkFence, NUM_OF_FRAMES> _voxelize_inflight_fence {};
-        std::array<VkFence, NUM_OF_FRAMES> _voxel_command_fence {};
-        
-        
-        static constexpr uint32_t VOXEL_CUBE_WIDTH = 256u;
-        static constexpr uint32_t VOXEL_CUBE_HEIGHT = 256u;
-        static constexpr uint32_t VOXEL_CUBE_DEPTH  =  256u ;
         
         static constexpr size_t   NUM_SAMPLING_RAYS = 5;
         
@@ -162,8 +133,42 @@ namespace vk
         static constexpr glm::vec3 _voxel_world_dimensions = glm::vec3(10.0f, 10.0f, 10.0f);
         bool _setup_initialized = false;
         
+    private:
+        
+        //texture 3d mip maps are not supported moltenvk,so we create our own
+        std::array< std::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>,TOTAL_LODS > _voxel_albedo_textures;
+        std::array< std::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>,TOTAL_LODS > _voxel_normal_textures;
+        
+        visual_mat_shared_ptr _debug_material = nullptr;
+        
+        enum buffer_ids
+        {
+            NORMALS,
+            ALBEDOS,
+            POSITIONS
+        };
+        
+        std::array<std::array<render_texture,glfw_swapchain::NUM_SWAPCHAIN_IMAGES >, 1> _voxel_2d_view {};
+        std::array<std::array<render_texture,glfw_swapchain::NUM_SWAPCHAIN_IMAGES >, 3> _g_buffer_textures {};
+        std::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>                 _g_buffer_depth {};
+        bool _render_3d_texture = false;
+        
     public:
+        
+        inline void set_render_3d_texture( bool render) { _render_3d_texture = render; }
         glm::vec3 _light_pos = glm::vec3(0.0f, .8f, 0.0f);
         
+        inline shader_parameter::shader_params_group& get_mrt_uniform_params(material_base::parameter_stage stage, uint32_t binding)
+        {
+            return _mrt_pipeline.get_uniform_parameters(stage, binding, _deferred_image_index);
+        }
+        
+        inline visual_material::object_shader_params_group& get_mrt_dynamic_params(material_base::parameter_stage stage, uint32_t binding)
+        {
+            return _mrt_pipeline.get_dynamic_parameters(stage, binding, _deferred_image_index);
+        }
+        
+        
+        inline int get_current_swapchain_image(){ return _deferred_image_index ; }
     };
 }

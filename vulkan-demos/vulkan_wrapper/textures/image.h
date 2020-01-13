@@ -76,6 +76,7 @@ namespace vk
         {
             return _depth;
         }
+
         
         device*         _device = nullptr;
         VkImage         _image =        VK_NULL_HANDLE;
@@ -154,10 +155,6 @@ namespace vk
             _channels = channels;
         }
         
-        formats _format = formats::R8G8B8A8_SIGNED_NORMALIZED;
-        filter  _filter = filter::LINEAR;
-        image_layouts _image_layout = image_layouts::PREINITIALIZED;
-        
         virtual void create_sampler() = 0;
         virtual void create_image_view( VkImage image, VkFormat format, VkImageView& image_view) = 0;
         void write_buffer_to_image(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer);
@@ -171,6 +168,16 @@ namespace vk
         uint32_t _height = 0;
         uint32_t _depth = 1;
         uint32_t _mip_levels = 1;
+        
+        formats _format = formats::R8G8B8A8_SIGNED_NORMALIZED;
+        filter  _filter = filter::LINEAR;
+        image_layouts _image_layout = image_layouts::PREINITIALIZED;
+        
+    public:
+        inline image::filter get_filter()
+        {
+            return _filter;
+        }
     };
 }
 

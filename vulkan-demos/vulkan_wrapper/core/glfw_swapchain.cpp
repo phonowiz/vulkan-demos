@@ -6,7 +6,7 @@
 //  Copyright © 2019 Rafael Sabino. All rights reserved.
 //
 
-#include "swapchain.h"
+#include "glfw_swapchain.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -21,36 +21,46 @@ using namespace vk;
 
 
 
-swapchain::swapchain(device* device, GLFWwindow* window, VkSurfaceKHR surface)
+glfw_swapchain::glfw_swapchain(device* device, GLFWwindow* window, VkSurfaceKHR surface)
 {
     _device = device;
     _window =  window;
-    _swapchain_data.image_set.set_device(device);
+    //_swapchain_data.image_set.set_device(device);
     
     _surface = surface;
     
     recreate_swapchain();
+    for( int i =0; i < NUM_SWAPCHAIN_IMAGES; ++i)
+    {
+        present_textures[0][i].set_device(device);
+        present_textures[0][i].set_window(window);
+        present_textures[0][i].set_swapchain(this);
+        present_textures[0][i].set_swapchain_image_index(i);
+        present_textures[0][i].set_dimensions(get_vk_swap_extent().width, get_vk_swap_extent().height, 1);
+        present_textures[0][i].init();
+    }
+
     
 }
-VkSurfaceFormatKHR swapchain::choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& available_formats)
+VkSurfaceFormatKHR glfw_swapchain::get_vk_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& available_formats)
 {
     if (available_formats.size() == 1 && available_formats[0].format == VK_FORMAT_UNDEFINED) {
         return{VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
     }
-    
+
     for (const auto& available_format : available_formats) {
         if (available_format.format == VK_FORMAT_B8G8R8A8_UNORM && available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
             return available_format;
         }
     }
-    
+
     return available_formats[0];
 }
 
-VkPresentModeKHR swapchain::choose_swap_present_mode(const std::vector<VkPresentModeKHR>& available_present_modes)
+VkPresentModeKHR glfw_swapchain::get_vk_swap_present_mode(const std::vector<VkPresentModeKHR>& available_present_modes)
 {
     VkPresentModeKHR best_mode = VK_PRESENT_MODE_FIFO_KHR;
-    
+
     for (const auto& available_present_mode : available_present_modes) {
         if (available_present_mode == VK_PRESENT_MODE_MAILBOX_KHR) {
             return available_present_mode;
@@ -58,11 +68,11 @@ VkPresentModeKHR swapchain::choose_swap_present_mode(const std::vector<VkPresent
             best_mode = available_present_mode;
         }
     }
-    
+
     return best_mode;
 }
 
-VkExtent2D swapchain::choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow& window)
+VkExtent2D glfw_swapchain::get_vk_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow& window)
 {
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
     {
@@ -70,44 +80,58 @@ VkExtent2D swapchain::choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabil
     }
     else
     {
-        //todo: maybe is possible to eliminate the glfw library dependency from the vulkan wrapper
+        //TODO: maybe is possible to eliminate the glfw library dependency from the vulkan wrapper
         int width, height;
         glfwGetFramebufferSize(&window, &width, &height);
-        
+
         VkExtent2D actual_extent = {
             static_cast<uint32_t>(width),
             static_cast<uint32_t>(height)
         };
-        
+
         actual_extent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actual_extent.width));
         actual_extent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actual_extent.height));
-        
+
         return actual_extent;
     }
 }
 
-void swapchain::destroy_swapchain()
+void glfw_swapchain::destroy_swapchain()
 {
-    VkSwapchainKHR old_swapchain = _swapchain_data.swapchain;
+    VkSwapchainKHR old_swapchain = _swapchain;//swapchain_data.swapchain;
     vkDestroySwapchainKHR(_device->_logical_device, old_swapchain, nullptr);
 }
 
-VkSurfaceFormatKHR swapchain::get_surface_format()
+//VkSurfaceFormatKHR swapchain::get_surface_format()
+//{
+//    device::swapchain_support_details swapchain_support;
+//    _device->query_swapchain_support( _device->_physical_device, _surface, swapchain_support);
+//
+//    VkSurfaceFormatKHR surface_format = choose_swap_surface_format(swapchain_support.formats);
+//    return surface_format;
+//}
+
+VkExtent2D glfw_swapchain::get_vk_swap_extent()
 {
     device::swapchain_support_details swapchain_support;
     _device->query_swapchain_support( _device->_physical_device, _surface, swapchain_support);
+    VkExtent2D extent = get_vk_swap_extent(swapchain_support.capabilities, *_window);
     
-    VkSurfaceFormatKHR surface_format = choose_swap_surface_format(swapchain_support.formats);
-    return surface_format;
+    return extent;
+    
 }
-void swapchain::create_swapchain()
+void glfw_swapchain::create_swapchain()
 {
     device::swapchain_support_details swapchain_support;
     _device->query_swapchain_support( _device->_physical_device, _surface, swapchain_support);
     
-    VkSurfaceFormatKHR surface_format = choose_swap_surface_format(swapchain_support.formats);
-    VkPresentModeKHR present_mode = choose_swap_present_mode(swapchain_support.presentModes);
-    VkExtent2D extent = choose_swap_extent(swapchain_support.capabilities, *_window);
+    //all present textures have the same format and present modes
+    VkSurfaceFormatKHR surface_format = get_vk_swap_surface_format(swapchain_support.formats);
+    VkPresentModeKHR present_mode = get_vk_swap_present_mode(swapchain_support.presentModes);
+    VkExtent2D extent = get_vk_swap_extent(swapchain_support.capabilities, *_window);
+//    extent.width = present_textures[0][0].get_width();
+//    extent.height = present_textures[0][0].get_height();
+    
     
     uint32_t image_count = swapchain_support.capabilities.minImageCount + 1;
     if (swapchain_support.capabilities.maxImageCount > 0 && image_count > swapchain_support.capabilities.maxImageCount)
@@ -115,7 +139,7 @@ void swapchain::create_swapchain()
         image_count = swapchain_support.capabilities.maxImageCount;
     }
     
-    assert(image_count == NUM_SWAPCHAIN_IMAGES && "other code depends on this number to be correct, please consider matching");
+    //assert(image_count == NUM_SWAPCHAIN_IMAGES && "other code depends on this number to be correct, please consider matching");
     
     VkSwapchainCreateInfoKHR create_info = {};
     create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -149,35 +173,35 @@ void swapchain::create_swapchain()
     create_info.clipped = VK_TRUE;
     
     
-    if (vkCreateSwapchainKHR(_device->_logical_device, &create_info, nullptr, &(_swapchain_data.swapchain)) != VK_SUCCESS) {
+    if (vkCreateSwapchainKHR(_device->_logical_device, &create_info, nullptr, &(_swapchain)) != VK_SUCCESS) {
         throw std::runtime_error("failed to create swap chain!");
     }
     
-    _swapchain_data.image_set.init(_device, _swapchain_data.swapchain);
-    _swapchain_data.image_set.create_image_set();
-    _swapchain_data.swapchain_extent = extent;
+//    _swapchain_data.image_set.init(_device, _swapchain_data.swapchain);
+//    _swapchain_data.image_set.create_image_set();
+//    _swapchain_data.swapchain_extent = extent;
 }
 
-void swapchain::create_image_views()
+void glfw_swapchain::create_image_views()
 {
-    _swapchain_data.image_set.create_image_views( get_surface_format().format );
+    //_swapchain_data.image_set.create_image_views( get_surface_format().format );
 }
 
-void swapchain::print_stats()
+void glfw_swapchain::print_stats()
 {
-    VkSurfaceCapabilitiesKHR surfaceCapabilities;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_device->_physical_device, _surface, &surfaceCapabilities);
+    VkSurfaceCapabilitiesKHR surface_capabilities {};
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_device->_physical_device, _surface, &surface_capabilities);
     std::cout << "Surface capabilities: " << std::endl;
-    std::cout << "\tminImageCount: " << surfaceCapabilities.minImageCount << std::endl;
-    std::cout << "\tmaxImageCount: " << surfaceCapabilities.maxImageCount << std::endl;
-    std::cout << "\tcurrentExtent: " << surfaceCapabilities.currentExtent.width << "/" << surfaceCapabilities.currentExtent.height << std::endl;
-    std::cout << "\tminImageExtent: " << surfaceCapabilities.minImageExtent.width << "/" << surfaceCapabilities.minImageExtent.height << std::endl;
-    std::cout << "\tmaxImageExtent: " << surfaceCapabilities.maxImageExtent.width << "/" << surfaceCapabilities.maxImageExtent.height << std::endl;
-    std::cout << "\tmaxImageArrayLayers: " << surfaceCapabilities.maxImageArrayLayers << std::endl;
-    std::cout << "\tsupportedTransforms: " << surfaceCapabilities.supportedTransforms << std::endl;
-    std::cout << "\tcurrentTransform: " << surfaceCapabilities.currentTransform << std::endl;
-    std::cout << "\tsupportedCompositeAlpha: " << surfaceCapabilities.supportedCompositeAlpha << std::endl;
-    std::cout << "\tsupportedUsageFlags: " << surfaceCapabilities.supportedUsageFlags << std::endl;
+    std::cout << "\tminImageCount: " << surface_capabilities.minImageCount << std::endl;
+    std::cout << "\tmaxImageCount: " << surface_capabilities.maxImageCount << std::endl;
+    std::cout << "\tcurrentExtent: " << surface_capabilities.currentExtent.width << "/" << surface_capabilities.currentExtent.height << std::endl;
+    std::cout << "\tminImageExtent: " << surface_capabilities.minImageExtent.width << "/" << surface_capabilities.minImageExtent.height << std::endl;
+    std::cout << "\tmaxImageExtent: " << surface_capabilities.maxImageExtent.width << "/" << surface_capabilities.maxImageExtent.height << std::endl;
+    std::cout << "\tmaxImageArrayLayers: " << surface_capabilities.maxImageArrayLayers << std::endl;
+    std::cout << "\tsupportedTransforms: " << surface_capabilities.supportedTransforms << std::endl;
+    std::cout << "\tcurrentTransform: " << surface_capabilities.currentTransform << std::endl;
+    std::cout << "\tsupportedCompositeAlpha: " << surface_capabilities.supportedCompositeAlpha << std::endl;
+    std::cout << "\tsupportedUsageFlags: " << surface_capabilities.supportedUsageFlags << std::endl;
     
     uint32_t amountOfFormats = 0;
     vkGetPhysicalDeviceSurfaceFormatsKHR(_device->_physical_device, _surface, &amountOfFormats, nullptr);
@@ -207,24 +231,24 @@ void swapchain::print_stats()
     
 }
 
-void swapchain::recreate_swapchain( )
+void glfw_swapchain::recreate_swapchain( )
 {
     _device->wait_for_all_operations_to_finish();
     
-    VkSwapchainKHR oldSwapchain = _swapchain_data.swapchain;
+    VkSwapchainKHR old_swapchain = _swapchain;//_swapchain_data.swapchain;
 
     create_swapchain();
-    create_image_views();
+    //create_image_views();
 
-    vkDestroySwapchainKHR(_device->_logical_device, oldSwapchain, nullptr);
+    vkDestroySwapchainKHR(_device->_logical_device, old_swapchain, nullptr);
 }
 
-void swapchain::destroy()
+void glfw_swapchain::destroy()
 {
-    _swapchain_data.image_set.destroy();
-    vkDestroySwapchainKHR(_device->_logical_device, _swapchain_data.swapchain, nullptr);
-    _swapchain_data.swapchain = VK_NULL_HANDLE;
+    //_swapchain_data.image_set.destroy();
+    vkDestroySwapchainKHR(_device->_logical_device, /*_swapchain_data.swapchain*/_swapchain, nullptr);
+    /*_swapchain_data.swapchain*/_swapchain = VK_NULL_HANDLE;
 }
-swapchain::~swapchain()
+glfw_swapchain::~glfw_swapchain()
 {
 }

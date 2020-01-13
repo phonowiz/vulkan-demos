@@ -25,8 +25,6 @@ namespace vk
         texture_2d(device* device);
         texture_2d(device* device, uint32_t width, uint32_t height);
         texture_2d(device* device,const char* path);
-        
-        virtual void create( uint32_t width, uint32_t height);
         virtual void destroy() override;
         
         stbi_uc * get_raw()
@@ -62,6 +60,8 @@ namespace vk
         static const std::string texture_resource_path;
         
     protected:
+        
+        virtual void create( uint32_t width, uint32_t height);
         virtual void create_sampler() override;
         bool _enable_mipmapping = false;
     private:

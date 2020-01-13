@@ -19,6 +19,7 @@ namespace vk {
     {
     public:
         
+        depth_texture(){};
         depth_texture(bool write_to_texture){ _write_to_texture = write_to_texture; };
         depth_texture(vk::device* device, uint32_t width, uint32_t height, bool write_to_texture )
             :texture_2d(device, width, height){ _write_to_texture = write_to_texture; }
@@ -27,6 +28,7 @@ namespace vk {
         virtual void destroy() override;
         virtual void create_sampler() override;
         virtual void set_format( formats f) override;
+        virtual void set_write_to_texture(bool write){ _write_to_texture = write; };
         
         VkAttachmentDescription get_depth_attachment();
         

@@ -13,15 +13,9 @@
 using namespace vk;
 
 
-render_texture::render_texture(device* device, uint32_t width, uint32_t height, render_texture::usage intended_use):
+render_texture::render_texture(device* device, uint32_t width, uint32_t height):
 texture_2d(device, width, height)
 {
-    render_texture::_usage = intended_use;
-    
-    if( render_texture::_usage != render_texture::usage::COLOR_TARGET)
-    {
-        _format = static_cast<vk::image::formats>(device->find_depth_format());
-    }
 }
 
 

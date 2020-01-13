@@ -14,12 +14,13 @@
 
 #include "mesh.h"
 #include "../core/object.h"
-#include "../pipelines/graphics_pipeline.h"
 #include "transform.h"
 
 
 namespace vk {
     
+    class graphics_pipeline;
+
     //note: the name obj_shape comes from the fact that these objects are created by reading .obj files
     class obj_shape  : object
     {
@@ -30,7 +31,7 @@ namespace vk {
         
         virtual void destroy() override;
         
-        void draw(VkCommandBuffer commnad_buffer, vk::graphics_pipeline& pipeline, uint32_t obj_id);
+        void draw(VkCommandBuffer commnad_buffer, vk::graphics_pipeline& pipeline, uint32_t obj_id, uint32_t swapchain_index);
         
         virtual void create();
         static const std::string _shape_resource_path;

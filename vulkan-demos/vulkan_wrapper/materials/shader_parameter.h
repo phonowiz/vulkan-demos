@@ -14,6 +14,7 @@
 #include "texture_2d.h"
 #include "texture_3d.h"
 #include "texture_2d_array.h"
+#include "glfw_present_texture.h"
 
 #include <map>
 #include "ordered_map.h"
@@ -47,6 +48,7 @@ namespace vk
             SAMPLER_2D,
             SAMPLER_3D,
             SAMPLER_2D_ARRAY,
+            SAMPLER_PRESENT_TEXTURE,
             VEC4_ARRAY,
             NONE
             
@@ -65,6 +67,7 @@ namespace vk
             texture_2d*   sampler2D;
             texture_3d*   sampler3D;
             texture_2d_array* sampler_2d_array;
+            glfw_present_texture* sampler_present_tex;
             
             glm::mat4 mat4;
             bool     boolean;
@@ -120,15 +123,9 @@ namespace vk
                     return sizeof(unsigned int);
                 case Type::BOOLEAN:
                     return sizeof(bool);
-                case Type::SAMPLER_2D:
-                    return sizeof(texture_2d);
-                case Type::SAMPLER_3D:
-                    return sizeof(texture_3d);
-                case Type::SAMPLER_2D_ARRAY:
-                    return sizeof(texture_2d_array);
                 case Type::VEC4_ARRAY:
                     return value.buffer.num_elements * sizeof(glm::vec4);
-                case Type::NONE:
+                default:
                     assert(0);
                     break;
                     
@@ -153,15 +150,9 @@ namespace vk
                     return sizeof(unsigned int);
                 case Type::BOOLEAN:
                     return sizeof(bool);
-                case Type::SAMPLER_2D:
-                    return sizeof(texture_2d);
-                case Type::SAMPLER_3D:
-                    return sizeof(texture_3d);
-                case Type::SAMPLER_2D_ARRAY:
-                    return sizeof(texture_2d_array);
                 case Type::VEC4_ARRAY:
                     return 4 * sizeof(float);
-                case Type::NONE:
+                default:
                     assert(0);
                     break;
                     
@@ -267,6 +258,11 @@ namespace vk
             return reinterpret_cast<void*>(ptr);
         }
         
+        inline glfw_present_texture* get_present_texture()
+        {
+            assert(type == Type::SAMPLER_PRESENT_TEXTURE);
+            return value.sampler_present_tex;
+        }
         inline texture_2d* get_texture_2d()
         {
             assert(type == Type::SAMPLER_2D);
@@ -286,7 +282,8 @@ namespace vk
         
         inline image* get_image()
         {
-            assert(type == Type::SAMPLER_2D || type == Type::SAMPLER_3D || type == Type::SAMPLER_2D_ARRAY);
+            assert(type == Type::SAMPLER_2D || type == Type::SAMPLER_3D || type == Type::SAMPLER_2D_ARRAY
+                   || type == Type::SAMPLER_PRESENT_TEXTURE);
             
             if(type == Type::SAMPLER_2D)
             {
@@ -296,6 +293,10 @@ namespace vk
             if(type == Type::SAMPLER_2D_ARRAY)
             {
                 return static_cast<image*>(value.sampler_2d_array);
+            }
+            if(type == Type::SAMPLER_PRESENT_TEXTURE)
+            {
+                return static_cast<image*>(value.sampler_present_tex);
             }
             
             return static_cast<image*>(value.sampler3D);
@@ -401,16 +402,27 @@ namespace vk
             return *this;
         }
         
+        inline shader_parameter& operator=(glfw_present_texture* sampler)
+        {
+            assert( type == Type::NONE || type == Type::SAMPLER_PRESENT_TEXTURE);
+            type = Type::SAMPLER_PRESENT_TEXTURE;
+            this->value.sampler_present_tex = sampler;
+            
+            return *this;
+        }
+        
+        
         inline shader_parameter& operator=(image* sampler)
         {
-            assert( type == Type::NONE || type == Type::SAMPLER_3D || type == Type::SAMPLER_2D);
+            assert( type == Type::NONE || type == Type::SAMPLER_3D || type == Type::SAMPLER_2D || type == Type::SAMPLER_PRESENT_TEXTURE);
             
             if(sampler->get_instance_type() == texture_3d::get_class_type())
             {
                 type = Type::SAMPLER_3D;
                 value.sampler3D = static_cast<texture_3d*>( sampler );
             }
-            else if( sampler->get_instance_type() == texture_2d::get_class_type())
+            else if( sampler->get_instance_type() == texture_2d::get_class_type() ||
+                    sampler->get_instance_type() == glfw_present_texture::get_class_type())
             {
                 type = Type::SAMPLER_2D;
                 value.sampler2D = static_cast<texture_2d*>( sampler );
@@ -487,6 +499,12 @@ namespace vk
         {
             value.sampler_2d_array = _value;
             type = Type::SAMPLER_2D_ARRAY;
+        }
+        
+        shader_parameter(glfw_present_texture* _value)
+        {
+            value.sampler_present_tex = _value;
+            type = Type::SAMPLER_PRESENT_TEXTURE;
         }
         
     private:

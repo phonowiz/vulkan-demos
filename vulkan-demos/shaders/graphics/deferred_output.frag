@@ -334,7 +334,7 @@ vec4 indirect_illumination( vec3 world_normal, vec3 world_pos, vec3 direction)
         j += step;
     }
     
-    //TODO: this hack should go away when we start using HDR values
+    //TODO: this hack should go away when we start using HDR values and gamma correction
     float hack = 1.2f;
     return vec4(final_color.xyz, 1.0f) * hack ;
 }
@@ -412,6 +412,8 @@ vec3 decode (vec2 enc)
 
 void main()
 {
+    //note: in a real scenario, you don't want all these branches around, this is purely for
+    //demo purposes.
     if( rendering_state.mode == ALBEDO )
     {
         out_color = texture(albedo, frag_uv_coord);

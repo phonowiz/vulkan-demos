@@ -22,7 +22,7 @@ namespace vk {
         
         virtual void init() override;
         
-        virtual VkImageCreateInfo get_image_create_info( VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage_flags);
+        virtual VkImageCreateInfo get_image_create_info( VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage_flags) override;
     private:
         
         static constexpr void* _image_type = nullptr;

@@ -22,7 +22,7 @@ namespace vk
     class display_2d_texture_renderer : public renderer
     {
     public:
-        display_2d_texture_renderer(vk::device* device, GLFWwindow* window, swapchain* swapchain, material_store& store);
+        display_2d_texture_renderer(vk::device* device, GLFWwindow* window, glfw_swapchain* swapchain, material_store& store);
         
         void show_texture(texture_2d* texture);
         

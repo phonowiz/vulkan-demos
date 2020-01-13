@@ -5,7 +5,6 @@
 #define VK_USE_PLATFORM_MACOS_MVK
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#define GLM_FORCE_CTOR_INIT
 #define GLM_FORCE_SILENT_WARNINGS
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
@@ -22,6 +21,7 @@
 #include <vector>
 #include <array>
 #include <algorithm>
+#include <iostream>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -29,7 +29,7 @@
 #include <chrono>
 
 #include "vulkan_wrapper/core/device.h"
-#include "vulkan_wrapper/core/swapchain.h"
+#include "vulkan_wrapper/core/glfw_swapchain.h"
 #include "vulkan_wrapper/renderers/renderer.h"
 #include "vulkan_wrapper/renderers/display_2d_texture_renderer.h"
 #include "vulkan_wrapper/renderers/deferred_renderer.h"
@@ -93,7 +93,7 @@ struct App
     
     vk::camera*     perspective_camera = nullptr;
     vk::camera*     three_d_texture_camera = nullptr;
-    vk::swapchain*  swapchain = nullptr;
+    vk::glfw_swapchain*  swapchain = nullptr;
     
     vk::deferred_renderer::rendering_mode state = vk::deferred_renderer::rendering_mode::FULL_RENDERING;
     
@@ -107,7 +107,6 @@ struct App
     };
     
     bool quit = false;
-    //bool render_3d_texture = false;
     render_mode mode = render_mode::RENDER_DEFFERED;
     glm::mat4 model = glm::mat4(1.0f);
     
@@ -116,22 +115,23 @@ struct App
 
 App app;
 
-void update_3d_texture_rendering_params( vk::renderer& renderer)
+void update_3d_texture_rendering_params( vk::renderer& three_d_renderer, int next_swap)
 {
-    vk::shader_parameter::shader_params_group& vertex_params =   renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+    vk::shader_parameter::shader_params_group& vertex_params =   three_d_renderer.get_pipeline().get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0, next_swap);
     app.three_d_texture_camera->update_view_matrix();
-    
-    
+
+
     glm::mat4 mvp = app.three_d_texture_camera->get_projection_matrix() * app.three_d_texture_camera->view_matrix * glm::mat4(1.0f);
     vertex_params["mvp"] = mvp;
     vertex_params["model"] = glm::mat4(1.0f);
-    
-    vk::shader_parameter::shader_params_group& fragment_params =   renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
-    
+
+    vk::shader_parameter::shader_params_group& fragment_params = three_d_renderer.get_pipeline().get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1, next_swap);
+
     fragment_params["box_eye_position"] =   glm::vec4(app.three_d_texture_camera->position, 1.0f);
-    fragment_params["screen_height"] = static_cast<float>(app.swapchain->_swapchain_data.swapchain_extent.width);
-    fragment_params["screen_width"] = static_cast<float>(app.swapchain->_swapchain_data.swapchain_extent.height);
+    fragment_params["screen_height"] = static_cast<float>(app.swapchain->get_vk_swap_extent().width);
+    fragment_params["screen_width"] = static_cast<float>(app.swapchain->get_vk_swap_extent().height);
     
+    three_d_renderer.get_pipeline().commit_parameters_to_gpu(next_swap);
 }
 
 
@@ -142,64 +142,48 @@ void update_renderer_parameters( vk::deferred_renderer& renderer)
     
     app.model = glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     
-    //glm::vec4 temp =(glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::vec4(0.0f, 3.0f, 1.0f, 0.0f));
     glm::vec3 temp = glm::vec3(sinf(float(time_since_start * 0.67)), sinf(float(time_since_start * 0.78)), cosf(float(time_since_start * 0.67))) * .6f;
     
-    renderer._light_pos = temp;//glm::vec3(temp.x, temp.y, temp.z);
-    vk::shader_parameter::shader_params_group& vertex_params = renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+    renderer._light_pos = temp;
+    vk::shader_parameter::shader_params_group& vertex_params = renderer.get_mrt_uniform_params(vk::visual_material::parameter_stage::VERTEX, 0);
     
     app.perspective_camera->update_view_matrix();
     
     vertex_params["view"] = app.perspective_camera->view_matrix;
     vertex_params["projection"] =  app.perspective_camera->get_projection_matrix();
-    vertex_params["lightPosition"] = temp;
-    
-    
     for( uint32_t i = 0; i < app.shapes.size(); ++i)
     {
-        //app.shapes[i]->transform.mat_transform = app.model*  app.shapes[i]->transform.mat_transform;
-        renderer.get_material()->get_dynamic_parameters(vk::visual_material::parameter_stage::VERTEX, 1)[i]["model"] = app.shapes[i]->transform.get_transform_matrix();
-    }
-
-    
-}
-
-void game_loop_3d_texture(vk::renderer &renderer)
-{
-    int i = 0;
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-        update_3d_texture_rendering_params( renderer);
-        renderer.draw(*app.perspective_camera);
-        ++i;
+        renderer.get_mrt_dynamic_params(vk::visual_material::parameter_stage::VERTEX, 1)[i]["model"] = app.shapes[i]->transform.get_transform_matrix();
     }
 }
 
 void update_ortho_parameters(vk::renderer& renderer)
 {
-    vk::shader_parameter::shader_params_group& vertex_params =  renderer.get_material()->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-    vertex_params["width"] = width;
-    vertex_params["height"] = height;
+    vk::shader_parameter::shader_params_group& vertex_params =  renderer.get_uniform_params(vk::visual_material::parameter_stage::VERTEX, 0);
+    vertex_params["width"] = vk::deferred_renderer::VOXEL_CUBE_WIDTH ;
+    vertex_params["height"] = vk::deferred_renderer::VOXEL_CUBE_HEIGHT;
 }
 
 void game_loop()
 {
-    
+    int next_swap = 0;
     while (!glfwWindowShouldClose(window) && !app.quit)
     {
         glfwPollEvents();
-        
         app.user_controller->update();
         app.texture_3d_view_controller->update();
         if(app.mode == App::render_mode::RENDER_DEFFERED)
         {
             update_renderer_parameters( *app.deferred_renderer );
             app.deferred_renderer->draw(*app.perspective_camera);
+            next_swap = app.deferred_renderer->get_current_swapchain_image();
         }
         else if (app.mode == App::render_mode::RENDER_3D_TEXTURE)
         {
             app.device->wait_for_all_operations_to_finish();
-            update_3d_texture_rendering_params(*app.three_d_renderer);
+            next_swap = ++next_swap % 3;
+
+            update_3d_texture_rendering_params(*app.three_d_renderer, next_swap );
             app.three_d_renderer->draw(*app.three_d_texture_camera);
         }
         else
@@ -298,10 +282,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
     if( key == GLFW_KEY_O && action == GLFW_PRESS)
     {
-        vk::shader_parameter::shader_params_group& vertex_params =  app.display_renderer->get_material()
-                                                ->get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-        vertex_params["width"] = width;
-        vertex_params["height"] = height;
+        vk::shader_parameter::shader_params_group& vertex_params =  app.display_renderer->get_uniform_params(vk::visual_material::parameter_stage::VERTEX, 0);
+        vertex_params["width"] = vk::deferred_renderer::VOXEL_CUBE_WIDTH ;
+        vertex_params["height"] = vk::deferred_renderer::VOXEL_CUBE_HEIGHT;
         app.mode = App::render_mode::RENDER_VOXEL_CAM_TEXTURE;
     }
     
@@ -326,7 +309,7 @@ int main()
     device.create_logical_device(surface);
     
     glfwSetCursorPos(window, width * .5f, height * .5f);
-    vk::swapchain swapchain(&device, window, surface);
+    vk::glfw_swapchain swapchain(&device, window, surface);
     
     app.swapchain = &swapchain;
     
@@ -358,11 +341,12 @@ int main()
     standard_mat = material_store.GET_MAT<vk::visual_material>("standard");
     display_3d_tex_mat = material_store.GET_MAT<vk::visual_material>("display_3d_texture");
     
+    float aspect = static_cast<float>(swapchain.get_vk_swap_extent().width)/ static_cast<float>(swapchain.get_vk_swap_extent().height);
     vk::perspective_camera perspective_camera(glm::radians(45.0f),
-                                              swapchain._swapchain_data.swapchain_extent.width/ swapchain._swapchain_data.swapchain_extent.height, .01f, 100.0f);
+                                              aspect, .01f, 100.0f);
     
     vk::perspective_camera three_d_texture_cam(glm::radians(45.0f),
-                                               swapchain._swapchain_data.swapchain_extent.width/ swapchain._swapchain_data.swapchain_extent.height, .01f, 100.0f);
+                                               aspect, .01f, 100.0f);
     
     app.perspective_camera = &perspective_camera;
     app.perspective_camera->position = glm::vec3(0.0f, .2f, -5.0f);
@@ -375,7 +359,10 @@ int main()
     app.three_d_texture_camera->forward = -eye;
     
     
-    vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store);
+    app.shapes.push_back(&cornell_box);
+    app.shapes.push_back(&model);
+    
+    vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store, app.shapes);
     vk::renderer three_d_renderer(&device, window, &swapchain, display_3d_tex_mat);
     vk::display_2d_texture_renderer display_renderer(&device, window, &swapchain, material_store);
     
@@ -390,17 +377,10 @@ int main()
     
     app.deferred_renderer = &deferred_renderer;
     
-    app.deferred_renderer->add_shape(&cornell_box);
-    app.deferred_renderer->add_shape(&model);
-
-    app.shapes.push_back(&cornell_box);
-    app.shapes.push_back(&model);
-
-    
     app.deferred_renderer->init();
     
-    vk::texture_3d* voxel_texture = deferred_renderer.get_voxel_texture(0);
-    app.three_d_renderer->get_material()->set_image_sampler(voxel_texture, "texture_3d",
+    std::array<vk::texture_3d, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& voxel_texture = deferred_renderer.get_voxel_texture();
+    app.three_d_renderer->get_pipeline().set_image_sampler(voxel_texture, "texture_3d",
                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
     
     app.three_d_renderer->add_shape(&cube);
@@ -408,7 +388,6 @@ int main()
     
     app.three_d_renderer->get_pipeline().set_cullmode(vk::graphics_pipeline::cull_mode::NONE);
     app.three_d_renderer->init();
-    
     
     first_person_controller user_controler( app.perspective_camera, window);
     first_person_controller  texture_3d_view_controller(app.three_d_texture_camera, window);
@@ -434,8 +413,3 @@ int main()
     shutdown_glfw();
     return 0;
 }
-
-
-
-
-

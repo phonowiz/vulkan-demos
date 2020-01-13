@@ -16,14 +16,14 @@
 
 #include "vertex.h"
 #include "visual_material.h"
-#include "graphics_pipeline.h"
 #include "compute_pipeline.h"
 
 #include "tiny_obj_loader.h"
 
 namespace vk
 {
-    
+    class graphics_pipeline;
+
     class mesh : resource
     {
     protected:
@@ -55,7 +55,7 @@ namespace vk
         
         static const std::string _mesh_resource_path;
         
-        void draw(VkCommandBuffer command_buffer, vk::graphics_pipeline& pipeline, uint32_t object_index);
+        void draw(VkCommandBuffer command_buffer, vk::graphics_pipeline& pipeline, uint32_t object_index, uint32_t swapchain_index);
         
         virtual void destroy() override;
     

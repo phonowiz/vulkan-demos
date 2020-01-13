@@ -23,35 +23,39 @@ namespace vk
         compute_pipeline(){}
         
         compute_pipeline(device* device, compute_mat_shared_ptr material) :
-        pipeline(device),
-        material(material)
+        pipeline(device)
         {
+            set_material(material);
         }
         
         inline void set_material(compute_mat_shared_ptr mat)
         {
-            material = mat;
+            for(int i =0; i < _material.size(); ++i)
+            {
+                _material[i] = mat;
+            }
+            
         }
-        inline void set_image_sampler(texture_2d* texture, const char* parameter_name, uint32_t binding, resource::usage_type usage)
+        
+        inline void set_image_sampler(std::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name, uint32_t binding, resource::usage_type usage)
         {
-            assert(material != nullptr && " no material assigned to this compute pipeline");
-            material->set_image_sampler(texture, parameter_name, material_base::parameter_stage::COMPUTE, binding, usage);
+            for( int i = 0; i < _material.size(); ++i)
+            {
+                _material[i]->set_image_sampler(&textures[i], parameter_name, material_base::parameter_stage::COMPUTE, binding, usage);
+            }
         }
-        
-        inline void set_image_sampler(texture_3d* texture, const char* parameter_name, uint32_t binding, resource::usage_type usage)
-        {
-            assert(material != nullptr && " no material assigned to this compute pipeline");
-            material->set_image_sampler(texture, parameter_name, material_base::parameter_stage::COMPUTE, binding, usage);
-        }
-        
-        compute_mat_shared_ptr material = nullptr;
-        
 
         void record_dispatch_commands(VkCommandBuffer&  command_buffer,
-                                       uint32_t local_groups_in_x, uint32_t local_groups_in_y, uint32_t local_groups_in_z);
+                                       uint32_t local_groups_in_x, uint32_t local_groups_in_y, uint32_t local_groups_in_z, uint32_t swapchain_index);
         
         inline void record_begin_commands(  std::function<void()> f){ _on_begin = f; };
         
+        virtual void commit_parameters_to_gpu(uint32_t swapchain_id) override
+        {
+            _material[swapchain_id]->commit_parameters_to_gpu();
+        }
+        
+        inline void commit_parameter_to_gpu(uint32_t swapchain_index) { _material[swapchain_index]->commit_parameters_to_gpu(); }
         //LOCAL_GROUP_SIZE was chosen here because of an example I saw on the internet, if you decide to change this number
         //make sure the local group sizes in  your particular shader is changed as well. Or maybe this needs to be configurable by
         //the client
@@ -59,8 +63,10 @@ namespace vk
         
     private:
         
-        std::function<void()> _on_begin = [](){};
+        std::array<compute_mat_shared_ptr, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _material = {};
         
+        std::function<void()> _on_begin = [](){};
+
         void create();
     };
 };

@@ -16,55 +16,54 @@
 #include <vector>
 #include "depth_texture.h"
 #include "texture_2d.h"
-#include "swapchain_image_set.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include "../textures/glfw_present_texture.h"
 
 struct GLFWwindow;
 
 
 namespace vk
 {
-    class swapchain : public object
+    class glfw_swapchain : public object
     {
         
     public:
         
         static constexpr int NUM_SWAPCHAIN_IMAGES = 3;
-        struct swapchain_data
-        {
-            VkSwapchainKHR          swapchain = VK_NULL_HANDLE;
-            swapchain_image_set     image_set;
-            VkExtent2D              swapchain_extent = {};
-        };
-        
+
         device* _device = nullptr;
         
-        swapchain(device* device, GLFWwindow* window, VkSurfaceKHR surface);
+        glfw_swapchain(device* device, GLFWwindow* window, VkSurfaceKHR surface);
         
-        VkSurfaceFormatKHR get_surface_format();
+        VkSurfaceFormatKHR get_vk_surface_format();
+        VkSurfaceKHR       get_vk_surface(){ return _surface; }
         void print_stats();
         
-        
-        swapchain_data _swapchain_data;
         GLFWwindow*   _window = nullptr;
-        VkSurfaceKHR  _surface = VK_NULL_HANDLE;
+
+        VkSurfaceFormatKHR  get_vk_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+        VkPresentModeKHR    get_vk_swap_present_mode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+        VkExtent2D          get_vk_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow& window);
         
-        VkSurfaceFormatKHR  choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-        VkPresentModeKHR    choose_swap_present_mode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-        VkExtent2D          choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow& window);
+        VkExtent2D          get_vk_swap_extent();
+        VkSwapchainKHR&      get_vk_swapchain() { return _swapchain; }
         void                create_swapchain();
         void                query_swapchain_support( device::swapchain_support_details& );
         void                create_image_views();
         void                destroy_swapchain();
         void                recreate_swapchain();
         
+        std::array<std::array<glfw_present_texture, NUM_SWAPCHAIN_IMAGES>, 1> present_textures {};
+        
         virtual void  destroy() override;
-        ~swapchain();
+        ~glfw_swapchain();
         
     private:
+        VkSurfaceKHR  _surface = VK_NULL_HANDLE;
+        VkSwapchainKHR _swapchain = VK_NULL_HANDLE;
     };
 }
 

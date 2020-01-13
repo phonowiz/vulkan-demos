@@ -264,13 +264,13 @@
          contextName = "vk::material::create_descriptor_set_layout():material.cpp">
          <PersistentStrings>
             <PersistentString
-               value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
-            </PersistentString>
-            <PersistentString
                value = "pair.first">
             </PersistentString>
             <PersistentString
                value = "pair2.first">
+            </PersistentString>
+            <PersistentString
+               value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
             </PersistentString>
             <PersistentString
                value = "_sampler_buffers.size()">
@@ -314,13 +314,13 @@
          contextName = "vk::material::create_descriptor_sets():material.cpp">
          <PersistentStrings>
             <PersistentString
-               value = "pair2.first">
+               value = " _descriptor_set_layout_bindings[count].binding">
             </PersistentString>
             <PersistentString
                value = "write_descriptor_sets[count].dstBinding">
             </PersistentString>
             <PersistentString
-               value = " _descriptor_set_layout_bindings[count].binding">
+               value = "pair2.first">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -359,6 +359,17 @@
          contextName = "MVKDispatchableVulkanAPIObject::getDispatchableObject(void*):MVKVulkanAPIObject.h">
       </ContextState>
       <ContextState
+         contextName = "void vk::graphics_pipeline::create&lt;vk::glfw_present_texture, 1u&gt;(vk::render_pass&lt;vk::glfw_present_texture, 1u&gt;&amp;, unsigned int, unsigned int):graphics_pipeline.h">
+      </ContextState>
+      <ContextState
+         contextName = "vk::renderer::draw(vk::camera&amp;):renderer.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "next_index">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "vk::Material::createDescriptorSetLayout():material.cpp">
          <PersistentStrings>
             <PersistentString
@@ -376,6 +387,17 @@
       </ContextState>
       <ContextState
          contextName = "std::__1::lock_guard&lt;std::__1::mutex&gt;::lock_guard(std::__1::mutex&amp;) [inlined]:__mutex_base">
+      </ContextState>
+      <ContextState
+         contextName = "ordered_map&lt;char const*, vk::shader_parameter&gt;::operator[](char const*):ordered_map.h">
+         <PersistentStrings>
+            <PersistentString
+               value = "i">
+            </PersistentString>
+            <PersistentString
+               value = "_vec.size()">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
          contextName = "vk::deferred_renderer::recreate_renderer():deferred_renderer.cpp">
@@ -396,17 +418,6 @@
             </PersistentString>
             <PersistentString
                value = "_swapchain-&gt;_swapchain_data.swapchain_extent.height">
-            </PersistentString>
-         </PersistentStrings>
-      </ContextState>
-      <ContextState
-         contextName = "ordered_map&lt;char const*, vk::shader_parameter&gt;::operator[](char const*):ordered_map.h">
-         <PersistentStrings>
-            <PersistentString
-               value = "i">
-            </PersistentString>
-            <PersistentString
-               value = "_vec.size()">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -469,10 +480,21 @@
          contextName = "vk::resource::create_buffer(VkDevice_T*, VkPhysicalDevice_T*, unsigned long long, unsigned int, VkBuffer_T*&amp;, unsigned int, VkDeviceMemory_T*&amp;):resource.cpp">
       </ContextState>
       <ContextState
+         contextName = "game_loop():main.mm">
+      </ContextState>
+      <ContextState
          contextName = "vk::Renderer::createSemaphores():renderer.cpp">
          <PersistentStrings>
             <PersistentString
                value = "_inFlightFences">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "vk::render_pass&lt;vk::glfw_present_texture, 1u&gt;::get_vk_render_pass(unsigned long):render_pass.h">
+         <PersistentStrings>
+            <PersistentString
+               value = "_vk_render_passes[i]">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -524,13 +546,16 @@
          contextName = "vk::material_base::create_descriptor_sets():material_base.cpp">
          <PersistentStrings>
             <PersistentString
-               value = "_descriptor_set_layout_bindings[count].binding">
-            </PersistentString>
-            <PersistentString
                value = "pair.second.size">
             </PersistentString>
             <PersistentString
                value = "pair.second.uniform_buffer">
+            </PersistentString>
+            <PersistentString
+               value = "_descriptor_set_layout_bindings[count].binding">
+            </PersistentString>
+            <PersistentString
+               value = "descriptor_image_infos[count]">
             </PersistentString>
          </PersistentStrings>
       </ContextState>

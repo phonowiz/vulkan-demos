@@ -13,6 +13,7 @@
 
 #include "vertex.h"
 #include "visual_material.h"
+#include "graphics_pipeline.h"
 
 using namespace vk;
 
@@ -86,7 +87,7 @@ void mesh::create_and_upload_buffer(VkCommandPool command_pool,
     
 }
 
-void mesh::draw(VkCommandBuffer commnad_buffer, vk::graphics_pipeline& pipeline, uint32_t object_index)
+void mesh::draw(VkCommandBuffer commnad_buffer, vk::graphics_pipeline& pipeline, uint32_t object_index, uint32_t swapchain_index)
 {
     if(_active)
     {
@@ -96,11 +97,9 @@ void mesh::draw(VkCommandBuffer commnad_buffer, vk::graphics_pipeline& pipeline,
         vkCmdBindVertexBuffers(commnad_buffer, 0, 1, &_vertex_buffer, offsets);
         vkCmdBindIndexBuffer(commnad_buffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
         
-        uint32_t dynamic_ubo_offset = pipeline._material->get_dynamic_ubo_stride() * object_index;
-        uint32_t offset_count = pipeline._material->get_dynamic_ubo_stride() == 0 ? 0 : 1;
-        vkCmdBindDescriptorSets(commnad_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                pipeline._pipeline_layout, 0, 1, pipeline._material->get_descriptor_set(), offset_count, &dynamic_ubo_offset);
-        
+        //TODO: maybe this call could be outside of this function, this would eliminate the need to pass in the
+        //pipeline argument
+        pipeline.bind_material_assets(swapchain_index, commnad_buffer, object_index);
         vkCmdDrawIndexed(commnad_buffer, static_cast<uint32_t>(get_indices().size()), 1, 0, 0, 0);
     }
 }
