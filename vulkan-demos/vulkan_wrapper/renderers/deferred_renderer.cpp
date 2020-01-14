@@ -152,8 +152,7 @@ _voxelization_render_pass(device, true, glm::vec2(VOXEL_CUBE_WIDTH, VOXEL_CUBE_H
         }
     }
 
-    
-    _voxelize_pipeline.set_cullmode( graphics_pipeline::cull_mode::NONE);
+    _voxelize_pipeline.set_cullmode( voxelize_pipeline::cull_mode::NONE);
     _voxelize_pipeline.set_depth_enable(false);
 
     _screen_plane.create();
@@ -293,16 +292,16 @@ void deferred_renderer::create_pipeline()
                      _swapchain->get_vk_swap_extent().height);
     
     _mrt_pipeline.set_number_of_blend_attachments(3);
-    _mrt_pipeline.modify_attachment_blend(0, graphics_pipeline::write_channels::RGBA, false);
-    _mrt_pipeline.modify_attachment_blend(1, graphics_pipeline::write_channels::RGBA, false);
-    _mrt_pipeline.modify_attachment_blend(2, graphics_pipeline::write_channels::RGBA, false);
+    _mrt_pipeline.modify_attachment_blend(0, mrt_pipeline::write_channels::RGBA, false);
+    _mrt_pipeline.modify_attachment_blend(1, mrt_pipeline::write_channels::RGBA, false);
+    _mrt_pipeline.modify_attachment_blend(2, mrt_pipeline::write_channels::RGBA, false);
     
     _mrt_pipeline.create(_mrt_render_pass,
                          _swapchain->get_vk_swap_extent().width,
                          _swapchain->get_vk_swap_extent().height);
     
     _voxelize_pipeline.set_number_of_blend_attachments(1);
-    _voxelize_pipeline.modify_attachment_blend(0, graphics_pipeline::write_channels::RGBA, false);
+    _voxelize_pipeline.modify_attachment_blend(0, voxelize_pipeline::write_channels::RGBA, false);
     
     _voxelize_pipeline.create(_voxelization_render_pass, VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT);
     

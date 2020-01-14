@@ -29,6 +29,7 @@ namespace vk
     class obj_shape;
     class texture_2d;
     
+    template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
     class renderer : public object
     {
         
@@ -51,7 +52,8 @@ namespace vk
         void add_shape(obj_shape* s){ _shapes.push_back(s); };
         
         virtual void draw(camera &camera);
-        graphics_pipeline& get_pipeline() { return _pipeline;}
+        
+        graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>& get_pipeline() { return _pipeline;}
         
         virtual void init();
         void recreate_renderer();
@@ -112,7 +114,7 @@ namespace vk
         device*             _device = nullptr;
         GLFWwindow*         _window = nullptr;
 
-        render_pass<glfw_present_texture, 1>         _render_pass;
+        render_pass<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>         _render_pass;
         
         VkSemaphore _semaphore_image_available = VK_NULL_HANDLE;
         VkSemaphore _semaphore_rendering_done = VK_NULL_HANDLE;
@@ -125,10 +127,13 @@ namespace vk
         static const uint32_t MAX_ATTACHMENTS = 10;
         
         VkCommandBuffer* _command_buffers = nullptr;
-        graphics_pipeline _pipeline;
+        graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS> _pipeline;
         
         std::vector<obj_shape*> _shapes;
         
         bool _pipeline_created = false;
     };
+
+    #include "renderer.hpp"
+
 }

@@ -87,23 +87,6 @@ void mesh::create_and_upload_buffer(VkCommandPool command_pool,
     
 }
 
-void mesh::draw(VkCommandBuffer commnad_buffer, vk::graphics_pipeline& pipeline, uint32_t object_index, uint32_t swapchain_index)
-{
-    if(_active)
-    {
-        VkDeviceSize offsets[] = { 0 };
-        assert(_vertex_buffer != nullptr);
-        
-        vkCmdBindVertexBuffers(commnad_buffer, 0, 1, &_vertex_buffer, offsets);
-        vkCmdBindIndexBuffer(commnad_buffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
-        
-        //TODO: maybe this call could be outside of this function, this would eliminate the need to pass in the
-        //pipeline argument
-        pipeline.bind_material_assets(swapchain_index, commnad_buffer, object_index);
-        vkCmdDrawIndexed(commnad_buffer, static_cast<uint32_t>(get_indices().size()), 1, 0, 0, 0);
-    }
-}
-
 void mesh::create_vertex_buffer()
 {
     create_and_upload_buffer(_device->_graphics_command_pool,

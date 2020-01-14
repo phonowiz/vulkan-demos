@@ -23,10 +23,8 @@
 #include <algorithm>
 #include <stdio.h>
 
-using namespace vk;
-
-
-renderer::renderer(device* device, GLFWwindow* window, glfw_swapchain* swapchain, visual_mat_shared_ptr material):
+template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::renderer(device* device, GLFWwindow* window, glfw_swapchain* swapchain, visual_mat_shared_ptr material):
 _render_pass(device, false, glm::vec2(swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height)),
 _pipeline(device, material)
 {
@@ -35,14 +33,15 @@ _pipeline(device, material)
     _swapchain = swapchain;
 }
 
-void renderer::create_render_pass()
+template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_render_pass()
 {
     _render_pass.set_rendering_attachments(_swapchain->present_textures);
     _render_pass.init();
 }
 
-
-void renderer::create_command_buffers(VkCommandBuffer** command_buffers, VkCommandPool command_pool)
+template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_command_buffers(VkCommandBuffer** command_buffers, VkCommandPool command_pool)
 {
     VkCommandBufferAllocateInfo command_buffer_allocate_info;
     command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -60,8 +59,8 @@ void renderer::create_command_buffers(VkCommandBuffer** command_buffers, VkComma
 }
 
 
-
-void renderer::create_semaphore(VkSemaphore& semaphore)
+template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_semaphore(VkSemaphore& semaphore)
 {
     VkSemaphoreCreateInfo semaphore_create_info {};
     semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -73,7 +72,8 @@ void renderer::create_semaphore(VkSemaphore& semaphore)
     ASSERT_VULKAN(result);
 }
 
-void renderer::create_fence(VkFence& fence)
+template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_fence(VkFence& fence)
 {
     VkFenceCreateInfo fenceInfo = {};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
@@ -83,7 +83,8 @@ void renderer::create_fence(VkFence& fence)
     ASSERT_VULKAN(result);
     
 }
-void renderer::create_semaphores_and_fences()
+template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_semaphores_and_fences()
 {
     create_semaphore(_semaphore_image_available);
     create_semaphore(_semaphore_rendering_done);
@@ -94,7 +95,8 @@ void renderer::create_semaphores_and_fences()
     }
 }
 
-void renderer::recreate_renderer()
+template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::recreate_renderer()
 {
     
     _device->wait_for_all_operations_to_finish();
@@ -109,7 +111,8 @@ void renderer::recreate_renderer()
     
 }
 
-void renderer::record_command_buffers(obj_shape** shapes, size_t number_of_shapes)
+template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::record_command_buffers(obj_shape** shapes, size_t number_of_shapes)
 {
     VkCommandBufferBeginInfo command_buffer_begin_info {};
     command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -171,7 +174,8 @@ void renderer::record_command_buffers(obj_shape** shapes, size_t number_of_shape
     }
 }
 
-void renderer::destroy()
+template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::destroy()
 {
     _device->wait_for_all_operations_to_finish();
     vkDestroySemaphore(_device->_logical_device, _semaphore_image_available, nullptr);
@@ -193,12 +197,14 @@ void renderer::destroy()
     _render_pass.destroy();
 }
 
-void renderer::create_pipeline()
+template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_pipeline()
 {
     _pipeline.create(_render_pass, _swapchain->get_vk_swap_extent().width, _swapchain->get_vk_swap_extent().height);
 }
 
-void renderer::init()
+template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::init()
 {
     assert(_shapes.size() != 0 && "add meshes to render before calling init");
     create_render_pass();
@@ -206,10 +212,10 @@ void renderer::init()
     create_command_buffers(&_command_buffers, _device->_present_command_pool);
     
     assert(_shapes.size() != 0);
-    
 }
 
-void renderer::perform_final_drawing_setup()
+template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::perform_final_drawing_setup()
 {
     if(!_pipeline_created)
     {
@@ -222,8 +228,8 @@ void renderer::perform_final_drawing_setup()
     _pipeline.commit_parameters_to_gpu(_image_index);
 }
 
-#include <iostream>
-void renderer::draw(camera& camera)
+template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::draw(camera& camera)
 {
     vkWaitForFences(_device->_logical_device, 1, &_composite_fence[_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     vkResetFences(_device->_logical_device, 1, &_composite_fence[_image_index]);
@@ -262,6 +268,7 @@ void renderer::draw(camera& camera)
     ASSERT_VULKAN(result);
 }
 
-renderer::~renderer()
+template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::~renderer()
 {
 }

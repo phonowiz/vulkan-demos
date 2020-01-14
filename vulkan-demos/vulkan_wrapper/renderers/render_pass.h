@@ -58,7 +58,6 @@ namespace vk
             _vk_frame_buffer_infos[attachment_index]._clear_value.depthStencil.stencil =  stencil_clear;
         }
         
-        //void set_depth_attachments(std::array<depth_texture, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& depths){_depth_textures = &depths;};
         void set_depth_enable(bool enable){ _depth_enable = enable; };
         void init();
         

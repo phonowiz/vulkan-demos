@@ -16,13 +16,14 @@
 #include "./shapes/screen_plane.h"
 #include "depth_texture.h"
 #include "cameras/orthographic_camera.h"
+#include "glfw_swapchain.h"
 
 namespace vk
 {
     class glfw_swapchain;
     class image;
     
-    class deferred_renderer : public renderer
+    class deferred_renderer : public renderer<glfw_present_texture, 1>
     {
     public:
         deferred_renderer(device* device, GLFWwindow* window, glfw_swapchain* swapchain, material_store& store, std::vector<obj_shape*>& _shapes);
@@ -84,8 +85,11 @@ namespace vk
         VkCommandBuffer *_offscreen_command_buffers = VK_NULL_HANDLE;
         VkCommandBuffer *_voxelize_command_buffers = VK_NULL_HANDLE;
         
-        graphics_pipeline _mrt_pipeline;
-        graphics_pipeline _voxelize_pipeline;
+        using mrt_pipeline = graphics_pipeline<render_texture, 3>;
+        mrt_pipeline _mrt_pipeline;
+        
+        using voxelize_pipeline = graphics_pipeline<render_texture, 1>;
+        graphics_pipeline<render_texture, 1> _voxelize_pipeline;
   
         static constexpr unsigned int TOTAL_LODS = 6;
         

@@ -85,7 +85,7 @@ struct App
 {
     vk::device* device = nullptr;
     vk::deferred_renderer*   deferred_renderer = nullptr;
-    vk::renderer*   three_d_renderer = nullptr;
+    vk::renderer<vk::glfw_present_texture, 1>*   three_d_renderer = nullptr;
     vk::display_2d_texture_renderer * display_renderer = nullptr;
     
     first_person_controller* user_controller = nullptr;
@@ -115,7 +115,7 @@ struct App
 
 App app;
 
-void update_3d_texture_rendering_params( vk::renderer& three_d_renderer, int next_swap)
+void update_3d_texture_rendering_params( vk::renderer<vk::glfw_present_texture, 1>& three_d_renderer, int next_swap)
 {
     vk::shader_parameter::shader_params_group& vertex_params =   three_d_renderer.get_pipeline().get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0, next_swap);
     app.three_d_texture_camera->update_view_matrix();
@@ -157,7 +157,7 @@ void update_renderer_parameters( vk::deferred_renderer& renderer)
     }
 }
 
-void update_ortho_parameters(vk::renderer& renderer)
+void update_ortho_parameters(vk::renderer<vk::glfw_present_texture, 1>& renderer)
 {
     vk::shader_parameter::shader_params_group& vertex_params =  renderer.get_uniform_params(vk::visual_material::parameter_stage::VERTEX, 0);
     vertex_params["width"] = vk::deferred_renderer::VOXEL_CUBE_WIDTH ;
@@ -218,7 +218,7 @@ void on_window_resize(GLFWwindow * window, int w, int h)
 
 
 
-void game_loop_ortho(vk::renderer &renderer)
+void game_loop_ortho(vk::renderer<vk::glfw_present_texture, 1> &renderer)
 {
     int i = 0;
     while (!glfwWindowShouldClose(window)) {
@@ -363,7 +363,7 @@ int main()
     app.shapes.push_back(&model);
     
     vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store, app.shapes);
-    vk::renderer three_d_renderer(&device, window, &swapchain, display_3d_tex_mat);
+    vk::renderer<vk::glfw_present_texture,1> three_d_renderer(&device, window, &swapchain, display_3d_tex_mat);
     vk::display_2d_texture_renderer display_renderer(&device, window, &swapchain, material_store);
     
     display_renderer.get_pipeline().set_depth_enable(false);
@@ -386,7 +386,7 @@ int main()
     app.three_d_renderer->add_shape(&cube);
     app.three_d_renderer->get_pipeline().set_depth_enable(true);
     
-    app.three_d_renderer->get_pipeline().set_cullmode(vk::graphics_pipeline::cull_mode::NONE);
+    app.three_d_renderer->get_pipeline().set_cullmode(vk::standard_pipeline::cull_mode::NONE);
     app.three_d_renderer->init();
     
     first_person_controller user_controler( app.perspective_camera, window);

@@ -66,13 +66,6 @@ void obj_shape::create()
         ++i;
     }
 }
-void obj_shape::draw(VkCommandBuffer commnad_buffer, vk::graphics_pipeline& pipeline, uint32_t obj_id, uint32_t swapchain_index)
-{
-    for( mesh* m : _meshes)
-    {
-        m->draw(commnad_buffer, pipeline, obj_id, swapchain_index);
-    }
-}
 
 void obj_shape::set_diffuse(glm::vec3 diffuse)
 {
