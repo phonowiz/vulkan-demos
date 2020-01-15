@@ -19,11 +19,9 @@ using namespace vk;
 deferred_renderer::deferred_renderer(device* device, GLFWwindow* window, vk::glfw_swapchain* swapchain, vk::material_store& store, std::vector<obj_shape*>& shapes):
 renderer(device, window, swapchain, store.GET_MAT<visual_material>("deferred_output")),
 _screen_plane(device),
-_mrt_pipeline(device, store.GET_MAT<visual_material>("mrt")),
-_voxelize_pipeline(device, store.GET_MAT<visual_material>("voxelizer")),
-_ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world_dimensions.z),
-_mrt_render_pass(device, true, glm::vec2(swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height)),
-_voxelization_render_pass(device, true, glm::vec2(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT))
+_mrt_pipeline(device,  glm::vec2(swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height), store.GET_MAT<visual_material>("mrt")),
+_voxelize_pipeline(device, glm::vec2(swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height),  store.GET_MAT<visual_material>("voxelizer")),
+_ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world_dimensions.z)
 {
     int binding = 0;
     
@@ -73,25 +71,43 @@ _voxelization_render_pass(device, true, glm::vec2(VOXEL_CUBE_WIDTH, VOXEL_CUBE_H
         }
     }
     
+    for( int lod_ids = 0; lod_ids < TOTAL_LODS; ++lod_ids)
+    {
+        for( size_t i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
+        {
+            _voxel_albedo_textures[lod_ids][i].init();
+            _voxel_normal_textures[lod_ids][i].init();
+        }
+    }
     
     for( int i = 0; i < shapes.size(); ++i)
     {
         add_shape(shapes[i]);
     }
     
+    setup_sampling_rays();
+
+    //MRT pipeline
+    _mrt_pipeline.set_rendering_attachments(_g_buffer_textures);
+    _mrt_pipeline.set_depth_enable(true);
+    _mrt_pipeline.set_offscreen_rendering(true);
+    
     _mrt_pipeline.init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
     _mrt_pipeline.init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
     _mrt_pipeline.init_parameter("lightPosition", visual_material::parameter_stage::VERTEX, glm::vec3(0), binding);
-
-    _pipeline.init_parameter("width", visual_material::parameter_stage::VERTEX, 0.f, 0);
-    _pipeline.init_parameter("height", visual_material::parameter_stage::VERTEX, 0.f, 0);
     
-    _pipeline.set_image_sampler(_g_buffer_textures[buffer_ids::NORMALS], "normals", visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline.set_image_sampler(_g_buffer_textures[buffer_ids::ALBEDOS], "albedo", visual_material::parameter_stage::FRAGMENT, 2, resource::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline.set_image_sampler(_g_buffer_textures[buffer_ids::POSITIONS], "world_positions", visual_material::parameter_stage::FRAGMENT, 3, resource::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline.set_image_sampler(_mrt_render_pass.get_depth_textures(), "depth", visual_material::parameter_stage::FRAGMENT, 4, resource::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline.set_image_sampler(_voxel_normal_textures[0], "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline.set_image_sampler(_voxel_albedo_textures[0], "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _mrt_pipeline.set_number_of_blend_attachments(3);
+    _mrt_pipeline.modify_attachment_blend(0, mrt_pipeline::write_channels::RGBA, false);
+    _mrt_pipeline.modify_attachment_blend(1, mrt_pipeline::write_channels::RGBA, false);
+    _mrt_pipeline.modify_attachment_blend(2, mrt_pipeline::write_channels::RGBA, false);
+    glm::mat4 identity = glm::mat4(1);
+    _mrt_pipeline.init_dynamic_params("model", visual_material::parameter_stage::VERTEX, identity, shapes.size(), 1);
+
+    _mrt_pipeline.create();
+    
+    //voxelize pipeline
+    _voxelize_pipeline.set_number_of_blend_attachments(1);
+    _voxelize_pipeline.modify_attachment_blend(0, voxelize_pipeline::write_channels::RGBA, false);
     
     _voxelize_pipeline.set_image_sampler(_voxel_albedo_textures[0], "voxel_albedo_texture",
                                          visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
@@ -106,10 +122,24 @@ _voxelization_render_pass(device, true, glm::vec2(VOXEL_CUBE_WIDTH, VOXEL_CUBE_H
     _voxelize_pipeline.init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
     _voxelize_pipeline.init_parameter("light_position", visual_material::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
     _voxelize_pipeline.init_parameter("eye_position", visual_material::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
-    glm::mat4 identity = glm::mat4(1);
     _voxelize_pipeline.init_dynamic_params("model", visual_material::parameter_stage::VERTEX, identity, shapes.size(), 3);
+    
+    _voxelize_pipeline.set_cullmode( voxelize_pipeline::cull_mode::NONE);
+    _voxelize_pipeline.set_depth_enable(false);
+    _voxelize_pipeline.set_rendering_attachments(_voxel_2d_view );
+    _voxelize_pipeline.create();
+    
 
-    setup_sampling_rays();
+    //pipeline
+    _pipeline.init_parameter("width", visual_material::parameter_stage::VERTEX, 0.f, 0);
+    _pipeline.init_parameter("height", visual_material::parameter_stage::VERTEX, 0.f, 0);
+    
+    _pipeline.set_image_sampler(_g_buffer_textures[buffer_ids::NORMALS], "normals", visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::COMBINED_IMAGE_SAMPLER);
+    _pipeline.set_image_sampler(_g_buffer_textures[buffer_ids::ALBEDOS], "albedo", visual_material::parameter_stage::FRAGMENT, 2, resource::usage_type::COMBINED_IMAGE_SAMPLER);
+    _pipeline.set_image_sampler(_g_buffer_textures[buffer_ids::POSITIONS], "world_positions", visual_material::parameter_stage::FRAGMENT, 3, resource::usage_type::COMBINED_IMAGE_SAMPLER);
+    _pipeline.set_image_sampler(_mrt_pipeline.get_depth_textures(), "depth", visual_material::parameter_stage::FRAGMENT, 4, resource::usage_type::COMBINED_IMAGE_SAMPLER);
+    _pipeline.set_image_sampler(_voxel_normal_textures[0], "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    _pipeline.set_image_sampler(_voxel_albedo_textures[0], "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     
     glm::vec4 world_scale_voxel = glm::vec4(float(_voxel_world_dimensions.x/VOXEL_CUBE_WIDTH),
                                             float(_voxel_world_dimensions.y/VOXEL_CUBE_HEIGHT),
@@ -143,18 +173,14 @@ _voxelization_render_pass(device, true, glm::vec2(VOXEL_CUBE_WIDTH, VOXEL_CUBE_H
         binding_index++;
     }
     
-    for( int lod_ids = 0; lod_ids < TOTAL_LODS; ++lod_ids)
-    {
-        for( size_t i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
-        {
-            _voxel_albedo_textures[lod_ids][i].init();
-            _voxel_normal_textures[lod_ids][i].init();
-        }
-    }
-
-    _voxelize_pipeline.set_cullmode( voxelize_pipeline::cull_mode::NONE);
-    _voxelize_pipeline.set_depth_enable(false);
-
+    _pipeline.set_rendering_attachments(_swapchain->present_textures);
+    _pipeline.set_offscreen_rendering(false);
+    _pipeline.set_depth_enable(false);
+    
+    _pipeline.create();
+    
+    create_voxel_texture_pipelines(store);
+    
     _screen_plane.create();
     
     create_command_buffers(&_offscreen_command_buffers, _device->_graphics_command_pool);
@@ -165,6 +191,15 @@ _voxelization_render_pass(device, true, glm::vec2(VOXEL_CUBE_WIDTH, VOXEL_CUBE_H
         create_command_buffers(&_clear_3d_texture_command_buffers[i], _device->_compute_command_pool);
     }
     
+    for(int i = 0; i < _genered_3d_mip_maps_commands.size(); ++i)
+    {
+        create_command_buffers(&_genered_3d_mip_maps_commands[i], _device->_compute_command_pool);
+    }
+
+}
+
+void deferred_renderer::create_voxel_texture_pipelines(vk::material_store& store)
+{
     for( int i = 0; i < _create_voxel_mip_maps_pipelines.size(); ++i)
     {
         for( int j = 0; j < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++j)
@@ -173,17 +208,7 @@ _voxelization_render_pass(device, true, glm::vec2(VOXEL_CUBE_WIDTH, VOXEL_CUBE_H
             _create_voxel_mip_maps_pipelines[i][j].set_material(store.GET_MAT<compute_material>("downsize"));
         }
     }
-
     
-    for(int i = 0; i < _genered_3d_mip_maps_commands.size(); ++i)
-    {
-        create_command_buffers(&_genered_3d_mip_maps_commands[i], _device->_compute_command_pool);
-    }
-
-}
-
-void deferred_renderer::create_voxel_texture_pipelines()
-{
     //TODO: you'll need to clear normals as well
 
     for( int chain_id =0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
@@ -233,28 +258,9 @@ void deferred_renderer::setup_sampling_rays()
     _sampling_rays[4] = glm::normalize(temp);
 }
 
-void deferred_renderer::create_voxelization_render_pass()
-{
-   
-    _voxelization_render_pass.set_rendering_attachments(_voxel_2d_view );
-    _voxelization_render_pass.set_depth_enable(false);
-    _voxelization_render_pass.init();
-}
-
 void deferred_renderer::create_render_pass()
 {
-    
-    _render_pass.set_rendering_attachments(_swapchain->present_textures);
-    _render_pass.set_offscreen_rendering(false);
-    _render_pass.set_depth_enable(false);
-    _render_pass.init();
-    
-    _mrt_render_pass.set_rendering_attachments(_g_buffer_textures);
-    _mrt_render_pass.set_depth_enable(true);
-    _mrt_render_pass.set_offscreen_rendering(true);
 
-    _mrt_render_pass.init();
-    create_voxelization_render_pass();
 }
 
 void deferred_renderer::create_semaphores_and_fences()
@@ -287,25 +293,6 @@ void deferred_renderer::create_semaphores_and_fences()
 
 void deferred_renderer::create_pipeline()
 {
-    _pipeline.create(_render_pass,
-                     _swapchain->get_vk_swap_extent().width,
-                     _swapchain->get_vk_swap_extent().height);
-    
-    _mrt_pipeline.set_number_of_blend_attachments(3);
-    _mrt_pipeline.modify_attachment_blend(0, mrt_pipeline::write_channels::RGBA, false);
-    _mrt_pipeline.modify_attachment_blend(1, mrt_pipeline::write_channels::RGBA, false);
-    _mrt_pipeline.modify_attachment_blend(2, mrt_pipeline::write_channels::RGBA, false);
-    
-    _mrt_pipeline.create(_mrt_render_pass,
-                         _swapchain->get_vk_swap_extent().width,
-                         _swapchain->get_vk_swap_extent().height);
-    
-    _voxelize_pipeline.set_number_of_blend_attachments(1);
-    _voxelize_pipeline.modify_attachment_blend(0, voxelize_pipeline::write_channels::RGBA, false);
-    
-    _voxelize_pipeline.create(_voxelization_render_pass, VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT);
-    
-    create_voxel_texture_pipelines();
 }
 
 
@@ -320,8 +307,8 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
         VkRenderPassBeginInfo render_pass_begin_info {};
         render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         render_pass_begin_info.pNext = nullptr;
-        render_pass_begin_info.renderPass = _voxelization_render_pass.get_vk_render_pass(i);
-        render_pass_begin_info.framebuffer = _voxelization_render_pass.get_vk_frame_buffer(i); //_voxelize_frame_buffers[i];
+        render_pass_begin_info.renderPass = _voxelize_pipeline.get_vk_render_pass(i);
+        render_pass_begin_info.framebuffer = _voxelize_pipeline.get_vk_frame_buffer(i);
         render_pass_begin_info.renderArea.offset = { 0, 0 };
         render_pass_begin_info.renderArea.extent = { VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT };
         
@@ -472,8 +459,8 @@ void deferred_renderer::record_command_buffers(obj_shape** shapes, size_t number
         VkRenderPassBeginInfo render_pass_begin_info {};
         render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         render_pass_begin_info.pNext = nullptr;
-        render_pass_begin_info.renderPass = _mrt_render_pass.get_vk_render_pass(i);
-        render_pass_begin_info.framebuffer = _mrt_render_pass.get_vk_frame_buffer(i);
+        render_pass_begin_info.renderPass = _mrt_pipeline.get_vk_render_pass(i);
+        render_pass_begin_info.framebuffer = _mrt_pipeline.get_vk_frame_buffer(i);
         render_pass_begin_info.renderArea.offset = { 0, 0 };
 
         render_pass_begin_info.renderArea.extent = { _swapchain->get_vk_swap_extent().width,
@@ -532,13 +519,10 @@ void deferred_renderer::perform_final_drawing_setup()
     if( !_setup_initialized)
     {
         _setup_initialized = true;
-        
         create_pipeline();
         record_command_buffers(_shapes.data(), _shapes.size());
         _pipeline_created = true;
-        
     }
-    
     
     for( int i = 0; i < _shapes.size(); ++i)
     {

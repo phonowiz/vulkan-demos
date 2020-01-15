@@ -75,8 +75,7 @@ namespace vk
         void clear_voxels_textures();
         void generate_voxel_mip_maps();
         
-        void create_voxelization_render_pass();
-        void create_voxel_texture_pipelines();
+        void create_voxel_texture_pipelines(vk::material_store& store);
         void setup_sampling_rays();
         
         virtual void perform_final_drawing_setup() override;
@@ -89,7 +88,7 @@ namespace vk
         mrt_pipeline _mrt_pipeline;
         
         using voxelize_pipeline = graphics_pipeline<render_texture, 1>;
-        graphics_pipeline<render_texture, 1> _voxelize_pipeline;
+        voxelize_pipeline _voxelize_pipeline;
   
         static constexpr unsigned int TOTAL_LODS = 6;
         
@@ -98,10 +97,6 @@ namespace vk
         std::array<VkCommandBuffer*, TOTAL_LODS> _clear_3d_texture_command_buffers {};
         std::array<VkCommandBuffer*, TOTAL_LODS -1> _genered_3d_mip_maps_commands {};
         std::array<std::array<compute_pipeline, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS -1> _create_voxel_mip_maps_pipelines {};
-    
-        
-        render_pass<render_texture, 3>        _mrt_render_pass;
-        render_pass<render_texture, 1>        _voxelization_render_pass;
         
         VkSemaphore _deferred_semaphore_image_available = VK_NULL_HANDLE;
         VkSemaphore _g_buffers_rendering_done = VK_NULL_HANDLE;

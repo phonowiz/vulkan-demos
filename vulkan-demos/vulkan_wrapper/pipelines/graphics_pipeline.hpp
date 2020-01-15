@@ -9,10 +9,6 @@
 #include "graphics_pipeline.h"
 #include "vertex.h"
 
-
-//using namespace vk;
-
-
 template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::init_blend_attachments()
 {
@@ -32,9 +28,6 @@ void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::init_blend_attachm
 template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::begin_command_recording(int swapchain_image_id, glfw_swapchain& swapchain, VkCommandBuffer* buffer)
 {
-    assert(_render_pass != nullptr && "did you call create on this graphics pipeline?");
-    assert(buffer != nullptr);
-    
     VkRenderPassBeginInfo render_pass_create_info = {};
     render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     render_pass_create_info.pNext = nullptr;
@@ -73,12 +66,10 @@ void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::begin_command_reco
 }
 
 template< class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-void graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>::create( render_pass<TEXTURE_TYPE, NUM_ATTACHMENTS>& render_pass, uint32_t viewport_width, uint32_t viewport_height)
+void graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>::create( )
 {
-    _width = viewport_width;
-    _height = viewport_height;
 
-    _render_pass = &render_pass;
+    _render_pass.init();
     
     auto vertex_binding_description = vertex::get_binding_description();
     auto vertex_attribute_descriptos = vertex::get_attribute_descriptions();
@@ -225,7 +216,7 @@ void graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>::create( render_pass<TEXTU
         pipeline_create_info.pColorBlendState = &color_blend_create_info;
         pipeline_create_info.pDynamicState = &dynamic_state_create_info;
         pipeline_create_info.layout = _pipeline_layout[chain_index];
-        pipeline_create_info.renderPass = render_pass.get_vk_render_pass(chain_index);
+        pipeline_create_info.renderPass = _render_pass.get_vk_render_pass(chain_index);
         pipeline_create_info.subpass = 0;
         pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
         pipeline_create_info.basePipelineIndex = -1;

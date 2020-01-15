@@ -42,7 +42,7 @@ namespace vk
         
         virtual void commit_parameters_to_gpu(uint32_t swapchain_id) = 0;
         
-        inline void destroy()
+        virtual void destroy()
         {
             for(int i = 0; i < _pipeline.size(); ++i)
             {

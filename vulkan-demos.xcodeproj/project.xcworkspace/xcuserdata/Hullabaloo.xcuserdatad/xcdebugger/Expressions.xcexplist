@@ -68,6 +68,14 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
+         contextName = "vk::graphics_pipeline&lt;vk::glfw_present_texture, 1u&gt;::set_image_sampler(std::__1::array&lt;vk::depth_texture, 3ul&gt;&amp;, char const*, vk::material_base::parameter_stage, unsigned int, vk::resource::usage_type):graphics_pipeline.h">
+         <PersistentStrings>
+            <PersistentString
+               value = "textures">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "vk::Renderer::draw():renderer.cpp">
          <PersistentStrings>
             <PersistentString
@@ -118,6 +126,17 @@
       </ContextState>
       <ContextState
          contextName = "vk::renderer::create_command_buffer(VkCommandBuffer_T***):renderer.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "vk::graphics_pipeline&lt;vk::glfw_present_texture, 1u&gt;::create():graphics_pipeline.hpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "_height">
+            </PersistentString>
+            <PersistentString
+               value = "_width">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
          contextName = "vk::pipeline::create(VkRenderPass_T*, unsigned int, unsigned int):pipeline.cpp">
@@ -264,13 +283,13 @@
          contextName = "vk::material::create_descriptor_set_layout():material.cpp">
          <PersistentStrings>
             <PersistentString
+               value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
+            </PersistentString>
+            <PersistentString
                value = "pair.first">
             </PersistentString>
             <PersistentString
                value = "pair2.first">
-            </PersistentString>
-            <PersistentString
-               value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
             </PersistentString>
             <PersistentString
                value = "_sampler_buffers.size()">
@@ -314,13 +333,13 @@
          contextName = "vk::material::create_descriptor_sets():material.cpp">
          <PersistentStrings>
             <PersistentString
-               value = " _descriptor_set_layout_bindings[count].binding">
+               value = "pair2.first">
             </PersistentString>
             <PersistentString
                value = "write_descriptor_sets[count].dstBinding">
             </PersistentString>
             <PersistentString
-               value = "pair2.first">
+               value = " _descriptor_set_layout_bindings[count].binding">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -342,10 +361,13 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "vk::SwapChain::createImageViews():swap_chain.cpp">
+         contextName = "void vk::graphics_pipeline::create&lt;vk::glfw_present_texture, 1u&gt;(vk::render_pass&lt;vk::glfw_present_texture, 1u&gt;&amp;, unsigned int, unsigned int):graphics_pipeline.h">
       </ContextState>
       <ContextState
          contextName = "vk::mesh::create(char const*):mesh.cpp">
+      </ContextState>
+      <ContextState
+         contextName = "vk::SwapChain::createImageViews():swap_chain.cpp">
       </ContextState>
       <ContextState
          contextName = "MVKDescriptorSetLayout::bindDescriptorSet(MVKCommandEncoder*, MVKDescriptorSet*, MVKShaderResourceBinding&amp;, std::__1::vector&lt;unsigned int, std::__1::allocator&lt;unsigned int&gt; &gt;&amp;, unsigned int*):MVKDescriptorSet.mm">
@@ -357,9 +379,6 @@
       </ContextState>
       <ContextState
          contextName = "MVKDispatchableVulkanAPIObject::getDispatchableObject(void*):MVKVulkanAPIObject.h">
-      </ContextState>
-      <ContextState
-         contextName = "void vk::graphics_pipeline::create&lt;vk::glfw_present_texture, 1u&gt;(vk::render_pass&lt;vk::glfw_present_texture, 1u&gt;&amp;, unsigned int, unsigned int):graphics_pipeline.h">
       </ContextState>
       <ContextState
          contextName = "vk::renderer::draw(vk::camera&amp;):renderer.cpp">

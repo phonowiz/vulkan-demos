@@ -25,8 +25,7 @@
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::renderer(device* device, GLFWwindow* window, glfw_swapchain* swapchain, visual_mat_shared_ptr material):
-_render_pass(device, false, glm::vec2(swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height)),
-_pipeline(device, material)
+_pipeline(device, glm::vec2( swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height), material)
 {
     _device = device;
     _window = window;
@@ -36,8 +35,7 @@ _pipeline(device, material)
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_render_pass()
 {
-    _render_pass.set_rendering_attachments(_swapchain->present_textures);
-    _render_pass.init();
+    _pipeline.set_rendering_attachments(_swapchain->present_textures);
 }
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
@@ -98,13 +96,11 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_semaphores_and_fence
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::recreate_renderer()
 {
-    
     _device->wait_for_all_operations_to_finish();
-    
-    _render_pass.destroy();
+    _pipeline.destroy();
     _swapchain->recreate_swapchain( );
     
-    _render_pass.init();
+    _pipeline.create();
     
     create_command_buffers(&_command_buffers, _device->_present_command_pool);
     record_command_buffers(_shapes.data(), _shapes.size());
@@ -128,8 +124,8 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::record_command_buffers(obj_
         VkRenderPassBeginInfo render_pass_create_info = {};
         render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         render_pass_create_info.pNext = nullptr;
-        render_pass_create_info.renderPass = _render_pass.get_vk_render_pass(i);
-        render_pass_create_info.framebuffer = _render_pass.get_vk_frame_buffer(i);
+        render_pass_create_info.renderPass = _pipeline.get_vk_render_pass(i);
+        render_pass_create_info.framebuffer = _pipeline.get_vk_frame_buffer(i);
         render_pass_create_info.renderArea.offset = { 0, 0 };
         render_pass_create_info.renderArea.extent = { _swapchain->get_vk_swap_extent().width,
             _swapchain->get_vk_swap_extent().height };
@@ -194,13 +190,12 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::destroy()
     }
     
     _pipeline.destroy();
-    _render_pass.destroy();
 }
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_pipeline()
 {
-    _pipeline.create(_render_pass, _swapchain->get_vk_swap_extent().width, _swapchain->get_vk_swap_extent().height);
+    _pipeline.create();
 }
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>

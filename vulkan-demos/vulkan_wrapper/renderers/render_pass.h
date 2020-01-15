@@ -38,7 +38,7 @@ namespace vk
     public:
         
         render_pass(){}
-        render_pass(device* device, bool _off_screen_rendering, glm::vec2 dimensions);
+        render_pass(device* device, glm::vec2 dimensions);
         
         void set_rendering_attachments(std::array<std::array<TEXTURE_TYPE,glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, NUM_ATTACHMENTS>& rendering_texture);
         inline void set_clear_value(size_t attachment_index, glm::vec4 value)
@@ -126,9 +126,8 @@ namespace vk
     };
 
     template<class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-    render_pass<TEXTURE_TYPE, NUM_ATTACHMENTS>::render_pass(vk::device* device, bool off_screen_rendering, glm::vec2 dimensions)
+    render_pass<TEXTURE_TYPE, NUM_ATTACHMENTS>::render_pass(vk::device* device,  glm::vec2 dimensions)
     {
-        _off_screen_rendering = off_screen_rendering;
         _dimensions = dimensions;
         _device = device;
     }
@@ -260,10 +259,12 @@ namespace vk
             uint32_t num_views = 0;
             for( ; num_views < _attachments->size(); ++num_views)
             {
+                assert(_attachments->at(num_views)[swapchain_index]._image_view != VK_NULL_HANDLE && "did you initialize this image?");
                 attachment_views[num_views] = _attachments->at(num_views)[swapchain_index]._image_view;
             }
             if(_depth_enable)
             {
+                assert(_depth_textures[swapchain_index]._image_view != VK_NULL_HANDLE);
                 //the render pass assume this as well...
                 attachment_views[num_views]  = _depth_textures[swapchain_index]._image_view;
                 num_views++;

@@ -46,6 +46,7 @@ void material_base::create_descriptor_sets()
     {
         for( std::pair< std::string_view, shader_parameter> pair2 : pair.second)
         {
+            assert( pair2.second.get_image()->get_image_view() != VK_NULL_HANDLE);
             descriptor_image_infos[count].sampler = pair2.second.get_image()->get_sampler();
             descriptor_image_infos[count].imageView = pair2.second.get_image()->get_image_view();
             //TODO: the following needs to change according to the layout the texture is in, it may not always be read_only_optimal
@@ -263,7 +264,6 @@ void material_base::init_shader_parameters()
         for (std::pair<std::string_view , shader_parameter > pair : group)
         {
             //std::string_view name = pair.first;
-            
             //std::cout << name << std::endl;
             shader_parameter setting = pair.second;
             total_size += setting.get_max_std140_aligned_size_in_bytes();
@@ -325,10 +325,6 @@ void material_base::set_image_sampler(image* texture, const char* parameter_name
     mem.usage_type = usage;
 
     _sampler_parameters[stage][parameter_name] = texture;
-    
-//    VkPhysicalDeviceProperties props {};
-//    vkGetPhysicalDeviceProperties( _device->_physical_device, &props);
-//    assert(_sampler_parameters[stage].size() < props.limits.maxDescriptorSetSamplers);
 }
 
 void material_base::set_image_smapler(texture_2d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage)

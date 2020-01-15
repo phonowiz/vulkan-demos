@@ -15,7 +15,7 @@ display_2d_texture_renderer::display_2d_texture_renderer(vk::device* device, GLF
 renderer(device, window, swapchain, store.GET_MAT<visual_material>("display")),
 _render_plane(device)
 {
-    _render_pass.set_depth_enable(false);
+    _pipeline.set_depth_enable(false);
     _render_plane.create();
 }
 

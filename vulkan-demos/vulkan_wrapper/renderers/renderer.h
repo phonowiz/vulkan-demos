@@ -74,7 +74,6 @@ namespace vk
         {
             _device = device;
             _pipeline.set_device(device);
-            _render_pass.set_device(device);
         }
         void set_window(GLFWwindow* window)
         {
@@ -113,8 +112,6 @@ namespace vk
         
         device*             _device = nullptr;
         GLFWwindow*         _window = nullptr;
-
-        render_pass<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>         _render_pass;
         
         VkSemaphore _semaphore_image_available = VK_NULL_HANDLE;
         VkSemaphore _semaphore_rendering_done = VK_NULL_HANDLE;

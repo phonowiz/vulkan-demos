@@ -51,9 +51,13 @@ namespace vk
         
         
         graphics_pipeline(){};
-        graphics_pipeline(device* device, visual_mat_shared_ptr material ) :
-        pipeline(device)
+        graphics_pipeline(device* device, glm::vec2 screen_dimensions, visual_mat_shared_ptr material ) :
+        pipeline(device),
+        _render_pass(device, screen_dimensions)
         {
+            _width = screen_dimensions.x;
+            _height = screen_dimensions.y;
+            
             for(int i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
             {
                 _material[i] = material;
@@ -63,7 +67,7 @@ namespace vk
         
         void begin_command_recording(int swapchain_image_id, glfw_swapchain& swapchain, VkCommandBuffer* command_buffer );
         
-        void create( render_pass<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>& render_pass, uint32_t viewport_width, uint32_t viewport_height );
+        void create();
         
         void set_viewport(uint32_t width, uint32_t height){ _width = width; _height = height;};
         void set_cullmode(cull_mode mode){ _cull_mode = mode; };
@@ -74,7 +78,32 @@ namespace vk
                 _material[i] = material;
             }
         }
+        inline void set_depth_enable(bool enable)
+        {
+            _render_pass.set_depth_enable(enable);
+        }
         
+        inline void set_rendering_attachments(std::array<std::array<RENDER_TEXTURE_TYPE, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>,
+                                                                                   NUM_ATTACHMENTS>& rendering_textures)
+        {
+            _render_pass.set_rendering_attachments(rendering_textures);
+        }
+        
+        inline VkFramebuffer get_vk_frame_buffer(uint32_t i)
+        {
+            return _render_pass.get_vk_frame_buffer(i);
+        }
+        
+        inline VkRenderPass get_vk_render_pass(uint32_t i)
+        {
+            return _render_pass.get_vk_render_pass(i);
+        }
+        inline std::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& get_depth_textures(){ return _render_pass.get_depth_textures(); }
+        
+        inline void set_offscreen_rendering( bool offscreen_rendering)
+        {
+            _render_pass.set_offscreen_rendering(offscreen_rendering);
+        }
         inline void set_image_sampler(texture_3d& texture, const char* parameter_name,
                                       visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
         {
@@ -193,9 +222,6 @@ namespace vk
             _num_blend_attachments = num_blend_attacments;
         };
         
-        
-        inline void set_depth_enable(bool enable) { _depth_enable = enable; }
-        
         void modify_attachment_blend(uint32_t blend_attachment_id, write_channels channels, bool enable_blend )
         {
             assert(blend_attachment_id < _num_blend_attachments);
@@ -223,7 +249,12 @@ namespace vk
         }
         
         void create_frame_buffer();
-        
+        virtual void destroy() override
+        {
+            vk::pipeline::destroy();
+            
+            _render_pass.destroy();
+        }
         ~graphics_pipeline(){};
         
     public:
@@ -245,7 +276,7 @@ namespace vk
         std::array<VkPipelineColorBlendAttachmentState, BLEND_ATTACHMENTS> _blend_attachments {};
         uint32_t _num_blend_attachments = 1;
         
-        render_pass<RENDER_TEXTURE_TYPE,NUM_ATTACHMENTS> *_render_pass =nullptr;
+        render_pass<RENDER_TEXTURE_TYPE,NUM_ATTACHMENTS> _render_pass;
     };
 
     #include "graphics_pipeline.hpp"
