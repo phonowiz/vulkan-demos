@@ -50,7 +50,16 @@ namespace vk
         };
         
         
-        graphics_pipeline(){};
+        graphics_pipeline()
+        {
+            for(int i = 0; i < NUM_ATTACHMENTS + 1; ++i)
+            {
+                _clear_values[i].color = {0.0f, 0.0f, 0.0f, 0.0f};
+                _clear_values[i].depthStencil = {1.0f, 0};
+            }
+            init_blend_attachments();
+        };
+        
         graphics_pipeline(device* device, glm::vec2 screen_dimensions, visual_mat_shared_ptr material ) :
         pipeline(device),
         _render_pass(device, screen_dimensions)
@@ -62,13 +71,33 @@ namespace vk
             {
                 _material[i] = material;
             }
+            
+            for(int i = 0; i < NUM_ATTACHMENTS + 1; ++i)
+            {
+                _clear_values[i].color = {0.0f, 0.0f, 0.0f, 0.0f};
+                _clear_values[i].depthStencil = {1.0f, 0};
+            }
             init_blend_attachments();
         };
         
-        void begin_command_recording(int swapchain_image_id, glfw_swapchain& swapchain, VkCommandBuffer* command_buffer );
-        
+
         void create();
-        
+        void set_clear_value( uint32_t attachment_id, glm::vec4 color, glm::vec2 depth_stencil)
+        {
+            assert(attachment_id < _clear_values.size());
+            _clear_values[attachment_id].color = {color.x, color.y, color.z, color.w};
+            _clear_values[attachment_id].depthStencil = {depth_stencil.x, (uint32_t)depth_stencil.y};
+            
+        }
+        void set_clear_values( glm::vec4 color, glm::vec2 depth_stencil)
+        {
+            int attachment_count = _depth_enable ? NUM_ATTACHMENTS + 1 : NUM_ATTACHMENTS;
+            for(int i = 0; i < attachment_count; ++i)
+            {
+                _clear_values[i].color = {color.x, color.y, color.z, color.w};
+                _clear_values[i].depthStencil = {depth_stencil.x, (uint32_t)depth_stencil.y};
+            }
+        }
         void set_viewport(uint32_t width, uint32_t height){ _width = width; _height = height;};
         void set_cullmode(cull_mode mode){ _cull_mode = mode; };
         void set_material(visual_mat_shared_ptr material )
@@ -255,10 +284,10 @@ namespace vk
             
             _render_pass.destroy();
         }
-        ~graphics_pipeline(){};
         
-    public:
-    
+        void begin_command_recording(VkCommandBuffer& buffer, uint32_t swapchain_image_id);
+        void end_command_recording();
+        ~graphics_pipeline(){};
     private:
         void init_blend_attachments();
         
@@ -270,9 +299,13 @@ namespace vk
         
         cull_mode _cull_mode = cull_mode::BACK_FACE;
         
+        VkCommandBuffer* _recording_buffer = VK_NULL_HANDLE;
+        
         bool _depth_enable = true;
         
         static const uint32_t BLEND_ATTACHMENTS = 10;
+        
+        std::array<VkClearValue,NUM_ATTACHMENTS + 1> _clear_values {};
         std::array<VkPipelineColorBlendAttachmentState, BLEND_ATTACHMENTS> _blend_attachments {};
         uint32_t _num_blend_attachments = 1;
         

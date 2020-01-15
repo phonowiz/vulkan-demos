@@ -20,7 +20,7 @@ deferred_renderer::deferred_renderer(device* device, GLFWwindow* window, vk::glf
 renderer(device, window, swapchain, store.GET_MAT<visual_material>("deferred_output")),
 _screen_plane(device),
 _mrt_pipeline(device,  glm::vec2(swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height), store.GET_MAT<visual_material>("mrt")),
-_voxelize_pipeline(device, glm::vec2(swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height),  store.GET_MAT<visual_material>("voxelizer")),
+_voxelize_pipeline(device, glm::vec2(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT),  store.GET_MAT<visual_material>("voxelizer")),
 _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world_dimensions.z)
 {
     int binding = 0;
@@ -302,53 +302,17 @@ void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size
     std::array<VkClearValue,1> clear_values;
     clear_values[0].color = { { 1.0f, 1.0f, 1.0f, 0.0f } };
     
+    _voxelize_pipeline.set_clear_values(glm::vec4(1.0f, 1.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.0f));
     for( int i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
     {
-        VkRenderPassBeginInfo render_pass_begin_info {};
-        render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        render_pass_begin_info.pNext = nullptr;
-        render_pass_begin_info.renderPass = _voxelize_pipeline.get_vk_render_pass(i);
-        render_pass_begin_info.framebuffer = _voxelize_pipeline.get_vk_frame_buffer(i);
-        render_pass_begin_info.renderArea.offset = { 0, 0 };
-        render_pass_begin_info.renderArea.extent = { VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT };
-        
-        //TODO: if the render pass doesn't support depth, these should be 0 and null
-        render_pass_begin_info.clearValueCount = clear_values.size();
-        render_pass_begin_info.pClearValues = clear_values.data();
-        
-        VkCommandBufferBeginInfo command_buffer_begin_info {};
-        command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        command_buffer_begin_info.pNext = nullptr;
-        command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-        command_buffer_begin_info.pInheritanceInfo = nullptr;
-        
-        VkResult result = vkBeginCommandBuffer(_voxelize_command_buffers[i], &command_buffer_begin_info);
-        ASSERT_VULKAN(result);
-        
-        vkCmdBeginRenderPass(_voxelize_command_buffers[i], &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(_voxelize_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _voxelize_pipeline._pipeline[i]);
-        
-        VkViewport viewport {};
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.width = VOXEL_CUBE_WIDTH;
-        viewport.height = VOXEL_CUBE_HEIGHT;
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(_voxelize_command_buffers[i], 0, 1, &viewport);
-        
-        VkRect2D scissor {};
-        scissor.offset = { 0, 0};
-        scissor.extent = { VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT};
-        vkCmdSetScissor(_voxelize_command_buffers[i], 0, 1, &scissor);
+        _voxelize_pipeline.begin_command_recording(_voxelize_command_buffers[i], i);
         
         for( uint32_t j = 0; j < number_of_meshes; ++j)
         {
             shapes[j]->draw(_voxelize_command_buffers[i], _voxelize_pipeline, j, i);
         }
         
-        vkCmdEndRenderPass(_voxelize_command_buffers[i]);
-        vkEndCommandBuffer(_voxelize_command_buffers[i]);
+        _voxelize_pipeline.end_command_recording();
     }
 }
 
@@ -438,72 +402,19 @@ void deferred_renderer::record_clear_texture_3d_buffer()
 
 void deferred_renderer::record_command_buffers(obj_shape** shapes, size_t number_of_shapes)
 {
-    VkCommandBufferBeginInfo command_buffer_begin_info {};
-    command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    command_buffer_begin_info.pNext = nullptr;
-    command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-    command_buffer_begin_info.pInheritanceInfo = nullptr;
-    
-    // Clear values for all attachments written in the fragment sahder
-    std::array<VkClearValue,4> clear_values {};
-    clear_values[0].color = { { 0.0f, 0.0f, 0.0f, 0.0f } };
-    clear_values[1].color = { { 0.0f, 0.0f, 0.0f, 0.0f } };
-    clear_values[2].color = { { 0.0f, 0.0f, 0.0f, 0.0f } };
-    clear_values[3].depthStencil = { 1.0f, 0 };
-    
+
+    _mrt_pipeline.set_clear_values( glm::vec4(0), glm::vec2(0));
+    _mrt_pipeline.set_clear_value(3, glm::vec4(0), glm::vec2(1.0f, 0));
     for (uint32_t i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; i++)
     {
-        //TODO: consider creating a render pass object which contains a frame buffer object and all of the assets needed to
-        //render a mesh.
         
-        VkRenderPassBeginInfo render_pass_begin_info {};
-        render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        render_pass_begin_info.pNext = nullptr;
-        render_pass_begin_info.renderPass = _mrt_pipeline.get_vk_render_pass(i);
-        render_pass_begin_info.framebuffer = _mrt_pipeline.get_vk_frame_buffer(i);
-        render_pass_begin_info.renderArea.offset = { 0, 0 };
-
-        render_pass_begin_info.renderArea.extent = { _swapchain->get_vk_swap_extent().width,
-            _swapchain->get_vk_swap_extent().height };
-        
-        render_pass_begin_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
-        render_pass_begin_info.pClearValues = clear_values.data();
-        
-        VkCommandBufferBeginInfo command_buffer_begin_info {};
-        command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        command_buffer_begin_info.pNext = nullptr;
-        command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-        command_buffer_begin_info.pInheritanceInfo = nullptr;
-        
-        VkResult result = vkBeginCommandBuffer(_offscreen_command_buffers[i], &command_buffer_begin_info);
-        ASSERT_VULKAN(result);
-        
-        vkCmdBeginRenderPass(_offscreen_command_buffers[i], &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(_offscreen_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _mrt_pipeline._pipeline[i]);
-        
-        VkViewport viewport {};
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.width = _swapchain->get_vk_swap_extent().width;
-        viewport.height = _swapchain->get_vk_swap_extent().height;
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(_offscreen_command_buffers[i], 0, 1, &viewport);
-        
-        VkRect2D scissor {};
-        scissor.offset = { 0, 0};
-        
-        scissor.extent = { _swapchain->get_vk_swap_extent().width,
-            _swapchain->get_vk_swap_extent().height};
-        vkCmdSetScissor(_offscreen_command_buffers[i], 0, 1, &scissor);
-        
+        _mrt_pipeline.begin_command_recording(_offscreen_command_buffers[i], i);
         for( uint32_t j = 0; j < number_of_shapes; ++j)
         {
             shapes[j]->draw(_offscreen_command_buffers[i], _mrt_pipeline, j, i);
         }
         
-        vkCmdEndRenderPass(_offscreen_command_buffers[i]);
-        vkEndCommandBuffer(_offscreen_command_buffers[i]);
+        _mrt_pipeline.end_command_recording();
     }
     
     record_voxelize_command_buffers(shapes, number_of_shapes);

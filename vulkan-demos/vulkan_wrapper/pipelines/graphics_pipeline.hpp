@@ -26,43 +26,58 @@ void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::init_blend_attachm
 }
 
 template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::begin_command_recording(int swapchain_image_id, glfw_swapchain& swapchain, VkCommandBuffer* buffer)
+void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::begin_command_recording(VkCommandBuffer& buffer, uint32_t swapchain_image_id)
 {
+    assert(_recording_buffer == VK_NULL_HANDLE && "you shouldn't call begin_command_recording before calling end_command_recording");
+    _recording_buffer = &buffer;
+    
+    VkCommandBufferBeginInfo command_buffer_begin_info {};
+    command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    command_buffer_begin_info.pNext = nullptr;
+    command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+    command_buffer_begin_info.pInheritanceInfo = nullptr;
+    
+    VkResult result = vkBeginCommandBuffer(buffer, &command_buffer_begin_info);
+    ASSERT_VULKAN(result);
+    
     VkRenderPassBeginInfo render_pass_create_info = {};
     render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     render_pass_create_info.pNext = nullptr;
-    render_pass_create_info.renderPass = _render_pass->get_vk_render_pass(swapchain_image_id);
-    render_pass_create_info.framebuffer = _render_pass->get_vk_frame_buffer(swapchain_image_id);
+    render_pass_create_info.renderPass = get_vk_render_pass(swapchain_image_id);
+    render_pass_create_info.framebuffer = get_vk_frame_buffer(swapchain_image_id);
     render_pass_create_info.renderArea.offset = { 0, 0 };
-    render_pass_create_info.renderArea.extent = { swapchain.get_vk_swap_extent().width,
-        swapchain.get_vk_swap_extent().height };
-    VkClearValue clear_value = {0.0f, 0.0f, 0.0f, 1.0f};
-    VkClearValue depth_clear_value = {1.0f, 0.0f};
+    render_pass_create_info.renderArea.extent = { _width, _height };
     
-    std::array<VkClearValue,2> clear_values;
-    clear_values[0] = clear_value;
-    clear_values[1] = depth_clear_value;
+    render_pass_create_info.clearValueCount = _depth_enable ? static_cast<uint32_t>(_clear_values.size()) : static_cast<uint32_t>(_clear_values.size() -1);
+    render_pass_create_info.pClearValues = _clear_values.data();
     
-    render_pass_create_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
-    render_pass_create_info.pClearValues = clear_values.data();
-    
-    vkCmdBeginRenderPass(buffer[swapchain_image_id], &render_pass_create_info, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdBindPipeline(buffer[swapchain_image_id], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline[swapchain_image_id]);
+    vkCmdBeginRenderPass(buffer, &render_pass_create_info, VK_SUBPASS_CONTENTS_INLINE);
+    vkCmdBindPipeline(buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline[swapchain_image_id]);
     
     VkViewport viewport;
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport. width = swapchain.get_vk_swap_extent().width;
-    viewport.height = swapchain.get_vk_swap_extent().height;
+    viewport. width = _width;
+    viewport.height = _height;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
-    vkCmdSetViewport(buffer[swapchain_image_id], 0, 1, &viewport);
+    vkCmdSetViewport(buffer, 0, 1, &viewport);
     
     VkRect2D scissor;
     scissor.offset = { 0, 0};
-    scissor.extent = { swapchain.get_vk_swap_extent().width,
-        swapchain.get_vk_swap_extent().height};
-    vkCmdSetScissor(buffer[swapchain_image_id], 0, 1, &scissor);
+    scissor.extent = { _width,_height};
+    vkCmdSetScissor(buffer, 0, 1, &scissor);
+}
+
+template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::end_command_recording()
+{
+    assert(_recording_buffer != nullptr && "you must call begin_command_recording");
+    
+    vkCmdEndRenderPass(*_recording_buffer);
+    vkEndCommandBuffer(*_recording_buffer);
+    
+    _recording_buffer = nullptr;
 }
 
 template< class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
