@@ -258,10 +258,6 @@ void deferred_renderer::setup_sampling_rays()
     _sampling_rays[4] = glm::normalize(temp);
 }
 
-void deferred_renderer::create_render_pass()
-{
-
-}
 
 void deferred_renderer::create_semaphores_and_fences()
 {
@@ -291,18 +287,11 @@ void deferred_renderer::create_semaphores_and_fences()
     }
 }
 
-void deferred_renderer::create_pipeline()
-{
-}
-
 
 void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size_t number_of_meshes)
 {
     
-    std::array<VkClearValue,1> clear_values;
-    clear_values[0].color = { { 1.0f, 1.0f, 1.0f, 0.0f } };
-    
-    _voxelize_pipeline.set_clear_values(glm::vec4(1.0f, 1.0f, 1.0f, 0.0f), glm::vec2(1.0f, 0.0f));
+    _voxelize_pipeline.set_clear_attachments_colors(glm::vec4(1.0f, 1.0f, 1.0f, .0f));
     for( int i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
     {
         _voxelize_pipeline.begin_command_recording(_voxelize_command_buffers[i], i);
@@ -402,9 +391,10 @@ void deferred_renderer::record_clear_texture_3d_buffer()
 
 void deferred_renderer::record_command_buffers(obj_shape** shapes, size_t number_of_shapes)
 {
-
-    _mrt_pipeline.set_clear_values( glm::vec4(0), glm::vec2(0));
-    _mrt_pipeline.set_clear_value(3, glm::vec4(0), glm::vec2(1.0f, 0));
+    
+    _mrt_pipeline.set_clear_attachments_colors(glm::vec4(0.f));
+    _mrt_pipeline.set_clear_depth(glm::vec2(1.0f, 0.0f));
+    
     for (uint32_t i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; i++)
     {
         
@@ -430,7 +420,6 @@ void deferred_renderer::perform_final_drawing_setup()
     if( !_setup_initialized)
     {
         _setup_initialized = true;
-        create_pipeline();
         record_command_buffers(_shapes.data(), _shapes.size());
         _pipeline_created = true;
     }

@@ -41,22 +41,6 @@ namespace vk
         render_pass(device* device, glm::vec2 dimensions);
         
         void set_rendering_attachments(std::array<std::array<TEXTURE_TYPE,glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, NUM_ATTACHMENTS>& rendering_texture);
-        inline void set_clear_value(size_t attachment_index, glm::vec4 value)
-        {
-            assert(_vk_frame_buffer_infos.size() > attachment_index);
-            _vk_frame_buffer_infos[attachment_index]._clear_value.color.float32[0] = value.x;
-            _vk_frame_buffer_infos[attachment_index]._clear_value.color.float32[1] = value.y;
-            _vk_frame_buffer_infos[attachment_index]._clear_value.color.float32[2] = value.z;
-            _vk_frame_buffer_infos[attachment_index]._clear_value.color.float32[3] = value.w;
-        }
-        
-        
-        inline void set_depth_clear_value(size_t attachment_index, float depth_clear, uint32_t stencil_clear )
-        {
-            assert(_vk_frame_buffer_infos.size() > attachment_index);
-            _vk_frame_buffer_infos[attachment_index]._clear_value.depthStencil.depth= depth_clear;
-            _vk_frame_buffer_infos[attachment_index]._clear_value.depthStencil.stencil =  stencil_clear;
-        }
         
         void set_depth_enable(bool enable){ _depth_enable = enable; };
         void init();
@@ -83,7 +67,7 @@ namespace vk
         {
             assert(_vk_frame_buffer_infos.size() > i);
             
-            return _vk_frame_buffer_infos[i]._frame_buffer;
+            return _vk_frame_buffer_infos[i];
         }
         
         inline std::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& get_depth_textures(){ return _depth_textures; }
@@ -99,19 +83,13 @@ namespace vk
         
     private:
         
-        struct frame_buffer_info
-        {
-            VkFramebuffer _frame_buffer = VK_NULL_HANDLE;
-            VkClearValue  _clear_value = {};
-        };
-        
         //note: we rely on NUM_SWAPCHAIN_IMAGES to declare in these arrays, in the future if that is no longer
         //the way to go, templetize this.
         
         std::array<std::array<TEXTURE_TYPE, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, NUM_ATTACHMENTS>*  _attachments = nullptr;
         std::array<depth_texture, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>             _depth_textures;
         std::array<VkRenderPass, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>       _vk_render_passes {};
-        std::array<frame_buffer_info, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>  _vk_frame_buffer_infos {};
+        std::array<VkFramebuffer, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>  _vk_frame_buffer_infos {};
         
         bool _off_screen_rendering = false;
         bool _depth_enable = true;
@@ -283,7 +261,7 @@ namespace vk
             framebuffer_create_info.height = _attachments->at(0)[0].get_height();
             framebuffer_create_info.layers = 1;
             
-            VkResult result = vkCreateFramebuffer(_device->_logical_device, &framebuffer_create_info, nullptr, &(_vk_frame_buffer_infos[swapchain_index]._frame_buffer));
+            VkResult result = vkCreateFramebuffer(_device->_logical_device, &framebuffer_create_info, nullptr, &(_vk_frame_buffer_infos[swapchain_index]));
             ASSERT_VULKAN(result)
         }
 
@@ -294,7 +272,7 @@ namespace vk
     {
         for( int i =0 ; i < _vk_frame_buffer_infos.size(); ++i)
         {
-            vkDestroyFramebuffer(_device->_logical_device, _vk_frame_buffer_infos[i]._frame_buffer, nullptr);
+            vkDestroyFramebuffer(_device->_logical_device, _vk_frame_buffer_infos[i], nullptr);
         }
         
         for( int i = 0; i < _vk_render_passes.size(); ++i)

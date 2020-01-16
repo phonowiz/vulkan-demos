@@ -30,11 +30,7 @@ _pipeline(device, glm::vec2( swapchain->get_vk_swap_extent().width, swapchain->g
     _device = device;
     _window = window;
     _swapchain = swapchain;
-}
-
-template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_render_pass()
-{
+    
     _pipeline.set_rendering_attachments(_swapchain->present_textures);
 }
 
@@ -110,63 +106,16 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::recreate_renderer()
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::record_command_buffers(obj_shape** shapes, size_t number_of_shapes)
 {
-    VkCommandBufferBeginInfo command_buffer_begin_info {};
-    command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    command_buffer_begin_info.pNext = nullptr;
-    command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-    command_buffer_begin_info.pInheritanceInfo = nullptr;
-    
     for (uint32_t i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES;i++)
     {
-        VkResult result = vkBeginCommandBuffer(_command_buffers[i], &command_buffer_begin_info);
-        ASSERT_VULKAN(result);
-        
-        VkRenderPassBeginInfo render_pass_create_info = {};
-        render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        render_pass_create_info.pNext = nullptr;
-        render_pass_create_info.renderPass = _pipeline.get_vk_render_pass(i);
-        render_pass_create_info.framebuffer = _pipeline.get_vk_frame_buffer(i);
-        render_pass_create_info.renderArea.offset = { 0, 0 };
-        render_pass_create_info.renderArea.extent = { _swapchain->get_vk_swap_extent().width,
-            _swapchain->get_vk_swap_extent().height };
-        VkClearValue clear_value = {0.0f, 0.0f, 0.0f, 1.0f};
-        VkClearValue depth_clear_value = {1.0f, 0.0f};
-        
-        std::array<VkClearValue,2> clear_values;
-        clear_values[0] = clear_value;
-        clear_values[1] = depth_clear_value;
-        
-        render_pass_create_info.clearValueCount = static_cast<uint32_t>(clear_values.size());
-        render_pass_create_info.pClearValues = clear_values.data();
-        
-        vkCmdBeginRenderPass(_command_buffers[i], &render_pass_create_info, VK_SUBPASS_CONTENTS_INLINE);
-        vkCmdBindPipeline(_command_buffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline._pipeline[i]);
-        
-        VkViewport viewport;
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport. width = _swapchain->get_vk_swap_extent().width;
-        viewport.height = _swapchain->get_vk_swap_extent().height;
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(_command_buffers[i], 0, 1, &viewport);
-        
-        VkRect2D scissor;
-        scissor.offset = { 0, 0};
-        scissor.extent = { _swapchain->get_vk_swap_extent().width,
-            _swapchain->get_vk_swap_extent().height};
-        vkCmdSetScissor(_command_buffers[i], 0, 1, &scissor);
-        
+        _pipeline.begin_command_recording(_command_buffers[i], i);
         
         for( uint32_t j = 0; j < number_of_shapes; ++j)
         {
             shapes[j]->draw(_command_buffers[i], _pipeline, j, i);
         }
         
-        vkCmdEndRenderPass(_command_buffers[i]);
-        
-        result = vkEndCommandBuffer(_command_buffers[i]);
-        ASSERT_VULKAN(result);
+        _pipeline.end_command_recording();
     }
 }
 
@@ -193,16 +142,9 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::destroy()
 }
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_pipeline()
-{
-    _pipeline.create();
-}
-
-template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::init()
 {
     assert(_shapes.size() != 0 && "add meshes to render before calling init");
-    create_render_pass();
     create_semaphores_and_fences();
     create_command_buffers(&_command_buffers, _device->_present_command_pool);
     
@@ -216,7 +158,8 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::perform_final_drawing_setup
     {
         //note: we create the pipeline here to give the client a chance to set the material input arguments.
         //the pipeline needs this information to be created properly.
-        create_pipeline();
+
+        _pipeline.create();
         record_command_buffers(_shapes.data(), _shapes.size());
         _pipeline_created = true;
     }

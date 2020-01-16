@@ -52,11 +52,8 @@ namespace vk
         
         graphics_pipeline()
         {
-            for(int i = 0; i < NUM_ATTACHMENTS + 1; ++i)
-            {
-                _clear_values[i].color = {0.0f, 0.0f, 0.0f, 0.0f};
-                _clear_values[i].depthStencil = {1.0f, 0};
-            }
+            set_clear_attachments_colors(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+            set_clear_depth(glm::vec2(1.0f, 0.0f));
             init_blend_attachments();
         };
         
@@ -72,30 +69,27 @@ namespace vk
                 _material[i] = material;
             }
             
-            for(int i = 0; i < NUM_ATTACHMENTS + 1; ++i)
-            {
-                _clear_values[i].color = {0.0f, 0.0f, 0.0f, 0.0f};
-                _clear_values[i].depthStencil = {1.0f, 0};
-            }
+            set_clear_attachments_colors(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+            set_clear_depth(glm::vec2(1.0f, 0.0f));
             init_blend_attachments();
         };
         
 
         void create();
-        void set_clear_value( uint32_t attachment_id, glm::vec4 color, glm::vec2 depth_stencil)
+
+        void set_clear_depth( glm::vec2 depth_stencil)
         {
-            assert(attachment_id < _clear_values.size());
-            _clear_values[attachment_id].color = {color.x, color.y, color.z, color.w};
-            _clear_values[attachment_id].depthStencil = {depth_stencil.x, (uint32_t)depth_stencil.y};
+            //note: depth value is always the last one...
+            _clear_values[_clear_values.size()-1].depthStencil = {depth_stencil.x, (uint32_t)depth_stencil.y};
             
         }
-        void set_clear_values( glm::vec4 color, glm::vec2 depth_stencil)
+        void set_clear_attachments_colors( glm::vec4 color)
         {
-            int attachment_count = _depth_enable ? NUM_ATTACHMENTS + 1 : NUM_ATTACHMENTS;
-            for(int i = 0; i < attachment_count; ++i)
+            assert(_depth_enable && "you must enable depth for this to take effect");
+            //note" -2 because the last one is depth attachment
+            for(int i = 0; i < _clear_values.size()-2; ++i)
             {
                 _clear_values[i].color = {color.x, color.y, color.z, color.w};
-                _clear_values[i].depthStencil = {depth_stencil.x, (uint32_t)depth_stencil.y};
             }
         }
         void set_viewport(uint32_t width, uint32_t height){ _width = width; _height = height;};

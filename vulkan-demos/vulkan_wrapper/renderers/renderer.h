@@ -94,7 +94,6 @@ namespace vk
         
         
     protected:
-        virtual void create_render_pass();
         virtual void create_command_buffers(VkCommandBuffer** command_buffers, VkCommandPool command_pool);
         virtual void create_semaphores_and_fences();
         
@@ -102,7 +101,6 @@ namespace vk
         void create_fence(VkFence& fence);
         
         virtual void record_command_buffers(obj_shape** shapes, size_t number_of_shapes);
-        virtual void create_pipeline();
         virtual void perform_final_drawing_setup();
         
     private:

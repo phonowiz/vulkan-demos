@@ -61,8 +61,7 @@ namespace vk
         static constexpr uint32_t VOXEL_CUBE_DEPTH  =  256u ;
         
     private:
-        virtual void create_render_pass()   override;
-        virtual void create_pipeline()      override;
+
         virtual void create_semaphores_and_fences() override;
         void generate_voxel_textures(vk::camera& camera);
         

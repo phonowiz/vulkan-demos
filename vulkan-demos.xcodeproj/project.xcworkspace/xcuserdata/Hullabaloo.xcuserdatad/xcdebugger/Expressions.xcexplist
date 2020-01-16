@@ -98,6 +98,14 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
+         contextName = "vk::renderer&lt;vk::glfw_present_texture, 1u&gt;::record_command_buffers(vk::obj_shape**, unsigned long):renderer.hpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "_pipeline">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "vk::Material::createDescriptorSet():material.cpp">
          <PersistentStrings>
             <PersistentString
@@ -153,6 +161,12 @@
                value = "total_size">
             </PersistentString>
          </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "vk::graphics_pipeline&lt;vk::render_texture, 1u&gt;::begin_command_recording(VkCommandBuffer_T*&amp;, unsigned int):graphics_pipeline.hpp">
+      </ContextState>
+      <ContextState
+         contextName = "vk::graphics_pipeline&lt;vk::render_texture, 3u&gt;::begin_command_recording(VkCommandBuffer_T*&amp;, unsigned int):graphics_pipeline.hpp">
       </ContextState>
       <ContextState
          contextName = "_glfwInitVulkan:vulkan.c">
@@ -286,10 +300,10 @@
                value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
             </PersistentString>
             <PersistentString
-               value = "pair.first">
+               value = "pair2.first">
             </PersistentString>
             <PersistentString
-               value = "pair2.first">
+               value = "pair.first">
             </PersistentString>
             <PersistentString
                value = "_sampler_buffers.size()">
@@ -333,13 +347,13 @@
          contextName = "vk::material::create_descriptor_sets():material.cpp">
          <PersistentStrings>
             <PersistentString
+               value = " _descriptor_set_layout_bindings[count].binding">
+            </PersistentString>
+            <PersistentString
                value = "pair2.first">
             </PersistentString>
             <PersistentString
                value = "write_descriptor_sets[count].dstBinding">
-            </PersistentString>
-            <PersistentString
-               value = " _descriptor_set_layout_bindings[count].binding">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -510,6 +524,9 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
+         contextName = "MVKRenderSubpass::populateMTLRenderPassDescriptor(MTLRenderPassDescriptor*, MVKFramebuffer*, MVKVector&lt;VkClearValue&gt;&amp;, bool, bool, bool):MVKRenderPass.mm">
+      </ContextState>
+      <ContextState
          contextName = "vk::render_pass&lt;vk::glfw_present_texture, 1u&gt;::get_vk_render_pass(unsigned long):render_pass.h">
          <PersistentStrings>
             <PersistentString
@@ -577,6 +594,9 @@
                value = "descriptor_image_infos[count]">
             </PersistentString>
          </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "vk::graphics_pipeline&lt;vk::glfw_present_texture, 1u&gt;::begin_command_recording(VkCommandBuffer_T*&amp;, unsigned int):graphics_pipeline.hpp">
       </ContextState>
    </ContextStates>
 </VariablesViewState>
