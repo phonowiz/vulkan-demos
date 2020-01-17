@@ -531,7 +531,7 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
         
         _voxelize_pipeline.commit_parameters_to_gpu(_deferred_image_index);
         
-        std::array<VkPipelineStageFlags, 1> wait_stage_mask= {};
+        std::array<VkPipelineStageFlags, 1> wait_stage_mask= {VK_PIPELINE_STAGE_VERTEX_SHADER_BIT};
         
         submits[i].sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submits[i].commandBufferCount = 1;
@@ -543,9 +543,9 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
         submits[i].pSignalSemaphores =  &semaphores[i];
         
         
-        //TODO: the following fence in theory is not necessary, but removing it causes some of the renderings to not be written to the texture, even though I have
+        //TODO: the following fence in theory is not necessary, but removing it causes some of the renderings to not be written to the 3D voxel texture, even though I have
         //semphores in the submissions, I even tried barriers, and changed the moltenVK implementations of the semaphore to fence and events, nothing made the bug go away.
-        //Do not bulk these submits into due to this bug.  It may be either in the OS or MoltenVK, am not sure, or somewhere in this code, I have no clue.
+        //Do not bulk these submits together due to this bug.  It may be either in the OS or MoltenVK, am not sure, or somewhere in this code, I have no clue.
         vkResetFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index]);
         vkQueueSubmit(_device->_graphics_queue,1, &submits[i], _voxelize_inflight_fence[_deferred_image_index]);
         vkWaitForFences(_device->_logical_device, 1, &_voxelize_inflight_fence[_deferred_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
