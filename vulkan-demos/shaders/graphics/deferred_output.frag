@@ -212,11 +212,11 @@ void collect_lod_colors( vec3 direction, vec3 world_position)
 
 void ambient_occlusion(vec3 world_pos, inout vec4 sample_color )
 {
-    float lambda = 2.0f;
+    float lambda = 4.0f;
 
     vec4 projection = rendering_state.vox_view_projection * vec4(world_pos, 1.0f);
     vec3 j = rendering_state.voxel_size_in_world_space.xyz;
-    uint lod = 3;
+    uint lod = 2;
     vec3 step = j*voxel_jump;
     j += step;
     

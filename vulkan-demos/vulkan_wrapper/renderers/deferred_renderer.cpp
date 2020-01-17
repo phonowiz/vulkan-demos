@@ -580,35 +580,30 @@ void deferred_renderer::draw(camera& camera)
         _semaphore_image_available};
     //render g-buffers
     VkResult result = {};
-    VkSubmitInfo submit_info = {};
-    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit_info.pNext = nullptr;
-    submit_info.waitSemaphoreCount = wait_semaphores.size();
-    submit_info.pWaitSemaphores = wait_semaphores.data();
+    std::array<VkSubmitInfo,3> submit_info = {};
+    submit_info[0].sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info[0].pNext = nullptr;
+    submit_info[0].waitSemaphoreCount = wait_semaphores.size();
+    submit_info[0].pWaitSemaphores = wait_semaphores.data();
     VkPipelineStageFlags wait_stage_mask[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    submit_info.pWaitDstStageMask = wait_stage_mask;
-    submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &(_offscreen_command_buffers[_deferred_image_index]);
-    submit_info.signalSemaphoreCount = 1;
-    submit_info.pSignalSemaphores = &_g_buffers_rendering_done[_deferred_image_index];
-
-    result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, nullptr);
-
-    
-    ASSERT_VULKAN(result);
+    submit_info[0].pWaitDstStageMask = wait_stage_mask;
+    submit_info[0].commandBufferCount = 1;
+    submit_info[0].pCommandBuffers = &(_offscreen_command_buffers[_deferred_image_index]);
+    submit_info[0].signalSemaphoreCount = 1;
+    submit_info[0].pSignalSemaphores = &_g_buffers_rendering_done[_deferred_image_index];
     
     //render scene with g buffers and 3d voxel texture
-    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit_info.pNext = nullptr;
-    submit_info.waitSemaphoreCount = 1;
-    submit_info.pWaitSemaphores = &_g_buffers_rendering_done[_deferred_image_index];
-    submit_info.pWaitDstStageMask = wait_stage_mask;
-    submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &(_command_buffers[_deferred_image_index]);
-    submit_info.signalSemaphoreCount = 1;
-    submit_info.pSignalSemaphores = &_semaphore_rendering_done;
+    submit_info[1].sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submit_info[1].pNext = nullptr;
+    submit_info[1].waitSemaphoreCount = 1;
+    submit_info[1].pWaitSemaphores = &_g_buffers_rendering_done[_deferred_image_index];
+    submit_info[1].pWaitDstStageMask = wait_stage_mask;
+    submit_info[1].commandBufferCount = 1;
+    submit_info[1].pCommandBuffers = &(_command_buffers[_deferred_image_index]);
+    submit_info[1].signalSemaphoreCount = 1;
+    submit_info[1].pSignalSemaphores = &_semaphore_rendering_done;
 
-    result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, nullptr);
+    result = vkQueueSubmit(_device->_graphics_queue, submit_info.size(), submit_info.data(), nullptr);
 
     ASSERT_VULKAN(result);
     //present the scene to viewer
