@@ -98,6 +98,7 @@ namespace vk
         virtual void create_semaphores_and_fences();
         
         void create_semaphore(VkSemaphore& semaphore);
+        void create_semaphores(std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& semaphores);
         void create_fence(VkFence& fence);
         
         virtual void record_command_buffers(obj_shape** shapes, size_t number_of_shapes);

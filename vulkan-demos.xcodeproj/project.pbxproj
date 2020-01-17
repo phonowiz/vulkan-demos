@@ -640,6 +640,7 @@
 					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVK/macOS/dynamic",
 					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/dynamic",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
 					"-lglfw3",
 					"-lMoltenVK",
@@ -690,6 +691,7 @@
 					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVK/macOS/dynamic",
 					"$(PROJECT_DIR)/vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/dynamic",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
 					"-lglfw3",
 					"-lMoltenVK",

@@ -114,15 +114,10 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "vk::depth_image::get_depth_attachment():depth_image.cpp">
+         contextName = "vk::graphics_pipeline&lt;vk::render_texture, 1u&gt;::begin_command_recording(VkCommandBuffer_T*&amp;, unsigned int):graphics_pipeline.hpp">
       </ContextState>
       <ContextState
-         contextName = "MVKDescriptorBinding::writeBindings(unsigned int, unsigned int, unsigned int, unsigned long, void const*):MVKDescriptorSet.mm">
-         <PersistentStrings>
-            <PersistentString
-               value = "_bufferBindings[0]">
-            </PersistentString>
-         </PersistentStrings>
+         contextName = "vk::graphics_pipeline&lt;vk::render_texture, 3u&gt;::begin_command_recording(VkCommandBuffer_T*&amp;, unsigned int):graphics_pipeline.hpp">
       </ContextState>
       <ContextState
          contextName = "MVKRenderSubpass::getColorAttachmentFormat(unsigned int):MVKRenderPass.mm">
@@ -155,6 +150,9 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
+         contextName = "vk::depth_image::get_depth_attachment():depth_image.cpp">
+      </ContextState>
+      <ContextState
          contextName = "vk::material_base::init_shader_parameters():material_base.cpp">
          <PersistentStrings>
             <PersistentString
@@ -163,10 +161,20 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "vk::graphics_pipeline&lt;vk::render_texture, 1u&gt;::begin_command_recording(VkCommandBuffer_T*&amp;, unsigned int):graphics_pipeline.hpp">
+         contextName = "MVKDescriptorBinding::writeBindings(unsigned int, unsigned int, unsigned int, unsigned long, void const*):MVKDescriptorSet.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "_bufferBindings[0]">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
-         contextName = "vk::graphics_pipeline&lt;vk::render_texture, 3u&gt;::begin_command_recording(VkCommandBuffer_T*&amp;, unsigned int):graphics_pipeline.hpp">
+         contextName = "MVKQueueCommandBufferSubmission::commitActiveMTLCommandBuffer(bool):MVKQueue.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "_waitSemaphores">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
          contextName = "_glfwInitVulkan:vulkan.c">
@@ -297,13 +305,13 @@
          contextName = "vk::material::create_descriptor_set_layout():material.cpp">
          <PersistentStrings>
             <PersistentString
+               value = "pair.first">
+            </PersistentString>
+            <PersistentString
                value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
             </PersistentString>
             <PersistentString
                value = "pair2.first">
-            </PersistentString>
-            <PersistentString
-               value = "pair.first">
             </PersistentString>
             <PersistentString
                value = "_sampler_buffers.size()">
@@ -347,13 +355,13 @@
          contextName = "vk::material::create_descriptor_sets():material.cpp">
          <PersistentStrings>
             <PersistentString
-               value = " _descriptor_set_layout_bindings[count].binding">
+               value = "write_descriptor_sets[count].dstBinding">
             </PersistentString>
             <PersistentString
                value = "pair2.first">
             </PersistentString>
             <PersistentString
-               value = "write_descriptor_sets[count].dstBinding">
+               value = " _descriptor_set_layout_bindings[count].binding">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -514,6 +522,14 @@
       </ContextState>
       <ContextState
          contextName = "game_loop():main.mm">
+      </ContextState>
+      <ContextState
+         contextName = "MVKDevice::waitIdle():MVKDevice.mm">
+         <PersistentStrings>
+            <PersistentString
+               value = "_queuesByQueueFamilyIndex">
+            </PersistentString>
+         </PersistentStrings>
       </ContextState>
       <ContextState
          contextName = "vk::Renderer::createSemaphores():renderer.cpp">

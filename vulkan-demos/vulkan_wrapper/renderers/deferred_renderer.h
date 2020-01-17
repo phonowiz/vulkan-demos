@@ -72,7 +72,7 @@ namespace vk
         void record_3d_mip_maps_commands();
 
         void clear_voxels_textures();
-        void generate_voxel_mip_maps();
+        void generate_voxel_mip_maps(VkSemaphore& semaphore);
         
         void create_voxel_texture_pipelines(vk::material_store& store);
         void setup_sampling_rays();
@@ -97,18 +97,18 @@ namespace vk
         std::array<VkCommandBuffer*, TOTAL_LODS -1> _genered_3d_mip_maps_commands {};
         std::array<std::array<compute_pipeline, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS -1> _create_voxel_mip_maps_pipelines {};
         
-        VkSemaphore _deferred_semaphore_image_available = VK_NULL_HANDLE;
-        VkSemaphore _g_buffers_rendering_done = VK_NULL_HANDLE;
-        VkSemaphore _voxelize_semaphore = VK_NULL_HANDLE;
-        VkSemaphore _voxelize_semaphore_done = VK_NULL_HANDLE;
+        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _deferred_semaphore_image_available = {};
+        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _g_buffers_rendering_done = {};
+        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>  _voxelize_semaphore {};
+        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _voxelize_semaphore_done = {};
         
 
-        VkSemaphore _generate_voxel_x_axis_semaphore = VK_NULL_HANDLE;
-        VkSemaphore _generate_voxel_y_axis_semaphore = VK_NULL_HANDLE;
-        VkSemaphore _generate_voxel_z_axis_semaphore = VK_NULL_HANDLE;
-        VkSemaphore _clear_voxel_textures =  VK_NULL_HANDLE;
+        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _generate_voxel_x_axis_semaphore {};
+        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _generate_voxel_y_axis_semaphore = {};
+        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _generate_voxel_z_axis_semaphore = {};
+        std::array<std::array<VkSemaphore, TOTAL_LODS>, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _clear_voxel_textures =  {};
         
-        std::array<VkSemaphore, TOTAL_LODS-1> _mip_map_semaphores;
+        std::array<std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS-1> _mip_map_semaphores {};
         
         rendering_mode _rendering_mode = rendering_mode::FULL_RENDERING;
         

@@ -52,7 +52,6 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_command_buffers(VkCo
     ASSERT_VULKAN(result);
 }
 
-
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_semaphore(VkSemaphore& semaphore)
 {
@@ -64,6 +63,23 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_semaphore(VkSemaphor
     
     VkResult result = vkCreateSemaphore(_device->_logical_device, &semaphore_create_info, nullptr, &semaphore);
     ASSERT_VULKAN(result);
+}
+
+template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_semaphores(std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& semaphores)
+{
+    for( int i = 0; i < semaphores.size(); ++i)
+    {
+        VkSemaphoreCreateInfo semaphore_create_info {};
+        semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+        semaphore_create_info.pNext = nullptr;
+        semaphore_create_info.flags = 0;
+        
+        
+        VkResult result = vkCreateSemaphore(_device->_logical_device, &semaphore_create_info, nullptr, &semaphores[i]);
+        ASSERT_VULKAN(result);
+
+    }
 }
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
