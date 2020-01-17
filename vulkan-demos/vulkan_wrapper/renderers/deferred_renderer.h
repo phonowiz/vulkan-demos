@@ -44,7 +44,7 @@ namespace vk
         
         inline std::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& get_voxel_texture( )
         {
-            return _voxel_albedo_textures[0];
+            return _voxel_normal_textures[0];
         }
         
         inline texture_2d* get_voxelizer_cam_texture( ){ return  &_voxel_2d_view[0][0]; }

@@ -574,7 +574,8 @@ void deferred_renderer::draw(camera& camera)
     display_params["height"] = static_cast<float>(_swapchain->get_vk_swap_extent().height);
     perform_final_drawing_setup();
     
-    generate_voxel_textures(camera);
+    if(_deferred_image_index % 2 != 0)
+        generate_voxel_textures(camera);
     
     std::array<VkSemaphore, 2> wait_semaphores{ _mip_map_semaphores[_deferred_image_index][ _mip_map_semaphores.size()-1 ],
         _semaphore_image_available};
