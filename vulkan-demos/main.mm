@@ -368,13 +368,11 @@ int main()
     
     display_renderer.get_pipeline().set_depth_enable(false);
     display_renderer.show_texture(deferred_renderer.get_voxelizer_cam_texture());
-    //display_renderer.show_texture(&mario);
+    display_renderer.show_texture(&mario);
     display_renderer.init();
     
     app.display_renderer = &display_renderer;
-    
     app.three_d_renderer = &three_d_renderer;
-    
     app.deferred_renderer = &deferred_renderer;
     
     app.deferred_renderer->init();
@@ -396,7 +394,7 @@ int main()
     app.texture_3d_view_controller = &texture_3d_view_controller;
     
     game_loop();
-    //game_loop_ortho(display_renderer);
+    //¡game_loop_ortho(display_renderer);
     
     mario.destroy();
     deferred_renderer.destroy();
