@@ -31,7 +31,14 @@ _pipeline(device, glm::vec2( swapchain->get_vk_swap_extent().width, swapchain->g
     _window = window;
     _swapchain = swapchain;
     
+    //_pipeline::subpass_type
     _pipeline.set_rendering_attachments(_swapchain->present_textures);
+    typename pipeline_type::subpass_type& subpass = _pipeline.add_subpass();
+    
+    static constexpr int ATTACHMENT_ID = 0;
+    subpass.add_attachment_input("default", ATTACHMENT_ID);
+    
+    //static_assert(0, "you left here");
 }
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>

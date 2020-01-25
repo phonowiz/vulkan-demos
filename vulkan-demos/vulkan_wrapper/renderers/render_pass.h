@@ -37,6 +37,52 @@ namespace vk
     {
     public:
         
+        static constexpr uint32_t MAX_NUMBER_OF_ATTACHMENTS = 5;
+        
+        class subpass_s
+        {
+        public:
+
+            static constexpr int32_t INVALID_ATTACHMENT = -1;
+            
+            inline uint32_t get_id(){ return id; }
+            inline bool is_active(){ return _active; }
+            
+            inline void add_attachment_input(const char* parameter_name , uint32_t attachment_id)
+            {
+                _attachment_mapping[parameter_name] = attachment_id;
+            }
+            
+            
+            inline void init()
+            {
+                int i = 0;
+                
+                for( std::pair<const char*, uint32_t> iter : _attachment_mapping)
+                {
+                    _color_references[i].attachment = iter.second;
+                    _color_references[i].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                    ++i;
+                }
+                
+                _subpass_description.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+                _subpass_description.pColorAttachments = _color_references.data();
+                _subpass_description.colorAttachmentCount = i;
+            }
+            
+            inline VkSubpassDescription get_subpass_description() { return _subpass_description; }
+            inline void set_active(){ _active = true; }
+            const char* _name = nullptr;
+        private:
+
+            VkSubpassDescription _subpass_description {};
+            bool _active = false;
+            uint32_t id = INVALID_ATTACHMENT;
+            ordered_map<const char*, uint32_t> _attachment_mapping;
+            std::array<VkAttachmentReference, MAX_NUMBER_OF_ATTACHMENTS> _color_references {};
+        };
+        
+        
         render_pass(){}
         render_pass(device* device, glm::vec2 dimensions);
         
@@ -76,7 +122,16 @@ namespace vk
         
         inline void set_offscreen_rendering(bool offscreen ){ _off_screen_rendering = offscreen; }
         
+        inline subpass_s& add_subpass(const char* name = "" )
+        {
+            _subpasses[_num_subpasses]._name = name;
+            _subpasses[_num_subpasses].set_active();
+            
+            return _subpasses[_num_subpasses++];
+        };
+        
         void destroy() override;
+        
     private:
         
         void create_frame_buffers();
@@ -88,18 +143,21 @@ namespace vk
         
         std::array<std::array<TEXTURE_TYPE, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, NUM_ATTACHMENTS>*  _attachments = nullptr;
         std::array<depth_texture, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>             _depth_textures;
-        std::array<VkRenderPass, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>       _vk_render_passes {};
-        std::array<VkFramebuffer, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>  _vk_frame_buffer_infos {};
+        std::array<VkRenderPass, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>                  _vk_render_passes {};
+        std::array<VkFramebuffer, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>                 _vk_frame_buffer_infos {};
+        
+        static constexpr unsigned int MAX_SUBPASSES = 20u;
+        std::array<subpass_s, MAX_SUBPASSES> _subpasses {};
         
         bool _off_screen_rendering = false;
         bool _depth_enable = true;
-
-        static constexpr uint32_t MAX_NUMBER_OF_ATTACHMENTS = 5;
         
         static_assert(MAX_NUMBER_OF_ATTACHMENTS > NUM_ATTACHMENTS, "Number of attachments in your render pass excees what we can handle, increase limit??");
 
         glm::vec2 _dimensions {};
         device* _device = nullptr;
+        
+        uint32_t _num_subpasses = 0;
         
     };
 
@@ -148,7 +206,6 @@ namespace vk
             std::array<VkAttachmentDescription, MAX_NUMBER_OF_ATTACHMENTS> attachment_descriptions {};
             //an excellent explanation of what the heck are these attachment references:
             //https://stackoverflow.com/questions/49652207/what-is-the-purpose-of-vkattachmentreference
-            std::array<VkAttachmentReference, MAX_NUMBER_OF_ATTACHMENTS> color_references {};
             
             //here is article about subpasses and input attachments and how they are all tied togethere
             //https://www.saschawillems.de/blog/2018/07/19/vulkan-input-attachments-and-sub-passes/
@@ -174,47 +231,54 @@ namespace vk
                 //this is the layout the attahment will be used during the subpass.  The driver decides if there should be a
                 //transition or not given the 'initialLayout' specified in the attachment description
                 
-                //the first integer in the instruction is the attachment location specified in the shader
-                color_references[attachment_id] = {attachment_id, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
+                //the first integer in the instruction is the attachment location specified in the frame buffer
+                //color_references[attachment_id] = {attachment_id, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
             }
             
             assert(attachment_id != 0);
-            VkSubpassDescription subpass {};
-            subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-            subpass.pColorAttachments = color_references.data();
-            subpass.colorAttachmentCount = attachment_id;
             
-            //an excellent explanation of what the heck are these attachment references:
-            //https://stackoverflow.com/questions/49652207/what-is-the-purpose-of-vkattachmentreference
+            std::array<VkSubpassDescription, MAX_SUBPASSES> subpass {};
             
-            VkAttachmentReference depth_reference {};
-
-             if(_depth_enable)
+            assert(_subpasses[0].is_active() && "You need at least one subpass for rendering to occur");
+            int subpass_id = 0;
+            while(_subpasses[subpass_id].is_active())
             {
-                assert(width == _depth_textures[swapchain_index].get_width());
-                assert(height == _depth_textures[swapchain_index].get_height());
+                _subpasses[subpass_id].init();
+                subpass[subpass_id] = _subpasses[subpass_id].get_subpass_description();
                 
-                //note: in this code, the last attachement is the depth
-                attachment_descriptions[attachment_id] =  _depth_textures[swapchain_index].get_depth_attachment();
-                depth_reference.attachment = attachment_id;//attachment_descriptions.size();
-                depth_reference.layout = static_cast<VkImageLayout>(_depth_textures[swapchain_index].get_image_layout());
-                subpass.pDepthStencilAttachment = &depth_reference;
-                ++attachment_id;
-            }
+                //an excellent explanation of what the heck are these attachment references:
+                //https://stackoverflow.com/questions/49652207/what-is-the-purpose-of-vkattachmentreference
+                
+                VkAttachmentReference depth_reference {};
 
-            //note: for a great explanation of VK_SUBPASS_EXTERNAL:
-            //https://stackoverflow.com/questions/53984863/what-exactly-is-vk-subpass-external?rq=1
-            
-            //note: because we state the images initial layout upon entering the renderpass and the layouts the subpasses
-            //need for them to do their work, transitions are implicit and will happen automatically as the renderpass excecutes.
-            
-            
+                 if(_depth_enable)
+                {
+                    assert(width == _depth_textures[swapchain_index].get_width());
+                    assert(height == _depth_textures[swapchain_index].get_height());
+                    
+                    //note: in this code, the last attachement is the depth
+                    attachment_descriptions[attachment_id] =  _depth_textures[swapchain_index].get_depth_attachment();
+                    depth_reference.attachment = attachment_id;
+                    depth_reference.layout = static_cast<VkImageLayout>(_depth_textures[swapchain_index].get_image_layout());
+                    subpass[subpass_id].pDepthStencilAttachment = &depth_reference;
+                }
+
+                //note: for a great explanation of VK_SUBPASS_EXTERNAL:
+                //https://stackoverflow.com/questions/53984863/what-exactly-is-vk-subpass-external?rq=1
+                
+                //note: because we state the images initial layout upon entering the renderpass and the layouts the subpasses
+                //need for them to do their work, transitions are implicit and will happen automatically as the renderpass excecutes.
+                
+                ++subpass_id;
+            }
+            attachment_id = _depth_enable ? attachment_id + 1 : attachment_id;
+
             VkRenderPassCreateInfo render_pass_info = {};
             render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
             render_pass_info.pAttachments = attachment_descriptions.data();
             render_pass_info.attachmentCount =attachment_id;
-            render_pass_info.subpassCount = 1;
-            render_pass_info.pSubpasses = &subpass;
+            render_pass_info.subpassCount = subpass_id;
+            render_pass_info.pSubpasses = subpass.data();
             render_pass_info.dependencyCount = 0;
             render_pass_info.pDependencies = nullptr;
 

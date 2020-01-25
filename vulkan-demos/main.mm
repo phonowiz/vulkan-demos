@@ -368,22 +368,22 @@ int main()
     
     display_renderer.get_pipeline().set_depth_enable(false);
     display_renderer.show_texture(deferred_renderer.get_voxelizer_cam_texture());
-    display_renderer.show_texture(&mario);
+    //display_renderer.show_texture(&mario);
     display_renderer.init();
     
     app.display_renderer = &display_renderer;
     app.three_d_renderer = &three_d_renderer;
     app.deferred_renderer = &deferred_renderer;
-    
+
     app.deferred_renderer->init();
-    
+
     std::array<vk::texture_3d, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& voxel_texture = deferred_renderer.get_voxel_texture();
     app.three_d_renderer->get_pipeline().set_image_sampler(voxel_texture, "texture_3d",
                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
-    
+
     app.three_d_renderer->add_shape(&cube);
     app.three_d_renderer->get_pipeline().set_depth_enable(true);
-    
+
     app.three_d_renderer->get_pipeline().set_cullmode(vk::standard_pipeline::cull_mode::NONE);
     app.three_d_renderer->init();
     
@@ -394,7 +394,7 @@ int main()
     app.texture_3d_view_controller = &texture_3d_view_controller;
     
     game_loop();
-    //¡game_loop_ortho(display_renderer);
+    //game_loop_ortho(display_renderer);
     
     mario.destroy();
     deferred_renderer.destroy();

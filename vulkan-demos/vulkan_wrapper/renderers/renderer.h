@@ -34,6 +34,9 @@ namespace vk
     {
         
     public:
+        
+        using pipeline_type =  graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>;
+        
         enum class subpass_layout
         {
             RENDER_TARGET_LAYOUT = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
@@ -53,7 +56,7 @@ namespace vk
         
         virtual void draw(camera &camera);
         
-        graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>& get_pipeline() { return _pipeline;}
+        pipeline_type& get_pipeline() { return _pipeline;}
         
         virtual void init();
         void recreate_renderer();
@@ -123,7 +126,7 @@ namespace vk
         static const uint32_t MAX_ATTACHMENTS = 10;
         
         VkCommandBuffer* _command_buffers = nullptr;
-        graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS> _pipeline;
+        pipeline_type _pipeline;
         
         std::vector<obj_shape*> _shapes;
         

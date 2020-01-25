@@ -25,6 +25,9 @@ namespace vk
     {
     public:
         
+        using render_pass_type = render_pass<RENDER_TEXTURE_TYPE,NUM_ATTACHMENTS>;
+        using subpass_type = typename render_pass_type::subpass_s;
+        
         enum class cull_mode
         {
             NONE = VK_CULL_MODE_NONE,
@@ -111,6 +114,7 @@ namespace vk
         {
             _render_pass.set_rendering_attachments(rendering_textures);
         }
+        subpass_type& add_subpass(){ return _render_pass.add_subpass(); }
         
         inline VkFramebuffer get_vk_frame_buffer(uint32_t i)
         {
@@ -281,6 +285,9 @@ namespace vk
         
         void begin_command_recording(VkCommandBuffer& buffer, uint32_t swapchain_image_id);
         void end_command_recording();
+        
+        typename render_pass_type::subpass_s&  create_subpass(){ return _render_pass.add_subpass(); }
+        
         ~graphics_pipeline(){};
     private:
         void init_blend_attachments();
@@ -303,7 +310,7 @@ namespace vk
         std::array<VkPipelineColorBlendAttachmentState, BLEND_ATTACHMENTS> _blend_attachments {};
         uint32_t _num_blend_attachments = 1;
         
-        render_pass<RENDER_TEXTURE_TYPE,NUM_ATTACHMENTS> _render_pass;
+        render_pass_type _render_pass;
     };
 
     #include "graphics_pipeline.hpp"

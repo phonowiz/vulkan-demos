@@ -96,16 +96,27 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     _mrt_pipeline.init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
     _mrt_pipeline.init_parameter("lightPosition", visual_material::parameter_stage::VERTEX, glm::vec3(0), binding);
     
+    typename mrt_pipeline::subpass_type& mrt_subpass = _mrt_pipeline.add_subpass();
+    
+    mrt_subpass.add_attachment_input("normals", 0);
+    mrt_subpass.add_attachment_input("albedo", 1);
+    mrt_subpass.add_attachment_input("world_pos", 2);
+    
     _mrt_pipeline.set_number_of_blend_attachments(3);
     _mrt_pipeline.modify_attachment_blend(0, mrt_pipeline::write_channels::RGBA, false);
     _mrt_pipeline.modify_attachment_blend(1, mrt_pipeline::write_channels::RGBA, false);
     _mrt_pipeline.modify_attachment_blend(2, mrt_pipeline::write_channels::RGBA, false);
+    
     glm::mat4 identity = glm::mat4(1);
     _mrt_pipeline.init_dynamic_params("model", visual_material::parameter_stage::VERTEX, identity, shapes.size(), 1);
 
     _mrt_pipeline.create();
     
     //voxelize pipeline
+    typename voxelize_pipeline::subpass_type& voxelize_subpass = _voxelize_pipeline.add_subpass();
+    voxelize_subpass.add_attachment_input("voxelize_debug", 0);
+    
+    
     _voxelize_pipeline.set_number_of_blend_attachments(1);
     _voxelize_pipeline.modify_attachment_blend(0, voxelize_pipeline::write_channels::RGBA, false);
     
@@ -174,6 +185,11 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     }
     
     _pipeline.set_rendering_attachments(_swapchain->present_textures);
+    
+    typename pipeline_type::subpass_type& subpass_type = _pipeline.add_subpass();
+    
+    subpass_type.add_attachment_input("present", 0);
+    
     _pipeline.set_offscreen_rendering(false);
     _pipeline.set_depth_enable(false);
     
@@ -506,7 +522,7 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
     std::array<VkSubmitInfo, 3> submits {};
     
     size_t i = 0;
-    for( ; i < 3; ++i)
+    for( ; i < cam_positions.size(); ++i)
     {
         _ortho_camera.position = cam_positions[i];
         _ortho_camera.forward = -_ortho_camera.position;

@@ -98,7 +98,7 @@ public:
                 return element.second;
             }
         }
-        assert(!_frozen);
+        assert(!_frozen && "you are looking for key that doesn't exist lock has happened");
         _value val;
         std::pair<_key, _value> p =  std::make_pair(i, val);
         _vec.push_back(p);
@@ -113,7 +113,7 @@ public:
                 return element.second;
             }
         }
-        assert(!_frozen);
+        assert(!_frozen && "you are looking for key that doesn't exist lock has happened");
         _value val;
         std::pair<_key, _value> p =  std::make_pair(i, val);
         _vec.push_back(p);
