@@ -55,6 +55,32 @@ namespace vk
             _material[swapchain_id]->commit_parameters_to_gpu();
         }
         
+        bool is_initialized()
+        {
+            bool result = true;
+            for( int i =0; i < _pipeline.size(); ++i)
+            {
+                if(_pipeline[i] == VK_NULL_HANDLE || _pipeline_layout[i] == VK_NULL_HANDLE)
+                {
+                    result = false;
+                    break;
+                }
+            }
+            return result;
+        }
+        
+        virtual void destroy() override
+        {
+            for(int i = 0; i < _pipeline.size(); ++i)
+            {
+                vkDestroyPipeline(_device->_logical_device, _pipeline[i], nullptr);
+                vkDestroyPipelineLayout(_device->_logical_device, _pipeline_layout[i], nullptr);
+                
+                _pipeline[i] = VK_NULL_HANDLE;
+                _pipeline_layout[i] = VK_NULL_HANDLE;
+            }
+        }
+        
         inline void commit_parameter_to_gpu(uint32_t swapchain_index) { _material[swapchain_index]->commit_parameters_to_gpu(); }
         //LOCAL_GROUP_SIZE was chosen here because of an example I saw on the internet, if you decide to change this number
         //make sure the local group sizes in  your particular shader is changed as well. Or maybe this needs to be configurable by
@@ -62,6 +88,9 @@ namespace vk
         static constexpr uint32_t LOCAL_GROUP_SIZE = 8u;
         
     private:
+        
+        std::array<VkPipeline, glfw_swapchain::NUM_SWAPCHAIN_IMAGES >       _pipeline {};
+        std::array<VkPipelineLayout, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>  _pipeline_layout {};
         
         std::array<compute_mat_shared_ptr, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _material = {};
         

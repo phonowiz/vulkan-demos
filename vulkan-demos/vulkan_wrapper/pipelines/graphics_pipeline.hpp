@@ -6,9 +6,6 @@
 //  Copyright © 2019 Rafael Sabino. All rights reserved.
 //
 
-#include "graphics_pipeline.h"
-#include "vertex.h"
-
 template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::init_blend_attachments()
 {
@@ -25,74 +22,74 @@ void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::init_blend_attachm
     }
 }
 
-template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::begin_command_recording(VkCommandBuffer& buffer, uint32_t swapchain_image_id)
-{
-    assert(_recording_buffer == VK_NULL_HANDLE && "you shouldn't call begin_command_recording before calling end_command_recording");
-    _recording_buffer = &buffer;
-    
-    VkCommandBufferBeginInfo command_buffer_begin_info {};
-    command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    command_buffer_begin_info.pNext = nullptr;
-    command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-    command_buffer_begin_info.pInheritanceInfo = nullptr;
-    
-    VkResult result = vkBeginCommandBuffer(buffer, &command_buffer_begin_info);
-    ASSERT_VULKAN(result);
-    
-    VkRenderPassBeginInfo render_pass_create_info = {};
-    render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    render_pass_create_info.pNext = nullptr;
-    render_pass_create_info.renderPass = get_vk_render_pass(swapchain_image_id);
-    render_pass_create_info.framebuffer = get_vk_frame_buffer(swapchain_image_id);
-    render_pass_create_info.renderArea.offset = { 0, 0 };
-    render_pass_create_info.renderArea.extent = { _width, _height };
-    
-    render_pass_create_info.clearValueCount = _depth_enable ? static_cast<uint32_t>(_clear_values.size()) : static_cast<uint32_t>(_clear_values.size() -1);
-    render_pass_create_info.pClearValues = _clear_values.data();
-    
-    vkCmdBeginRenderPass(buffer, &render_pass_create_info, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdBindPipeline(buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline[swapchain_image_id]);
-    
-    VkViewport viewport;
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
-    viewport. width = _width;
-    viewport.height = _height;
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
-    vkCmdSetViewport(buffer, 0, 1, &viewport);
-    
-    VkRect2D scissor;
-    scissor.offset = { 0, 0};
-    scissor.extent = { _width,_height};
-    vkCmdSetScissor(buffer, 0, 1, &scissor);
-}
+//template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+//void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::begin_command_recording(VkCommandBuffer& buffer, VkRenderPass render_pass, VkFramebuffer frame_buffer)
+//{
+//    assert(_recording_buffer == VK_NULL_HANDLE && "you shouldn't call begin_command_recording before calling end_command_recording");
+//    _recording_buffer = &buffer;
+//
+//    VkCommandBufferBeginInfo command_buffer_begin_info {};
+//    command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+//    command_buffer_begin_info.pNext = nullptr;
+//    command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+//    command_buffer_begin_info.pInheritanceInfo = nullptr;
+//
+//    VkResult result = vkBeginCommandBuffer(buffer, &command_buffer_begin_info);
+//    ASSERT_VULKAN(result);
+//
+//    VkRenderPassBeginInfo render_pass_create_info = {};
+//    render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+//    render_pass_create_info.pNext = nullptr;
+//    render_pass_create_info.renderPass = render_pass;//get_vk_render_pass(swapchain_image_id);
+//    render_pass_create_info.framebuffer = frame_buffer;//get_vk_frame_buffer(swapchain_image_id);
+//    render_pass_create_info.renderArea.offset = { 0, 0 };
+//    render_pass_create_info.renderArea.extent = { _width, _height };
+//
+//    render_pass_create_info.clearValueCount = _depth_enable ? static_cast<uint32_t>(_clear_values.size()) : static_cast<uint32_t>(_clear_values.size() -1);
+//    render_pass_create_info.pClearValues = _clear_values.data();
+//
+//    vkCmdBeginRenderPass(buffer, &render_pass_create_info, VK_SUBPASS_CONTENTS_INLINE);
+//    vkCmdBindPipeline(buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline[0]);
+//
+//    VkViewport viewport;
+//    viewport.x = 0.0f;
+//    viewport.y = 0.0f;
+//    viewport. width = _width;
+//    viewport.height = _height;
+//    viewport.minDepth = 0.0f;
+//    viewport.maxDepth = 1.0f;
+//    vkCmdSetViewport(buffer, 0, 1, &viewport);
+//
+//    VkRect2D scissor;
+//    scissor.offset = { 0, 0};
+//    scissor.extent = { _width,_height};
+//    vkCmdSetScissor(buffer, 0, 1, &scissor);
+//}
 
-template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::end_command_recording()
-{
-    assert(_recording_buffer != nullptr && "you must call begin_command_recording");
-    
-    vkCmdEndRenderPass(*_recording_buffer);
-    vkEndCommandBuffer(*_recording_buffer);
-    
-    _recording_buffer = nullptr;
-}
+//template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+//void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::end_command_recording()
+//{
+//    assert(_recording_buffer != nullptr && "you must call begin_command_recording");
+//    
+//    vkCmdEndRenderPass(*_recording_buffer);
+//    vkEndCommandBuffer(*_recording_buffer);
+//    
+//    _recording_buffer = nullptr;
+//}
 
 template< class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-void graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>::create( )
+void graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>::create(VkRenderPass& vk_render_passes)
 {
 
-    _render_pass.init();
+    //_render_pass.init();
     
     auto vertex_binding_description = vertex::get_binding_description();
     auto vertex_attribute_descriptos = vertex::get_attribute_descriptions();
 
-    for( int chain_index = 0; chain_index < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_index)
+    //for( int chain_index = 0; chain_index < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_index)
     {
         //note: this call guarantees that material resources are ready to create a pipeline
-        _material[chain_index]->commit_parameters_to_gpu();
+        _material[0]->commit_parameters_to_gpu();
         
         VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info {};
         vertex_input_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -195,12 +192,12 @@ void graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>::create( )
         pipeline_layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         pipeline_layout_create_info.pNext = nullptr;
         pipeline_layout_create_info.flags = 0;
-        pipeline_layout_create_info.setLayoutCount = _material[chain_index]->descriptor_set_present() ? 1 : 0;
-        pipeline_layout_create_info.pSetLayouts = _material[chain_index]->get_descriptor_set_layout();
+        pipeline_layout_create_info.setLayoutCount = _material[0]->descriptor_set_present() ? 1 : 0;
+        pipeline_layout_create_info.pSetLayouts = _material[0]->get_descriptor_set_layout();
         pipeline_layout_create_info.pushConstantRangeCount = 0;
         pipeline_layout_create_info.pPushConstantRanges = nullptr;
 
-        VkResult result = vkCreatePipelineLayout(_device->_logical_device, &pipeline_layout_create_info, nullptr, &_pipeline_layout[chain_index]);
+        VkResult result = vkCreatePipelineLayout(_device->_logical_device, &pipeline_layout_create_info, nullptr, &_pipeline_layout[0]);
         ASSERT_VULKAN(result);
 
         VkDynamicState dynamic_state[] = {
@@ -219,8 +216,8 @@ void graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>::create( )
         pipeline_create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         pipeline_create_info.pNext = nullptr;
         pipeline_create_info.flags = 0;
-        pipeline_create_info.stageCount = static_cast<uint32_t>(_material[chain_index]->get_shader_stages_size());
-        pipeline_create_info.pStages = _material[chain_index]->get_shader_stages();
+        pipeline_create_info.stageCount = static_cast<uint32_t>(_material[0]->get_shader_stages_size());
+        pipeline_create_info.pStages = _material[0]->get_shader_stages();
         pipeline_create_info.pVertexInputState = &vertex_input_state_create_info;
         pipeline_create_info.pInputAssemblyState = &input_assembly_create_info;
         pipeline_create_info.pTessellationState = nullptr;
@@ -230,12 +227,13 @@ void graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>::create( )
         pipeline_create_info.pDepthStencilState = &depth_stencil_create_info;
         pipeline_create_info.pColorBlendState = &color_blend_create_info;
         pipeline_create_info.pDynamicState = &dynamic_state_create_info;
-        pipeline_create_info.layout = _pipeline_layout[chain_index];
-        pipeline_create_info.renderPass = _render_pass.get_vk_render_pass(chain_index);
+        pipeline_create_info.layout = _pipeline_layout[0];
+        pipeline_create_info.renderPass = vk_render_passes;
         pipeline_create_info.subpass = 0;
         pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
         pipeline_create_info.basePipelineIndex = -1;
 
-        result = vkCreateGraphicsPipelines(_device->_logical_device, VK_NULL_HANDLE, 1, &pipeline_create_info, nullptr, &_pipeline[chain_index]);
+        result = vkCreateGraphicsPipelines(_device->_logical_device, VK_NULL_HANDLE, 1, &pipeline_create_info, nullptr, &_pipeline[0]);
+        ASSERT_VULKAN(result);
     }
 }

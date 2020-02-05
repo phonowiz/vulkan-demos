@@ -35,8 +35,8 @@ namespace vk
         
     public:
         
-        using pipeline_type =  graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>;
-        
+        using render_pass_type =  render_pass<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>;
+        using graphics_pipeline_type = typename render_pass<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::graphics_pipeline_type;
         enum class subpass_layout
         {
             RENDER_TARGET_LAYOUT = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
@@ -56,35 +56,48 @@ namespace vk
         
         virtual void draw(camera &camera);
         
-        pipeline_type& get_pipeline() { return _pipeline;}
+        graphics_pipeline_type& get_pipeline(uint32_t subpass_id) { return _render_pass.get_pipeline(_image_index, subpass_id ); }
+        graphics_pipeline_type& get_pipeline(uint32_t swapchain_id, uint32_t subpass_id) { return _render_pass.get_subpass(0).get_pipeline( subpass_id); }
+        render_pass_type& get_render_pass(){ return _render_pass;}
         
         virtual void init();
         void recreate_renderer();
         
         virtual void destroy() override;
         
-        inline shader_parameter::shader_params_group& get_uniform_params(material_base::parameter_stage stage, uint32_t binding)
+        inline shader_parameter::shader_params_group& get_uniform_params(uint32_t swapchain_id, uint32_t subpass_id, material_base::parameter_stage stage, uint32_t binding)
         {
-            return _pipeline.get_uniform_parameters(stage, binding, _image_index);
+            return _render_pass.get_pipeline(swapchain_id, subpass_id ).get_uniform_parameters(stage, binding); //_pipeline.get_uniform_parameters(stage, binding, _image_index);
         }
         
-        inline visual_material::object_shader_params_group& get_dynamic_params(material_base::parameter_stage stage, uint32_t binding)
+        inline shader_parameter::shader_params_group& get_uniform_params(uint32_t subpass_id, material_base::parameter_stage stage, uint32_t binding)
         {
-            return _pipeline.get_dynamic_parameters(stage, binding, _image_index);
+            return _render_pass.get_pipeline(_image_index, subpass_id ).get_uniform_parameters(stage, binding); //_pipeline.get_uniform_parameters(stage, binding, _image_index);
+        }
+        
+        
+        inline visual_material::object_shader_params_group& get_dynamic_params(uint32_t subpass_id, material_base::parameter_stage stage, uint32_t binding)
+        {
+            //return _pipeline.get_dynamic_parameters(stage, binding, _image_index);
+            return _render_pass.get_pipeline(_image_index, subpass_id).get_dynamic_parameters(stage, binding);
         }
         
         void set_device(device* device)
         {
             _device = device;
-            _pipeline.set_device(device);
+            
+            _render_pass.set_device(device);
+            //for( int i = 0; i < _subpass_pipeline)
+            //_pipeline.set_device(device);
         }
         void set_window(GLFWwindow* window)
         {
             _window = window;
         }
-        void set_material( visual_mat_shared_ptr material)
+        void set_material( uint32_t subpass_id, visual_mat_shared_ptr material)
         {
-            _pipeline.set_material(material);
+            //_pipeline.set_material(material);
+            _render_pass.set_material(material);
         }
         
         
@@ -126,7 +139,7 @@ namespace vk
         static const uint32_t MAX_ATTACHMENTS = 10;
         
         VkCommandBuffer* _command_buffers = nullptr;
-        pipeline_type _pipeline;
+        render_pass_type _render_pass;
         
         std::vector<obj_shape*> _shapes;
         

@@ -83,11 +83,16 @@ namespace vk
         VkCommandBuffer *_offscreen_command_buffers = VK_NULL_HANDLE;
         VkCommandBuffer *_voxelize_command_buffers = VK_NULL_HANDLE;
         
-        using mrt_pipeline = graphics_pipeline<render_texture, 3>;
-        mrt_pipeline _mrt_pipeline;
+        using mrt_render_pass = render_pass<render_texture, 3>;
+        mrt_render_pass _mrt_render_pass;
         
-        using voxelize_pipeline = graphics_pipeline<render_texture, 1>;
-        voxelize_pipeline _voxelize_pipeline;
+        using voxelize_render_pass = render_pass<render_texture,1>;
+        voxelize_render_pass _voxelize_render_pass;
+        //using mrt_pipeline = graphics_pipeline<render_texture, 3>;
+        //mrt_pipeline _mrt_pipeline;
+        
+        //using voxelize_pipeline = graphics_pipeline<render_texture, 1>;
+        //voxelize_pipeline _voxelize_pipeline;
   
         static constexpr unsigned int TOTAL_LODS = 6;
         
@@ -156,14 +161,17 @@ namespace vk
         inline void set_render_3d_texture( bool render) { _render_3d_texture = render; }
         glm::vec3 _light_pos = glm::vec3(0.0f, .8f, 0.0f);
         
-        inline shader_parameter::shader_params_group& get_mrt_uniform_params(material_base::parameter_stage stage, uint32_t binding)
+        inline shader_parameter::shader_params_group& get_mrt_uniform_params(material_base::parameter_stage stage, uint32_t subpass_id, uint32_t binding)
         {
-            return _mrt_pipeline.get_uniform_parameters(stage, binding, _deferred_image_index);
+            //return _mrt_pipeline.get_uniform_parameters(stage, binding, _deferred_image_index);
+            //return _mrt_render_pass.get_pipeline(_deferred_image_index, subpass_id).get_uniform_parameters(stage, binding);
+            return _mrt_render_pass.get_subpass(0).get_pipeline( 0 ).get_uniform_parameters(stage, binding);
         }
         
-        inline visual_material::object_shader_params_group& get_mrt_dynamic_params(material_base::parameter_stage stage, uint32_t binding)
+        inline visual_material::object_shader_params_group& get_mrt_dynamic_params(material_base::parameter_stage stage, uint32_t subpass_id, uint32_t binding)
         {
-            return _mrt_pipeline.get_dynamic_parameters(stage, binding, _deferred_image_index);
+            //return _mrt_pipeline.get_dynamic_parameters(stage, binding, _deferred_image_index);
+            return _mrt_render_pass.get_subpass(0).get_pipeline(_deferred_image_index).get_dynamic_parameters(stage, binding);
         }
         
         
