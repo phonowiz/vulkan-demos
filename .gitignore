@@ -8,3 +8,5 @@ vulkan-gui-test\.xcodeproj/xcuserdata/Hullabaloo\.xcuserdatad/xcdebugger/Breakpo
 *.xcuserstate
 
 *.xcbkptlist
+
+vulkan-demos/glfw-master-3.3/build/XCBuildData/

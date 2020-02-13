@@ -89,7 +89,7 @@ namespace vk
             vkCmdBindVertexBuffers(command_buffer, 0, 1, &_vertex_buffer, offsets);
             vkCmdBindIndexBuffer(command_buffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
             
-            pipeline.bind_material_assets(swapchain_index, command_buffer, object_index);
+            pipeline.bind_material_assets( command_buffer, object_index);
             vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(get_indices().size()), 1, 0, 0, 0);
         }
     }

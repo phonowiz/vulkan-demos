@@ -99,6 +99,7 @@ namespace vk {
         VkCommandPool       _compute_command_pool = VK_NULL_HANDLE;
         VkPhysicalDeviceProperties _properties {};
         device::queue_family_indices _queue_family_indices;
+        VkDebugReportCallbackEXT _callback {};
     private:
 
         

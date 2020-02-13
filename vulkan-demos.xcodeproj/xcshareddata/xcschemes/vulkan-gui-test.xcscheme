@@ -69,17 +69,17 @@
          <EnvironmentVariable
             key = "VK_INSTANCE_LAYERS"
             value = "VK_LAYER_LUNARG_standard_validation"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </EnvironmentVariable>
          <EnvironmentVariable
             key = "VK_LAYER_PATH"
             value = "./vulkan-test/vulkansdk-macos-1.1.85.0/macOS/etc/vulkan/"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </EnvironmentVariable>
          <EnvironmentVariable
             key = "VULKAN_SDK"
             value = "./vulkan-test/vulkansdk-macos-1.1.85.0/macOS/"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </EnvironmentVariable>
       </EnvironmentVariables>
    </LaunchAction>

@@ -13,14 +13,18 @@
 
 #include <iostream>
 #include <assert.h>
+#include "render_pass.h"
+
 
 using namespace vk;
 
 deferred_renderer::deferred_renderer(device* device, GLFWwindow* window, vk::glfw_swapchain* swapchain, vk::material_store& store, std::vector<obj_shape*>& shapes):
 renderer(device, window, swapchain, store.GET_MAT<visual_material>("deferred_output")),
 _screen_plane(device),
-_mrt_pipeline(device,  glm::vec2(swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height), store.GET_MAT<visual_material>("mrt")),
-_voxelize_pipeline(device, glm::vec2(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT),  store.GET_MAT<visual_material>("voxelizer")),
+//_mrt_pipeline(device,  glm::vec2(swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height), store.GET_MAT<visual_material>("mrt")),
+_mrt_render_pass(device, glm::vec2(swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height)),
+//_voxelize_pipeline(device, glm::vec2(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT),  store.GET_MAT<visual_material>("voxelizer")),
+_voxelize_render_pass(device, glm::vec2(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT) ),
 _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world_dimensions.z)
 {
     int binding = 0;
@@ -88,87 +92,100 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     setup_sampling_rays();
 
     //MRT pipeline
-    _mrt_pipeline.set_rendering_attachments(_g_buffer_textures);
-    _mrt_pipeline.set_depth_enable(true);
-    _mrt_pipeline.set_offscreen_rendering(true);
+    //_mrt_pipeline.set_rendering_attachments(_g_buffer_textures);
+    //_mrt_pipeline.set_depth_enable(true);
+    //_mrt_pipeline.set_offscreen_rendering(true);
     
-    _mrt_pipeline.init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
-    _mrt_pipeline.init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
-    _mrt_pipeline.init_parameter("lightPosition", visual_material::parameter_stage::VERTEX, glm::vec3(0), binding);
+    _mrt_render_pass.set_rendering_attachments(_g_buffer_textures);
+    _mrt_render_pass.set_depth_enable(true);
+    _mrt_render_pass.set_offscreen_rendering(true);
     
-    typename mrt_pipeline::subpass_type& mrt_subpass = _mrt_pipeline.add_subpass();
+    mrt_render_pass::subpass_s& mrt_subpass = _mrt_render_pass.add_subpass(store.GET_MAT<visual_material>("mrt"));
     
     mrt_subpass.add_attachment_input("normals", 0);
     mrt_subpass.add_attachment_input("albedo", 1);
     mrt_subpass.add_attachment_input("world_pos", 2);
     
-    _mrt_pipeline.set_number_of_blend_attachments(3);
-    _mrt_pipeline.modify_attachment_blend(0, mrt_pipeline::write_channels::RGBA, false);
-    _mrt_pipeline.modify_attachment_blend(1, mrt_pipeline::write_channels::RGBA, false);
-    _mrt_pipeline.modify_attachment_blend(2, mrt_pipeline::write_channels::RGBA, false);
+//    _mrt_pipeline.init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
+//    _mrt_pipeline.init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
+//    _mrt_pipeline.init_parameter("lightPosition", visual_material::parameter_stage::VERTEX, glm::vec3(0), binding);
+    
+    mrt_subpass.init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
+    mrt_subpass.init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
+    mrt_subpass.init_parameter("lightPosition", visual_material::parameter_stage::VERTEX, glm::vec3(0), binding);
+    //typename mrt_render_pass::graphics_pipeline_type& pipeline = _mrt_render_pass.get_pipeline(<#uint32_t swapchain_id#>, <#uint32_t subpass_id#>)
+    
+
+    
+    mrt_subpass.set_number_of_blend_attachments(3);
+    mrt_subpass.modify_attachment_blend(0, mrt_render_pass::write_channels::RGBA, false);
+    mrt_subpass.modify_attachment_blend(1, mrt_render_pass::write_channels::RGBA, false);
+    mrt_subpass.modify_attachment_blend(2, mrt_render_pass::write_channels::RGBA, false);
     
     glm::mat4 identity = glm::mat4(1);
-    _mrt_pipeline.init_dynamic_params("model", visual_material::parameter_stage::VERTEX, identity, shapes.size(), 1);
+    mrt_subpass.init_dynamic_params("model", visual_material::parameter_stage::VERTEX, identity, shapes.size(), 1);
 
-    _mrt_pipeline.create();
+    _mrt_render_pass.create();
     
     //voxelize pipeline
-    typename voxelize_pipeline::subpass_type& voxelize_subpass = _voxelize_pipeline.add_subpass();
+    voxelize_render_pass::subpass_s& voxelize_subpass = _voxelize_render_pass.add_subpass(store.GET_MAT<visual_material>("voxelizer"));
     voxelize_subpass.add_attachment_input("voxelize_debug", 0);
     
     
-    _voxelize_pipeline.set_number_of_blend_attachments(1);
-    _voxelize_pipeline.modify_attachment_blend(0, voxelize_pipeline::write_channels::RGBA, false);
+    voxelize_subpass.set_number_of_blend_attachments(1);
+    voxelize_subpass.modify_attachment_blend(0, voxelize_render_pass::write_channels::RGBA, false);
     
-    _voxelize_pipeline.set_image_sampler(_voxel_albedo_textures[0], "voxel_albedo_texture",
+    voxelize_subpass.set_image_sampler(_voxel_albedo_textures[0], "voxel_albedo_texture",
                                          visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::STORAGE_IMAGE);
-    _voxelize_pipeline.set_image_sampler(_voxel_normal_textures[0], "voxel_normal_texture",
+    voxelize_subpass.set_image_sampler(_voxel_normal_textures[0], "voxel_normal_texture",
                                          visual_material::parameter_stage::FRAGMENT, 4, resource::usage_type::STORAGE_IMAGE);
     
-    _voxelize_pipeline.init_parameter("inverse_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
-    _voxelize_pipeline.init_parameter("project_to_voxel_screen", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
-    _voxelize_pipeline.init_parameter("voxel_coords", visual_material::parameter_stage::FRAGMENT, glm::vec3(1.0f), 2);
+    voxelize_subpass.init_parameter("inverse_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
+    voxelize_subpass.init_parameter("project_to_voxel_screen", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
+    voxelize_subpass.init_parameter("voxel_coords", visual_material::parameter_stage::FRAGMENT, glm::vec3(1.0f), 2);
     
-    _voxelize_pipeline.init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
-    _voxelize_pipeline.init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
-    _voxelize_pipeline.init_parameter("light_position", visual_material::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
-    _voxelize_pipeline.init_parameter("eye_position", visual_material::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
-    _voxelize_pipeline.init_dynamic_params("model", visual_material::parameter_stage::VERTEX, identity, shapes.size(), 3);
+    voxelize_subpass.init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
+    voxelize_subpass.init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
+    voxelize_subpass.init_parameter("light_position", visual_material::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
+    voxelize_subpass.init_parameter("eye_position", visual_material::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
+    voxelize_subpass.init_dynamic_params("model", visual_material::parameter_stage::VERTEX, identity, shapes.size(), 3);
     
-    _voxelize_pipeline.set_cullmode( voxelize_pipeline::cull_mode::NONE);
-    _voxelize_pipeline.set_depth_enable(false);
-    _voxelize_pipeline.set_rendering_attachments(_voxel_2d_view );
-    _voxelize_pipeline.create();
+    voxelize_subpass.set_cull_mode( voxelize_render_pass::graphics_pipeline_type::cull_mode::NONE);
+    _voxelize_render_pass.set_depth_enable(false);
+    _voxelize_render_pass.set_rendering_attachments(_voxel_2d_view );
+    _voxelize_render_pass.create();
     
 
     //pipeline
-    _pipeline.init_parameter("width", visual_material::parameter_stage::VERTEX, 0.f, 0);
-    _pipeline.init_parameter("height", visual_material::parameter_stage::VERTEX, 0.f, 0);
     
-    _pipeline.set_image_sampler(_g_buffer_textures[buffer_ids::NORMALS], "normals", visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline.set_image_sampler(_g_buffer_textures[buffer_ids::ALBEDOS], "albedo", visual_material::parameter_stage::FRAGMENT, 2, resource::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline.set_image_sampler(_g_buffer_textures[buffer_ids::POSITIONS], "world_positions", visual_material::parameter_stage::FRAGMENT, 3, resource::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline.set_image_sampler(_mrt_pipeline.get_depth_textures(), "depth", visual_material::parameter_stage::FRAGMENT, 4, resource::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline.set_image_sampler(_voxel_normal_textures[0], "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline.set_image_sampler(_voxel_albedo_textures[0], "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    render_pass_type::subpass_s& subpass = _render_pass.get_subpass(0);
+    subpass.init_parameter("width", visual_material::parameter_stage::VERTEX, 0.f, 0);
+    subpass.init_parameter("height", visual_material::parameter_stage::VERTEX, 0.f, 0);
+    
+    subpass.set_image_sampler(_g_buffer_textures[buffer_ids::NORMALS], "normals", visual_material::parameter_stage::FRAGMENT, 1, resource::usage_type::COMBINED_IMAGE_SAMPLER);
+    subpass.set_image_sampler(_g_buffer_textures[buffer_ids::ALBEDOS], "albedo", visual_material::parameter_stage::FRAGMENT, 2, resource::usage_type::COMBINED_IMAGE_SAMPLER);
+    subpass.set_image_sampler(_g_buffer_textures[buffer_ids::POSITIONS], "world_positions", visual_material::parameter_stage::FRAGMENT, 3, resource::usage_type::COMBINED_IMAGE_SAMPLER);
+    subpass.set_image_sampler(_mrt_render_pass.get_depth_textures(), "depth", visual_material::parameter_stage::FRAGMENT, 4, resource::usage_type::COMBINED_IMAGE_SAMPLER);
+    subpass.set_image_sampler(_voxel_normal_textures[0], "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    subpass.set_image_sampler(_voxel_albedo_textures[0], "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
     
     glm::vec4 world_scale_voxel = glm::vec4(float(_voxel_world_dimensions.x/VOXEL_CUBE_WIDTH),
                                             float(_voxel_world_dimensions.y/VOXEL_CUBE_HEIGHT),
                                             float(_voxel_world_dimensions.z/VOXEL_CUBE_DEPTH), 1.0f);
     
-    _pipeline.init_parameter("world_cam_position", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
-    _pipeline.init_parameter("world_light_position", visual_material::parameter_stage::FRAGMENT, glm::vec3(0.0f), 5);
-    _pipeline.init_parameter("light_color", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
-    _pipeline.init_parameter("voxel_size_in_world_space", visual_material::parameter_stage::FRAGMENT, world_scale_voxel, 5);
-    _pipeline.init_parameter("mode", visual_material::parameter_stage::FRAGMENT, int(0), 5);
-    _pipeline.init_parameter("sampling_rays", visual_material::parameter_stage::FRAGMENT, _sampling_rays.data(), _sampling_rays.size(), 5);
-    _pipeline.init_parameter("vox_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
-    _pipeline.init_parameter("num_of_lods", visual_material::parameter_stage::FRAGMENT, int(TOTAL_LODS), 5);
-    _pipeline.init_parameter("eye_in_world_space", visual_material::parameter_stage::FRAGMENT, glm::vec3(0), 5);
-    _pipeline.init_parameter("eye_inverse_view_matrix", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
+    subpass.init_parameter("world_cam_position", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+    subpass.init_parameter("world_light_position", visual_material::parameter_stage::FRAGMENT, glm::vec3(0.0f), 5);
+    subpass.init_parameter("light_color", visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+    subpass.init_parameter("voxel_size_in_world_space", visual_material::parameter_stage::FRAGMENT, world_scale_voxel, 5);
+    subpass.init_parameter("mode", visual_material::parameter_stage::FRAGMENT, int(0), 5);
+    subpass.init_parameter("sampling_rays", visual_material::parameter_stage::FRAGMENT, _sampling_rays.data(), _sampling_rays.size(), 5);
+    subpass.init_parameter("vox_view_projection", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
+    subpass.init_parameter("num_of_lods", visual_material::parameter_stage::FRAGMENT, int(TOTAL_LODS), 5);
+    subpass.init_parameter("eye_in_world_space", visual_material::parameter_stage::FRAGMENT, glm::vec3(0), 5);
+    subpass.init_parameter("eye_inverse_view_matrix", visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
     
-    _pipeline.set_image_sampler(_voxel_normal_textures[0], "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-    _pipeline.set_image_sampler(_voxel_albedo_textures[0], "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    subpass.set_image_sampler(_voxel_normal_textures[0], "voxel_normals", visual_material::parameter_stage::FRAGMENT, 6, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+    subpass.set_image_sampler(_voxel_albedo_textures[0], "voxel_albedos", visual_material::parameter_stage::FRAGMENT, 7, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
 
     int binding_index = 8;
     int offset = 5;
@@ -178,22 +195,20 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     for( int i = 1; i < _voxel_albedo_textures.size(); ++i)
     {
 
-        _pipeline.set_image_sampler(_voxel_albedo_textures[i], albedo_names[i], visual_material::parameter_stage::FRAGMENT, binding_index, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-        _pipeline.set_image_sampler(_voxel_normal_textures[i], normal_names[i], visual_material::parameter_stage::FRAGMENT, binding_index + offset, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        subpass.set_image_sampler(_voxel_albedo_textures[i], albedo_names[i], visual_material::parameter_stage::FRAGMENT, binding_index, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        subpass.set_image_sampler(_voxel_normal_textures[i], normal_names[i], visual_material::parameter_stage::FRAGMENT, binding_index + offset, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
         
         binding_index++;
     }
     
-    _pipeline.set_rendering_attachments(_swapchain->present_textures);
+    _render_pass.set_rendering_attachments(_swapchain->present_textures);
     
-    typename pipeline_type::subpass_type& subpass_type = _pipeline.add_subpass();
+    //TODO: offscreen rendering needs to be decided by the render graph,  leave this here for now since we only have one subpass
+    //TODO: look into subpass transitions... 
+    _render_pass.set_offscreen_rendering(false);
+    _render_pass.set_depth_enable(false);
     
-    subpass_type.add_attachment_input("present", 0);
-    
-    _pipeline.set_offscreen_rendering(false);
-    _pipeline.set_depth_enable(false);
-    
-    _pipeline.create();
+    _render_pass.create();
     
     create_voxel_texture_pipelines(store);
     
@@ -311,17 +326,22 @@ void deferred_renderer::create_semaphores_and_fences()
 void deferred_renderer::record_voxelize_command_buffers(obj_shape** shapes, size_t number_of_meshes)
 {
     
-    _voxelize_pipeline.set_clear_attachments_colors(glm::vec4(1.0f, 1.0f, 1.0f, .0f));
+    _voxelize_render_pass.set_clear_attachments_colors(glm::vec4(1.0f, 1.0f, 1.0f, .0f));
     for( int i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
     {
-        _voxelize_pipeline.begin_command_recording(_voxelize_command_buffers[i], i);
-        
-        for( uint32_t j = 0; j < number_of_meshes; ++j)
+        for( int subpass_id = 0; subpass_id < _voxelize_render_pass.get_number_of_subpasses(); ++subpass_id)
         {
-            shapes[j]->draw(_voxelize_command_buffers[i], _voxelize_pipeline, j, i);
+            _voxelize_render_pass.begin_command_recording(_voxelize_command_buffers[i], i, subpass_id);
+            
+            //TODO: in the render graph, these passes will need ability for custom renderings commands
+            for( uint32_t j = 0; j < number_of_meshes; ++j)
+            {
+                shapes[j]->draw(_voxelize_command_buffers[i], _voxelize_render_pass.get_subpass(subpass_id).get_pipeline(i), j, i);
+            }
+            
+            _voxelize_render_pass.end_command_recording();
         }
-        
-        _voxelize_pipeline.end_command_recording();
+
     }
 }
 
@@ -412,19 +432,23 @@ void deferred_renderer::record_clear_texture_3d_buffer()
 void deferred_renderer::record_command_buffers(obj_shape** shapes, size_t number_of_shapes)
 {
     
-    _mrt_pipeline.set_clear_attachments_colors(glm::vec4(0.f));
-    _mrt_pipeline.set_clear_depth(glm::vec2(1.0f, 0.0f));
+    _mrt_render_pass.set_clear_attachments_colors(glm::vec4(0.f));
+    _mrt_render_pass.set_clear_depth(glm::vec2(1.0f, 0.0f));
     
-    for (uint32_t i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; i++)
+    for (uint32_t chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; chain_id++)
     {
         
-        _mrt_pipeline.begin_command_recording(_offscreen_command_buffers[i], i);
-        for( uint32_t j = 0; j < number_of_shapes; ++j)
+        for( uint32_t subpass_id = 0; subpass_id < _mrt_render_pass.get_number_of_subpasses(); ++subpass_id)
         {
-            shapes[j]->draw(_offscreen_command_buffers[i], _mrt_pipeline, j, i);
+            _mrt_render_pass.begin_command_recording(_offscreen_command_buffers[chain_id], chain_id, subpass_id);
+            for( uint32_t obj_id = 0; obj_id < number_of_shapes; ++obj_id)
+            {
+                shapes[obj_id]->draw(_offscreen_command_buffers[chain_id], _mrt_render_pass.get_subpass(subpass_id).get_pipeline(chain_id), obj_id, chain_id);
+            }
+            _mrt_render_pass.end_command_recording();
         }
         
-        _mrt_pipeline.end_command_recording();
+
     }
     
     record_voxelize_command_buffers(shapes, number_of_shapes);
@@ -444,14 +468,19 @@ void deferred_renderer::perform_final_drawing_setup()
         _pipeline_created = true;
     }
     
+    voxelize_render_pass::subpass_s& vox_pass =  _voxelize_render_pass.get_subpass(0);
     for( int i = 0; i < _shapes.size(); ++i)
     {
-        _voxelize_pipeline.get_dynamic_parameters(vk::visual_material::parameter_stage::VERTEX, 3, _deferred_image_index)[i]["model"] = _shapes[i]->transform.get_transform_matrix();
+
+        vox_pass.get_pipeline(_deferred_image_index).get_dynamic_parameters(vk::visual_material::parameter_stage::VERTEX, 3)[i]["model"] = _shapes[i]->transform.get_transform_matrix();
     }
     
-    _voxelize_pipeline.commit_parameters_to_gpu(_deferred_image_index);
-    _mrt_pipeline.commit_parameters_to_gpu(_deferred_image_index);
-    _pipeline.commit_parameters_to_gpu(_deferred_image_index);
+    mrt_render_pass::subpass_s& mrt_pass = _mrt_render_pass.get_subpass(0);
+    render_pass_type::subpass_s& pass = _render_pass.get_subpass(0);
+    
+    vox_pass.get_pipeline(_deferred_image_index).commit_parameters_to_gpu();
+    mrt_pass.get_pipeline(_deferred_image_index).commit_parameters_to_gpu();
+    pass.get_pipeline(_deferred_image_index).commit_parameters_to_gpu();
 }
 
 void deferred_renderer::clear_voxels_textures()
@@ -502,9 +531,12 @@ void deferred_renderer::generate_voxel_mip_maps(VkSemaphore& semaphore)
 
 void deferred_renderer::generate_voxel_textures(vk::camera &camera)
 {
-    vk::shader_parameter::shader_params_group& voxelize_vertex_params = _voxelize_pipeline.get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0, _deferred_image_index);
-    vk::shader_parameter::shader_params_group& voxelize_frag_params = _voxelize_pipeline.get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2, _deferred_image_index);
-    vk::shader_parameter::shader_params_group& deferred_output_params = _pipeline.get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5, _deferred_image_index);
+    voxelize_render_pass::subpass_s& vox_subpass = _voxelize_render_pass.get_subpass(0);
+    render_pass_type::subpass_s& subpass = _render_pass.get_subpass(0);
+    
+    vk::shader_parameter::shader_params_group& voxelize_vertex_params = vox_subpass.get_pipeline(_deferred_image_index).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+    vk::shader_parameter::shader_params_group& voxelize_frag_params = vox_subpass.get_pipeline(_deferred_image_index).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2);
+    vk::shader_parameter::shader_params_group& deferred_output_params = subpass.get_pipeline(_deferred_image_index).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5);
     
     voxelize_frag_params["voxel_coords"] = glm::vec3( static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT), static_cast<float>(VOXEL_CUBE_DEPTH));
     deferred_output_params["eye_inverse_view_matrix"] = glm::inverse(camera.view_matrix);
@@ -545,7 +577,7 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
         voxelize_vertex_params["light_position"] = _light_pos;
         voxelize_vertex_params["eye_position"] = camera.position;
         
-        _voxelize_pipeline.commit_parameters_to_gpu(_deferred_image_index);
+        _voxelize_render_pass.commit_parameters_to_gpu(_deferred_image_index);
         
         std::array<VkPipelineStageFlags, 1> wait_stage_mask= {VK_PIPELINE_STAGE_VERTEX_SHADER_BIT};
         
@@ -576,7 +608,8 @@ void deferred_renderer::draw(camera& camera)
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->get_vk_swapchain(),
                           std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &_deferred_image_index);
     
-    vk::shader_parameter::shader_params_group& display_fragment_params = _pipeline.get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5, _deferred_image_index) ;
+    render_pass_type::subpass_s& subpass = _render_pass.get_subpass(0);
+    vk::shader_parameter::shader_params_group& display_fragment_params = subpass.get_pipeline(_deferred_image_index).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5) ;
     
     display_fragment_params["world_cam_position"] = glm::vec4(camera.position, 1.0f);
     display_fragment_params["world_light_position"] = _light_pos;
@@ -584,7 +617,7 @@ void deferred_renderer::draw(camera& camera)
     display_fragment_params["mode"] = static_cast<int>(_rendering_mode);
     
     int binding = 0;
-    vk::shader_parameter::shader_params_group& display_params =   _pipeline.get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, binding, _deferred_image_index);
+    vk::shader_parameter::shader_params_group& display_params =   subpass.get_pipeline(_deferred_image_index).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, binding);
     
     display_params["width"] = static_cast<float>(_swapchain->get_vk_swap_extent().width);
     display_params["height"] = static_cast<float>(_swapchain->get_vk_swap_extent().height);
@@ -700,8 +733,10 @@ void deferred_renderer::destroy()
         _g_buffers_fence[i] = VK_NULL_HANDLE;
     }
     
-    _mrt_pipeline.destroy();
-    _voxelize_pipeline.destroy();
+    _mrt_render_pass.destroy();
+    _voxelize_render_pass.destroy();
+    //_mrt_pipeline.destroy();
+    //_voxelize_pipeline.destroy();
     
     for( size_t i  = 0; i < _voxel_normal_textures.size(); ++i)
     {

@@ -1,0 +1,11 @@
+{
+    "file_format_version": "1.0.0", 
+    "layer": {
+        "description": "LunarG API dump layer", 
+        "library_path": "../../libVkLayer_api_dump.dylib", 
+        "implementation_version": "2", 
+        "type": "GLOBAL", 
+        "api_version": "1.2.131", 
+        "name": "VK_LAYER_LUNARG_api_dump"
+    }
+}
