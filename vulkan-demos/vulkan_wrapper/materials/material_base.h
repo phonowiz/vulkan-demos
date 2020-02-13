@@ -122,7 +122,7 @@ namespace vk
         struct dynamic_buffer_info : public resource::buffer_info
         {
             shader_parameter::Type type = shader_parameter::Type::NONE;
-            
+            size_t parameters_size = 0;
             dynamic_buffer_info()
             {}
         };

@@ -203,10 +203,6 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     
     _render_pass.set_rendering_attachments(_swapchain->present_textures);
     
-    //typename render_pass_type::subpass_type& subpass_type = _render_pass.add_subpass();
-    
-    subpass.add_attachment_input("present", 0);
-    
     //TODO: offscreen rendering needs to be decided by the render graph,  leave this here for now since we only have one subpass
     //TODO: look into subpass transitions... 
     _render_pass.set_offscreen_rendering(false);
@@ -439,19 +435,19 @@ void deferred_renderer::record_command_buffers(obj_shape** shapes, size_t number
     _mrt_render_pass.set_clear_attachments_colors(glm::vec4(0.f));
     _mrt_render_pass.set_clear_depth(glm::vec2(1.0f, 0.0f));
     
-    for (uint32_t i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; i++)
+    for (uint32_t chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; chain_id++)
     {
+        
         for( uint32_t subpass_id = 0; subpass_id < _mrt_render_pass.get_number_of_subpasses(); ++subpass_id)
         {
-            _mrt_render_pass.begin_command_recording(_offscreen_command_buffers[i], i, subpass_id);
-            for( uint32_t j = 0; j < number_of_shapes; ++j)
+            _mrt_render_pass.begin_command_recording(_offscreen_command_buffers[chain_id], chain_id, subpass_id);
+            for( uint32_t obj_id = 0; obj_id < number_of_shapes; ++obj_id)
             {
-                shapes[j]->draw(_offscreen_command_buffers[i], _mrt_render_pass.get_subpass(subpass_id).get_pipeline(i), j, i);
-//draw(_offscreen_command_buffers[i], _mrt_pipeline, j, i);
+                shapes[obj_id]->draw(_offscreen_command_buffers[chain_id], _mrt_render_pass.get_subpass(subpass_id).get_pipeline(chain_id), obj_id, chain_id);
             }
-            
             _mrt_render_pass.end_command_recording();
         }
+        
 
     }
     

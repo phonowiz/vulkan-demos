@@ -19,14 +19,60 @@
 
 #include "device.h"
 
+#if __APPLE__ && DEBUG
+#include <MoltenVK/vk_mvk_moltenvk.h>
+#include <dlfcn.h>
+#endif
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
 using namespace vk;
 
+
+//this function is meant to be private and not accessible to anybody outside of this file
+VKAPI_ATTR VkBool32 VKAPI_CALL debug_report_callback(
+VkDebugReportFlagsEXT       flags,
+VkDebugReportObjectTypeEXT  objectType,
+uint64_t                    object,
+size_t                      location,
+int32_t                     messageCode,
+const char*                 pLayerPrefix,
+const char*                 pMessage,
+void*                       pUserData)
+{
+    if( (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT))
+    {
+        std::cout << "DEBUG REPORT ERROR: " <<  pMessage << std::endl;
+    }
+    else if( (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT))
+    {
+        std::cout << "PERFORMANCE WARNING: " << pMessage << std::endl;
+    }
+    else if( (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT))
+    {
+        std::cout << "DEBUG REPORT WARNING: " << pMessage << std::endl;
+    }
+    
+    std::cout << "   layer prefix: " << pLayerPrefix << std::endl;
+    std::cout << "   msg: " << pMessage << std::endl;
+    
+    //assert(0);
+    return VK_FALSE;
+}
+
 device::device()
 {
     create_instance();
+#if __APPLE__ && DEBUG
+    //NOTE: this code is here in case we decide to call moltenvk driver directly instead of using lunarg laoder
+    //MVKConfiguration config {};
+    //size_t config_size = sizeof(MVKConfiguration);
+    //vkGetMoltenVKConfigurationMVK( _instance, &config, &config_size );
+    
+    //config.performanceLoggingFrameCount = 1;
+    //config.performanceTracking = 1;
+#endif
 }
 
 void device::create_logical_device( VkSurfaceKHR surface)
@@ -34,7 +80,7 @@ void device::create_logical_device( VkSurfaceKHR surface)
     pick_physical_device(surface);
     _queue_family_indices = find_queue_families(_physical_device, surface);
 
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::vector<VkDeviceQueueCreateInfo> queue_create_infos {};
     std::set<uint32_t> unique_queue_families = {_queue_family_indices.graphics_family.value(), _queue_family_indices.present_family.value()};
 
     float queuePriority = 1.0f;
@@ -44,7 +90,7 @@ void device::create_logical_device( VkSurfaceKHR surface)
         queueCreateInfo.queueFamilyIndex = queueFamily;
         queueCreateInfo.queueCount = 1;
         queueCreateInfo.pQueuePriorities = &queuePriority;
-        queueCreateInfos.push_back(queueCreateInfo);
+        queue_create_infos.push_back(queueCreateInfo);
     }
 
     VkPhysicalDeviceFeatures deviceFeatures = {};
@@ -53,8 +99,8 @@ void device::create_logical_device( VkSurfaceKHR surface)
     VkDeviceCreateInfo create_info = {};
     create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 
-    create_info.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-    create_info.pQueueCreateInfos = queueCreateInfos.data();
+    create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
+    create_info.pQueueCreateInfos = queue_create_infos.data();
 
     create_info.pEnabledFeatures = &deviceFeatures;
 
@@ -229,39 +275,92 @@ void device::print_stats()
 }
 void device::create_instance()
 {
-    VkApplicationInfo appInfo;
-    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pNext = nullptr;
-    appInfo.pApplicationName = "Rafael's Demo";
-    appInfo.applicationVersion = VK_MAKE_VERSION(0, 0, 0);
-    appInfo.pEngineName = "Super Vulkan Engine Turbo Mega";
-    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_0;
+    VkApplicationInfo app_info;
+    app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    app_info.pNext = nullptr;
+    app_info.pApplicationName = "Rafael's Demo";
+    app_info.applicationVersion = VK_MAKE_VERSION(0, 0, 0);
+    app_info.pEngineName = "Super Vulkan Engine Turbo Mega";
+    app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+    app_info.apiVersion = VK_API_VERSION_1_0;
     
-    const std::vector<const char*> validationLayers = {
-#ifndef __APPLE__
-        "VK_LAYER_LUNARG_standard_validation"
+    const std::array<const char*, 1> validation_layers = {
+#if DEBUG || defined(_DEBUG)
+        "VK_LAYER_KHRONOS_validation"
 #endif
     };
     
-    uint32_t amountOfGlfwExtensions = 0;
-    auto glfwExtensions = glfwGetRequiredInstanceExtensions(&amountOfGlfwExtensions);
+    uint32_t glfw_extensions_count = 0;
+
+    auto glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extensions_count);
     
+    std::array<const char*, 10> all_required_extensions {};
+    //all_required_extensions[0] = "VK_EXT_debug_report";
     
-    
+    assert(all_required_extensions.size() > (glfw_extensions_count + 1));
+    int i = 0;
+    for( ; i < glfw_extensions_count; ++i)
+    {
+        all_required_extensions[i] = glfw_extensions[i];
+    }
+    //NOTE: Keep in mind that the order in which you load extensions matters, careful in loading something too early
+    all_required_extensions[i] = "VK_EXT_debug_report";
+
     VkInstanceCreateInfo instanceInfo;
     instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceInfo.pNext = nullptr;
     instanceInfo.flags = 0;
-    instanceInfo.pApplicationInfo = &appInfo;
-    instanceInfo.enabledLayerCount = (uint32_t)validationLayers.size();
-    instanceInfo.ppEnabledLayerNames = validationLayers.data();
-    instanceInfo.enabledExtensionCount = amountOfGlfwExtensions;
-    instanceInfo.ppEnabledExtensionNames = glfwExtensions;
+    instanceInfo.pApplicationInfo = &app_info;
+    instanceInfo.enabledLayerCount = (uint32_t)validation_layers.size();
+    instanceInfo.ppEnabledLayerNames = validation_layers.data();
+    instanceInfo.enabledExtensionCount = glfw_extensions_count + 1;
+    instanceInfo.ppEnabledExtensionNames = all_required_extensions.data();
     
+    uint32_t instance_layer_count {};
+    std::array<VkLayerProperties, 200> layer_properties {};
+    VkResult result = vkEnumerateInstanceLayerProperties(&instance_layer_count, nullptr);
+    ASSERT_VULKAN(result);
+    assert(instance_layer_count < layer_properties.size());
+    std::cout << instance_layer_count << " instance layers have been found\n";
+    if (instance_layer_count > 0) {
+        
+        result = vkEnumerateInstanceLayerProperties(&instance_layer_count, layer_properties.data());
+        for (int i = 0; i < instance_layer_count; ++i) {
+            std::cout << layer_properties[i].layerName << "\n";
+        }
+    }
     
-    VkResult result = vkCreateInstance(&instanceInfo, nullptr, &_instance);
+    uint32_t instance_extension_count = 0;
+    std::array<VkExtensionProperties, 100> vk_props = {};
+    vkEnumerateInstanceExtensionProperties(NULL, &instance_extension_count, NULL);
+    vkEnumerateInstanceExtensionProperties(NULL, &instance_extension_count, vk_props.data());
+    std::cout << std::endl;
+    std::cout << instance_extension_count << " instance extensions have been found " << std::endl;
+    for (uint32_t i = 0; i < instance_extension_count; i++) {
+        std::cout << vk_props[i].extensionName << std::endl;
+    }
     
+    result = vkCreateInstance(&instanceInfo, nullptr, &_instance);
+    
+    ASSERT_VULKAN(result);
+    
+    VkDebugReportCallbackCreateInfoEXT callback_create_info {};
+    callback_create_info.sType       = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
+    callback_create_info.pNext       = nullptr;
+    callback_create_info.flags       = VK_DEBUG_REPORT_ERROR_BIT_EXT |
+                                     VK_DEBUG_REPORT_WARNING_BIT_EXT |
+                                     VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT;
+    callback_create_info.pfnCallback = &debug_report_callback;
+    callback_create_info.pUserData   = nullptr;
+
+    
+    PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT =
+        reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>
+               (vkGetInstanceProcAddr(_instance, "vkCreateDebugReportCallbackEXT"));
+
+    assert(vkCreateDebugReportCallbackEXT != nullptr);
+    //Register the callback
+    result = vkCreateDebugReportCallbackEXT(_instance, &callback_create_info, nullptr, &_callback);
     ASSERT_VULKAN(result);
 }
 
@@ -479,6 +578,11 @@ void device::wait_for_all_operations_to_finish()
 
 void device::destroy()
 {
+    PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallbackEXT =
+        reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>
+            (vkGetInstanceProcAddr(_instance, "vkDestroyDebugReportCallbackEXT"));
+    
+    vkDestroyDebugReportCallbackEXT(_instance, _callback, nullptr);
     vkDestroyCommandPool(_logical_device, _graphics_command_pool, nullptr);
     
     vkDestroyDevice(_logical_device, nullptr);

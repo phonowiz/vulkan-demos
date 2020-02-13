@@ -39,9 +39,12 @@
 #include "vulkan_wrapper/shapes/cornell_box.h"
 
 #include "vulkan_wrapper/cameras/perspective_camera.h"
-
-
 #include "camera_controllers/first_person_controller.h"
+
+#include <filesystem>
+
+namespace fs = std::filesystem;
+
 
 
 ///an excellent summary of vulkan can be found here:
@@ -299,6 +302,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 int main()
 {
+    std::cout << std::endl;
+    std::cout << "working directory " << fs::current_path() << std::endl;
+    
     start_glfw();
     
     glfwSetWindowSizeCallback(window, on_window_resize);

@@ -102,7 +102,7 @@ void material_base::create_descriptor_sets()
         
         descriptor_buffer_infos[count].buffer = pair.second.uniform_buffer;
         descriptor_buffer_infos[count].offset = 0;
-        descriptor_buffer_infos[count].range = pair.second.size;
+        descriptor_buffer_infos[count].range = pair.second.parameters_size;
         
         write_descriptor_sets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         write_descriptor_sets[count].pNext = nullptr;
@@ -297,7 +297,9 @@ void material_base::init_shader_parameters()
         }
         assert(total_size != 0);
         total_size = get_ubo_alignment(total_size);
-        total_size *= obj_group.size();
+        mem.parameters_size = total_size;
+        total_size *= obj_group.size() ;
+
         
         _uniform_dynamic_buffers[pair.first].size = total_size;
         
