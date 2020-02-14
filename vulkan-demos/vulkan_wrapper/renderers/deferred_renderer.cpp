@@ -102,7 +102,7 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     mrt_subpass.init_parameter("lightPosition", visual_material::parameter_stage::VERTEX, glm::vec3(0), binding);
 
     mrt_subpass.set_number_of_blend_attachments(3);
-    mrt_subpass.modify_attachm ent_blend(0, mrt_render_pass::write_channels::RGBA, false);
+    mrt_subpass.modify_attachment_blend(0, mrt_render_pass::write_channels::RGBA, false);
     mrt_subpass.modify_attachment_blend(1, mrt_render_pass::write_channels::RGBA, false);
     mrt_subpass.modify_attachment_blend(2, mrt_render_pass::write_channels::RGBA, false);
     

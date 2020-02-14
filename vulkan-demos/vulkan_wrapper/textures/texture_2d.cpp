@@ -277,6 +277,7 @@ void texture_2d::generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQ
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
         
+        //TODO: these pipeline stages look funny to me, look into better ones
         vkCmdPipelineBarrier(command_buffer,
                              VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
                              0, nullptr,

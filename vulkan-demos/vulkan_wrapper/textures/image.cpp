@@ -75,6 +75,7 @@ void image::change_image_layout(VkCommandPool command_pool, VkQueue queue, VkIma
     image_memory_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     image_memory_barrier.pNext = nullptr;
     
+    _image_layout = static_cast<image_layouts>(new_layout);
     VkPipelineStageFlags source_stage {};
     VkPipelineStageFlags destination_stage {};
     if( old_layout == VK_IMAGE_LAYOUT_PREINITIALIZED &&
