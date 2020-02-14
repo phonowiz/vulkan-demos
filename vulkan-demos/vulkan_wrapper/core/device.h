@@ -101,7 +101,5 @@ namespace vk {
         device::queue_family_indices _queue_family_indices;
         VkDebugReportCallbackEXT _callback {};
     private:
-
-        
     };
 }

@@ -35,8 +35,6 @@ void texture_2d::init()
     _mip_levels = _enable_mipmapping ? static_cast<uint32_t>( std::floor(std::log2( std::max( _width, _height)))) + 1 : 1;
     create_sampler();
     create(_width, _height);
-    if(_enable_mipmapping)
-        refresh_mimaps();
 }
 
 texture_2d::texture_2d(device* device,const char* path)
@@ -239,7 +237,7 @@ void texture_2d::generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQ
         //how many layers to copy
         blit.srcSubresource.layerCount = mip_depth;
         blit.dstOffsets[0] = {0, 0, 0};
-        blit.dstOffsets[1] = { mip_width > 1 ? mip_height / 2 : 1, mip_height > 1 ? mip_height / 2 : 1, 1};
+        blit.dstOffsets[1] = { mip_width > 1 ? mip_width / 2 : 1, mip_height > 1 ? mip_height / 2 : 1, 1};
         
         blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         blit.dstSubresource.mipLevel = i;
@@ -252,8 +250,11 @@ void texture_2d::generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQ
                        1, &blit,
                        VK_FILTER_LINEAR);
         
+        //transfer the base miplevel to shader optimal
+        
+        
         barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-        barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
         
@@ -269,19 +270,23 @@ void texture_2d::generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQ
         if (mip_depth > 1 ) mip_depth /= 2;
     }
     
-    //this last barrier is needed because the very last mip level is
-    //not set to shader read optimal by the loop above
-    barrier.subresourceRange.baseMipLevel = _mip_levels - 1;
-    barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-    
-    vkCmdPipelineBarrier(command_buffer,
-                         VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
-                         0, nullptr,
-                         0, nullptr,
-                         1, &barrier);
+    for(uint32_t i = 0; i < _mip_levels; ++i)
+    {
+        barrier.subresourceRange.baseMipLevel = i;
+        barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+        barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        
+        vkCmdPipelineBarrier(command_buffer,
+                             VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+                             0, nullptr,
+                             0, nullptr,
+                             1, &barrier);
+        
+
+    }
+
     _device->end_single_time_command_buffer(queue, command_pool, command_buffer);
     
 }

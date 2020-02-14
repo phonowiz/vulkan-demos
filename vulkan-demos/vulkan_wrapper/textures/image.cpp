@@ -80,8 +80,8 @@ void image::change_image_layout(VkCommandPool command_pool, VkQueue queue, VkIma
     if( old_layout == VK_IMAGE_LAYOUT_PREINITIALIZED &&
        new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
     {
-        image_memory_barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT;
-        image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        image_memory_barrier.srcAccessMask = 0;
+        image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
         destination_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
         

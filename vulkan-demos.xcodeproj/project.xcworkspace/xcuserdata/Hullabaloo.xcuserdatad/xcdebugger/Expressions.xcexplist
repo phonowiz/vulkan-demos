@@ -194,6 +194,14 @@
          </PersistentStrings>
       </ContextState>
       <ContextState
+         contextName = "vk::texture_2d::generate_mipmaps(VkImage_T*, VkCommandPool_T*, VkQueue_T*, int, int, int):texture_2d.cpp">
+         <PersistentStrings>
+            <PersistentString
+               value = "mip_depth">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "_glfwInitVulkan:vulkan.c">
          <PersistentStrings>
             <PersistentString
@@ -317,13 +325,13 @@
          contextName = "vk::material::create_descriptor_sets():material.cpp">
          <PersistentStrings>
             <PersistentString
-               value = " _descriptor_set_layout_bindings[count].binding">
+               value = "write_descriptor_sets[count].dstBinding">
             </PersistentString>
             <PersistentString
                value = "pair2.first">
             </PersistentString>
             <PersistentString
-               value = "write_descriptor_sets[count].dstBinding">
+               value = " _descriptor_set_layout_bindings[count].binding">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -380,13 +388,13 @@
          contextName = "vk::material::create_descriptor_set_layout():material.cpp">
          <PersistentStrings>
             <PersistentString
+               value = "pair.first">
+            </PersistentString>
+            <PersistentString
                value = "(VkDescriptorType)_descriptor_set_layout_bindings[count].descriptorType">
             </PersistentString>
             <PersistentString
                value = "pair2.first">
-            </PersistentString>
-            <PersistentString
-               value = "pair.first">
             </PersistentString>
             <PersistentString
                value = "_sampler_buffers.size()">
@@ -467,10 +475,10 @@
                value = "pair.second.size">
             </PersistentString>
             <PersistentString
-               value = "pair.second.uniform_buffer">
+               value = "descriptor_buffer_infos[count]">
             </PersistentString>
             <PersistentString
-               value = "descriptor_buffer_infos[count]">
+               value = "pair.second.uniform_buffer">
             </PersistentString>
             <PersistentString
                value = "_descriptor_set_layout_bindings[count].binding">
@@ -642,7 +650,7 @@
          contextName = "vk::render_pass&lt;vk::render_texture, 3u&gt;::create_frame_buffers():render_pass.h">
          <PersistentStrings>
             <PersistentString
-               value = "attachment_views[2]">
+               value = "attachment_views[3]">
             </PersistentString>
             <PersistentString
                value = "attachment_views[0]">
@@ -651,10 +659,10 @@
                value = "_vk_render_passes[swapchain_id]">
             </PersistentString>
             <PersistentString
-               value = "attachment_views[1]">
+               value = "attachment_views[2]">
             </PersistentString>
             <PersistentString
-               value = "attachment_views[3]">
+               value = "attachment_views[1]">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
