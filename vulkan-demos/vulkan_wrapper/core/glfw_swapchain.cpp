@@ -25,7 +25,6 @@ glfw_swapchain::glfw_swapchain(device* device, GLFWwindow* window, VkSurfaceKHR 
 {
     _device = device;
     _window =  window;
-    //_swapchain_data.image_set.set_device(device);
     
     _surface = surface;
     
@@ -98,18 +97,9 @@ VkExtent2D glfw_swapchain::get_vk_swap_extent(const VkSurfaceCapabilitiesKHR& ca
 
 void glfw_swapchain::destroy_swapchain()
 {
-    VkSwapchainKHR old_swapchain = _swapchain;//swapchain_data.swapchain;
+    VkSwapchainKHR old_swapchain = _swapchain;
     vkDestroySwapchainKHR(_device->_logical_device, old_swapchain, nullptr);
 }
-
-//VkSurfaceFormatKHR swapchain::get_surface_format()
-//{
-//    device::swapchain_support_details swapchain_support;
-//    _device->query_swapchain_support( _device->_physical_device, _surface, swapchain_support);
-//
-//    VkSurfaceFormatKHR surface_format = choose_swap_surface_format(swapchain_support.formats);
-//    return surface_format;
-//}
 
 VkExtent2D glfw_swapchain::get_vk_swap_extent()
 {
@@ -129,17 +119,12 @@ void glfw_swapchain::create_swapchain()
     VkSurfaceFormatKHR surface_format = get_vk_swap_surface_format(swapchain_support.formats);
     VkPresentModeKHR present_mode = get_vk_swap_present_mode(swapchain_support.presentModes);
     VkExtent2D extent = get_vk_swap_extent(swapchain_support.capabilities, *_window);
-//    extent.width = present_textures[0][0].get_width();
-//    extent.height = present_textures[0][0].get_height();
-    
     
     uint32_t image_count = swapchain_support.capabilities.minImageCount + 1;
     if (swapchain_support.capabilities.maxImageCount > 0 && image_count > swapchain_support.capabilities.maxImageCount)
     {
         image_count = swapchain_support.capabilities.maxImageCount;
     }
-    
-    //assert(image_count == NUM_SWAPCHAIN_IMAGES && "other code depends on this number to be correct, please consider matching");
     
     VkSwapchainCreateInfoKHR create_info = {};
     create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -176,15 +161,6 @@ void glfw_swapchain::create_swapchain()
     if (vkCreateSwapchainKHR(_device->_logical_device, &create_info, nullptr, &(_swapchain)) != VK_SUCCESS) {
         throw std::runtime_error("failed to create swap chain!");
     }
-    
-//    _swapchain_data.image_set.init(_device, _swapchain_data.swapchain);
-//    _swapchain_data.image_set.create_image_set();
-//    _swapchain_data.swapchain_extent = extent;
-}
-
-void glfw_swapchain::create_image_views()
-{
-    //_swapchain_data.image_set.create_image_views( get_surface_format().format );
 }
 
 void glfw_swapchain::print_stats()
@@ -235,19 +211,17 @@ void glfw_swapchain::recreate_swapchain( )
 {
     _device->wait_for_all_operations_to_finish();
     
-    VkSwapchainKHR old_swapchain = _swapchain;//_swapchain_data.swapchain;
+    VkSwapchainKHR old_swapchain = _swapchain;
 
     create_swapchain();
-    //create_image_views();
 
     vkDestroySwapchainKHR(_device->_logical_device, old_swapchain, nullptr);
 }
 
 void glfw_swapchain::destroy()
 {
-    //_swapchain_data.image_set.destroy();
-    vkDestroySwapchainKHR(_device->_logical_device, /*_swapchain_data.swapchain*/_swapchain, nullptr);
-    /*_swapchain_data.swapchain*/_swapchain = VK_NULL_HANDLE;
+    vkDestroySwapchainKHR(_device->_logical_device, _swapchain, nullptr);
+    _swapchain = VK_NULL_HANDLE;
 }
 glfw_swapchain::~glfw_swapchain()
 {

@@ -43,15 +43,15 @@ void*                       pUserData)
 {
     if( (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT))
     {
-        std::cout << "DEBUG REPORT ERROR: " <<  pMessage << std::endl;
+        std::cout << "DEBUG REPORT ERROR: " << std::endl;
     }
     else if( (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT))
     {
-        std::cout << "PERFORMANCE WARNING: " << pMessage << std::endl;
+        std::cout << "PERFORMANCE WARNING: " << std::endl;
     }
     else if( (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT))
     {
-        std::cout << "DEBUG REPORT WARNING: " << pMessage << std::endl;
+        std::cout << "DEBUG REPORT WARNING: "<< std::endl;
     }
     
     std::cout << "   layer prefix: " << pLayerPrefix << std::endl;

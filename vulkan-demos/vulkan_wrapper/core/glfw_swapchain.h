@@ -52,7 +52,6 @@ namespace vk
         VkSwapchainKHR&      get_vk_swapchain() { return _swapchain; }
         void                create_swapchain();
         void                query_swapchain_support( device::swapchain_support_details& );
-        void                create_image_views();
         void                destroy_swapchain();
         void                recreate_swapchain();
         

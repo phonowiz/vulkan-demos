@@ -21,9 +21,7 @@ using namespace vk;
 deferred_renderer::deferred_renderer(device* device, GLFWwindow* window, vk::glfw_swapchain* swapchain, vk::material_store& store, std::vector<obj_shape*>& shapes):
 renderer(device, window, swapchain, store.GET_MAT<visual_material>("deferred_output")),
 _screen_plane(device),
-//_mrt_pipeline(device,  glm::vec2(swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height), store.GET_MAT<visual_material>("mrt")),
 _mrt_render_pass(device, glm::vec2(swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height)),
-//_voxelize_pipeline(device, glm::vec2(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT),  store.GET_MAT<visual_material>("voxelizer")),
 _voxelize_render_pass(device, glm::vec2(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT) ),
 _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world_dimensions.z)
 {
@@ -44,7 +42,6 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
         
         _voxel_2d_view[0][chain_id].set_device(device);
         _voxel_2d_view[0][chain_id].set_dimensions(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, 1);
-        _voxel_2d_view[0][chain_id].set_image_layout(image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
         _voxel_2d_view[0][chain_id].set_filter(image::filter::NEAREST);
         _voxel_2d_view[0][chain_id].init();
     }
@@ -66,8 +63,6 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
             _voxel_albedo_textures[lod_id][j].set_filter(image::filter::LINEAR);
             _voxel_normal_textures[lod_id][j].set_filter(image::filter::LINEAR);
             
-            _voxel_normal_textures[lod_id][j].set_image_layout(image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
-            _voxel_albedo_textures[lod_id][j].set_image_layout(image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
             
             assert(_voxel_albedo_textures[lod_id][j].get_height() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
             assert(_voxel_albedo_textures[lod_id][j].get_width() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
@@ -90,11 +85,6 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     }
     
     setup_sampling_rays();
-
-    //MRT pipeline
-    //_mrt_pipeline.set_rendering_attachments(_g_buffer_textures);
-    //_mrt_pipeline.set_depth_enable(true);
-    //_mrt_pipeline.set_offscreen_rendering(true);
     
     _mrt_render_pass.set_rendering_attachments(_g_buffer_textures);
     _mrt_render_pass.set_depth_enable(true);
@@ -105,20 +95,14 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     mrt_subpass.add_attachment_input("normals", 0);
     mrt_subpass.add_attachment_input("albedo", 1);
     mrt_subpass.add_attachment_input("world_pos", 2);
-    
-//    _mrt_pipeline.init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
-//    _mrt_pipeline.init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
-//    _mrt_pipeline.init_parameter("lightPosition", visual_material::parameter_stage::VERTEX, glm::vec3(0), binding);
+
     
     mrt_subpass.init_parameter("view", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
     mrt_subpass.init_parameter("projection", visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
     mrt_subpass.init_parameter("lightPosition", visual_material::parameter_stage::VERTEX, glm::vec3(0), binding);
-    //typename mrt_render_pass::graphics_pipeline_type& pipeline = _mrt_render_pass.get_pipeline(<#uint32_t swapchain_id#>, <#uint32_t subpass_id#>)
-    
 
-    
     mrt_subpass.set_number_of_blend_attachments(3);
-    mrt_subpass.modify_attachment_blend(0, mrt_render_pass::write_channels::RGBA, false);
+    mrt_subpass.modify_attachm ent_blend(0, mrt_render_pass::write_channels::RGBA, false);
     mrt_subpass.modify_attachment_blend(1, mrt_render_pass::write_channels::RGBA, false);
     mrt_subpass.modify_attachment_blend(2, mrt_render_pass::write_channels::RGBA, false);
     

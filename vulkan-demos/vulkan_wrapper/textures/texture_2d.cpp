@@ -54,7 +54,7 @@ void texture_2d::load( )
     //todo: any way to detecct what the pixel format is? stbi_load might always
     //use this format, but am not sure.
     _format = formats::R8G8B8A8_UNSIGNED_NORMALIZED;
-    
+    _image_layout = image_layouts::PREINITIALIZED;
     assert(_path.empty() == false);
     _ppixels = stbi_load(_path.c_str(), &w,
                          &h, &c, STBI_rgb_alpha);
@@ -191,7 +191,8 @@ void texture_2d::destroy()
 void texture_2d::generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQueue queue,
                              int32_t width, int32_t height, int32_t depth)
 {
-    VkCommandBuffer command_buffer = _device->start_single_time_command_buffer(command_pool);
+    VkCommandBuffer command_buffer =
+        _device->start_single_time_command_buffer(command_pool);
     
     VkImageMemoryBarrier barrier = {};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -200,8 +201,6 @@ void texture_2d::generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQ
     barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
     barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     barrier.subresourceRange.baseArrayLayer = 0;
-//    barrier.subresourceRange.layerCount = _depth;
-//    barrier.subresourceRange.levelCount = _mip_levels;
     
     int32_t mip_width = width;
     int32_t mip_height = height;

@@ -25,6 +25,35 @@ void texture_3d::init()
     
     create_image_view(_image, static_cast<VkFormat>(_format), _image_view);
     
+    VkCommandBuffer command_buffer =
+        _device->start_single_time_command_buffer(_device->_graphics_command_pool);
+    
+    VkImageMemoryBarrier barrier = {};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.image = _image;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.oldLayout = static_cast<VkImageLayout>(_image_layout);
+    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+    
+    //texture_3d's don't have any layers, but texture_2d_arrays do...
+    barrier.subresourceRange.layerCount = 1;
+    barrier.subresourceRange.levelCount = 1;
+    
+    vkCmdPipelineBarrier(command_buffer,
+                         VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0,
+                         0, nullptr,
+                         0, nullptr,
+                         1, &barrier);
+    
+    _device->
+        end_single_time_command_buffer(_device->_graphics_queue, _device->_graphics_command_pool, command_buffer);
+    
 }
 
 void texture_3d::create_sampler()

@@ -100,6 +100,7 @@ namespace vk
         enum class image_layouts
         {
             PREINITIALIZED = VK_IMAGE_LAYOUT_PREINITIALIZED,
+            UNDEFINED = VK_IMAGE_LAYOUT_UNDEFINED,
             DEPTH_STENCIL_ATTACHMENT_OPTIMAL = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
             DEPTH_STENCIL_READ_ONLY_OPTIAML = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
             SHADER_READ_ONLY_OPTIMAL = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
@@ -171,7 +172,7 @@ namespace vk
         
         formats _format = formats::R8G8B8A8_SIGNED_NORMALIZED;
         filter  _filter = filter::LINEAR;
-        image_layouts _image_layout = image_layouts::PREINITIALIZED;
+        image_layouts _image_layout = image_layouts::UNDEFINED;
         
     public:
         inline image::filter get_filter()
