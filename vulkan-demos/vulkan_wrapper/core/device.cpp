@@ -57,7 +57,6 @@ void*                       pUserData)
     std::cout << "   layer prefix: " << pLayerPrefix << std::endl;
     std::cout << "   msg: " << pMessage << std::endl;
     
-    //assert(0);
     return VK_FALSE;
 }
 
@@ -83,26 +82,33 @@ void device::create_logical_device( VkSurfaceKHR surface)
     std::vector<VkDeviceQueueCreateInfo> queue_create_infos {};
     std::set<uint32_t> unique_queue_families = {_queue_family_indices.graphics_family.value(), _queue_family_indices.present_family.value()};
 
-    float queuePriority = 1.0f;
+    float queue_priority = 1.0f;
     for (uint32_t queueFamily : unique_queue_families) {
-        VkDeviceQueueCreateInfo queueCreateInfo = {};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = queueFamily;
-        queueCreateInfo.queueCount = 1;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
-        queue_create_infos.push_back(queueCreateInfo);
+        VkDeviceQueueCreateInfo queue_create_info = {};
+        queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+        queue_create_info.queueFamilyIndex = queueFamily;
+        queue_create_info.queueCount = 1;
+        queue_create_info.pQueuePriorities = &queue_priority;
+        queue_create_infos.push_back(queue_create_info);
     }
 
-    VkPhysicalDeviceFeatures deviceFeatures = {};
-    deviceFeatures.samplerAnisotropy = VK_TRUE;
+    VkPhysicalDeviceFeatures device_features = {};
+    device_features.samplerAnisotropy = VK_TRUE;
+    device_features.shaderStorageImageWriteWithoutFormat = VK_TRUE;
+    device_features.fragmentStoresAndAtomics = VK_TRUE;
 
+#if !defined(__APPLE__)
+    //not supported by mac os
+    deviceFeatures.depthClamp = VK_TRUE;
+    deviceFeatures.depthBounds = VK_TRUE;
+#endif
     VkDeviceCreateInfo create_info = {};
     create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 
     create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
     create_info.pQueueCreateInfos = queue_create_infos.data();
 
-    create_info.pEnabledFeatures = &deviceFeatures;
+    create_info.pEnabledFeatures = &device_features;
 
     create_info.enabledExtensionCount = static_cast<uint32_t>(device::device_extensions.size());
     create_info.ppEnabledExtensionNames = device::device_extensions.data();

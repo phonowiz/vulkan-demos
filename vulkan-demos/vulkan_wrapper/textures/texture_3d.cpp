@@ -37,7 +37,7 @@ void texture_3d::init()
     barrier.subresourceRange.baseArrayLayer = 0;
     barrier.subresourceRange.baseMipLevel = 0;
     barrier.oldLayout = static_cast<VkImageLayout>(_image_layout);
-    barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    barrier.newLayout = static_cast<VkImageLayout>(image_layouts::GENERAL);
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
     
@@ -50,6 +50,8 @@ void texture_3d::init()
                          0, nullptr,
                          0, nullptr,
                          1, &barrier);
+    
+    _image_layout = image_layouts::GENERAL;
     
     _device->
         end_single_time_command_buffer(_device->_graphics_queue, _device->_graphics_command_pool, command_buffer);

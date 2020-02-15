@@ -74,7 +74,10 @@ void graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>::create(VkRenderPass& vk_r
     rasterization_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterization_state_create_info.pNext = nullptr;
     rasterization_state_create_info.flags = 0;
-    rasterization_state_create_info.depthClampEnable = VK_FALSE;
+#if !defined(__APPLE__)
+    //in mac os this feature is not enabled
+    rasterization_state_create_info.depthClampEnable = VK_TRUE;
+#endif
     rasterization_state_create_info.rasterizerDiscardEnable = VK_FALSE;
     rasterization_state_create_info.polygonMode = VK_POLYGON_MODE_FILL;
     rasterization_state_create_info.cullMode = static_cast<VkCullModeFlagBits>(_cull_mode);
@@ -106,10 +109,13 @@ void graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>::create(VkRenderPass& vk_r
     depth_stencil_create_info.depthWriteEnable = static_cast<VkBool32>(_depth_enable);
     depth_stencil_create_info.depthCompareOp = VK_COMPARE_OP_LESS;
 
-    //todo:depth bounds uses the min/max depth bounds below to see if the fragment is within the bounding box
-    //we are currently not using this feature
-    depth_stencil_create_info.depthBoundsTestEnable = VK_TRUE;
-    depth_stencil_create_info.stencilTestEnable = VK_TRUE;
+#if !defined(__APPLE__)
+    depth_stencil_create_info.depthBoundsTestEnable = static_cast<VkBool32>(_depth_enable);
+#endif
+    VkFormat depth_format = _device->find_depth_format( );
+
+    VkBool32 stencil_test = VK_FORMAT_D32_SFLOAT != depth_format ?  VK_TRUE : VK_FALSE;
+    depth_stencil_create_info.stencilTestEnable = stencil_test;
     depth_stencil_create_info.front = {};
     depth_stencil_create_info.back = {};
     depth_stencil_create_info.minDepthBounds = 0.0f;

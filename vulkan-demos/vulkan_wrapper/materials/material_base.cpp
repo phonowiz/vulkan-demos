@@ -49,8 +49,7 @@ void material_base::create_descriptor_sets()
             assert( pair2.second.get_image()->get_image_view() != VK_NULL_HANDLE);
             descriptor_image_infos[count].sampler = pair2.second.get_image()->get_sampler();
             descriptor_image_infos[count].imageView = pair2.second.get_image()->get_image_view();
-            //TODO: the following needs to change according to the layout the texture is in, it may not always be read_only_optimal
-            descriptor_image_infos[count].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            descriptor_image_infos[count].imageLayout = static_cast<VkImageLayout>(pair2.second.get_image()->get_image_layout());
             
             write_descriptor_sets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             write_descriptor_sets[count].pNext = nullptr;
@@ -60,6 +59,9 @@ void material_base::create_descriptor_sets()
             write_descriptor_sets[count].dstArrayElement = 0;
             write_descriptor_sets[count].descriptorCount = 1;
             write_descriptor_sets[count].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            parameter_stage stage = pair.first;
+            const char* name = pair2.first.data();
+            write_descriptor_sets[count].descriptorType = static_cast<VkDescriptorType>(_sampler_buffers[stage][name].usage_type);
             write_descriptor_sets[count].pImageInfo = &descriptor_image_infos[count];
             write_descriptor_sets[count].pBufferInfo = nullptr;
             write_descriptor_sets[count].pTexelBufferView = nullptr;
@@ -86,7 +88,7 @@ void material_base::create_descriptor_sets()
         write_descriptor_sets[count].dstBinding = _descriptor_set_layout_bindings[count].binding;
         write_descriptor_sets[count].dstArrayElement = 0;
         write_descriptor_sets[count].descriptorCount = 1;
-        write_descriptor_sets[count].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        write_descriptor_sets[count].descriptorType = static_cast<VkDescriptorType>(pair.second.usage_type);
         write_descriptor_sets[count].pImageInfo = nullptr;
         write_descriptor_sets[count].pBufferInfo = &descriptor_buffer_infos[count];
         write_descriptor_sets[count].pTexelBufferView = nullptr;
@@ -111,7 +113,7 @@ void material_base::create_descriptor_sets()
         write_descriptor_sets[count].dstBinding = _descriptor_set_layout_bindings[count].binding;
         write_descriptor_sets[count].dstArrayElement = 0;
         write_descriptor_sets[count].descriptorCount = 1;
-        write_descriptor_sets[count].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        write_descriptor_sets[count].descriptorType = static_cast<VkDescriptorType>(pair.second.usage_type);
         write_descriptor_sets[count].pImageInfo = nullptr;
         write_descriptor_sets[count].pBufferInfo = &descriptor_buffer_infos[count];
         write_descriptor_sets[count].pTexelBufferView = nullptr;
