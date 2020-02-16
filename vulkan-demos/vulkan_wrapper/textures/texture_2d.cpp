@@ -274,19 +274,20 @@ void texture_2d::generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQ
         barrier.subresourceRange.baseMipLevel = i;
         barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        barrier.srcAccessMask = 0;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
         
-        //TODO: these pipeline stages look funny to me, look into better ones
         vkCmdPipelineBarrier(command_buffer,
-                             VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
+                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0,
                              0, nullptr,
                              0, nullptr,
                              1, &barrier);
-        
 
     }
-
+    
     _device->end_single_time_command_buffer(queue, command_pool, command_buffer);
+    
+
+    _image_layout = image_layouts::SHADER_READ_ONLY_OPTIMAL;
     
 }

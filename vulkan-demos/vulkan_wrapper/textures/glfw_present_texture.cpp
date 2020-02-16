@@ -19,7 +19,6 @@ VkPresentModeKHR glfw_present_texture::get_vk_present_mode()
     device::swapchain_support_details swapchain_support {};
     _device->query_swapchain_support( _device->_physical_device, _swapchain->get_vk_surface(), swapchain_support);
     
-    //VkSurfaceFormatKHR surface_format = choose_swap_surface_format(swapchain_support.formats);
     VkPresentModeKHR present_mode = _swapchain->get_vk_swap_present_mode(swapchain_support.presentModes);
     
     return present_mode;
@@ -34,8 +33,6 @@ void glfw_present_texture::init()
     device::swapchain_support_details swapchain_support {};
     _device->query_swapchain_support( _device->_physical_device, _swapchain->get_vk_surface(), swapchain_support);
     
-//    VkSurfaceFormatKHR surface_format = choose_swap_surface_format(swapchain_support.formats);
-//    VkPresentModeKHR present_mode = choose_swap_present_mode(swapchain_support.presentModes);
     VkExtent2D extent = _swapchain->get_vk_swap_extent(swapchain_support.capabilities, *_window);
     
     _width = extent.width;
@@ -54,63 +51,10 @@ void glfw_present_texture::init()
     vkGetSwapchainImagesKHR(_device->_logical_device, _swapchain->get_vk_swapchain(), &image_count, images.data());
     
     _format = static_cast<formats>(get_vk_surface_format().format);
-    //VkSurfaceKHR  _surface = VK_NULL_HANDLE;
     _image = images[_swapchain_image_index];
     create_image_view(_image, static_cast<VkFormat>(_format), _image_view);
 }
-//
-//VkSurfaceFormatKHR glfw_present_texture::choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& available_formats)
-//{
-//    if (available_formats.size() == 1 && available_formats[0].format == VK_FORMAT_UNDEFINED) {
-//        return{VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
-//    }
-//
-//    for (const auto& available_format : available_formats) {
-//        if (available_format.format == VK_FORMAT_B8G8R8A8_UNORM && available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
-//            return available_format;
-//        }
-//    }
-//
-//    return available_formats[0];
-//}
 
-//VkPresentModeKHR glfw_present_texture::choose_swap_present_mode(const std::vector<VkPresentModeKHR>& available_present_modes)
-//{
-//    VkPresentModeKHR best_mode = VK_PRESENT_MODE_FIFO_KHR;
-//
-//    for (const auto& available_present_mode : available_present_modes) {
-//        if (available_present_mode == VK_PRESENT_MODE_MAILBOX_KHR) {
-//            return available_present_mode;
-//        } else if (available_present_mode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
-//            best_mode = available_present_mode;
-//        }
-//    }
-//
-//    return best_mode;
-//}
-
-//VkExtent2D glfw_present_texture::choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow& window)
-//{
-//    if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
-//    {
-//        return capabilities.currentExtent;
-//    }
-//    else
-//    {
-//        int width, height;
-//        glfwGetFramebufferSize(&window, &width, &height);
-//
-//        VkExtent2D actual_extent = {
-//            static_cast<uint32_t>(width),
-//            static_cast<uint32_t>(height)
-//        };
-//
-//        actual_extent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actual_extent.width));
-//        actual_extent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actual_extent.height));
-//
-//        return actual_extent;
-//    }
-//}
 
 VkSurfaceFormatKHR glfw_present_texture::get_vk_surface_format()
 {

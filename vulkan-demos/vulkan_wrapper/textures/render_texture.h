@@ -20,12 +20,17 @@ namespace vk
         enum class usage
         {
             COLOR_TARGET = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+            COLOR_TARGET_AND_SHADER_INPUT = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
         };
         
-        render_texture(){};
+        render_texture(){ };
         render_texture(device* device, uint32_t width, uint32_t height);
 
         virtual void create( uint32_t width, uint32_t height) override;
+        void set_usage( usage u )
+        {
+            _usage = u;
+        }
         
     private:
         

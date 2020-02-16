@@ -57,6 +57,12 @@ namespace vk
             _enable_mipmapping = b;
         }
         
+        inline void change_layout( image::image_layouts new_layout)
+        {
+            change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
+                                      static_cast<VkImageLayout>(_image_layout),
+                                      static_cast<VkImageLayout>(new_layout));
+        }
         static const std::string texture_resource_path;
         
     protected:

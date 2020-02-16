@@ -34,10 +34,12 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
             _g_buffer_textures[texture_id][chain_id].set_device(device);
             _g_buffer_textures[texture_id][chain_id].set_dimensions(swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height, 1);
             _g_buffer_textures[texture_id][chain_id].set_filter(image::filter::NEAREST);
+            _g_buffer_textures[texture_id][chain_id].set_usage(render_texture::usage::COLOR_TARGET_AND_SHADER_INPUT);
             
             if( buffer_ids::NORMALS == texture_id) _g_buffer_textures[texture_id][chain_id].set_format(image::formats::R8G8_SIGNED_NORMALIZED);
             
             _g_buffer_textures[texture_id][chain_id].init();
+            _g_buffer_textures[texture_id][chain_id].change_layout(image::image_layouts::GENERAL);
         }
         
         _voxel_2d_view[0][chain_id].set_device(device);

@@ -19,7 +19,10 @@ void depth_texture::create(uint32_t width, uint32_t height)
     
     _width = width;
     _height = height;
+    //TODO: look into using function is_stencil_format
     _aspect_flag = static_cast< image::formats>(VK_FORMAT_D32_SFLOAT) != _format ?  (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) : VK_IMAGE_ASPECT_DEPTH_BIT;
+
+
     
     VkImageUsageFlagBits usage_flags = _write_to_texture ? static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT) :
                             static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
@@ -30,8 +33,13 @@ void depth_texture::create(uint32_t width, uint32_t height)
     
     create_image_view( _image, depth_format, _image_view);
     
-    change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, depth_format, VK_IMAGE_LAYOUT_UNDEFINED,
-                      VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    //TODO: This line needs to come back when the render graph comes online.  By using the render graph it should be easier to program transitions into layouts
+    //TODO: that make sense.
+//    change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, depth_format, static_cast<VkImageLayout>(_image_layout),
+//                      VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    
+    change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, depth_format, static_cast<VkImageLayout>(_image_layout),
+                      static_cast<VkImageLayout>(image_layouts::GENERAL));
     
     create_sampler();
     _created = true;

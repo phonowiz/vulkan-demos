@@ -58,7 +58,6 @@ void material_base::create_descriptor_sets()
             write_descriptor_sets[count].dstBinding = _descriptor_set_layout_bindings[count].binding;
             write_descriptor_sets[count].dstArrayElement = 0;
             write_descriptor_sets[count].descriptorCount = 1;
-            write_descriptor_sets[count].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
             parameter_stage stage = pair.first;
             const char* name = pair2.first.data();
             write_descriptor_sets[count].descriptorType = static_cast<VkDescriptorType>(_sampler_buffers[stage][name].usage_type);
