@@ -12,7 +12,6 @@
 #include <vector>
 #include <algorithm>
 
-
 //this container gives us the ability to keep the insertion order of the keys as they are entered
 //into the ordered_map object.  It also allows us to lock it's values once we are done populating it.
 template< class _key, class _value>
@@ -83,7 +82,7 @@ public:
         return iterator<_value>(_vec, _vec.size());
     }
     
-    inline size_t size(){ return _vec.size(); }
+    inline size_t size() const { return _vec.size(); }
     
     template<const char*, class _val>
     _value & operator[]( const char* i)

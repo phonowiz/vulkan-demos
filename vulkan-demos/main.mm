@@ -406,9 +406,10 @@ int main()
     app.user_controller = &user_controler;
     app.texture_3d_view_controller = &texture_3d_view_controller;
     
-    //game_loop();
-    game_loop_ortho(display_renderer);
+    game_loop();
+    //game_loop_ortho(display_renderer);
     
+    device.wait_for_all_operations_to_finish();
     mario.destroy();
     deferred_renderer.destroy();
     three_d_renderer.destroy();

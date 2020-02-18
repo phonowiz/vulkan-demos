@@ -27,7 +27,7 @@ namespace vk
         void set_device(device* dev){ _device = dev; }
         virtual ~pipeline(){};
         
-        virtual void commit_parameters_to_gpu(uint32_t swapchain_id) = 0;
+        virtual void commit_parameters_to_gpu() = 0;
         
     public:
 

@@ -104,11 +104,12 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_fence(VkFence& fence
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_semaphores_and_fences()
 {
-    create_semaphore(_semaphore_image_available);
+    
     create_semaphore(_semaphore_rendering_done);
     
     for(int i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
     {
+        create_semaphore(_semaphore_image_available[i]);
         create_fence(_composite_fence[i]);
     }
 }
@@ -151,9 +152,14 @@ template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::destroy()
 {
     _device->wait_for_all_operations_to_finish();
-    vkDestroySemaphore(_device->_logical_device, _semaphore_image_available, nullptr);
+    
+    for( int i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
+    {
+        vkDestroySemaphore(_device->_logical_device, _semaphore_image_available[i], nullptr);
+        _semaphore_image_available[i] = VK_NULL_HANDLE;
+    }
+
     vkDestroySemaphore(_device->_logical_device, _semaphore_rendering_done, nullptr);
-    _semaphore_image_available = VK_NULL_HANDLE;
     _semaphore_rendering_done = VK_NULL_HANDLE;
     
     vkFreeCommandBuffers(_device->_logical_device, _device->_graphics_command_pool,
@@ -197,19 +203,22 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::perform_final_drawing_setup
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::draw(camera& camera)
 {
-    vkWaitForFences(_device->_logical_device, 1, &_composite_fence[_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
-    vkResetFences(_device->_logical_device, 1, &_composite_fence[_image_index]);
+    uint32_t current_frame = _image_index;
+    vkWaitForFences(_device->_logical_device, 1, &_composite_fence[current_frame], VK_TRUE, std::numeric_limits<uint64_t>::max());
+
     
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->get_vk_swapchain(),
-                          std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &_image_index);
+                          std::numeric_limits<uint64_t>::max(),
+                          _semaphore_image_available[(_image_index + 1 )  % glfw_swapchain::NUM_SWAPCHAIN_IMAGES], VK_NULL_HANDLE, &_image_index);
     
+    vkResetFences(_device->_logical_device, 1, &_composite_fence[current_frame]);
     perform_final_drawing_setup();
     
     VkSubmitInfo submit_info;
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = nullptr;
     submit_info.waitSemaphoreCount = 1;
-    submit_info.pWaitSemaphores = &_semaphore_image_available;
+    submit_info.pWaitSemaphores = &_semaphore_image_available[_image_index];
     VkPipelineStageFlags wait_stage_mask[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submit_info.pWaitDstStageMask = wait_stage_mask;
     submit_info.commandBufferCount = 1;
@@ -217,7 +226,7 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::draw(camera& camera)
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &_semaphore_rendering_done;
     
-    VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _composite_fence[_image_index]);
+    VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _composite_fence[current_frame]);
     ASSERT_VULKAN(result);
     
     VkPresentInfoKHR present_info;

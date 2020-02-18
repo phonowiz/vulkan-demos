@@ -32,6 +32,7 @@ namespace  vk
             GEOMETRY = VK_SHADER_STAGE_GEOMETRY_BIT
         };
         
+        shader(){};
         shader(device* device, const char* shader_path, shader::shader_type shader_type);
         
         device* _device;
@@ -45,6 +46,14 @@ namespace  vk
         void init_glsl_lang();
         void finalize_glsl_lang();
         virtual void destroy() override;
+        
+        inline shader& operator=( const shader& right)
+        {
+            _device = right._device;
+            _pipeline_shader_stage = right._pipeline_shader_stage;
+            return *this;
+        }
+        
         ~shader();
         
         VkPipelineShaderStageCreateInfo _pipeline_shader_stage = {};

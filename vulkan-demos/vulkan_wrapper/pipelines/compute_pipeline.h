@@ -30,29 +30,23 @@ namespace vk
         
         inline void set_material(compute_mat_shared_ptr mat)
         {
-            for(int i =0; i < _material.size(); ++i)
-            {
-                _material[i] = mat;
-            }
-            
+            _material[0] = *mat;
         }
         
-        inline void set_image_sampler(std::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name, uint32_t binding, resource::usage_type usage)
+        inline void set_image_sampler(texture_3d& textures, const char* parameter_name, uint32_t binding)
         {
-            for( int i = 0; i < _material.size(); ++i)
-            {
-                _material[i]->set_image_sampler(&textures[i], parameter_name, material_base::parameter_stage::COMPUTE, binding, usage);
-            }
+            //note: here we force STORAGE_IMAGE usage because the validation layers will throw errors if you use anything else
+            _material[0].set_image_sampler(&textures, parameter_name, material_base::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
         }
 
         void record_dispatch_commands(VkCommandBuffer&  command_buffer,
-                                       uint32_t local_groups_in_x, uint32_t local_groups_in_y, uint32_t local_groups_in_z, uint32_t swapchain_index);
+                                       uint32_t local_groups_in_x, uint32_t local_groups_in_y, uint32_t local_groups_in_z);
         
         inline void record_begin_commands(  std::function<void()> f){ _on_begin = f; };
         
-        virtual void commit_parameters_to_gpu(uint32_t swapchain_id) override
+        virtual void commit_parameters_to_gpu() override
         {
-            _material[swapchain_id]->commit_parameters_to_gpu();
+            _material[0].commit_parameters_to_gpu();
         }
         
         bool is_initialized()
@@ -81,7 +75,7 @@ namespace vk
             }
         }
         
-        inline void commit_parameter_to_gpu(uint32_t swapchain_index) { _material[swapchain_index]->commit_parameters_to_gpu(); }
+        inline void commit_parameter_to_gpu() { _material[0].commit_parameters_to_gpu(); }
         //LOCAL_GROUP_SIZE was chosen here because of an example I saw on the internet, if you decide to change this number
         //make sure the local group sizes in  your particular shader is changed as well. Or maybe this needs to be configurable by
         //the client
@@ -89,10 +83,10 @@ namespace vk
         
     private:
         
-        std::array<VkPipeline, glfw_swapchain::NUM_SWAPCHAIN_IMAGES >       _pipeline {};
-        std::array<VkPipelineLayout, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>  _pipeline_layout {};
+        std::array<VkPipeline, 1 >       _pipeline {};
+        std::array<VkPipelineLayout, 1>  _pipeline_layout {};
         
-        std::array<compute_mat_shared_ptr, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _material = {};
+        std::array<compute_material, 1> _material = {};
         
         std::function<void()> _on_begin = [](){};
 

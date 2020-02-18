@@ -442,7 +442,17 @@ material_base& material_base::operator=( const material_base& right)
         _uniform_parameters = right._uniform_parameters;
         _uniform_dynamic_buffers = right._uniform_dynamic_buffers;
         _uniform_dynamic_parameters = right._uniform_dynamic_parameters;
-        _sampler_buffers = right._sampler_buffers;
+        
+        for(std::pair<parameter_stage, buffer_parameter >& pair : _sampler_buffers)
+        {
+            _sampler_buffers[ pair.first] = pair.second;
+        }
+        for(std::pair<parameter_stage, sampler_parameter >& pair : _sampler_parameters)
+        {
+            _sampler_parameters[pair.first] = pair.second;
+        }
+        
+        
         _descriptor_set_layout_bindings = right._descriptor_set_layout_bindings;
         _pipeline_shader_stages = right._pipeline_shader_stages;
         _device = right._device;

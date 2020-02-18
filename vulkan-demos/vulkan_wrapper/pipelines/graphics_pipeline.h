@@ -161,11 +161,6 @@ namespace vk
             }
         }
         
-        void commit_parameters_to_gpu()
-        {
-            commit_parameters_to_gpu(0);
-        }
-        
         inline void set_number_of_blend_attachments(uint32_t num_blend_attacments)
         {
             assert( num_blend_attacments <= BLEND_ATTACHMENTS);
@@ -212,14 +207,14 @@ namespace vk
         
         }
         
-        ~graphics_pipeline(){};
-    private:
-        void init_blend_attachments();
-        
-        virtual void commit_parameters_to_gpu(uint32_t) override
+        virtual void commit_parameters_to_gpu() override
         {
             _material[0]->commit_parameters_to_gpu();
         }
+        
+        ~graphics_pipeline(){};
+    private:
+        void init_blend_attachments();
         
     private:
         

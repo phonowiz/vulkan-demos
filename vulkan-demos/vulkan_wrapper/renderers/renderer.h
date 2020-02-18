@@ -128,7 +128,7 @@ namespace vk
         device*             _device = nullptr;
         GLFWwindow*         _window = nullptr;
         
-        VkSemaphore _semaphore_image_available = VK_NULL_HANDLE;
+        VkSemaphore _semaphore_image_available[glfw_swapchain::NUM_SWAPCHAIN_IMAGES] = {VK_NULL_HANDLE};
         VkSemaphore _semaphore_rendering_done = VK_NULL_HANDLE;
         glfw_swapchain*  _swapchain = nullptr;
         

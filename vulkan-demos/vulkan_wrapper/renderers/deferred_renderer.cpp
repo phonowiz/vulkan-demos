@@ -39,7 +39,7 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
             if( buffer_ids::NORMALS == texture_id) _g_buffer_textures[texture_id][chain_id].set_format(image::formats::R8G8_SIGNED_NORMALIZED);
             
             _g_buffer_textures[texture_id][chain_id].init();
-            _g_buffer_textures[texture_id][chain_id].change_layout(image::image_layouts::GENERAL);
+            _g_buffer_textures[texture_id][chain_id].change_layout(image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
         }
         
         _voxel_2d_view[0][chain_id].set_device(device);
@@ -232,9 +232,9 @@ void deferred_renderer::create_voxel_texture_pipelines(vk::material_store& store
     {
         for( int lod_id = 0; lod_id < TOTAL_LODS; ++lod_id)
         {
-            _clear_voxel_texture_pipeline[lod_id][chain_id].set_image_sampler(_voxel_albedo_textures[lod_id],
-                                                                   "texture_3d", 0, material_base::usage_type::STORAGE_IMAGE);
-            _clear_voxel_texture_pipeline[lod_id][chain_id].commit_parameter_to_gpu(chain_id);
+            _clear_voxel_texture_pipeline[lod_id][chain_id].set_image_sampler(_voxel_albedo_textures[lod_id][chain_id],
+                                                                   "texture_3d", 0);
+            _clear_voxel_texture_pipeline[lod_id][chain_id].commit_parameter_to_gpu();
         }
 
     }
@@ -243,16 +243,20 @@ void deferred_renderer::create_voxel_texture_pipelines(vk::material_store& store
     {
         for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
         {
-            _create_voxel_mip_maps_pipelines[map_id][chain_id].set_image_sampler(_voxel_albedo_textures[map_id], "r_texture_1",
-                                                            0, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-            _create_voxel_mip_maps_pipelines[map_id][chain_id].set_image_sampler(_voxel_normal_textures[map_id], "r_texture_2",
-                                                            1, material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-            _create_voxel_mip_maps_pipelines[map_id][chain_id].set_image_sampler(_voxel_albedo_textures[map_id + 1], "w_texture_1",
-                                                            2, material_base::usage_type::STORAGE_IMAGE);
-            _create_voxel_mip_maps_pipelines[map_id][chain_id].set_image_sampler(_voxel_normal_textures[map_id + 1], "w_texture_2",
-                                                            3, material_base::usage_type::STORAGE_IMAGE);
+            //Note: per sascha willems compute example, compute shaders use storage_image format for reads and writes
+            //if you try a combined sampler here, validation layers will throw errrors.  Here is example from willems:
+            //https://github.com/SaschaWillems/Vulkan/blob/master/examples/computeshader/computeshader.cpp
             
-            _create_voxel_mip_maps_pipelines[map_id][chain_id].commit_parameter_to_gpu(chain_id);
+            _create_voxel_mip_maps_pipelines[map_id][chain_id].set_image_sampler(_voxel_albedo_textures[map_id][chain_id], "r_texture_1",
+                                                            0);
+            _create_voxel_mip_maps_pipelines[map_id][chain_id].set_image_sampler(_voxel_normal_textures[map_id][chain_id], "r_texture_2",
+                                                            1);
+            _create_voxel_mip_maps_pipelines[map_id][chain_id].set_image_sampler(_voxel_albedo_textures[map_id + 1][chain_id], "w_texture_1",
+                                                            2);
+            _create_voxel_mip_maps_pipelines[map_id][chain_id].set_image_sampler(_voxel_normal_textures[map_id + 1][chain_id], "w_texture_2",
+                                                            3);
+            
+            _create_voxel_mip_maps_pipelines[map_id][chain_id].commit_parameter_to_gpu();
         }
 
     }
@@ -386,7 +390,7 @@ void deferred_renderer::record_3d_mip_maps_commands()
             }
             
             _create_voxel_mip_maps_pipelines[map_id][chain_id].record_dispatch_commands(_genered_3d_mip_maps_commands[map_id][chain_id],
-                                                            local_groups_x, local_groups_y, local_groups_z, chain_id);
+                                                            local_groups_x, local_groups_y, local_groups_z);
         }
     }
 }
@@ -410,7 +414,7 @@ void deferred_renderer::record_clear_texture_3d_buffer()
             uint32_t local_groups_z = (VOXEL_CUBE_DEPTH >> lod_id) / compute_pipeline::LOCAL_GROUP_SIZE;
             
             _clear_voxel_texture_pipeline[lod_id][j].record_dispatch_commands(_clear_3d_texture_command_buffers[lod_id][j],
-                                                                local_groups_x, local_groups_y, local_groups_z, j);
+                                                                local_groups_x, local_groups_y, local_groups_z);
         }
     }
 }
@@ -482,6 +486,7 @@ void deferred_renderer::clear_voxels_textures()
     
     //The clearing of voxels happens in parallel
     VkSubmitInfo submit_info = {};
+    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.commandBufferCount = clear_commands.size();
     submit_info.pCommandBuffers = clear_commands.data();
     submit_info.waitSemaphoreCount = 0;
@@ -502,12 +507,13 @@ void deferred_renderer::generate_voxel_mip_maps(VkSemaphore& semaphore)
     {
         std::array<VkPipelineStageFlags, 1> wait_stage_mask= { VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT };
         VkSubmitInfo submit_info = {};
+        submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submit_info.commandBufferCount = 1;
         submit_info.pWaitDstStageMask = wait_stage_mask.data();
         submit_info.pCommandBuffers = &_genered_3d_mip_maps_commands[i][_deferred_image_index];
         submit_info.waitSemaphoreCount =  1;
-        submit_info.pWaitSemaphores = i == 0 ? &semaphore : &_mip_map_semaphores[_deferred_image_index][i-1];
-        submit_info.pSignalSemaphores = &_mip_map_semaphores[_deferred_image_index][i];
+        submit_info.pWaitSemaphores = i == 0 ? &semaphore : &_mip_map_semaphores[i-1][_deferred_image_index];
+        submit_info.pSignalSemaphores = &_mip_map_semaphores[i][_deferred_image_index];
         submit_info.signalSemaphoreCount = 1;
         
         VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, nullptr);
@@ -591,8 +597,10 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
 
 void deferred_renderer::draw(camera& camera)
 {
+    static uint32_t current_frame = 0;
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->get_vk_swapchain(),
-                          std::numeric_limits<uint64_t>::max(), _semaphore_image_available, VK_NULL_HANDLE, &_deferred_image_index);
+                          std::numeric_limits<uint64_t>::max(),
+                          _semaphore_image_available[current_frame], VK_NULL_HANDLE, &_deferred_image_index);
     
     render_pass_type::subpass_s& subpass = _render_pass.get_subpass(0);
     vk::shader_parameter::shader_params_group& display_fragment_params = subpass.get_pipeline(_deferred_image_index).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5) ;
@@ -612,15 +620,15 @@ void deferred_renderer::draw(camera& camera)
     if(_deferred_image_index % 2 != 0)
         generate_voxel_textures(camera);
     
-    std::array<VkSemaphore, 2> wait_semaphores{ _mip_map_semaphores[_deferred_image_index][ _mip_map_semaphores.size()-1 ],
-        _semaphore_image_available};
+    std::array<VkSemaphore, 2> wait_semaphores{ _mip_map_semaphores[ _mip_map_semaphores.size()-1][_deferred_image_index],
+        _semaphore_image_available[current_frame]};
     //render g-buffers
     VkResult result = {};
-    std::array<VkSubmitInfo,3> submit_info = {};
+    std::array<VkSubmitInfo,2> submit_info = {};
     submit_info[0].sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info[0].pNext = nullptr;
-    submit_info[0].waitSemaphoreCount = wait_semaphores.size();
-    submit_info[0].pWaitSemaphores = wait_semaphores.data();
+    submit_info[0].waitSemaphoreCount = _deferred_image_index % 2 != 0 ?  wait_semaphores.size() : 1;
+    submit_info[0].pWaitSemaphores = _deferred_image_index % 2 != 0 ? wait_semaphores.data() : &_semaphore_image_available[current_frame];
     VkPipelineStageFlags wait_stage_mask[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submit_info[0].pWaitDstStageMask = wait_stage_mask;
     submit_info[0].commandBufferCount = 1;
@@ -628,6 +636,7 @@ void deferred_renderer::draw(camera& camera)
     submit_info[0].signalSemaphoreCount = 1;
     submit_info[0].pSignalSemaphores = &_g_buffers_rendering_done[_deferred_image_index];
     
+    result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info[0], nullptr);
     //render scene with g buffers and 3d voxel texture
     submit_info[1].sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info[1].pNext = nullptr;
@@ -639,7 +648,7 @@ void deferred_renderer::draw(camera& camera)
     submit_info[1].signalSemaphoreCount = 1;
     submit_info[1].pSignalSemaphores = &_semaphore_rendering_done;
 
-    result = vkQueueSubmit(_device->_graphics_queue, submit_info.size(), submit_info.data(), nullptr);
+    result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info[1], nullptr);
 
     ASSERT_VULKAN(result);
     //present the scene to viewer
@@ -654,8 +663,9 @@ void deferred_renderer::draw(camera& camera)
     present_info.pResults = nullptr;
     result = vkQueuePresentKHR(_device->_present_queue, &present_info);
     //TODO: check to see if you can collapse the 3 vkQueueSubmit calls into one, per nvidia: https://devblogs.nvidia.com/vulkan-dos-donts/
-    
     ASSERT_VULKAN(result);
+    
+    current_frame = (current_frame + 1) % glfw_swapchain::NUM_SWAPCHAIN_IMAGES;
 
 }
 
