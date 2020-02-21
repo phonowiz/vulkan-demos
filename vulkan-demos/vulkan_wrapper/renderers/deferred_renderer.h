@@ -44,7 +44,7 @@ namespace vk
         
         inline std::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& get_voxel_texture( )
         {
-            return _voxel_normal_textures[0];
+            return _voxel_albedo_textures[2];
         }
         
         inline texture_2d* get_voxelizer_cam_texture( ){ return  &_voxel_2d_view[0][0]; }
@@ -66,7 +66,7 @@ namespace vk
         void generate_voxel_textures(vk::camera& camera);
         
         void compute(VkCommandBuffer command_buffer, vk::compute_pipeline& pipeline);
-        void record_command_buffers(obj_shape** shapes, size_t number_of_shapes) override;
+        void record_command_buffers(obj_shape** shapes, size_t number_of_shapes, uint32_t swapchain_id) override;
         void record_voxelize_command_buffers(obj_shape** shapes, size_t number_of_shapes);
         void record_clear_texture_3d_buffer ();
         void record_3d_mip_maps_commands();
@@ -134,7 +134,7 @@ namespace vk
         std::array<glm::vec4, NUM_SAMPLING_RAYS> _sampling_rays = {};
         
         static constexpr glm::vec3 _voxel_world_dimensions = glm::vec3(10.0f, 10.0f, 10.0f);
-        bool _setup_initialized = false;
+        bool _setup_initialized[glfw_swapchain::NUM_SWAPCHAIN_IMAGES] = {false};
         
     private:
         

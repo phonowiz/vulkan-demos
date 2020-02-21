@@ -118,7 +118,9 @@ App app;
 void update_3d_texture_rendering_params( vk::renderer<vk::glfw_present_texture, 1>& three_d_renderer, int next_swap)
 {
     //three_d_renderer
-    vk::shader_parameter::shader_params_group& vertex_params =   three_d_renderer.get_pipeline(next_swap, 0).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+//    vk::shader_parameter::shader_params_group& vertex_params =   three_d_renderer.get_pipeline(next_swap, 0).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+    vk::shader_parameter::shader_params_group& vertex_params =
+        three_d_renderer.get_render_pass().get_subpass(0).get_pipeline(next_swap).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     app.three_d_texture_camera->update_view_matrix();
 
 
@@ -126,13 +128,16 @@ void update_3d_texture_rendering_params( vk::renderer<vk::glfw_present_texture, 
     vertex_params["mvp"] = mvp;
     vertex_params["model"] = glm::mat4(1.0f);
 
-    vk::shader_parameter::shader_params_group& fragment_params = three_d_renderer.get_pipeline(next_swap, 0).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
-
+    //vk::shader_parameter::shader_params_group& fragment_params = three_d_renderer.get_pipeline(next_swap, 0).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
+    vk::shader_parameter::shader_params_group& fragment_params = three_d_renderer.get_render_pass().get_subpass(0).
+    get_pipeline(next_swap).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
+    
     fragment_params["box_eye_position"] =   glm::vec4(app.three_d_texture_camera->position, 1.0f);
     fragment_params["screen_height"] = static_cast<float>(app.swapchain->get_vk_swap_extent().width);
     fragment_params["screen_width"] = static_cast<float>(app.swapchain->get_vk_swap_extent().height);
     
-    three_d_renderer.get_pipeline(next_swap, 0).commit_parameters_to_gpu();
+    //three_d_renderer.get_pipeline(next_swap, 0).commit_parameters_to_gpu();
+    three_d_renderer.get_render_pass().get_subpass(0).get_pipeline(next_swap).commit_parameters_to_gpu();
 }
 
 
@@ -173,8 +178,8 @@ void game_loop()
     while (!glfwWindowShouldClose(window) && !app.quit)
     {
         glfwPollEvents();
-        app.user_controller->update();
-        app.texture_3d_view_controller->update();
+        //app.user_controller->update();
+        //app.texture_3d_view_controller->update();
         if(app.mode == App::render_mode::RENDER_DEFFERED)
         {
             update_renderer_parameters( *app.deferred_renderer );
@@ -366,7 +371,7 @@ int main()
     app.shapes.push_back(&model);
     
     vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store, app.shapes);
-    vk::renderer<vk::glfw_present_texture,1> three_d_renderer(&device, window, &swapchain, display_3d_tex_mat);
+    vk::renderer<vk::glfw_present_texture,1> three_d_renderer(&device, window, &swapchain, material_store, "display_3d_texture");
     vk::display_2d_texture_renderer display_renderer(&device, window, &swapchain, material_store);
     
     display_renderer.get_render_pass().set_depth_enable(false);
@@ -400,8 +405,8 @@ int main()
     app.user_controller = &user_controler;
     app.texture_3d_view_controller = &texture_3d_view_controller;
     
-    game_loop();
-    //game_loop_ortho(display_renderer);
+    //game_loop();
+    game_loop_ortho(display_renderer);
     
     mario.destroy();
     deferred_renderer.destroy();

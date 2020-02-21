@@ -12,7 +12,7 @@ using namespace vk;
 
 void compute_pipeline::create()
 {
-    for( int i =0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
+    for( int i =0; i < 1; ++i)
     {
         VkPipelineLayoutCreateInfo pipeline_layout_create_info = {};
         pipeline_layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -41,6 +41,7 @@ void compute_pipeline::create()
 void compute_pipeline::record_dispatch_commands( VkCommandBuffer&  command_buffer,
                                                  uint32_t local_groups_in_x, uint32_t local_groups_in_y, uint32_t local_groups_in_z, uint32_t swapchain_index)
 {
+    swapchain_index =  0;
     //make sure to have all shader parameters ready for consumption, this is necessary to create the pipeline as well
     _material[swapchain_index]->commit_parameters_to_gpu();
     
