@@ -23,9 +23,8 @@
 #include <algorithm>
 #include <stdio.h>
 
-
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::renderer(device* device, GLFWwindow* window, glfw_swapchain* swapchain, material_store& store, const char* material_name):
+renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::renderer(device* device, GLFWwindow* window, glfw_swapchain* swapchain, visual_mat_shared_ptr material):
 //_pipeline(device, glm::vec2( swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height), material)
 _render_pass(device, glm::vec2( swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height))
 {
@@ -35,7 +34,7 @@ _render_pass(device, glm::vec2( swapchain->get_vk_swap_extent().width, swapchain
     
     //_pipeline::subpass_type
     _render_pass.set_rendering_attachments(_swapchain->present_textures);
-    typename render_pass_type::subpass_s& subpass = _render_pass.add_subpass(store, material_name);
+    typename render_pass_type::subpass_s& subpass = _render_pass.add_subpass(material);
     
     static constexpr int ATTACHMENT_ID = 0;
     subpass.add_attachment_input("default", ATTACHMENT_ID);
@@ -121,30 +120,26 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::recreate_renderer()
     _render_pass.destroy();
     _swapchain->recreate_swapchain( );
     
-    for(int i = 0; i< glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
-        _render_pass.create(i);
+    _render_pass.create();
     
     create_command_buffers(&_command_buffers, _device->_present_command_pool);
-    for( int i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
-    {
-        record_command_buffers(_shapes.data(), _shapes.size(),i );
-    }
-
+    record_command_buffers(_shapes.data(), _shapes.size());
+    
 }
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::record_command_buffers(obj_shape** shapes, size_t number_of_shapes, uint32_t swapchain_id)
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::record_command_buffers(obj_shape** shapes, size_t number_of_shapes)
 {
     
     for( uint32_t subpass_id = 0; subpass_id < _render_pass.get_number_of_subpasses(); ++subpass_id)
     {
-        //for (uint32_t chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES;chain_id++)
+        for (uint32_t chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES;chain_id++)
         {
-            _render_pass.begin_command_recording(_command_buffers[swapchain_id], swapchain_id, subpass_id);
+            _render_pass.begin_command_recording(_command_buffers[chain_id], chain_id, subpass_id);
             
             for( uint32_t j = 0; j < number_of_shapes; ++j)
             {
-                shapes[j]->draw(_command_buffers[swapchain_id], _render_pass.get_subpass(subpass_id).get_pipeline(swapchain_id), j, swapchain_id);
+                shapes[j]->draw(_command_buffers[chain_id], _render_pass.get_subpass(subpass_id).get_pipeline(chain_id), j, chain_id);
             }
             
             _render_pass.end_command_recording();
@@ -187,14 +182,14 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::init()
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::perform_final_drawing_setup()
 {
-    if(!_pipeline_created[_image_index])
+    if(!_pipeline_created)
     {
         //note: we create the pipeline here to give the client a chance to set the material input arguments.
         //the pipeline needs this information to be created properly.
 
-        _render_pass.create(_image_index);
-        record_command_buffers(_shapes.data(), _shapes.size(), _image_index);
-        _pipeline_created[_image_index] = true;
+        _render_pass.create();
+        record_command_buffers(_shapes.data(), _shapes.size());
+        _pipeline_created = true;
     }
     _render_pass.commit_parameters_to_gpu(_image_index);
 }

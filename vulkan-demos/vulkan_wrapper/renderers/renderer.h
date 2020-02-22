@@ -19,7 +19,6 @@
 #include "./cameras/camera.h"
 #include "../renderers/render_pass.h"
 #include "../textures/glfw_present_texture.h"
-#include "material_store.h"
 
 
 namespace vk
@@ -50,7 +49,7 @@ namespace vk
     public:
         
         renderer(){};
-        renderer(device* device, GLFWwindow* window, glfw_swapchain* swapchain, material_store& store, const char* material_name);
+        renderer(device* device, GLFWwindow* window, glfw_swapchain* swapchain, visual_mat_shared_ptr material);
         
 
         void add_shape(obj_shape* s){ _shapes.push_back(s); };
@@ -58,7 +57,7 @@ namespace vk
         virtual void draw(camera &camera);
         
         graphics_pipeline_type& get_pipeline(uint32_t subpass_id) { return _render_pass.get_pipeline(_image_index, subpass_id ); }
-        graphics_pipeline_type& get_pipeline(uint32_t swapchain_id, uint32_t subpass_id) { return _render_pass.get_subpass(subpass_id).get_pipeline( swapchain_id); }
+        graphics_pipeline_type& get_pipeline(uint32_t swapchain_id, uint32_t subpass_id) { return _render_pass.get_subpass(0).get_pipeline( subpass_id); }
         render_pass_type& get_render_pass(){ return _render_pass;}
         
         virtual void init();
@@ -73,9 +72,7 @@ namespace vk
         
         inline shader_parameter::shader_params_group& get_uniform_params(uint32_t subpass_id, material_base::parameter_stage stage, uint32_t binding)
         {
-            static int32_t index = -1;
-            index = (index + 1) % glfw_swapchain::NUM_SWAPCHAIN_IMAGES;
-            return _render_pass.get_pipeline(index, subpass_id ).get_uniform_parameters(stage, binding); //_pipeline.get_uniform_parameters(stage, binding, _image_index);
+            return _render_pass.get_pipeline(_image_index, subpass_id ).get_uniform_parameters(stage, binding); //_pipeline.get_uniform_parameters(stage, binding, _image_index);
         }
         
         
@@ -120,7 +117,7 @@ namespace vk
         void create_semaphores(std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& semaphores);
         void create_fence(VkFence& fence);
         
-        virtual void record_command_buffers(obj_shape** shapes, size_t number_of_shapes, uint32_t swapchain_id);
+        virtual void record_command_buffers(obj_shape** shapes, size_t number_of_shapes);
         virtual void perform_final_drawing_setup();
         
     private:
@@ -146,8 +143,7 @@ namespace vk
         
         std::vector<obj_shape*> _shapes;
         
-        //bool _pipeline_created = false;
-        bool _pipeline_created[glfw_swapchain::NUM_SWAPCHAIN_IMAGES]= {false};
+        bool _pipeline_created = false;
     };
 
     #include "renderer.hpp"

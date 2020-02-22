@@ -29,7 +29,6 @@
 #include "depth_texture.h"
 #include "../core/device.h"
 #include "graphics_pipeline.h"
-#include "material_store.h"
 
 namespace vk
 {
@@ -228,12 +227,12 @@ namespace vk
                 }
             }
             
-            void set_material( material_store& store, const char* material_name)
+            void set_material( visual_mat_shared_ptr& material)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
                     //TODO: how will you know if this pipeline needs to be initialized
-                    _pipeline[chain_id].set_material(store.GET_MAT<visual_material>(material_name));
+                    _pipeline[chain_id].set_material(material);
                 }
             }
             
@@ -250,9 +249,12 @@ namespace vk
             
             inline graphics_pipeline_type& get_pipeline(uint32_t swapchain_id ){ return _pipeline[swapchain_id]; }
             
-            void create(VkRenderPass& vk_render_pass, uint32_t swapchain_id)
+            void create(std::array<VkRenderPass, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& vk_render_passes)
             {
-                _pipeline[swapchain_id].create(vk_render_pass);
+                for(uint32_t i = 0; i < _pipeline.size(); ++i)
+                {
+                    _pipeline[i].create(vk_render_passes[i]);
+                }
             }
             
             inline void set_active(){ _active = true; }
@@ -314,7 +316,7 @@ namespace vk
         
         //TODO: re-name this to create_depth_attachment()
         void set_depth_enable(bool enable){ _depth_enable = enable; };
-        void init(uint32_t swapchain_id);
+        void init();
         
         void record_draw_commands(obj_shape**, size_t num_shapes);
         
@@ -364,14 +366,13 @@ namespace vk
         inline void set_offscreen_rendering(bool offscreen ){ _off_screen_rendering = offscreen; }
         
         inline graphics_pipeline_type& get_pipeline( uint32_t swapchain_id, uint32_t subpass_id){ return get_subpass(subpass_id).get_pipeline(swapchain_id);}
-
-        inline subpass_s& add_subpass(vk::material_store& store,  const char* material_name, const char* subpass_name = "" )
+        inline subpass_s& add_subpass(visual_mat_shared_ptr mat,  const char* name = "" )
         {
-            _subpasses[_num_subpasses]._name = subpass_name;
+            _subpasses[_num_subpasses]._name = name;
             _subpasses[_num_subpasses].set_active();
             _subpasses[_num_subpasses].set_device(_device);
-            _subpasses[_num_subpasses].set_material(store, material_name);
-
+            _subpasses[_num_subpasses].set_material(mat);
+            
             return _subpasses[_num_subpasses++];
         };
         
@@ -389,15 +390,14 @@ namespace vk
         
         inline subpass_s& get_subpass(uint32_t subpass_id){ return _subpasses[subpass_id]; }
         
-        inline void create(uint32_t swapchain_id)
+        inline void create()
         {
-            assert(_num_subpasses != 0 && "you need at least one subpass");
-            init(swapchain_id);
+            init();
             for( int subpass_id = 0; subpass_id < _num_subpasses; ++subpass_id)
             {
                 if(!_subpasses[subpass_id].is_active()) break;
                 //TODO: make _vk_render_passes of size 1
-                _subpasses[subpass_id].create(_vk_render_passes[swapchain_id], swapchain_id);
+                _subpasses[subpass_id].create(_vk_render_passes);
             }
         }
         
@@ -517,7 +517,7 @@ namespace vk
         
     private:
         
-        void create_frame_buffers(uint32_t swapchain_id);
+        void create_frame_buffers();
         
     private:
         
@@ -571,7 +571,7 @@ namespace vk
     }
     
     template <class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-    void render_pass<TEXTURE_TYPE, NUM_ATTACHMENTS>::init(uint32_t swapchain_id)
+    void render_pass<TEXTURE_TYPE, NUM_ATTACHMENTS>::init()
     {
         assert(_attachments != nullptr && "you need to attach something to render to");
         assert(_attachments->size() <= MAX_NUMBER_OF_ATTACHMENTS);
@@ -584,18 +584,18 @@ namespace vk
         image::filter f = _attachments->at(0)[0].get_filter();
         if(_depth_enable )
         {
-            //for( int i = 0; i < _depth_textures.size(); ++i)
+            for( int i = 0; i < _depth_textures.size(); ++i)
             {
-                _depth_textures[swapchain_id].set_device(_device);
-                _depth_textures[swapchain_id].set_dimensions(width,height, 1.0f);
-                _depth_textures[swapchain_id].set_filter(f);
-                _depth_textures[swapchain_id].set_write_to_texture(_off_screen_rendering);
-                _depth_textures[swapchain_id].init();
+                _depth_textures[i].set_device(_device);
+                _depth_textures[i].set_dimensions(width,height, 1.0f);
+                _depth_textures[i].set_filter(f);
+                _depth_textures[i].set_write_to_texture(_off_screen_rendering);
+                _depth_textures[i].init();
             }
         }
 
         
-        //for( int swapchain_index = 0; swapchain_index < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++swapchain_index)
+        for( int swapchain_index = 0; swapchain_index < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++swapchain_index)
         {
             
             std::array<VkAttachmentDescription, MAX_NUMBER_OF_ATTACHMENTS> attachment_descriptions {};
@@ -610,8 +610,8 @@ namespace vk
             for( ; attachment_id < _attachments->size(); ++attachment_id)
             {
                 assert(_attachments[attachment_id].size() != 0);
-                assert(width == _attachments->at(attachment_id)[swapchain_id].get_width());
-                assert(height == _attachments->at(attachment_id)[swapchain_id].get_height());
+                assert(width == _attachments->at(attachment_id)[swapchain_index].get_width());
+                assert(height == _attachments->at(attachment_id)[swapchain_index].get_height());
                 
                 attachment_descriptions[attachment_id].samples = VK_SAMPLE_COUNT_1_BIT;
                 attachment_descriptions[attachment_id].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -621,7 +621,7 @@ namespace vk
                 
                 attachment_descriptions[attachment_id].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
                 attachment_descriptions[attachment_id].finalLayout = _off_screen_rendering ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL :VK_IMAGE_LAYOUT_PRESENT_SRC_KHR ;
-                attachment_descriptions[attachment_id].format = static_cast<VkFormat>(_attachments->at(attachment_id)[swapchain_id].get_format());
+                attachment_descriptions[attachment_id].format = static_cast<VkFormat>(_attachments->at(attachment_id)[swapchain_index].get_format());
                 
                 //this is the layout the attahment will be used during the subpass.  The driver decides if there should be a
                 //transition or not given the 'initialLayout' specified in the attachment description
@@ -648,13 +648,13 @@ namespace vk
 
                  if(_depth_enable)
                 {
-                    assert(width == _depth_textures[swapchain_id].get_width());
-                    assert(height == _depth_textures[swapchain_id].get_height());
+                    assert(width == _depth_textures[swapchain_index].get_width());
+                    assert(height == _depth_textures[swapchain_index].get_height());
                     
                     //note: in this code, the last attachement is the depth
-                    attachment_descriptions[attachment_id] =  _depth_textures[swapchain_id].get_depth_attachment();
+                    attachment_descriptions[attachment_id] =  _depth_textures[swapchain_index].get_depth_attachment();
                     depth_reference.attachment = attachment_id;
-                    depth_reference.layout = static_cast<VkImageLayout>(_depth_textures[swapchain_id].get_image_layout());
+                    depth_reference.layout = static_cast<VkImageLayout>(_depth_textures[swapchain_index].get_image_layout());
                     subpass[subpass_id].pDepthStencilAttachment = &depth_reference;
                 }
 
@@ -677,20 +677,20 @@ namespace vk
             render_pass_info.dependencyCount = 0;
             render_pass_info.pDependencies = nullptr;
 
-            VkResult result = vkCreateRenderPass(_device->_logical_device, &render_pass_info, nullptr, &_vk_render_passes[swapchain_id]);
+            VkResult result = vkCreateRenderPass(_device->_logical_device, &render_pass_info, nullptr, &_vk_render_passes[swapchain_index]);
             ASSERT_VULKAN(result);
         }
         
-        create_frame_buffers(swapchain_id);
+        create_frame_buffers();
     }
 
     template <class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-    void render_pass<TEXTURE_TYPE, NUM_ATTACHMENTS>::create_frame_buffers(uint32_t swapchain_id)
+    void render_pass<TEXTURE_TYPE, NUM_ATTACHMENTS>::create_frame_buffers()
     {
         
         for( uint32_t subpass_id = 0; subpass_id < _num_subpasses; ++subpass_id)
         {
-            //for( uint32_t swapchain_id = 0; swapchain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++swapchain_id)
+            for( uint32_t swapchain_id = 0; swapchain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++swapchain_id)
             {
                 std::array<VkImageView, MAX_NUMBER_OF_ATTACHMENTS> attachment_views {};
                 

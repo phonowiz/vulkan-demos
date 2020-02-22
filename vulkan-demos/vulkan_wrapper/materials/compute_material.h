@@ -17,7 +17,7 @@ namespace vk
     class compute_material : public material_base
     {
     public:
-        compute_material( compute_material& original)
+        compute_material( const compute_material& original)
         {
             operator=(original);
         }
@@ -39,11 +39,11 @@ namespace vk
         
         virtual size_t get_shader_stages_size() override { return 1; }
         
-        inline compute_material& operator=( compute_material& right)
+        inline compute_material& operator=( const compute_material& right)
         {
             if( this != &right)
             {
-                material_base::operator=(static_cast<material_base&>(right));
+                material_base::operator=(static_cast<const material_base&>(right));
                 _compute_shader = right._compute_shader;
             }
             

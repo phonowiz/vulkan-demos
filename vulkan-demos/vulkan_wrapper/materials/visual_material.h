@@ -28,7 +28,7 @@ namespace  vk
     {
     public:
         
-        visual_material( visual_material& original)
+        visual_material( const visual_material& original)
         {
             operator=(original);
         }
@@ -79,11 +79,11 @@ namespace  vk
             get_uniform_parameters(stage, binding)[parameter_name].set_vectors_array(vecs, num_vectors);
         }
 
-        inline visual_material& operator=( visual_material& right)
+        inline visual_material& operator=( const visual_material& right)
         {
             if( this != &right)
             {
-                this->material_base::operator=(static_cast<visual_material&>(right));
+                this->material_base::operator=(static_cast<const visual_material&>(right));
                 
                 _vertex_shader = right._vertex_shader;
                 _fragment_shader = right._fragment_shader;
