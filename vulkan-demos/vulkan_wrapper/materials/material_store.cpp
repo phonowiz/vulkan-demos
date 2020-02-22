@@ -105,11 +105,11 @@ mat_shared_ptr material_store::get_material(const char* name) const
     {
        if( material_database[name]->get_instance_type() == visual_material::get_material_type())
        {
-           tmp = CREATE_MAT<visual_material>( static_cast<const visual_material&> (*tmp) );
+           tmp = CREATE_MAT<visual_material>( static_cast<visual_material&> (*tmp) );
        }
        else
        {
-           tmp = CREATE_MAT<compute_material>( static_cast<const compute_material&> (*tmp) );
+           tmp = CREATE_MAT<compute_material>( static_cast<compute_material&> (*tmp) );
        }
     }
     tmp->set_in_use();

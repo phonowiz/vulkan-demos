@@ -100,7 +100,7 @@ namespace vk
             return bytes;
         };
         
-        virtual material_base& operator=( const material_base& right);
+        virtual material_base& operator=( material_base& right);
         void set_in_use(){ _in_use = true; }
         bool get_in_use(){ return _in_use; }
         

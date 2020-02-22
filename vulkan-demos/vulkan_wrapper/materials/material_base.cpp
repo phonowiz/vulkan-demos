@@ -255,7 +255,7 @@ void material_base::print_uniform_argument_names()
 void material_base::init_shader_parameters()
 {
     size_t total_size = 0;
-    
+    assert(_uniform_parameters.size() != 0 || _uniform_dynamic_buffers.size() != 0 ||  _sampler_parameters.size() != 0 );
     _uniform_parameters_added_on_init = 0;
     //note: textures don't need to be initialized here because the texture classes take care of that
     for (std::pair<parameter_stage , buffer_info > &pair : _uniform_buffers)
@@ -430,7 +430,7 @@ void material_base::commit_parameters_to_gpu( )
            " you've added more uniform parameters after initialization of material, please check code");
 }
 
-material_base& material_base::operator=( const material_base& right)
+material_base& material_base::operator=( material_base& right)
 {
     if( this != &right)
     {
@@ -439,19 +439,24 @@ material_base& material_base::operator=( const material_base& right)
         _descriptor_set = right._descriptor_set;
         
         _uniform_buffers = right._uniform_buffers;
+//        for( std::pair<parameter_stage, resource::buffer_info>& pair : right._uniform_buffers)
+//        {
+//            _uniform_buffers[pair.first] = pair.second;
+//        }
         _uniform_parameters = right._uniform_parameters;
         _uniform_dynamic_buffers = right._uniform_dynamic_buffers;
         _uniform_dynamic_parameters = right._uniform_dynamic_parameters;
+        _sampler_buffers = right._sampler_buffers;
+        _sampler_parameters = right._sampler_parameters;
         
-        for(std::pair<parameter_stage, buffer_parameter >& pair : _sampler_buffers)
-        {
-            _sampler_buffers[ pair.first] = pair.second;
-        }
-        for(std::pair<parameter_stage, sampler_parameter >& pair : _sampler_parameters)
-        {
-            _sampler_parameters[pair.first] = pair.second;
-        }
-        
+//        for(std::pair<parameter_stage, buffer_parameter >& pair : right._sampler_buffers)
+//        {
+//            _sampler_buffers[ pair.first] = pair.second;
+//        }
+//        for(std::pair<parameter_stage, sampler_parameter >& pair : right._sampler_parameters)
+//        {
+//            _sampler_parameters[pair.first] = pair.second;
+//        }
         
         _descriptor_set_layout_bindings = right._descriptor_set_layout_bindings;
         _pipeline_shader_stages = right._pipeline_shader_stages;

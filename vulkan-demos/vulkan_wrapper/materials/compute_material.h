@@ -19,19 +19,19 @@ namespace vk
     public:
         compute_material(){};
         
-        compute_material( const compute_material& original)
+        compute_material(compute_material& original)
         {
             operator=(original);
         }
         compute_material(const char* name, shader_shared_ptr compute_shader, device* device):
         material_base(device, name)
         {
-            _compute_shader = *compute_shader;
+            _compute_shader = compute_shader;
         };
         
         virtual VkPipelineShaderStageCreateInfo* get_shader_stages() override
         {
-            _pipeline_shader_stages[0] = _compute_shader._pipeline_shader_stage;
+            _pipeline_shader_stages[0] = _compute_shader->_pipeline_shader_stage;
             
             return _pipeline_shader_stages.data();
         }
@@ -41,11 +41,11 @@ namespace vk
         
         virtual size_t get_shader_stages_size() override { return 1; }
         
-        inline compute_material& operator=( const compute_material& right)
+        inline compute_material& operator=( compute_material& right)
         {
             if( this != &right)
             {
-                material_base::operator=(static_cast<const material_base&>(right));
+                material_base::operator=(static_cast<material_base&>(right));
                 _compute_shader = right._compute_shader;
             }
             
@@ -54,7 +54,7 @@ namespace vk
         
     private:
         static constexpr char const* const _type = nullptr;
-        shader _compute_shader;
+        shader_shared_ptr _compute_shader;
     };
     
     using compute_mat_shared_ptr = std::shared_ptr<compute_material>;
