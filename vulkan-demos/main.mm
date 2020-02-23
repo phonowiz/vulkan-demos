@@ -156,7 +156,6 @@ void update_renderer_parameters( vk::deferred_renderer& renderer)
     renderer._light_pos = temp;
     static int32_t next_frame = -1;
     next_frame = (next_frame + 1) % vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES;
-    //vk::shader_parameter::shader_params_group& vertex_params = renderer.get_mrt_uniform_params(vk::visual_material::parameter_stage::VERTEX, 0);
     vk::shader_parameter::shader_params_group& vertex_params = renderer.get_mrt_uniform_params(vk::visual_material::parameter_stage::VERTEX,0, 0, next_frame);
 
     
@@ -384,8 +383,8 @@ int main()
     vk::display_2d_texture_renderer display_renderer(&device, window, &swapchain, material_store);
     
     display_renderer.get_render_pass().set_depth_enable(false);
-    //display_renderer.show_texture(deferred_renderer.get_voxelizer_cam_texture());
-    display_renderer.show_texture(&mario);
+    display_renderer.show_texture(deferred_renderer.get_voxelizer_cam_texture());
+    //display_renderer.show_texture(&mario);
     display_renderer.init();
     
     app.display_renderer = &display_renderer;
@@ -398,13 +397,10 @@ int main()
     
     app.three_d_renderer->get_render_pass().get_subpass(0).set_image_sampler(voxel_texture, "texture_3d",
                                                                              vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
-    //app.three_d_renderer->get_render_pass().set_image_sampler(voxel_texture, "texture_3d",
-    //                                                        vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER );
 
     app.three_d_renderer->add_shape(&cube);
     app.three_d_renderer->get_render_pass().set_depth_enable(true);
 
-    //app.three_d_renderer->get_render_pa().set_cullmode(vk::standard_pipeline::cull_mode::NONE);
     app.three_d_renderer->get_render_pass().get_subpass(0).set_cull_mode(vk::standard_pipeline::cull_mode::NONE);
     app.three_d_renderer->init();
     
@@ -414,8 +410,8 @@ int main()
     app.user_controller = &user_controler;
     app.texture_3d_view_controller = &texture_3d_view_controller;
     
-    //game_loop();
-    game_loop_ortho(display_renderer);
+    game_loop();
+    //game_loop_ortho(display_renderer);
     
     device.wait_for_all_operations_to_finish();
     mario.destroy();

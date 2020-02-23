@@ -67,9 +67,9 @@ namespace vk
         
         void compute(VkCommandBuffer command_buffer, vk::compute_pipeline& pipeline);
         void record_command_buffers(obj_shape** shapes, size_t number_of_shapes, uint32_t swapchain_id) override;
-        void record_voxelize_command_buffers(obj_shape** shapes, size_t number_of_shapes);
-        void record_clear_texture_3d_buffer ();
-        void record_3d_mip_maps_commands();
+        void record_voxelize_command_buffers(obj_shape** shapes, size_t number_of_shapes, uint32_t swapchain_id);
+        void record_clear_texture_3d_buffer ( uint32_t swapchain_id);
+        void record_3d_mip_maps_commands(uint32_t swapchain_id);
 
         void clear_voxels_textures();
         void generate_voxel_mip_maps(VkSemaphore& semaphore);
@@ -88,11 +88,6 @@ namespace vk
         
         using voxelize_render_pass = render_pass<render_texture,1>;
         voxelize_render_pass _voxelize_render_pass;
-        //using mrt_pipeline = graphics_pipeline<render_texture, 3>;
-        //mrt_pipeline _mrt_pipeline;
-        
-        //using voxelize_pipeline = graphics_pipeline<render_texture, 1>;
-        //voxelize_pipeline _voxelize_pipeline;
   
         static constexpr unsigned int TOTAL_LODS = 6;
         
@@ -163,14 +158,11 @@ namespace vk
         
         inline shader_parameter::shader_params_group& get_mrt_uniform_params(material_base::parameter_stage stage, uint32_t subpass_id, uint32_t binding, int32_t next_frame)
         {
-            //return _mrt_pipeline.get_uniform_parameters(stage, binding, _deferred_image_index);
-            //return _mrt_render_pass.get_pipeline(_deferred_image_index, subpass_id).get_uniform_parameters(stage, binding);
             return _mrt_render_pass.get_subpass(0).get_pipeline( next_frame ).get_uniform_parameters(stage, binding);
         }
         
         inline visual_material::object_shader_params_group& get_mrt_dynamic_params(material_base::parameter_stage stage, uint32_t subpass_id, uint32_t binding, int32_t next_frame)
         {
-            //return _mrt_pipeline.get_dynamic_parameters(stage, binding, _deferred_image_index);
             return _mrt_render_pass.get_subpass(0).get_pipeline(next_frame).get_dynamic_parameters(stage, binding);
         }
         
