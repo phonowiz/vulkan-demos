@@ -296,10 +296,10 @@ void deferred_renderer::create_semaphores_and_fences()
     create_semaphores(_generate_voxel_y_axis_semaphore);
     create_semaphores(_generate_voxel_x_axis_semaphore);
     
-    for( int i = 0; i < _clear_voxel_textures.size(); ++i)
+    for( int i = 0; i < _clear_voxel_textures_semaphores.size(); ++i)
     {
-        for( int j = 0; j < _clear_voxel_textures[i].size(); ++j)
-            create_semaphore(_clear_voxel_textures[i][j]);
+        for( int j = 0; j < _clear_voxel_textures_semaphores[i].size(); ++j)
+            create_semaphore(_clear_voxel_textures_semaphores[i][j]);
     }
         
     for( size_t i = 0; i < _mip_map_semaphores.size(); ++i)
@@ -484,8 +484,8 @@ void deferred_renderer::clear_voxels_textures()
     submit_info.waitSemaphoreCount = 0;
     submit_info.pWaitDstStageMask = wait_stage_mask.data();
     submit_info.pWaitSemaphores = nullptr;
-    submit_info.pSignalSemaphores = _clear_voxel_textures[_deferred_image_index].data();
-    submit_info.signalSemaphoreCount = (uint32_t)_clear_voxel_textures[_deferred_image_index].size();
+    submit_info.pSignalSemaphores = _clear_voxel_textures_semaphores[_deferred_image_index].data();
+    submit_info.signalSemaphoreCount = (uint32_t)_clear_voxel_textures_semaphores[_deferred_image_index].size();
     
     VkResult result = vkQueueSubmit(_device->_compute_queue, 1, &submit_info, nullptr);
     
@@ -529,8 +529,12 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
     constexpr float distance = 8.f;
     std::array<glm::vec3, 3> cam_positions = {  glm::vec3(0.0f, 0.0f, -distance),glm::vec3(0.0f, distance, 0.0f), glm::vec3(distance, 0.0f, 0.0f)};
     std::array<glm::vec3, 3> up_vectors = { glm::vec3 {0.0f, 1.0f, 0.0f}, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)};
-    std::array<VkSemaphore, 3> semaphores = { _generate_voxel_z_axis_semaphore[_deferred_image_index],
+    std::array<VkSemaphore,  3> semaphores = { _generate_voxel_z_axis_semaphore[_deferred_image_index],
         _generate_voxel_y_axis_semaphore[_deferred_image_index], _generate_voxel_x_axis_semaphore[_deferred_image_index]};
+    
+    semaphores[0] = _generate_voxel_z_axis_semaphore[_deferred_image_index];
+    semaphores[1] = _generate_voxel_y_axis_semaphore[_deferred_image_index];
+    semaphores[2] = _generate_voxel_x_axis_semaphore[_deferred_image_index];
     
     glm::mat4 project_to_voxel_screen = glm::mat4(1.0f);
 
@@ -538,6 +542,9 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
     std::array<VkSubmitInfo, 3> submits {};
     
     size_t i = 0;
+    std::array<VkPipelineStageFlags, TOTAL_LODS> wait_stage_mask= {};
+    std::fill(wait_stage_mask.begin(), wait_stage_mask.end(),VK_PIPELINE_STAGE_VERTEX_SHADER_BIT);
+    
     for( ; i < cam_positions.size(); ++i)
     {
         _ortho_camera.position = cam_positions[i];
@@ -563,13 +570,11 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
         
         _voxelize_render_pass.commit_parameters_to_gpu(_deferred_image_index);
         
-        std::array<VkPipelineStageFlags, 1> wait_stage_mask= {VK_PIPELINE_STAGE_VERTEX_SHADER_BIT};
-        
         submits[i].sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submits[i].commandBufferCount = 1;
-        submits[i].pWaitDstStageMask = &wait_stage_mask[0];
-        submits[i].waitSemaphoreCount = i != 0;
-        submits[i].pWaitSemaphores = i == 0 ? &_clear_voxel_textures[_deferred_image_index][0] : &semaphores[i-1];
+        submits[i].pWaitDstStageMask = wait_stage_mask.data();
+        submits[i].waitSemaphoreCount = i == 0 ? static_cast<int32_t>(_clear_voxel_textures_semaphores[_deferred_image_index].size()) : 1;
+        submits[i].pWaitSemaphores = i == 0 ? _clear_voxel_textures_semaphores[_deferred_image_index].data() : &semaphores[i-1];
         submits[i].pCommandBuffers = &(_voxelize_command_buffers[_deferred_image_index]);
         submits[i].signalSemaphoreCount = 1;
         submits[i].pSignalSemaphores =  &semaphores[i];
@@ -675,11 +680,11 @@ void deferred_renderer::destroy()
         vkDestroySemaphore(_device->_logical_device, _generate_voxel_z_axis_semaphore[i], nullptr);
     }
     
-    for( int i = 0; i < _clear_voxel_textures.size(); ++i)
+    for( int i = 0; i < _clear_voxel_textures_semaphores.size(); ++i)
     {
-        for(int j =0; j < _clear_voxel_textures[i].size(); ++j)
+        for(int j =0; j < _clear_voxel_textures_semaphores[i].size(); ++j)
         {
-            vkDestroySemaphore(_device->_logical_device, _clear_voxel_textures[i][j], nullptr);
+            vkDestroySemaphore(_device->_logical_device, _clear_voxel_textures_semaphores[i][j], nullptr);
         }
     }
 

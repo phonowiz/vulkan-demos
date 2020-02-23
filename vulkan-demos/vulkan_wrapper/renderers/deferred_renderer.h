@@ -106,7 +106,7 @@ namespace vk
         std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _generate_voxel_x_axis_semaphore {};
         std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _generate_voxel_y_axis_semaphore = {};
         std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _generate_voxel_z_axis_semaphore = {};
-        std::array<std::array<VkSemaphore, TOTAL_LODS>, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _clear_voxel_textures =  {};
+        std::array<std::array<VkSemaphore, TOTAL_LODS>, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _clear_voxel_textures_semaphores =  {};
         
         std::array<std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS-1> _mip_map_semaphores {};
         
