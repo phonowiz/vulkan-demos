@@ -140,6 +140,7 @@ void update_3d_texture_rendering_params( vk::renderer<vk::glfw_present_texture, 
     fragment_params["screen_width"] = static_cast<float>(app.swapchain->get_vk_swap_extent().height);
     
     //three_d_renderer.get_pipeline(next_swap, 0).commit_parameters_to_gpu();
+    three_d_renderer.set_next_swapchain_id(next_swap);
     three_d_renderer.get_render_pass().get_subpass(0).get_pipeline(next_swap).commit_parameters_to_gpu();
 }
 
@@ -169,12 +170,15 @@ void update_renderer_parameters( vk::deferred_renderer& renderer)
     }
 }
 
-void update_ortho_parameters(vk::renderer<vk::glfw_present_texture, 1>& renderer, uint32_t next_frame)
+void update_ortho_parameters(vk::renderer<vk::glfw_present_texture, 1>& renderer, int32_t next_frame)
 {
     //vk::shader_parameter::shader_params_group& vertex_params =  renderer.get_uniform_params(0,vk::visual_material::parameter_stage::VERTEX,0);
     vk::shader_parameter::shader_params_group& vertex_params = renderer.get_pipeline(next_frame, 0).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     vertex_params["width"] = vk::deferred_renderer::VOXEL_CUBE_WIDTH ;
     vertex_params["height"] = vk::deferred_renderer::VOXEL_CUBE_HEIGHT;
+    
+    if(next_frame != -1)
+        renderer.set_next_swapchain_id(next_frame);
 }
 
 void game_loop()
@@ -235,9 +239,10 @@ void on_window_resize(GLFWwindow * window, int w, int h)
 void game_loop_ortho(vk::renderer<vk::glfw_present_texture, 1> &renderer)
 {
     int i = 0;
-    static int32_t current_index = -1;
-    current_index = (current_index + 1) % vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES;
+
     while (!glfwWindowShouldClose(window)) {
+        static int32_t current_index = -1;
+        current_index = (current_index + 1) % vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES;
         glfwPollEvents();
         update_ortho_parameters( renderer , current_index);
         renderer.draw(*app.perspective_camera);
@@ -384,7 +389,7 @@ int main()
     
     display_renderer.get_render_pass().set_depth_enable(false);
     display_renderer.show_texture(deferred_renderer.get_voxelizer_cam_texture());
-    //display_renderer.show_texture(&mario);
+    display_renderer.show_texture(&mario);
     display_renderer.init();
     
     app.display_renderer = &display_renderer;

@@ -109,8 +109,9 @@ namespace vk
             _swapchain = swapchain;
         }
         
-        ~renderer();
+        inline void set_next_swapchain_id(int32_t next_frame){ _next_frame = next_frame; }
         
+        ~renderer();
         
     protected:
         virtual void create_command_buffers(VkCommandBuffer** command_buffers, VkCommandPool command_pool);
@@ -119,9 +120,9 @@ namespace vk
         void create_semaphore(VkSemaphore& semaphore);
         void create_semaphores(std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& semaphores);
         void create_fence(VkFence& fence);
-        
         virtual void record_command_buffers(obj_shape** shapes, size_t number_of_shapes, uint32_t swapchain_id);
         virtual void perform_final_drawing_setup();
+        
         
     private:
          uint32_t _image_index = 0;
@@ -131,13 +132,13 @@ namespace vk
         device*             _device = nullptr;
         GLFWwindow*         _window = nullptr;
         
-        VkSemaphore _semaphore_image_available[glfw_swapchain::NUM_SWAPCHAIN_IMAGES] = {VK_NULL_HANDLE};
+        VkSemaphore _semaphore_image_available[glfw_swapchain::NUM_SWAPCHAIN_IMAGES] = {};
         VkSemaphore _semaphore_rendering_done = VK_NULL_HANDLE;
         glfw_swapchain*  _swapchain = nullptr;
+        int32_t _next_frame = 0;
         
         std::array<VkFence, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _composite_fence {};
 
-        
         //TODO: find out what is the limit of attachments
         static const uint32_t MAX_ATTACHMENTS = 10;
         
