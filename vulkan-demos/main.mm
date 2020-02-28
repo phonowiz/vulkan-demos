@@ -120,18 +120,17 @@ App app;
 
 void update_3d_texture_rendering_params( vk::renderer<vk::glfw_present_texture, 1>& three_d_renderer, int next_swap)
 {
-    //three_d_renderer
-//    vk::shader_parameter::shader_params_group& vertex_params =   three_d_renderer.get_pipeline(next_swap, 0).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+
     vk::shader_parameter::shader_params_group& vertex_params =
         three_d_renderer.get_render_pass().get_subpass(0).get_pipeline(next_swap).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     app.three_d_texture_camera->update_view_matrix();
 
 
     glm::mat4 mvp = app.three_d_texture_camera->get_projection_matrix() * app.three_d_texture_camera->view_matrix * glm::mat4(1.0f);
+    
     vertex_params["mvp"] = mvp;
     vertex_params["model"] = glm::mat4(1.0f);
 
-    //vk::shader_parameter::shader_params_group& fragment_params = three_d_renderer.get_pipeline(next_swap, 0).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
     vk::shader_parameter::shader_params_group& fragment_params = three_d_renderer.get_render_pass().get_subpass(0).
     get_pipeline(next_swap).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
     
@@ -139,9 +138,7 @@ void update_3d_texture_rendering_params( vk::renderer<vk::glfw_present_texture, 
     fragment_params["screen_height"] = static_cast<float>(app.swapchain->get_vk_swap_extent().width);
     fragment_params["screen_width"] = static_cast<float>(app.swapchain->get_vk_swap_extent().height);
     
-    //three_d_renderer.get_pipeline(next_swap, 0).commit_parameters_to_gpu();
     three_d_renderer.set_next_swapchain_id(next_swap);
-    three_d_renderer.get_render_pass().get_subpass(0).get_pipeline(next_swap).commit_parameters_to_gpu();
 }
 
 
@@ -187,8 +184,8 @@ void game_loop()
     while (!glfwWindowShouldClose(window) && !app.quit)
     {
         glfwPollEvents();
-        //app.user_controller->update();
-        //app.texture_3d_view_controller->update();
+        app.user_controller->update();
+        app.texture_3d_view_controller->update();
         if(app.mode == App::render_mode::RENDER_DEFFERED)
         {
             update_renderer_parameters( *app.deferred_renderer );
@@ -349,12 +346,13 @@ int main()
     vk::obj_shape cube(&device, "cube.obj");
     vk::cornell_box cornell_box(&device);
     
+    cube.create();
     model.set_diffuse(glm::vec3(.00f, 0.00f, .80f));
     model.create();
-    cube.create();
+
     
     model.transform.position = glm::vec3(0.5f, -.50f, .0f);
-    model.transform.scale = glm::vec3(1.5f, 1.5f, 1.5f);
+    model.transform.scale = glm::vec3(1.2f, 1.2f, 1.2f);
     model.transform.update_transform_matrix();
     
     cornell_box.transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -367,7 +365,7 @@ int main()
                                               aspect, .01f, 100.0f);
     
     vk::perspective_camera three_d_texture_cam(glm::radians(45.0f),
-                                               aspect, .01f, 100.0f);
+                                               aspect, .01f, 50.0f);
     
     app.perspective_camera = &perspective_camera;
     app.perspective_camera->position = glm::vec3(0.0f, .2f, -5.0f);
@@ -402,7 +400,7 @@ int main()
     
     app.three_d_renderer->get_render_pass().get_subpass(0).set_image_sampler(voxel_texture, "texture_3d",
                                                                              vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
-
+    app.three_d_renderer->get_render_pass().set_clear_depth(glm::vec2(1.0f, 0.0f));
     app.three_d_renderer->add_shape(&cube);
     app.three_d_renderer->get_render_pass().set_depth_enable(true);
 
@@ -414,6 +412,9 @@ int main()
     
     app.user_controller = &user_controler;
     app.texture_3d_view_controller = &texture_3d_view_controller;
+    
+    app.user_controller->update();
+    app.texture_3d_view_controller->update();
     
     game_loop();
     //game_loop_ortho(display_renderer);

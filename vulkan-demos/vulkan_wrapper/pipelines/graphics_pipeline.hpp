@@ -74,6 +74,7 @@ void graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>::create(VkRenderPass& vk_r
     rasterization_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterization_state_create_info.pNext = nullptr;
     rasterization_state_create_info.flags = 0;
+    rasterization_state_create_info.depthClampEnable =  VK_FALSE;
 #if !defined(__APPLE__)
     //in mac os this feature is not enabled
     rasterization_state_create_info.depthClampEnable = VK_TRUE;
