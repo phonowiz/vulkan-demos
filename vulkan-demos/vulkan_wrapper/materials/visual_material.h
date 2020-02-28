@@ -28,7 +28,7 @@ namespace  vk
     {
     public:
         
-        visual_material( const visual_material& original)
+        visual_material( visual_material& original)
         {
             operator=(original);
         }
@@ -83,7 +83,7 @@ namespace  vk
         {
             if( this != &right)
             {
-                this->material_base::operator=(static_cast<const visual_material&>(right));
+                this->material_base::operator=(static_cast<const material_base&>(right));
                 
                 _vertex_shader = right._vertex_shader;
                 _fragment_shader = right._fragment_shader;

@@ -30,13 +30,14 @@ namespace vk
         
         inline void set_material(compute_mat_shared_ptr mat)
         {
-            _material[0] = *mat;
+            _material[0] = mat;
         }
         
         inline void set_image_sampler(texture_3d& textures, const char* parameter_name, uint32_t binding)
         {
             //note: here we force STORAGE_IMAGE usage because the validation layers will throw errors if you use anything else
-            _material[0].set_image_sampler(&textures, parameter_name, material_base::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
+            _material[0]->set_image_sampler(&textures, parameter_name, material_base::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
+
         }
 
         void record_dispatch_commands(VkCommandBuffer&  command_buffer,
@@ -46,7 +47,7 @@ namespace vk
         
         virtual void commit_parameters_to_gpu() override
         {
-            _material[0].commit_parameters_to_gpu();
+            _material[0]->commit_parameters_to_gpu();
         }
         
         bool is_initialized()
@@ -75,7 +76,8 @@ namespace vk
             }
         }
         
-        inline void commit_parameter_to_gpu() { _material[0].commit_parameters_to_gpu(); }
+        inline void commit_parameter_to_gpu() { _material[0]->commit_parameters_to_gpu(); }
+
         //LOCAL_GROUP_SIZE was chosen here because of an example I saw on the internet, if you decide to change this number
         //make sure the local group sizes in  your particular shader is changed as well. Or maybe this needs to be configurable by
         //the client
@@ -86,7 +88,7 @@ namespace vk
         std::array<VkPipeline, 1 >       _pipeline {};
         std::array<VkPipelineLayout, 1>  _pipeline_layout {};
         
-        std::array<compute_material, 1> _material = {};
+        std::array<compute_mat_shared_ptr, 1> _material = {};
         
         std::function<void()> _on_begin = [](){};
 

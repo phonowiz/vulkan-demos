@@ -100,8 +100,8 @@ VkAttachmentDescription depth_texture::get_depth_attachment()
     depth_attachment.storeOp = _write_to_texture ?  VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
     depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    depth_attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+    depth_attachment.initialLayout = static_cast<VkImageLayout>(_image_layout);
+    depth_attachment.finalLayout = static_cast<VkImageLayout>(_image_layout);
     
     return depth_attachment;
 }

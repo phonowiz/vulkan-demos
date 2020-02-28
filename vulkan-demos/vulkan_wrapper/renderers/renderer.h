@@ -19,6 +19,7 @@
 #include "./cameras/camera.h"
 #include "../renderers/render_pass.h"
 #include "../textures/glfw_present_texture.h"
+#include "material_store.h"
 
 
 namespace vk
@@ -49,7 +50,7 @@ namespace vk
     public:
         
         renderer(){};
-        renderer(device* device, GLFWwindow* window, glfw_swapchain* swapchain, visual_mat_shared_ptr material);
+        renderer(device* device, GLFWwindow* window, glfw_swapchain* swapchain, material_store& store, const char* material_name);
         
 
         void add_shape(obj_shape* s){ _shapes.push_back(s); };
@@ -57,7 +58,7 @@ namespace vk
         virtual void draw(camera &camera);
         
         graphics_pipeline_type& get_pipeline(uint32_t subpass_id) { return _render_pass.get_pipeline(_image_index, subpass_id ); }
-        graphics_pipeline_type& get_pipeline(uint32_t swapchain_id, uint32_t subpass_id) { return _render_pass.get_subpass(0).get_pipeline( subpass_id); }
+        graphics_pipeline_type& get_pipeline(uint32_t swapchain_id, uint32_t subpass_id) { return _render_pass.get_subpass(subpass_id).get_pipeline( swapchain_id); }
         render_pass_type& get_render_pass(){ return _render_pass;}
         
         virtual void init();
@@ -72,7 +73,9 @@ namespace vk
         
         inline shader_parameter::shader_params_group& get_uniform_params(uint32_t subpass_id, material_base::parameter_stage stage, uint32_t binding)
         {
-            return _render_pass.get_pipeline(_image_index, subpass_id ).get_uniform_parameters(stage, binding); //_pipeline.get_uniform_parameters(stage, binding, _image_index);
+            static int32_t index = -1;
+            index = (index + 1) % glfw_swapchain::NUM_SWAPCHAIN_IMAGES;
+            return _render_pass.get_pipeline(index, subpass_id ).get_uniform_parameters(stage, binding); //_pipeline.get_uniform_parameters(stage, binding, _image_index);
         }
         
         
@@ -106,8 +109,9 @@ namespace vk
             _swapchain = swapchain;
         }
         
-        ~renderer();
+        inline void set_next_swapchain_id(int32_t next_frame){ _next_frame = next_frame; }
         
+        ~renderer();
         
     protected:
         virtual void create_command_buffers(VkCommandBuffer** command_buffers, VkCommandPool command_pool);
@@ -116,9 +120,9 @@ namespace vk
         void create_semaphore(VkSemaphore& semaphore);
         void create_semaphores(std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& semaphores);
         void create_fence(VkFence& fence);
-        
-        virtual void record_command_buffers(obj_shape** shapes, size_t number_of_shapes);
+        virtual void record_command_buffers(obj_shape** shapes, size_t number_of_shapes, uint32_t swapchain_id);
         virtual void perform_final_drawing_setup();
+        
         
     private:
          uint32_t _image_index = 0;
@@ -128,13 +132,13 @@ namespace vk
         device*             _device = nullptr;
         GLFWwindow*         _window = nullptr;
         
-        VkSemaphore _semaphore_image_available[glfw_swapchain::NUM_SWAPCHAIN_IMAGES] = {VK_NULL_HANDLE};
+        VkSemaphore _semaphore_image_available[glfw_swapchain::NUM_SWAPCHAIN_IMAGES] = {};
         VkSemaphore _semaphore_rendering_done = VK_NULL_HANDLE;
         glfw_swapchain*  _swapchain = nullptr;
+        int32_t _next_frame = 0;
         
         std::array<VkFence, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _composite_fence {};
 
-        
         //TODO: find out what is the limit of attachments
         static const uint32_t MAX_ATTACHMENTS = 10;
         
@@ -143,7 +147,8 @@ namespace vk
         
         std::vector<obj_shape*> _shapes;
         
-        bool _pipeline_created = false;
+        //bool _pipeline_created = false;
+        bool _pipeline_created[glfw_swapchain::NUM_SWAPCHAIN_IMAGES]= {false};
     };
 
     #include "renderer.hpp"
