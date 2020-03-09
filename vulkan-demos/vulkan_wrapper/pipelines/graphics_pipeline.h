@@ -202,6 +202,7 @@ namespace vk
             vkDestroyPipeline(_device->_logical_device, _pipeline[0], nullptr);
             vkDestroyPipelineLayout(_device->_logical_device, _pipeline_layout[0], nullptr);
             
+            _material[0]->destroy();
             _pipeline[0] = VK_NULL_HANDLE;
             _pipeline_layout[0] = VK_NULL_HANDLE;
         

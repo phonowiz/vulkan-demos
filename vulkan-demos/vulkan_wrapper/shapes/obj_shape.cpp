@@ -75,6 +75,7 @@ void obj_shape::destroy()
 {
     for( mesh* m : _meshes)
     {
+        m->destroy();
         delete m;
         m = nullptr;
     }

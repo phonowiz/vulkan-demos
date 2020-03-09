@@ -147,7 +147,7 @@ bool shader::glsl_to_spv(const shader::shader_type shader_type, const char *psha
     
     mvk::GLSLToSPIRVConverter glslConverter;
     glslConverter.setGLSL(pshader);
-    bool wasConverted = glslConverter.convert(shaderStage, true, true);
+    bool wasConverted = glslConverter.convert(shaderStage, false, false);
     if (wasConverted) {
         spirv = glslConverter.getSPIRV();
     }

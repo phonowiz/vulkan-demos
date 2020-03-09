@@ -47,7 +47,6 @@ void visual_material::destroy()
     vkDestroyDescriptorPool(_device->_logical_device, _descriptor_pool, nullptr);
     _descriptor_set_layout = VK_NULL_HANDLE;
     _descriptor_pool = VK_NULL_HANDLE;
-    deallocate_parameters();
     
     material_base::destroy();
 }

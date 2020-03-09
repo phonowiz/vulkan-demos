@@ -36,6 +36,8 @@ void resource::read_file(std::string& fileContents, std::string& path)
     }
 }
 
+#include "debug_utils.h"
+
 void resource::create_buffer(VkDevice device, VkPhysicalDevice physical_device, VkDeviceSize device_size, VkBufferUsageFlags buffer_usage_flags, VkBuffer &buffer,
                          VkMemoryPropertyFlags memory_propery_flags, VkDeviceMemory &device_memory)
 {
@@ -62,6 +64,7 @@ void resource::create_buffer(VkDevice device, VkPhysicalDevice physical_device, 
     memory_allocate_info.memoryTypeIndex = find_memory_type_index(physical_device,memory_requirements.memoryTypeBits, memory_propery_flags);
     
     result = vkAllocateMemory(device, &memory_allocate_info, nullptr, &device_memory);
+    
     ASSERT_VULKAN(result);
     vkBindBufferMemory(device, buffer, device_memory, 0);
     

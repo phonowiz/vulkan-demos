@@ -104,7 +104,7 @@ namespace vk
         void set_in_use(){ _in_use = true; }
         bool get_in_use(){ return _in_use; }
         
-        virtual void destroy() override {   _initialized = false; }
+        virtual void destroy() override;
         void set_image_sampler(image* texture, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage);
         void set_image_smapler(texture_2d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage);
         void set_image_sampler(texture_3d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage);

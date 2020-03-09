@@ -22,8 +22,6 @@ namespace vk
         
         inline void create() override
         {
-            _display_plane.create();
-            
             _meshes.push_back(&_display_plane);
             _path = "display_plane";
             
@@ -32,6 +30,7 @@ namespace vk
         
         virtual void destroy() override
         {
+            _display_plane.destroy();
             _meshes.clear();
             obj_shape::destroy();
         }

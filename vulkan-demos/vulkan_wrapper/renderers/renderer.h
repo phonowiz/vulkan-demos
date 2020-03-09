@@ -68,20 +68,19 @@ namespace vk
         
         inline shader_parameter::shader_params_group& get_uniform_params(uint32_t swapchain_id, uint32_t subpass_id, material_base::parameter_stage stage, uint32_t binding)
         {
-            return _render_pass.get_pipeline(swapchain_id, subpass_id ).get_uniform_parameters(stage, binding); //_pipeline.get_uniform_parameters(stage, binding, _image_index);
+            return _render_pass.get_pipeline(swapchain_id, subpass_id ).get_uniform_parameters(stage, binding);
         }
         
         inline shader_parameter::shader_params_group& get_uniform_params(uint32_t subpass_id, material_base::parameter_stage stage, uint32_t binding)
         {
             static int32_t index = -1;
             index = (index + 1) % glfw_swapchain::NUM_SWAPCHAIN_IMAGES;
-            return _render_pass.get_pipeline(index, subpass_id ).get_uniform_parameters(stage, binding); //_pipeline.get_uniform_parameters(stage, binding, _image_index);
+            return _render_pass.get_pipeline(index, subpass_id ).get_uniform_parameters(stage, binding);
         }
         
         
         inline visual_material::object_shader_params_group& get_dynamic_params(uint32_t subpass_id, material_base::parameter_stage stage, uint32_t binding)
         {
-            //return _pipeline.get_dynamic_parameters(stage, binding, _image_index);
             return _render_pass.get_pipeline(_image_index, subpass_id).get_dynamic_parameters(stage, binding);
         }
         
@@ -90,8 +89,6 @@ namespace vk
             _device = device;
             
             _render_pass.set_device(device);
-            //for( int i = 0; i < _subpass_pipeline)
-            //_pipeline.set_device(device);
         }
         void set_window(GLFWwindow* window)
         {
@@ -99,7 +96,6 @@ namespace vk
         }
         void set_material( uint32_t subpass_id, visual_mat_shared_ptr material)
         {
-            //_pipeline.set_material(material);
             _render_pass.set_material(material);
         }
         
@@ -146,9 +142,7 @@ namespace vk
         render_pass_type _render_pass;
         
         std::vector<obj_shape*> _shapes;
-        
-        //bool _pipeline_created = false;
-        bool _pipeline_created[glfw_swapchain::NUM_SWAPCHAIN_IMAGES]= {false};
+        bool _pipeline_created[glfw_swapchain::NUM_SWAPCHAIN_IMAGES]= {};
     };
 
     #include "renderer.hpp"

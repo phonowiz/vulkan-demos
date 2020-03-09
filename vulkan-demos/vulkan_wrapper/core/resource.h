@@ -46,7 +46,7 @@ namespace  vk
         struct buffer_info
         {
             VkBuffer        uniform_buffer =           VK_NULL_HANDLE;
-            VkDeviceMemory  uniform_buffer_memory =   VK_NULL_HANDLE;
+            VkDeviceMemory  device_memory =   VK_NULL_HANDLE;
             void*           host_mem = nullptr;
             usage_type       usage_type =             usage_type::INVALID;
             uint32_t        binding   =             0;

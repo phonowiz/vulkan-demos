@@ -26,21 +26,17 @@
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::renderer(device* device, GLFWwindow* window, glfw_swapchain* swapchain, material_store& store, const char* material_name):
-//_pipeline(device, glm::vec2( swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height), material)
 _render_pass(device, glm::vec2( swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height))
 {
     _device = device;
     _window = window;
     _swapchain = swapchain;
     
-    //_pipeline::subpass_type
     _render_pass.set_rendering_attachments(_swapchain->present_textures);
     typename render_pass_type::subpass_s& subpass = _render_pass.add_subpass(store, material_name);
     
     static constexpr int ATTACHMENT_ID = 0;
     subpass.add_attachment_input("default", ATTACHMENT_ID);
-    
-    //static_assert(0, "you left here");
 }
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
@@ -130,7 +126,6 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::recreate_renderer()
     {
         record_command_buffers(_shapes.data(), _shapes.size(),i );
     }
-
 }
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
@@ -139,17 +134,14 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::record_command_buffers(obj_
     
     for( uint32_t subpass_id = 0; subpass_id < _render_pass.get_number_of_subpasses(); ++subpass_id)
     {
-        //for (uint32_t chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES;chain_id++)
+        _render_pass.begin_command_recording(_command_buffers[swapchain_id], swapchain_id, subpass_id);
+        
+        for( uint32_t j = 0; j < number_of_shapes; ++j)
         {
-            _render_pass.begin_command_recording(_command_buffers[swapchain_id], swapchain_id, subpass_id);
-            
-            for( uint32_t j = 0; j < number_of_shapes; ++j)
-            {
-                shapes[j]->draw(_command_buffers[swapchain_id], _render_pass.get_subpass(subpass_id).get_pipeline(swapchain_id), j, swapchain_id);
-            }
-            
-            _render_pass.end_command_recording();
+            shapes[j]->draw(_command_buffers[swapchain_id], _render_pass.get_subpass(subpass_id).get_pipeline(swapchain_id), j, swapchain_id);
         }
+        
+        _render_pass.end_command_recording();
     }
 }
 

@@ -140,5 +140,10 @@ public:
         return *this;
     }
     
+    void clear()
+    {
+        _vec.clear();
+    }
+    
 };
 

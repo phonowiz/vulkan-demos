@@ -345,7 +345,6 @@ void deferred_renderer::record_3d_mip_maps_commands(uint32_t swapchain_id)
     
     for( int map_id = 0; map_id < TOTAL_LODS-1; ++map_id)
     {
-        //for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
         {
             assert((VOXEL_CUBE_WIDTH >> map_id) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
             assert((VOXEL_CUBE_HEIGHT >> map_id) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
@@ -722,6 +721,9 @@ void deferred_renderer::destroy()
     {
         vkDestroyFence(_device->_logical_device, _g_buffers_fence[i], nullptr);
         vkDestroyFence(_device->_logical_device, _voxelize_inflight_fence[i], nullptr);
+        vkDestroyFence(_device->_logical_device, _voxel_command_fence[i] , nullptr);
+        _g_buffers_fence[i] = VK_NULL_HANDLE;
+        _voxel_command_fence[i] = VK_NULL_HANDLE;
         _g_buffers_fence[i] = VK_NULL_HANDLE;
     }
     

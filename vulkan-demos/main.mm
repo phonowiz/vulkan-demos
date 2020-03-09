@@ -169,7 +169,6 @@ void update_renderer_parameters( vk::deferred_renderer& renderer)
 
 void update_ortho_parameters(vk::renderer<vk::glfw_present_texture, 1>& renderer, int32_t next_frame)
 {
-    //vk::shader_parameter::shader_params_group& vertex_params =  renderer.get_uniform_params(0,vk::visual_material::parameter_stage::VERTEX,0);
     vk::shader_parameter::shader_params_group& vertex_params = renderer.get_pipeline(next_frame, 0).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
     vertex_params["width"] = vk::deferred_renderer::VOXEL_CUBE_WIDTH ;
     vertex_params["height"] = vk::deferred_renderer::VOXEL_CUBE_HEIGHT;
@@ -400,7 +399,6 @@ int main()
     
     app.three_d_renderer->get_render_pass().get_subpass(0).set_image_sampler(voxel_texture, "texture_3d",
                                                                              vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
-    app.three_d_renderer->get_render_pass().set_clear_depth(glm::vec2(1.0f, 0.0f));
     app.three_d_renderer->add_shape(&cube);
     app.three_d_renderer->get_render_pass().set_depth_enable(true);
 
