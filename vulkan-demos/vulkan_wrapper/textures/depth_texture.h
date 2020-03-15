@@ -25,6 +25,7 @@ namespace vk {
             :texture_2d(device, width, height){ _write_to_texture = write_to_texture; }
         
 
+        virtual void init() override;
         virtual void destroy() override;
         virtual void create_sampler() override;
         virtual void set_format( formats f) override;

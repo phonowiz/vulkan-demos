@@ -417,6 +417,7 @@ int main()
     game_loop();
     //game_loop_ortho(display_renderer);
     
+    
     device.wait_for_all_operations_to_finish();
     mario.destroy();
     deferred_renderer.destroy();
@@ -428,8 +429,11 @@ int main()
     cube.destroy();
     cornell_box.destroy();
     swapchain.destroy();
+    
+    vkDestroySurfaceKHR(device._instance, surface, nullptr);
     device.destroy();
     
+
     shutdown_glfw();
     return 0;
 }

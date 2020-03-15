@@ -41,7 +41,6 @@ void depth_texture::create(uint32_t width, uint32_t height)
     change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, depth_format, static_cast<VkImageLayout>(_image_layout),
                       static_cast<VkImageLayout>(image_layouts::GENERAL));
     
-    create_sampler();
     _created = true;
 }
 void depth_texture::create_sampler()
@@ -65,6 +64,12 @@ void depth_texture::create_sampler()
     ASSERT_VULKAN(result);
 }
 
+void depth_texture::init()
+{
+    assert(_device != nullptr);
+    create_sampler();
+    create(_width, _height);
+}
 void depth_texture::set_format(vk::image::formats f)
 {
     assert(f == formats::DEPTH_32_FLOAT || f == formats::DEPTH_32_STENCIL_8 ||
@@ -78,14 +83,15 @@ void depth_texture::destroy()
 {
     if(_created)
     {
-        
         vkDestroyImageView(_device->_logical_device, _image_view, nullptr);
         vkDestroyImage(_device->_logical_device, _image, nullptr);
         vkFreeMemory(_device->_logical_device, _image_memory, nullptr);
+        vkDestroySampler(_device->_logical_device, _sampler, nullptr);
         _created = false;
         _image = VK_NULL_HANDLE;
         _image_memory = VK_NULL_HANDLE;
         _image_view = VK_NULL_HANDLE;
+        _sampler = VK_NULL_HANDLE;
     }
 }
 
