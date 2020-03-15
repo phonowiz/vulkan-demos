@@ -200,29 +200,29 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::perform_final_drawing_setup
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::draw(camera& camera)
 {
-    vkWaitForFences(_device->_logical_device, 1, &_composite_fence[_next_frame], VK_TRUE, std::numeric_limits<uint64_t>::max());
     
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->get_vk_swapchain(),
                           std::numeric_limits<uint64_t>::max(),
-                          _semaphore_image_available[_next_frame], VK_NULL_HANDLE, &_image_index);
+                          _semaphore_image_available[_image_index], VK_NULL_HANDLE, &_image_index);
     
-    assert(_next_frame == _image_index);
-    vkResetFences(_device->_logical_device, 1, &_composite_fence[_next_frame]);
+    vkWaitForFences(_device->_logical_device, 1, &_composite_fence[_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
+    
+    vkResetFences(_device->_logical_device, 1, &_composite_fence[_image_index]);
     perform_final_drawing_setup();
     
     VkSubmitInfo submit_info;
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = nullptr;
     submit_info.waitSemaphoreCount = 1;
-    submit_info.pWaitSemaphores = &_semaphore_image_available[_next_frame];
+    submit_info.pWaitSemaphores = &_semaphore_image_available[_image_index];
     VkPipelineStageFlags wait_stage_mask[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submit_info.pWaitDstStageMask = wait_stage_mask;
     submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &(_command_buffers[_next_frame]);
+    submit_info.pCommandBuffers = &(_command_buffers[_image_index]);
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &_semaphore_rendering_done;
     
-    VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _composite_fence[_next_frame]);
+    VkResult result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info, _composite_fence[_image_index]);
     ASSERT_VULKAN(result);
     
     VkPresentInfoKHR present_info;
