@@ -423,11 +423,11 @@ int main()
     three_d_renderer.destroy();
     display_renderer.destroy();
     
-    swapchain.destroy();
     material_store.destroy();
     model.destroy();
     cube.destroy();
     cornell_box.destroy();
+    swapchain.destroy();
     device.destroy();
     
     shutdown_glfw();

@@ -74,6 +74,7 @@ namespace vk
                 _pipeline[i] = VK_NULL_HANDLE;
                 _pipeline_layout[i] = VK_NULL_HANDLE;
             }
+            _material[0]->destroy();
         }
         
         inline void commit_parameter_to_gpu() { _material[0]->commit_parameters_to_gpu(); }

@@ -116,4 +116,20 @@ void glfw_present_texture::create_image_view(VkImage image, VkFormat format, VkI
     ASSERT_VULKAN(result);
 }
 
+void glfw_present_texture::destroy()
+{
+    vkDestroySampler(_device->_logical_device, _sampler, nullptr);
+    vkDestroyImageView(_device->_logical_device, _image_view, nullptr);
+    
+    //note: the images are destroyed when destroying the swapchain, no need to call this here
+    //vkDestroyImage(_device->_logical_device, _image, nullptr);
+    
+    vkFreeMemory(_device->_logical_device, _image_memory, nullptr);
+    _sampler = VK_NULL_HANDLE;
+    _image_view = VK_NULL_HANDLE;
+    _image = VK_NULL_HANDLE;
+    _image_memory = VK_NULL_HANDLE;
+    
+}
+
 

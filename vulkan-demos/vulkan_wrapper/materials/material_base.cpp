@@ -267,6 +267,12 @@ void material_base::print_uniform_argument_names()
 void material_base::destroy()
 {
     _initialized = false;
+    vkDestroyDescriptorSetLayout(_device->_logical_device, _descriptor_set_layout, nullptr);
+    vkDestroyDescriptorPool( _device->_logical_device, _descriptor_pool, nullptr);
+    
+    _descriptor_pool = VK_NULL_HANDLE;
+    _descriptor_set_layout = VK_NULL_HANDLE;
+    _descriptor_set_layout = VK_NULL_HANDLE;
     deallocate_parameters();
 }
 

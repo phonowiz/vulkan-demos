@@ -588,6 +588,14 @@ namespace vk
         {
             vkDestroyRenderPass(_device->_logical_device, _vk_render_passes[i], nullptr);
         }
+        
+        if(_depth_enable)
+        {
+            for( int i = 0; i < _depth_textures.size(); ++i)
+            {
+                _depth_textures[i].destroy();
+            }
+        }
     }
     template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
     void render_pass<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::begin_command_recording(VkCommandBuffer& buffer, uint32_t swapchain_image_id, uint32_t subpass_id)

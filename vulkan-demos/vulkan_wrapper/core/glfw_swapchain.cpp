@@ -220,7 +220,12 @@ void glfw_swapchain::recreate_swapchain( )
 
 void glfw_swapchain::destroy()
 {
+    
     vkDestroySwapchainKHR(_device->_logical_device, _swapchain, nullptr);
+    for( int i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
+    {
+        present_textures[0][i].destroy();
+    }
     _swapchain = VK_NULL_HANDLE;
 }
 glfw_swapchain::~glfw_swapchain()

@@ -64,6 +64,7 @@ void image::create_image(  VkFormat format, VkImageTiling tiling,
     
     result = vkBindImageMemory(_device->_logical_device, _image, _image_memory, 0);
     ASSERT_VULKAN(result);
+    
 }
 
 void image::change_image_layout(VkCommandPool command_pool, VkQueue queue, VkImage image,

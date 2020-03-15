@@ -667,6 +667,7 @@ void deferred_renderer::draw(camera& camera)
 void deferred_renderer::destroy()
 {
     renderer::destroy();
+    _screen_plane.destroy();
     for(int i = 0; i < _deferred_semaphore_image_available.size(); ++i)
     {
         vkDestroySemaphore(_device->_logical_device, _deferred_semaphore_image_available[i], nullptr);
@@ -725,6 +726,8 @@ void deferred_renderer::destroy()
         _g_buffers_fence[i] = VK_NULL_HANDLE;
         _voxel_command_fence[i] = VK_NULL_HANDLE;
         _g_buffers_fence[i] = VK_NULL_HANDLE;
+        
+        _voxel_2d_view[0][i].destroy();
     }
     
     _mrt_render_pass.destroy();
@@ -749,6 +752,13 @@ void deferred_renderer::destroy()
         
     }
     
+    for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
+    {
+        for( int texture_id = 0; texture_id < _g_buffer_textures.size(); ++texture_id)
+        {
+            _g_buffer_textures[chain_id][texture_id].destroy();
+        }
+    }
     for( size_t i = 0; i < _create_voxel_mip_maps_pipelines.size(); ++i)
     {
         for(size_t j = 0; j < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++j)
