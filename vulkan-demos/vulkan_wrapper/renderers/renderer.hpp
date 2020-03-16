@@ -201,9 +201,10 @@ template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::draw(camera& camera)
 {
     
+    uint32_t current_index = _image_index;
     vkAcquireNextImageKHR(_device->_logical_device, _swapchain->get_vk_swapchain(),
                           std::numeric_limits<uint64_t>::max(),
-                          _semaphore_image_available[_image_index], VK_NULL_HANDLE, &_image_index);
+                          _semaphore_image_available[current_index], VK_NULL_HANDLE, &_image_index);
     
     vkWaitForFences(_device->_logical_device, 1, &_composite_fence[_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     
@@ -214,7 +215,7 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::draw(camera& camera)
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submit_info.pNext = nullptr;
     submit_info.waitSemaphoreCount = 1;
-    submit_info.pWaitSemaphores = &_semaphore_image_available[_image_index];
+    submit_info.pWaitSemaphores = &_semaphore_image_available[current_index];
     VkPipelineStageFlags wait_stage_mask[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submit_info.pWaitDstStageMask = wait_stage_mask;
     submit_info.commandBufferCount = 1;
