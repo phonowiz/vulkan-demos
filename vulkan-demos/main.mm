@@ -386,7 +386,7 @@ int main()
     
     display_renderer.get_render_pass().set_depth_enable(false);
     display_renderer.show_texture(deferred_renderer.get_voxelizer_cam_texture());
-    display_renderer.show_texture(&mario);
+    //display_renderer.show_texture(&mario);
     display_renderer.init();
     
     app.display_renderer = &display_renderer;

@@ -448,20 +448,6 @@ void deferred_renderer::perform_final_drawing_setup()
         record_command_buffers(_shapes.data(), _shapes.size(), _deferred_image_index);
         _pipeline_created[_deferred_image_index] = true;
     }
-    
-    voxelize_render_pass::subpass_s& vox_pass =  _voxelize_render_pass.get_subpass(0);
-    for( int i = 0; i < _shapes.size(); ++i)
-    {
-
-        vox_pass.get_pipeline(_deferred_image_index).get_dynamic_parameters(vk::visual_material::parameter_stage::VERTEX, 3)[i]["model"] = _shapes[i]->transform.get_transform_matrix();
-    }
-    
-    mrt_render_pass::subpass_s& mrt_pass = _mrt_render_pass.get_subpass(0);
-    render_pass_type::subpass_s& pass = _render_pass.get_subpass(0);
-    
-    vox_pass.get_pipeline(_deferred_image_index).commit_parameters_to_gpu();
-    mrt_pass.get_pipeline(_deferred_image_index).commit_parameters_to_gpu();
-    pass.get_pipeline(_deferred_image_index).commit_parameters_to_gpu();
 }
 
 void deferred_renderer::clear_voxels_textures()
@@ -531,9 +517,10 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
     std::array<VkSemaphore,  3> semaphores = { _generate_voxel_z_axis_semaphore[_deferred_image_index],
         _generate_voxel_y_axis_semaphore[_deferred_image_index], _generate_voxel_x_axis_semaphore[_deferred_image_index]};
     
-    semaphores[0] = _generate_voxel_z_axis_semaphore[_deferred_image_index];
-    semaphores[1] = _generate_voxel_y_axis_semaphore[_deferred_image_index];
-    semaphores[2] = _generate_voxel_x_axis_semaphore[_deferred_image_index];
+    for( int i = 0; i < _shapes.size(); ++i)
+    {
+        vox_subpass.get_pipeline(_deferred_image_index).get_dynamic_parameters(vk::visual_material::parameter_stage::VERTEX, 3)[i]["model"] = _shapes[i]->transform.get_transform_matrix();
+    }
     
     glm::mat4 project_to_voxel_screen = glm::mat4(1.0f);
 
@@ -578,7 +565,6 @@ void deferred_renderer::generate_voxel_textures(vk::camera &camera)
         submits[i].signalSemaphoreCount = 1;
         submits[i].pSignalSemaphores =  &semaphores[i];
         
-        
         //TODO: the following fence in theory is not necessary, but removing it causes some of the renderings to not be written to the 3D voxel texture, even though I have
         //semphores in the submissions, I even tried barriers, and changed the moltenVK implementations of the semaphore to fence and events, nothing made the bug go away.
         //Do not bulk these submits together due to this bug.  It may be either in the OS or MoltenVK, am not sure, or somewhere in this code, I have no clue.
@@ -599,7 +585,8 @@ void deferred_renderer::draw(camera& camera)
                           _semaphore_image_available[current_frame], VK_NULL_HANDLE, &_deferred_image_index);
     
     render_pass_type::subpass_s& subpass = _render_pass.get_subpass(0);
-    vk::shader_parameter::shader_params_group& display_fragment_params = subpass.get_pipeline(_deferred_image_index).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5) ;
+    vk::shader_parameter::shader_params_group& display_fragment_params = subpass.get_pipeline(_deferred_image_index).
+                                            get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5) ;
     
     display_fragment_params["world_cam_position"] = glm::vec4(camera.position, 1.0f);
     display_fragment_params["world_light_position"] = _light_pos;
@@ -607,14 +594,26 @@ void deferred_renderer::draw(camera& camera)
     display_fragment_params["mode"] = static_cast<int>(_rendering_mode);
     
     int binding = 0;
-    vk::shader_parameter::shader_params_group& display_params =   subpass.get_pipeline(_deferred_image_index).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, binding);
+    vk::shader_parameter::shader_params_group& display_params =   subpass.get_pipeline(_deferred_image_index).
+                                            get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, binding);
     
     display_params["width"] = static_cast<float>(_swapchain->get_vk_swap_extent().width);
     display_params["height"] = static_cast<float>(_swapchain->get_vk_swap_extent().height);
+    
+    
     perform_final_drawing_setup();
-    
     generate_voxel_textures(camera);
+
     
+    mrt_render_pass::subpass_s& mrt_pass = _mrt_render_pass.get_subpass(0);
+    //render_pass_type::subpass_s& pass = _render_pass.get_subpass(0);
+    voxelize_render_pass::subpass_s& vox_pass = _voxelize_render_pass.get_subpass(0);
+    
+    vox_pass.get_pipeline(_deferred_image_index).commit_parameters_to_gpu();
+    mrt_pass.get_pipeline(_deferred_image_index).commit_parameters_to_gpu();
+    subpass.get_pipeline(_deferred_image_index).commit_parameters_to_gpu();
+    
+    _device->wait_for_all_operations_to_finish();
     std::array<VkSemaphore, 2> wait_semaphores{ _mip_map_semaphores[ _mip_map_semaphores.size()-1][_deferred_image_index],
         _semaphore_image_available[current_frame]};
     //render g-buffers
@@ -642,7 +641,7 @@ void deferred_renderer::draw(camera& camera)
     submit_info[1].pCommandBuffers = &(_command_buffers[_deferred_image_index]);
     submit_info[1].signalSemaphoreCount = 1;
     submit_info[1].pSignalSemaphores = &_semaphore_rendering_done;
-
+    
     result = vkQueueSubmit(_device->_graphics_queue, 1, &submit_info[1], nullptr);
 
     ASSERT_VULKAN(result);
