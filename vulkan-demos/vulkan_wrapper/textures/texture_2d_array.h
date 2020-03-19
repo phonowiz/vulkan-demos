@@ -22,6 +22,8 @@ namespace vk {
         
         virtual void init() override;
         
+        virtual void * const * const get_instance_type() override { return ( &_image_type) ; }
+        static void * const * const  get_class_type(){ return ( &_image_type) ; }
         virtual VkImageCreateInfo get_image_create_info( VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage_flags) override;
     private:
         

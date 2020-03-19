@@ -39,6 +39,7 @@ namespace  vk
             STORAGE_IMAGE = VkDescriptorType::VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
             UNIFORM_BUFFER = VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
             DYNAMIC_UNIFORM_BUFFER = VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+            INPUT_ATTACHMENT = VkDescriptorType::VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
             INVALID = VkDescriptorType::VK_DESCRIPTOR_TYPE_MAX_ENUM
         };
         
@@ -48,7 +49,7 @@ namespace  vk
             VkBuffer        uniform_buffer =           VK_NULL_HANDLE;
             VkDeviceMemory  device_memory =   VK_NULL_HANDLE;
             void*           host_mem = nullptr;
-            usage_type       usage_type =             usage_type::INVALID;
+            usage_type      usage_type =             usage_type::INVALID;
             uint32_t        binding   =             0;
             size_t          size      =             0;
         };

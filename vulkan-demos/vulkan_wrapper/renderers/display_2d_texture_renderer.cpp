@@ -15,7 +15,9 @@ display_2d_texture_renderer::display_2d_texture_renderer(vk::device* device, GLF
 renderer(device, window, swapchain, store, "display"),
 _render_plane(device)
 {
-    _render_pass.set_depth_enable(false);
+    //_render_pass.set_depth_enable(false);
+    //_render_pass.get_subpass(0).set_depth_enable(false);
+    _render_pass.add_object(&_render_plane);
     _render_plane.create();
 }
 
@@ -35,7 +37,7 @@ void display_2d_texture_renderer::show_texture(texture_2d *texture)
 
 void display_2d_texture_renderer::init()
 {
-    add_shape(&_render_plane);
+    //add_shape(&_render_plane);
     renderer::init();
 }
 

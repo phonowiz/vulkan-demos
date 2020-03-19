@@ -53,16 +53,14 @@ void glfw_present_texture::init()
     _format = static_cast<formats>(get_vk_surface_format().format);
     _image = images[_swapchain_image_index];
     create_image_view(_image, static_cast<VkFormat>(_format), _image_view);
+    
+    _initialized = true;
 }
 
 
 VkSurfaceFormatKHR glfw_present_texture::get_vk_surface_format()
 {
-    device::swapchain_support_details swapchain_support;
-    _device->query_swapchain_support( _device->_physical_device, _swapchain->get_vk_surface(), swapchain_support);
-    
-    VkSurfaceFormatKHR surface_format = _swapchain->get_vk_swap_surface_format(swapchain_support.formats);
-    return surface_format;
+    return _swapchain->get_vk_surface_format();
 }
 
 void glfw_present_texture::create_sampler()

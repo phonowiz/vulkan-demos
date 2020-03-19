@@ -31,12 +31,30 @@ namespace vk {
         virtual void set_format( formats f) override;
         virtual void set_write_to_texture(bool write){ _write_to_texture = write; };
         
+        
+        static void * const * const  get_class_type(){ return (&_image_type); }
+        
+        virtual image_layouts get_usage_layout( resource::usage_type usage) override
+        {
+            image::image_layouts layout = texture_2d::get_usage_layout(usage);
+            
+            if(usage == resource::usage_type::INPUT_ATTACHMENT)
+            {
+                layout = image::image_layouts::DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+            }
+            
+            return layout;
+        }
+        
         VkAttachmentDescription get_depth_attachment();
         
+        
+        
+    private:
+        static constexpr void* _image_type = nullptr;
     protected:
         bool _created = false;
         bool _write_to_texture = false;
-        
         virtual void create(uint32_t width, uint32_t height) override;
         
         depth_texture(const depth_texture&) = delete;

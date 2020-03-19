@@ -34,6 +34,7 @@ void texture_2d::init()
     assert(_device != nullptr);
     _mip_levels = _enable_mipmapping ? static_cast<uint32_t>( std::floor(std::log2( std::max( _width, _height)))) + 1 : 1;
     create_sampler();
+    assert( _width != 0 && _height != 0);
     create(_width, _height);
     
     _initialized = true;

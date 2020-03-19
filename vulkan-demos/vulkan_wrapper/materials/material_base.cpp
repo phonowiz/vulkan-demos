@@ -35,6 +35,7 @@ void material_base::deallocate_parameters()
     
 }
 
+
 void material_base::create_descriptor_sets()
 {
     VkDescriptorSetAllocateInfo descriptor_set_allocate_info = {};
@@ -61,7 +62,16 @@ void material_base::create_descriptor_sets()
             assert( pair2.second.get_image()->get_image_view() != VK_NULL_HANDLE);
             descriptor_image_infos[count].sampler = pair2.second.get_image()->get_sampler();
             descriptor_image_infos[count].imageView = pair2.second.get_image()->get_image_view();
-            descriptor_image_infos[count].imageLayout = static_cast<VkImageLayout>(pair2.second.get_image()->get_image_layout());
+            
+            parameter_stage stage = pair.first;
+            const char* name = pair2.first;
+  
+            descriptor_image_infos[count].imageLayout = static_cast<VkImageLayout>(pair2.second.get_image()->get_usage_layout(_sampler_buffers[stage][name].usage_type));
+//            descriptor_image_infos[count].imageLayout = _sampler_buffers[stage][name].usage_type == resource::usage_type::INPUT_ATTACHMENT ?
+//                        static_cast<VkImageLayout>(image::image_layouts::SHADER_READ_ONLY_OPTIMAL) : static_cast<VkImageLayout>(pair2.second.get_image()->get_image_layout());
+//
+//            descriptor_image_infos[count].imageLayout = pair2.second.get_image()->get_instance_type() == depth_texture::get_class_type() ?
+//                        static_cast<VkImageLayout>(image::image_layouts::DEPTH_STENCIL_READ_ONLY_OPTIMAL) : descriptor_image_infos[count].imageLayout;
             
             write_descriptor_sets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             write_descriptor_sets[count].pNext = nullptr;
@@ -70,8 +80,7 @@ void material_base::create_descriptor_sets()
             write_descriptor_sets[count].dstBinding = _descriptor_set_layout_bindings[count].binding;
             write_descriptor_sets[count].dstArrayElement = 0;
             write_descriptor_sets[count].descriptorCount = 1;
-            parameter_stage stage = pair.first;
-            const char* name = pair2.first;
+
             write_descriptor_sets[count].descriptorType = static_cast<VkDescriptorType>(_sampler_buffers[stage][name].usage_type);
             write_descriptor_sets[count].pImageInfo = &descriptor_image_infos[count];
             write_descriptor_sets[count].pBufferInfo = nullptr;
@@ -189,6 +198,7 @@ void material_base::create_descriptor_pool()
 void material_base::create_descriptor_set_layout()
 {
     int count = 0;
+    
     //note: always go through the sampler buffers first, then the uniform buffers because
     //the descriptor bindings will be set up this way.
     for (std::pair<parameter_stage , buffer_parameter > &pair : _sampler_buffers)
@@ -200,6 +210,7 @@ void material_base::create_descriptor_set_layout()
             _descriptor_set_layout_bindings[count].descriptorCount = 1;
             _descriptor_set_layout_bindings[count].stageFlags = static_cast<VkShaderStageFlagBits>(pair.first);
             _descriptor_set_layout_bindings[count].pImmutableSamplers = nullptr;
+            
             ++count;
             assert(BINDING_MAX > count);
         }
@@ -212,7 +223,7 @@ void material_base::create_descriptor_set_layout()
         _descriptor_set_layout_bindings[count].descriptorCount = 1;
         _descriptor_set_layout_bindings[count].stageFlags = static_cast<VkShaderStageFlagBits>(pair.first);
         _descriptor_set_layout_bindings[count].pImmutableSamplers = nullptr;
-        
+        std::cout << "uniform buffer binding " <<pair.second.binding <<std::endl;
         ++count;
         assert(BINDING_MAX > count);
     }
@@ -224,7 +235,7 @@ void material_base::create_descriptor_set_layout()
         _descriptor_set_layout_bindings[count].descriptorCount = 1;
         _descriptor_set_layout_bindings[count].stageFlags = static_cast<VkShaderStageFlagBits>(pair.first);
         _descriptor_set_layout_bindings[count].pImmutableSamplers = nullptr;
-        
+        std::cout << "uniform dynamic buffer binding " <<pair.second.binding <<std::endl;
         ++count;
         assert(BINDING_MAX > count);
     }
@@ -271,7 +282,6 @@ void material_base::destroy()
     vkDestroyDescriptorPool( _device->_logical_device, _descriptor_pool, nullptr);
     
     _descriptor_pool = VK_NULL_HANDLE;
-    _descriptor_set_layout = VK_NULL_HANDLE;
     _descriptor_set_layout = VK_NULL_HANDLE;
     deallocate_parameters();
 }

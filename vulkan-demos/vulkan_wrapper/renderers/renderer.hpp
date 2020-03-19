@@ -32,17 +32,18 @@ _render_pass(device, glm::vec2( swapchain->get_vk_swap_extent().width, swapchain
     _window = window;
     _swapchain = swapchain;
     
-    _render_pass.set_rendering_attachments(_swapchain->present_textures);
+    //_render_pass.set_rendering_attachments(_swapchain->present_textures);
+    _render_pass.get_attachment_group().add_attachment( _swapchain->present_textures[0]);
     typename render_pass_type::subpass_s& subpass = _render_pass.add_subpass(store, material_name);
     
     static constexpr int ATTACHMENT_ID = 0;
-    subpass.add_attachment_input("default", ATTACHMENT_ID);
+    subpass.add_output_attachment(ATTACHMENT_ID);
 }
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::create_command_buffers(VkCommandBuffer** command_buffers, VkCommandPool command_pool)
 {
-    VkCommandBufferAllocateInfo command_buffer_allocate_info;
+    VkCommandBufferAllocateInfo command_buffer_allocate_info {};
     command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     command_buffer_allocate_info.pNext = nullptr;
     command_buffer_allocate_info.commandPool = command_pool;
@@ -124,24 +125,25 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::recreate_renderer()
     create_command_buffers(&_command_buffers, _device->_present_command_pool);
     for( int i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
     {
-        record_command_buffers(_shapes.data(), _shapes.size(),i );
+        record_command_buffers(_command_buffers[i],i );
     }
 }
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::record_command_buffers(obj_shape** shapes, size_t number_of_shapes, uint32_t swapchain_id)
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::record_command_buffers(VkCommandBuffer& buffer, uint32_t swapchain_id)
 {
     
-    for( uint32_t subpass_id = 0; subpass_id < _render_pass.get_number_of_subpasses(); ++subpass_id)
+    //for( uint32_t subpass_id = 0; subpass_id < _render_pass.get_number_of_subpasses(); ++subpass_id)
     {
-        _render_pass.begin_command_recording(_command_buffers[swapchain_id], swapchain_id, subpass_id);
+        //_render_pass.begin_command_recording(_command_buffers[swapchain_id], swapchain_id);
         
-        for( uint32_t j = 0; j < number_of_shapes; ++j)
-        {
-            shapes[j]->draw(_command_buffers[swapchain_id], _render_pass.get_subpass(subpass_id).get_pipeline(swapchain_id), j, swapchain_id);
-        }
+        _render_pass.record_draw_commands(buffer, swapchain_id);
+//        for( uint32_t j = 0; j < number_of_shapes; ++j)
+//        {
+//            shapes[j]->draw(_command_buffers[swapchain_id], _render_pass, j, swapchain_id);
+//        }
         
-        _render_pass.end_command_recording();
+        //_render_pass.end_command_recording();
     }
 }
 
@@ -175,26 +177,25 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::destroy()
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::init()
 {
-    assert(_shapes.size() != 0 && "add meshes to render before calling init");
     create_semaphores_and_fences();
     create_command_buffers(&_command_buffers, _device->_present_command_pool);
-    
-    assert(_shapes.size() != 0);
 }
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::perform_final_drawing_setup()
+void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::perform_final_drawing_setup(VkCommandBuffer& buffer, uint32_t swapchain_id)
 {
-    if(!_pipeline_created[_image_index])
-    {
-        //note: we create the pipeline here to give the client a chance to set the material input arguments.
-        //the pipeline needs this information to be created properly.
-
-        _render_pass.create(_image_index);
-        record_command_buffers(_shapes.data(), _shapes.size(), _image_index);
-        _pipeline_created[_image_index] = true;
-    }
-    _render_pass.commit_parameters_to_gpu(_image_index);
+    _render_pass.commit_parameters_to_gpu(swapchain_id);
+    _render_pass.record_draw_commands(buffer, swapchain_id);
+//    if(!_pipeline_created[_image_index])
+//    {
+//        //note: we create the pipeline here to give the client a chance to set the material input arguments.
+//        //the pipeline needs this information to be created properly.
+//
+//        _render_pass.create(_image_index);
+//        record_command_buffers(_shapes.data(), _shapes.size(), _image_index);
+//        _pipeline_created[_image_index] = true;
+//    }
+    
 }
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
@@ -209,7 +210,7 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::draw(camera& camera)
     vkWaitForFences(_device->_logical_device, 1, &_composite_fence[_image_index], VK_TRUE, std::numeric_limits<uint64_t>::max());
     
     vkResetFences(_device->_logical_device, 1, &_composite_fence[_image_index]);
-    perform_final_drawing_setup();
+    perform_final_drawing_setup(_command_buffers[_image_index],_image_index);
     
     VkSubmitInfo submit_info;
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

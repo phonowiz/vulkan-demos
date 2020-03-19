@@ -23,9 +23,8 @@ void depth_texture::create(uint32_t width, uint32_t height)
     _aspect_flag = static_cast< image::formats>(VK_FORMAT_D32_SFLOAT) != _format ?  (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) : VK_IMAGE_ASPECT_DEPTH_BIT;
 
 
-    
-    VkImageUsageFlagBits usage_flags = _write_to_texture ? static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT) :
-                            static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    VkImageUsageFlagBits usage_flags = _write_to_texture ? static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT  | VK_IMAGE_USAGE_SAMPLED_BIT) :
+                            static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
     
     create_image( depth_format,
                 VK_IMAGE_TILING_OPTIMAL, usage_flags,
@@ -39,9 +38,10 @@ void depth_texture::create(uint32_t width, uint32_t height)
 //                      VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
     
     change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, depth_format, static_cast<VkImageLayout>(_image_layout),
-                      static_cast<VkImageLayout>(image_layouts::GENERAL));
+                      static_cast<VkImageLayout>(image_layouts::DEPTH_STENCIL_ATTACHMENT_OPTIMAL));
     
     _created = true;
+    _initialized = true;
 }
 void depth_texture::create_sampler()
 {
@@ -68,7 +68,9 @@ void depth_texture::init()
 {
     assert(_device != nullptr);
     create_sampler();
+    assert(_width !=0 && "spec says this can't be zero");
     create(_width, _height);
+    _initialized = true;
 }
 void depth_texture::set_format(vk::image::formats f)
 {

@@ -17,6 +17,7 @@
 #include "depth_texture.h"
 #include "cameras/orthographic_camera.h"
 #include "glfw_swapchain.h"
+#include "attachment_group.h"
 
 namespace vk
 {
@@ -66,24 +67,24 @@ namespace vk
         void generate_voxel_textures(vk::camera& camera);
         
         void compute(VkCommandBuffer command_buffer, vk::compute_pipeline& pipeline);
-        void record_command_buffers(obj_shape** shapes, size_t number_of_shapes, uint32_t swapchain_id) override;
-        void record_voxelize_command_buffers(obj_shape** shapes, size_t number_of_shapes, uint32_t swapchain_id);
+        virtual void record_command_buffers(VkCommandBuffer& buffer, uint32_t swapchain_id) override;
+        void record_voxelize_command_buffers(VkCommandBuffer& buffer, uint32_t swapchain_id);
         void record_clear_texture_3d_buffer ( uint32_t swapchain_id);
         void record_3d_mip_maps_commands(uint32_t swapchain_id);
 
         void clear_voxels_textures();
-        void generate_voxel_mip_maps(VkSemaphore& semaphore);
+        void generate_voxel_mip_maps();
         
         void create_voxel_texture_pipelines(vk::material_store& store);
         void setup_sampling_rays();
         
-        virtual void perform_final_drawing_setup() override;
+        virtual void perform_final_drawing_setup(VkCommandBuffer& buffer, uint32_t swapchain_id) override;
         
         VkSampler       _color_sampler = VK_NULL_HANDLE;
         VkCommandBuffer *_offscreen_command_buffers = VK_NULL_HANDLE;
         VkCommandBuffer *_voxelize_command_buffers = VK_NULL_HANDLE;
         
-        using mrt_render_pass = render_pass<render_texture, 3>;
+        using mrt_render_pass = render_pass<render_texture, 4>;
         mrt_render_pass _mrt_render_pass;
         
         using voxelize_render_pass = render_pass<render_texture,1>;
@@ -106,7 +107,10 @@ namespace vk
         std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _generate_voxel_x_axis_semaphore {};
         std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _generate_voxel_y_axis_semaphore = {};
         std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _generate_voxel_z_axis_semaphore = {};
-        std::array<std::array<VkSemaphore, TOTAL_LODS>, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _clear_voxel_textures_semaphores =  {};
+        
+        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _voxelize_done {};
+        
+        //std::array<std::array<VkSemaphore, TOTAL_LODS>, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _clear_voxel_textures_semaphores =  {};
         
         std::array<std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS-1> _mip_map_semaphores {};
         
@@ -141,14 +145,23 @@ namespace vk
         
         enum buffer_ids
         {
-            NORMALS,
-            ALBEDOS,
-            POSITIONS
+            NORMALS_ATTACHMENT_ID,
+            ALBEDOS_ATTACHMENT_ID,
+            POSITIONS_ATTACHMENT_ID,
+            PRESENT_ATTACHMENT_ID,
+            DEPTH_ATTACHMENT_ID    //DEPTH is always the last attachment and is added automatically
         };
         
-        std::array<std::array<render_texture,glfw_swapchain::NUM_SWAPCHAIN_IMAGES >, 1> _voxel_2d_view {};
-        std::array<std::array<render_texture,glfw_swapchain::NUM_SWAPCHAIN_IMAGES >, 3> _g_buffer_textures {};
+        std::array<render_texture_set, 1> _voxel_2d_view {};
+        std::array<render_texture_set, 3> _g_buffer_textures {};
         std::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>                 _g_buffer_depth {};
+        
+        //attachment_group<4> _mrt_attachment_group; //depth attachment is not included, it is always the last one and is added automatically
+                                                    //that's why we have 4 instead of 5
+        //attachment_group<1> _voxel_attachment_group;
+        VkFence _fence {};
+        std::vector<obj_shape*> _shapes;
+        
         bool _render_3d_texture = false;
         
     public:

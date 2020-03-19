@@ -169,10 +169,6 @@ void update_renderer_parameters( vk::deferred_renderer& renderer)
 
 void update_ortho_parameters(vk::renderer<vk::glfw_present_texture, 1>& renderer, int32_t next_frame)
 {
-    vk::shader_parameter::shader_params_group& vertex_params = renderer.get_pipeline(next_frame, 0).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-    vertex_params["width"] = vk::deferred_renderer::VOXEL_CUBE_WIDTH ;
-    vertex_params["height"] = vk::deferred_renderer::VOXEL_CUBE_HEIGHT;
-    
     if(next_frame != -1)
         renderer.set_next_swapchain_id(next_frame);
 }
@@ -384,11 +380,23 @@ int main()
     vk::renderer<vk::glfw_present_texture,1> three_d_renderer(&device, window, &swapchain, material_store, "display_3d_texture");
     vk::display_2d_texture_renderer display_renderer(&device, window, &swapchain, material_store);
     
-    display_renderer.get_render_pass().set_depth_enable(false);
-    display_renderer.show_texture(deferred_renderer.get_voxelizer_cam_texture());
-    //display_renderer.show_texture(&mario);
+    //display_renderer.get_render_pass().get_subpass(0).set_depth_enable(false);
+    //display_renderer.show_texture(deferred_renderer.get_voxelizer_cam_texture());
+    for( int i = 0; i < vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
+    {
+        vk::shader_parameter::shader_params_group& vertex_params = display_renderer.get_pipeline(i, 0).
+                                get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+        vertex_params["width"] = vk::deferred_renderer::VOXEL_CUBE_WIDTH ;
+        vertex_params["height"] = vk::deferred_renderer::VOXEL_CUBE_HEIGHT;
+    }
+
+    display_renderer.show_texture(&mario);
     display_renderer.init();
     
+    for( uint32_t i = 0; i < vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
+    {
+        display_renderer.get_render_pass().create(i);
+    }
     app.display_renderer = &display_renderer;
     app.three_d_renderer = &three_d_renderer;
     app.deferred_renderer = &deferred_renderer;
@@ -399,11 +407,34 @@ int main()
     
     app.three_d_renderer->get_render_pass().get_subpass(0).set_image_sampler(voxel_texture, "texture_3d",
                                                                              vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
-    app.three_d_renderer->add_shape(&cube);
-    app.three_d_renderer->get_render_pass().set_depth_enable(true);
-
+    
+    app.three_d_renderer->get_render_pass().add_object(&cube);
+    //app.three_d_renderer->add_shape(&cube);
+    //app.three_d_renderer->get_render_pass().get_subpass(0).set_depth_enable(true);
+    static const uint32_t DEPTH = 1;
+    app.three_d_renderer->get_render_pass().get_subpass(0).add_output_attachment(DEPTH);
+    
     app.three_d_renderer->get_render_pass().get_subpass(0).set_cull_mode(vk::standard_pipeline::cull_mode::NONE);
+    
     app.three_d_renderer->init();
+    for( int i = 0; i < vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
+    {
+        vk::shader_parameter::shader_params_group& vertex_params =
+            three_d_renderer.get_render_pass().get_subpass(0).get_pipeline(i).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+
+        //glm::mat4 mvp = app.three_d_texture_camera->get_projection_matrix() * app.three_d_texture_camera->view_matrix * glm::mat4(1.0f);
+        vertex_params["mvp"] = glm::mat4(1.0f);
+        vertex_params["model"] = glm::mat4(1.0f);
+
+        vk::shader_parameter::shader_params_group& fragment_params = three_d_renderer.get_render_pass().get_subpass(0).
+        get_pipeline(i).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
+        
+        fragment_params["box_eye_position"] =   glm::vec4(1.0f);
+        fragment_params["screen_height"] = (0.0f);
+        fragment_params["screen_width"] = (.0f);
+        
+        app.three_d_renderer->get_render_pass().create(i);
+    }
     
     first_person_controller user_controler( app.perspective_camera, window);
     first_person_controller  texture_3d_view_controller(app.three_d_texture_camera, window);
