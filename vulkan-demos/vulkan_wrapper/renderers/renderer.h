@@ -52,9 +52,6 @@ namespace vk
         renderer(){};
         renderer(device* device, GLFWwindow* window, glfw_swapchain* swapchain, material_store& store, const char* material_name);
         
-
-        //void add_shape(obj_shape* s){ _shapes.push_back(s); };
-        
         virtual void draw(camera &camera);
         
         graphics_pipeline_type& get_pipeline(uint32_t subpass_id) { return _render_pass.get_pipeline(_image_index, subpass_id ); }

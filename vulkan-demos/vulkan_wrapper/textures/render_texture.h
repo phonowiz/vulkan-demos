@@ -30,10 +30,6 @@ namespace vk
         static void * const * const  get_class_type(){ return (&_image_type); }
 
         virtual void create( uint32_t width, uint32_t height) override;
-//        void set_usage( usage u )
-//        {
-//            _usage = u;
-//        }
         
     private:
         

@@ -167,7 +167,6 @@ namespace vk
                 if( attachment_id == NUM_ATTACHMENTS)
                 {
                     set_depth_enable(true);
-                    //_color_references[_num_color_references].layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
                 }
                 else
                     _color_references[_num_color_references++].attachment = attachment_id;
@@ -548,7 +547,6 @@ namespace vk
     template<class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
     void render_pass<TEXTURE_TYPE, NUM_ATTACHMENTS>::record_draw_commands(VkCommandBuffer& buffer, uint32_t swapchain_id)
     {
-        //assert(_subpasses[0].get_num_objects() != 0 && "first render pass must have a mesh");
         assert(_num_objects != 0 && "you must have objects to render in a subpass");
         begin_command_recording(buffer, swapchain_id);
         begin_render_pass(buffer, swapchain_id);
@@ -664,7 +662,6 @@ namespace vk
             _depth_textures[swapchain_id].set_device(_device);
             _depth_textures[swapchain_id].set_dimensions(width,height, 1.0f);
             _depth_textures[swapchain_id].set_filter(f);
-            //_depth_textures[swapchain_id].set_write_to_texture(_off_screen_rendering);
             _depth_textures[swapchain_id].init();
         }
         

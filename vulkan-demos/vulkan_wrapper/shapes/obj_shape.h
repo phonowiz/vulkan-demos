@@ -61,9 +61,6 @@ namespace vk {
         inline size_t get_num_meshes(){ return _meshes.size(); }
         static const std::string _shape_resource_path;
         
-//        template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-//        void draw(VkCommandBuffer commnad_buffer,  uint32_t swapchain_index);
-        
         virtual void set_diffuse(glm::vec3 diffuse);
         
         vk::transform transform;
@@ -76,20 +73,4 @@ namespace vk {
         uint32_t _id = std::numeric_limits<uint32_t>::max();
         const char* _path = nullptr;
     };
-
-//    template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-//    void obj_shape::draw(VkCommandBuffer commnad_buffer, uint32_t swapchain_index)
-//    {
-//        for( mesh* m : _meshes)
-//        {
-////            for( uint32_t subpass_id = 0; subpass_id < render_pass.get_number_of_subpasses(); ++subpass_id)
-////            {
-////                render_pass.get_subpass(subpass_id).begin_subpass_recording(commnad_buffer, swapchain_index );
-////                if( subpass_id == 0)
-//                    m->draw(commnad_buffer, render_pass, _id, swapchain_index);
-//
-//            //}
-//        }
-//    }
-
 }

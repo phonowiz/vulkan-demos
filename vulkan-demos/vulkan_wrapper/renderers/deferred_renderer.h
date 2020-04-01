@@ -110,8 +110,6 @@ namespace vk
         
         std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _voxelize_done {};
         
-        //std::array<std::array<VkSemaphore, TOTAL_LODS>, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _clear_voxel_textures_semaphores =  {};
-        
         std::array<std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS-1> _mip_map_semaphores {};
         
         rendering_mode _rendering_mode = rendering_mode::FULL_RENDERING;
@@ -156,9 +154,6 @@ namespace vk
         std::array<render_texture_set, 3> _g_buffer_textures {};
         std::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>                 _g_buffer_depth {};
         
-        //attachment_group<4> _mrt_attachment_group; //depth attachment is not included, it is always the last one and is added automatically
-                                                    //that's why we have 4 instead of 5
-        //attachment_group<1> _voxel_attachment_group;
         VkFence _fence {};
         std::vector<obj_shape*> _shapes;
         

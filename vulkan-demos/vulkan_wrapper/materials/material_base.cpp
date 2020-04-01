@@ -67,11 +67,6 @@ void material_base::create_descriptor_sets()
             const char* name = pair2.first;
   
             descriptor_image_infos[count].imageLayout = static_cast<VkImageLayout>(pair2.second.get_image()->get_usage_layout(_sampler_buffers[stage][name].usage_type));
-//            descriptor_image_infos[count].imageLayout = _sampler_buffers[stage][name].usage_type == resource::usage_type::INPUT_ATTACHMENT ?
-//                        static_cast<VkImageLayout>(image::image_layouts::SHADER_READ_ONLY_OPTIMAL) : static_cast<VkImageLayout>(pair2.second.get_image()->get_image_layout());
-//
-//            descriptor_image_infos[count].imageLayout = pair2.second.get_image()->get_instance_type() == depth_texture::get_class_type() ?
-//                        static_cast<VkImageLayout>(image::image_layouts::DEPTH_STENCIL_READ_ONLY_OPTIMAL) : descriptor_image_infos[count].imageLayout;
             
             write_descriptor_sets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             write_descriptor_sets[count].pNext = nullptr;

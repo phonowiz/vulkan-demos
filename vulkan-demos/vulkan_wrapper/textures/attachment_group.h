@@ -56,7 +56,6 @@ namespace vk {
             {
                 _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
                 _attachments[num_attachments][i]->set_device(_device);
-                //_attachments[num_attachments][i]->set_dimensions(_dimensions.x, _dimensions.y, 1);
                 assert(_attachments[num_attachments][i]->get_width() == _dimensions.x && _attachments[num_attachments][i]->get_height() == _dimensions.y &&
                        "the attachment dimensions are not compatible with this attachment group");
             }
@@ -81,8 +80,6 @@ namespace vk {
                 _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
                 _attachments[num_attachments][i]->set_device(_device);
                 _attachments[num_attachments][i]->set_dimensions(_dimensions.x, _dimensions.y, 1);
-//                assert(_attachments[num_attachments][i]->get_width() == _dimensions.x && _attachments[num_attachments][i]->get_height()== _dimensions.y &&
-//                       "the attachment dimensions are not compatible with this attachment group");
             }
             ++num_attachments;
 
@@ -96,8 +93,6 @@ namespace vk {
                 _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
                 _attachments[num_attachments][i]->set_device(_device);
                 _attachments[num_attachments][i]->set_dimensions(_dimensions.x, _dimensions.y, 1);
-//                assert(_attachments[num_attachments][i]->get_width() == _dimensions.x && _attachments[num_attachments][i]->get_height() == _dimensions.y &&
-//                       "the attachment dimensions are not compatible with this attachment group");
             }
             ++num_attachments;
         }

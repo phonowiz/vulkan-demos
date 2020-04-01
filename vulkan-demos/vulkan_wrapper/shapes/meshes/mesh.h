@@ -95,39 +95,4 @@ namespace vk
         void create_index_buffer();
         void allocate_gpu_memory();
     };
-
-//    template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-//    void mesh::draw(VkCommandBuffer command_buffer, vk::render_pass<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>& render_pass, uint32_t object_index, uint32_t swapchain_index)
-//    {
-//        if(_active)
-//        {
-//
-////            for( uint32_t subpass_id = 0; subpass_id < render_pass.get_number_of_subpasses(); ++subpass_id)
-////            {
-////                if( subpass_id == 0)
-//                {
-//                    VkDeviceSize offsets[] = { 0 };
-//                    assert(_vertex_buffer != nullptr);
-//
-//                    vkCmdBindVertexBuffers(command_buffer, 0, 1, &_vertex_buffer, offsets);
-//                    vkCmdBindIndexBuffer(command_buffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
-//                    //render_pass.get_subpass(subpass_id).begin_subpass_recording(command_buffer, swapchain_index, object_index );
-//                    vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(get_indices().size()), 1, 0, 0, 0);
-//                }
-//                else
-//                {
-//                    render_pass.get_subpass(subpass_id).begin_subpass_recording(command_buffer, swapchain_index, object_index );
-//                    vkCmdDraw(command_buffer, static_cast<uint32_t>(_vertices.size()), 1, 0,0 );
-//                }
-////            }
-////            VkDeviceSize offsets[] = { 0 };
-////            assert(_vertex_buffer != nullptr);
-////
-////            vkCmdBindVertexBuffers(command_buffer, 0, 1, &_vertex_buffer, offsets);
-////            vkCmdBindIndexBuffer(command_buffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
-////
-////            pipeline.bind_material_assets( command_buffer, object_index);
-////            vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(get_indices().size()), 1, 0, 0, 0);
-//        }
-//    }
 }

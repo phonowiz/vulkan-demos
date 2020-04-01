@@ -32,7 +32,6 @@ _render_pass(device, glm::vec2( swapchain->get_vk_swap_extent().width, swapchain
     _window = window;
     _swapchain = swapchain;
     
-    //_render_pass.set_rendering_attachments(_swapchain->present_textures);
     _render_pass.get_attachment_group().add_attachment( _swapchain->present_textures[0]);
     typename render_pass_type::subpass_s& subpass = _render_pass.add_subpass(store, material_name);
     
@@ -132,19 +131,7 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::recreate_renderer()
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
 void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::record_command_buffers(VkCommandBuffer& buffer, uint32_t swapchain_id)
 {
-    
-    //for( uint32_t subpass_id = 0; subpass_id < _render_pass.get_number_of_subpasses(); ++subpass_id)
-    {
-        //_render_pass.begin_command_recording(_command_buffers[swapchain_id], swapchain_id);
-        
-        _render_pass.record_draw_commands(buffer, swapchain_id);
-//        for( uint32_t j = 0; j < number_of_shapes; ++j)
-//        {
-//            shapes[j]->draw(_command_buffers[swapchain_id], _render_pass, j, swapchain_id);
-//        }
-        
-        //_render_pass.end_command_recording();
-    }
+    _render_pass.record_draw_commands(buffer, swapchain_id);
 }
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
@@ -186,16 +173,6 @@ void renderer<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::perform_final_drawing_setup
 {
     _render_pass.commit_parameters_to_gpu(swapchain_id);
     _render_pass.record_draw_commands(buffer, swapchain_id);
-//    if(!_pipeline_created[_image_index])
-//    {
-//        //note: we create the pipeline here to give the client a chance to set the material input arguments.
-//        //the pipeline needs this information to be created properly.
-//
-//        _render_pass.create(_image_index);
-//        record_command_buffers(_shapes.data(), _shapes.size(), _image_index);
-//        _pipeline_created[_image_index] = true;
-//    }
-    
 }
 
 template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
