@@ -103,12 +103,12 @@ namespace vk
             UNDEFINED = VK_IMAGE_LAYOUT_UNDEFINED,
             GENERAL = VK_IMAGE_LAYOUT_GENERAL,
             DEPTH_STENCIL_ATTACHMENT_OPTIMAL = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-            DEPTH_STENCIL_READ_ONLY_OPTIAML = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
+            DEPTH_STENCIL_READ_ONLY_OPTIMAL = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
             SHADER_READ_ONLY_OPTIMAL = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
             TRANSFER_SOURCE_OPTIMAL = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
             TRANSFER_DESTINATION_OPTIMAL = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
             COLOR_ATTACHMENT_OPTIMAL = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-            PRESENT_KHR = VK_IMAGE_LAYOUT_SHARED_PRESENT_KHR
+            PRESENT_KHR = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
         };
         
         enum class filter
@@ -140,14 +140,25 @@ namespace vk
             _image_layout = layout;
         }
         
-        inline image_layouts get_image_layout()
+        image_layouts get_native_layout()
         {
             return _image_layout;
         }
         
+        virtual image_layouts get_usage_layout( resource::usage_type usage)
+        {
+            image::image_layouts layout = get_native_layout();
+            if(resource::usage_type::INPUT_ATTACHMENT == usage)
+            {
+                layout = image::image_layouts::SHADER_READ_ONLY_OPTIMAL;
+            }
+            
+            return layout;
+        }
         void set_filter( image::filter filter){ _filter = filter; }
         
-        virtual const void* const get_instance_type() = 0;
+        inline bool is_initialized(){ return _initialized; }
+        virtual void* const * const get_instance_type() = 0;
         virtual void init() = 0;
     
     protected:
@@ -170,7 +181,7 @@ namespace vk
         uint32_t _height = 0;
         uint32_t _depth = 1;
         uint32_t _mip_levels = 1;
-        
+        bool _initialized = false;
         formats _format = formats::R8G8B8A8_SIGNED_NORMALIZED;
         filter  _filter = filter::LINEAR;
         image_layouts _image_layout = image_layouts::UNDEFINED;

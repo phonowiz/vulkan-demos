@@ -78,6 +78,17 @@ namespace  vk
         {
             get_uniform_parameters(stage, binding)[parameter_name].set_vectors_array(vecs, num_vectors);
         }
+        
+        inline void add_input_attachment( image* texture, const char* parameter_name, uint32_t attachment_id,
+                                  visual_material::parameter_stage stage, uint32_t binding)
+        {
+
+            buffer_info& mem = _sampler_buffers[stage][parameter_name];
+            mem.binding = binding;
+            mem.usage_type = resource::usage_type::INPUT_ATTACHMENT;
+
+            _sampler_parameters[stage][parameter_name] = texture;
+        }
 
         inline visual_material& operator=( const visual_material& right)
         {

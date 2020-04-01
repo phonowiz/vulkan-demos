@@ -22,10 +22,13 @@
 #if __APPLE__ && DEBUG
 #include <MoltenVK/vk_mvk_moltenvk.h>
 #include <dlfcn.h>
+
+#define debug_break asm{ int 3 }
 #endif
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
 
 using namespace vk;
 
@@ -56,6 +59,9 @@ void*                       pUserData)
     
     std::cout << "   layer prefix: " << pLayerPrefix << std::endl;
     std::cout << "   msg: " << pMessage << std::endl;
+    
+    if((flags & VK_DEBUG_REPORT_ERROR_BIT_EXT))
+        debug_break;
     
     return VK_FALSE;
 }

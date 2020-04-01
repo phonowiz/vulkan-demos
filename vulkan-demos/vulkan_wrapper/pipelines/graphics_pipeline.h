@@ -27,9 +27,6 @@ namespace vk
     class graphics_pipeline : public pipeline
     {
     public:
-        
-        //using render_pass_type = render_pass<RENDER_TEXTURE_TYPE,NUM_ATTACHMENTS>;
-        //using subpass_type = typename render_pass_type::subpass_s;
 
         enum class write_channels
         {
@@ -74,7 +71,7 @@ namespace vk
         };
         
 
-        void create(VkRenderPass& vk_render_pass);
+        void create(VkRenderPass& vk_render_pass,uint32_t subpass_id);
 
         
         void set_viewport(uint32_t width, uint32_t height){ _width = width; _height = height;};
@@ -82,6 +79,12 @@ namespace vk
         void set_material(visual_mat_shared_ptr material )
         {
             _material[0] = material;
+        }
+        
+        inline void add_input_attachment( image* texture, const char* parameter_name,  uint32_t attachment_id,
+                                         visual_material::parameter_stage parameter_stage, uint32_t binding)
+        {
+            _material[0]->add_input_attachment(texture, parameter_name, attachment_id, parameter_stage, binding);
         }
         
         inline void set_image_sampler(texture_3d& texture, const char* parameter_name,

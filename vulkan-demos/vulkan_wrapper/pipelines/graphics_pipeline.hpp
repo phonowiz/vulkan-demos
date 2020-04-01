@@ -23,7 +23,7 @@ void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::init_blend_attachm
 }
 
 template< class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-void graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>::create(VkRenderPass& vk_render_passes)
+void graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>::create(VkRenderPass& vk_render_passes, uint32_t subpass_id)
 {
     
     auto vertex_binding_description = vertex::get_binding_description();
@@ -177,7 +177,7 @@ void graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>::create(VkRenderPass& vk_r
     pipeline_create_info.pDynamicState = &dynamic_state_create_info;
     pipeline_create_info.layout = _pipeline_layout[0];
     pipeline_create_info.renderPass = vk_render_passes;
-    pipeline_create_info.subpass = 0;
+    pipeline_create_info.subpass = subpass_id;
     pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
     pipeline_create_info.basePipelineIndex = -1;
 

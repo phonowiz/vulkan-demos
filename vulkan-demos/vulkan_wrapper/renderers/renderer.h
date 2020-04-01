@@ -52,9 +52,6 @@ namespace vk
         renderer(){};
         renderer(device* device, GLFWwindow* window, glfw_swapchain* swapchain, material_store& store, const char* material_name);
         
-
-        void add_shape(obj_shape* s){ _shapes.push_back(s); };
-        
         virtual void draw(camera &camera);
         
         graphics_pipeline_type& get_pipeline(uint32_t subpass_id) { return _render_pass.get_pipeline(_image_index, subpass_id ); }
@@ -116,8 +113,8 @@ namespace vk
         void create_semaphore(VkSemaphore& semaphore);
         void create_semaphores(std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& semaphores);
         void create_fence(VkFence& fence);
-        virtual void record_command_buffers(obj_shape** shapes, size_t number_of_shapes, uint32_t swapchain_id);
-        virtual void perform_final_drawing_setup();
+        virtual void record_command_buffers(VkCommandBuffer& command_buffer, uint32_t swapchain_id);
+        virtual void perform_final_drawing_setup(VkCommandBuffer& buffer, uint32_t swapchain_id);
         
         
     private:
@@ -141,7 +138,6 @@ namespace vk
         VkCommandBuffer* _command_buffers = nullptr;
         render_pass_type _render_pass;
         
-        std::vector<obj_shape*> _shapes;
         bool _pipeline_created[glfw_swapchain::NUM_SWAPCHAIN_IMAGES]= {};
     };
 

@@ -28,6 +28,7 @@ void texture_2d_array::init()
     if(_enable_mipmapping)
         refresh_mimaps();
     
+    _initialized = true;
 }
 
 VkImageCreateInfo texture_2d_array::get_image_create_info( VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage_flags)

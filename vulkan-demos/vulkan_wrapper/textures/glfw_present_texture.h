@@ -36,8 +36,8 @@ namespace vk
         virtual void create_image_view( VkImage image, VkFormat format, VkImageView& image_view) override;
         virtual void destroy() override;
         
-        virtual const void* const get_instance_type() override { return _image_type; };
-        static const void* const  get_class_type(){ return _image_type; }
+        virtual void * const * const get_instance_type() override { return (&_image_type); };
+        static void * const * const get_class_type(){ return (&_image_type); }
         
     private:
 

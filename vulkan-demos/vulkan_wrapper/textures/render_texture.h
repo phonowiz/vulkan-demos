@@ -23,17 +23,17 @@ namespace vk
             COLOR_TARGET_AND_SHADER_INPUT = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
         };
         
-        render_texture(){ };
+        render_texture(){ _usage = render_texture::usage::COLOR_TARGET_AND_SHADER_INPUT;};
         render_texture(device* device, uint32_t width, uint32_t height);
+        
+        virtual void * const * const get_instance_type() override { return (&_image_type); };
+        static void * const * const  get_class_type(){ return (&_image_type); }
 
         virtual void create( uint32_t width, uint32_t height) override;
-        void set_usage( usage u )
-        {
-            _usage = u;
-        }
         
     private:
         
+        static constexpr void* _image_type = nullptr;
         render_texture::usage _usage = usage::COLOR_TARGET;
     };
 }

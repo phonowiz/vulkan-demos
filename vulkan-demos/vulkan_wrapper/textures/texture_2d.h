@@ -41,8 +41,8 @@ namespace vk
         virtual void create_image_view(VkImage image, VkFormat format, VkImageView& image_view) override;
         virtual void init() override;
         
-        virtual const void* const get_instance_type() override { return _image_type; };
-        static const void* const  get_class_type(){ return _image_type; }
+        virtual void * const * const get_instance_type() override { return ( &_image_type); };
+        static void * const * const  get_class_type(){ return (&_image_type); }
         
         void generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQueue queue,
                               int32_t width, int32_t height, int32_t depth = 1);
@@ -63,6 +63,7 @@ namespace vk
                                       static_cast<VkImageLayout>(_image_layout),
                                       static_cast<VkImageLayout>(new_layout));
         }
+        
         static const std::string texture_resource_path;
         
     protected:
@@ -75,7 +76,6 @@ namespace vk
         static constexpr void* _image_type = nullptr;
         
         bool _loaded = false;
-        bool _initialized = false;
         
         stbi_uc *_ppixels = nullptr;
         std::string _path;

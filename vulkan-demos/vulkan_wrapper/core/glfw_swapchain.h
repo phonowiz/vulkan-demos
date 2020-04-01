@@ -38,9 +38,17 @@ namespace vk
         
         glfw_swapchain(device* device, GLFWwindow* window, VkSurfaceKHR surface);
         
-        VkSurfaceFormatKHR get_vk_surface_format();
         VkSurfaceKHR       get_vk_surface(){ return _surface; }
         void print_stats();
+        
+        VkSurfaceFormatKHR get_vk_surface_format()
+        {
+            device::swapchain_support_details swapchain_support;
+            _device->query_swapchain_support( _device->_physical_device, get_vk_surface(), swapchain_support);
+            
+            VkSurfaceFormatKHR surface_format = get_vk_swap_surface_format(swapchain_support.formats);
+            return surface_format;
+        }
         
         GLFWwindow*   _window = nullptr;
 

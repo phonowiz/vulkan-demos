@@ -10,13 +10,14 @@
 
 layout(location = 0) in vec3 frag_color;
 layout(location = 1) in vec2 frag_uv_coord;
+
 layout(location = 0) out vec4 out_color;
 
 //binding 0 is used in vertex shader
-layout(binding = 1 ) uniform sampler2D normals;//albedo;
-layout(binding = 2 ) uniform sampler2D albedo;
-layout(binding = 3 ) uniform sampler2D world_positions;
-layout(binding = 4 ) uniform sampler2D depth;
+layout(input_attachment_index = 0, binding = 1 ) uniform subpassInput normals;//albedo;
+layout(input_attachment_index = 1, binding = 2 ) uniform subpassInput albedo;
+layout(input_attachment_index = 2, binding = 3 ) uniform subpassInput world_positions;
+layout(input_attachment_index = 4, binding = 4 ) uniform subpassInput depth;
 
 layout(binding = 5, std140) uniform _rendering_state
 {
@@ -365,7 +366,7 @@ vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_posi
 
 vec4 direct_illumination( vec3 world_normal, vec3 world_position)
 {
-    vec3 surface_color = texture(albedo, frag_uv_coord).xyz;
+    vec3 surface_color = subpassLoad(albedo).xyz;
     
     vec3 v = rendering_state.eye_in_world_space.xyz - world_position;
     v = normalize(v);
@@ -414,48 +415,49 @@ void main()
 {
     //note: in a real scenario, you don't want all these branches around, this is purely for
     //demo purposes.
+        
     if( rendering_state.mode == ALBEDO )
     {
-        out_color = texture(albedo, frag_uv_coord);
+        out_color = subpassLoad(albedo);
     }
-    
+
     else if( rendering_state.mode == NORMALS )
     {
-        out_color = texture(normals, frag_uv_coord);
+        out_color = subpassLoad(normals);
     }
-    
+
     else if( rendering_state.mode == POSITIONS)
     {
-        out_color = texture(world_positions, frag_uv_coord);
+        out_color = subpassLoad(world_positions);
     }
     else if( rendering_state.mode == DEPTH )
     {
-        out_color = texture(depth, frag_uv_coord );
+        out_color = subpassLoad(depth);
         out_color.xyz = 1 - out_color.xxx;
         out_color.x *= 90.0f;
     }
     else
     {
         mat3 rotation;
-        vec3 world_normal = texture(normals, frag_uv_coord).xyz;
-        
+        vec3 world_normal = subpassLoad(normals).xyz;
+
         world_normal = decode(world_normal.xy);
         world_normal = (rendering_state.eye_inverse_view_matrix * vec4(world_normal.xyz,0.0f)).xyz;
-        
-        vec3 world_position = texture(world_positions, frag_uv_coord).xyz;
+
+        vec3 world_position = subpassLoad(world_positions).xyz;
         branchless_onb(world_normal, rotation);
-        
+
         out_color = vec4(0);
         if(world_position != vec3(0))
         {
             vec4 ambience = voxel_cone_tracing(rotation, world_normal, world_position);
-            
+
             if( rendering_state.mode == AMBIENT_OCCLUSION)
             {
                 out_color.xyz = (1.0f - ambience.aaa);
                 out_color.a = 1.0f;
             }
-            
+
             else if( rendering_state.mode == AMBIENT_LIGHT)
             {
                 out_color.xyz = ambience.xyz;

@@ -23,7 +23,7 @@
 namespace vk
 {
     template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-    class graphics_pipeline;
+    class render_pass;
 
     class mesh : resource
     {
@@ -57,9 +57,27 @@ namespace vk
         static const std::string _mesh_resource_path;
         
         template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-        void draw(VkCommandBuffer command_buffer, vk::graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>& pipeline, uint32_t object_index, uint32_t swapchain_index);
+        void draw(VkCommandBuffer command_buffer, vk::render_pass<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>& pipeline, uint32_t object_index, uint32_t swapchain_index);
         
         virtual void destroy() override;
+        
+        inline void bind_verteces(VkCommandBuffer& command_buffer)
+        {
+            VkDeviceSize offsets[] = { 0 };
+            assert(_vertex_buffer != nullptr);
+
+            vkCmdBindVertexBuffers(command_buffer, 0, 1, &_vertex_buffer, offsets);
+            vkCmdBindIndexBuffer(command_buffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
+        }
+        
+        inline void draw_indexed(VkCommandBuffer command_buffer)
+        {
+            vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(get_indices().size()), 1, 0, 0, 0);
+        }
+        inline void draw(VkCommandBuffer command_buffer)
+        {
+            vkCmdDraw(command_buffer, static_cast<uint32_t>(_vertices.size()), 1, 0,0 );
+        }
     
         inline std::vector<vertex>& get_vertices()
         {
@@ -77,20 +95,4 @@ namespace vk
         void create_index_buffer();
         void allocate_gpu_memory();
     };
-
-    template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-    void mesh::draw(VkCommandBuffer command_buffer, vk::graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>& pipeline, uint32_t object_index, uint32_t swapchain_index)
-    {
-        if(_active)
-        {
-            VkDeviceSize offsets[] = { 0 };
-            assert(_vertex_buffer != nullptr);
-            
-            vkCmdBindVertexBuffers(command_buffer, 0, 1, &_vertex_buffer, offsets);
-            vkCmdBindIndexBuffer(command_buffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
-            
-            pipeline.bind_material_assets( command_buffer, object_index);
-            vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(get_indices().size()), 1, 0, 0, 0);
-        }
-    }
 }

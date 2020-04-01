@@ -28,8 +28,8 @@ namespace vk {
 
         texture_3d():image(){};
         
-        virtual const void* const get_instance_type() override { return _image_type; } 
-        static const void* const  get_class_type(){ return _image_type; }
+        virtual void * const * const get_instance_type() override { return (& _image_type); }
+        static void * const * const  get_class_type(){ return (& _image_type); }
         
         virtual void init() override;
     private:

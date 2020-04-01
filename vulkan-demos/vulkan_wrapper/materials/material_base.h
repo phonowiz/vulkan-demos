@@ -11,7 +11,7 @@
 #include "resource.h"
 #include "shader_parameter.h"
 #include "ordered_map.h"
-
+#include "depth_texture.h"
 #include <array>
 #include <vector>
 #include <assert.h>
@@ -61,7 +61,6 @@ namespace vk
     public:
         void commit_parameters_to_gpu();
         void commit_dynamic_parameters_to_gpu();
-        
         void print_uniform_argument_names();
         
     protected:
