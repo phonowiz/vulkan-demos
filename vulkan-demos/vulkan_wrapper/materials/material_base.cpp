@@ -218,7 +218,6 @@ void material_base::create_descriptor_set_layout()
         _descriptor_set_layout_bindings[count].descriptorCount = 1;
         _descriptor_set_layout_bindings[count].stageFlags = static_cast<VkShaderStageFlagBits>(pair.first);
         _descriptor_set_layout_bindings[count].pImmutableSamplers = nullptr;
-        std::cout << "uniform buffer binding " <<pair.second.binding <<std::endl;
         ++count;
         assert(BINDING_MAX > count);
     }
@@ -230,7 +229,6 @@ void material_base::create_descriptor_set_layout()
         _descriptor_set_layout_bindings[count].descriptorCount = 1;
         _descriptor_set_layout_bindings[count].stageFlags = static_cast<VkShaderStageFlagBits>(pair.first);
         _descriptor_set_layout_bindings[count].pImmutableSamplers = nullptr;
-        std::cout << "uniform dynamic buffer binding " <<pair.second.binding <<std::endl;
         ++count;
         assert(BINDING_MAX > count);
     }

@@ -20,7 +20,7 @@
 
 namespace vk {
     
-    template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+    template< uint32_t NUM_ATTACHMENTS>
     class render_pass;
 
     //note: the name obj_shape comes from the fact that these objects are created by reading .obj files

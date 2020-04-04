@@ -22,7 +22,7 @@
 
 namespace vk
 {
-    template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+    template< uint32_t NUM_ATTACHMENTS>
     class render_pass;
 
     class mesh : resource
@@ -56,8 +56,8 @@ namespace vk
         
         static const std::string _mesh_resource_path;
         
-        template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-        void draw(VkCommandBuffer command_buffer, vk::render_pass<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>& pipeline, uint32_t object_index, uint32_t swapchain_index);
+        template<uint32_t NUM_ATTACHMENTS>
+        void draw(VkCommandBuffer command_buffer, vk::render_pass< NUM_ATTACHMENTS>& pipeline, uint32_t object_index, uint32_t swapchain_index);
         
         virtual void destroy() override;
         

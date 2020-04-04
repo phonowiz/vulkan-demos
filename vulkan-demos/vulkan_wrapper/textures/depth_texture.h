@@ -42,6 +42,10 @@ namespace vk {
             {
                 layout = image::image_layouts::DEPTH_STENCIL_READ_ONLY_OPTIMAL;
             }
+            else if(usage == resource::usage_type::STORAGE_IMAGE)
+            {
+                layout = image::image_layouts::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+            }
             
             return layout;
         }

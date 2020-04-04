@@ -23,7 +23,7 @@ namespace vk
 {
     class texture_2d;
     
-    template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+    template< uint32_t NUM_ATTACHMENTS>
     class graphics_pipeline : public pipeline
     {
     public:
@@ -121,10 +121,16 @@ namespace vk
             _material[0]->init_parameter(parameter_name, stage, value, binding);
         };
         
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, int value, int binding)
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, int32_t value, int binding)
         {
             _material[0]->init_parameter(parameter_name, stage, value, binding);
         };
+        
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, uint32_t value, int binding)
+        {
+            _material[0]->init_parameter(parameter_name, stage, value, binding);
+        };
+        
         inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec3 value, int binding)
         {
             _material[0]->init_parameter(parameter_name, stage, value, binding);
@@ -240,5 +246,5 @@ namespace vk
 
     #include "graphics_pipeline.hpp"
 
-    using standard_pipeline = graphics_pipeline<glfw_present_texture, 1> ;
+    using standard_pipeline = graphics_pipeline<1> ;
 }

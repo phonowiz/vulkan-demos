@@ -39,11 +39,11 @@ namespace vk
 {
     
     //TODO: You might need another argument for number of subpasses...
-    template< class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+    template< uint32_t NUM_ATTACHMENTS>
     class render_pass : public object
     {
     public:
-        using graphics_pipeline_type = graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>;
+        using graphics_pipeline_type = graphics_pipeline< NUM_ATTACHMENTS>;
         using write_channels = typename graphics_pipeline_type::write_channels;
         
         static constexpr uint32_t MAX_NUMBER_OF_ATTACHMENTS = 10u;
@@ -179,7 +179,8 @@ namespace vk
                 //note: plus one because NUM_ATTACHMENTS doesn't include depth
                 assert(attachment_id < NUM_ATTACHMENTS + 1);
                 _input_references[_num_input_references].attachment = attachment_id;
-                _input_references[_num_input_references].layout = static_cast<VkImageLayout>((*_attachment_group)[attachment_id][0]->get_usage_layout(resource::usage_type::INPUT_ATTACHMENT));
+                _input_references[_num_input_references].layout =
+                            static_cast<VkImageLayout>((*_attachment_group)[attachment_id][0]->get_usage_layout(resource::usage_type::INPUT_ATTACHMENT));
                 
                 ++_num_input_references;
                 
@@ -224,7 +225,7 @@ namespace vk
                 }
             }
             
-            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  float value, int binding)
+            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  float value, int32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -232,35 +233,44 @@ namespace vk
                 }
             };
             
-            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  int value, int binding)
+            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  int32_t value, int32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
                     _pipeline[chain_id].init_parameter(parameter_name, stage, value, binding);
                 }
             };
-            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  glm::vec3 value, int binding)
+            
+            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  uint32_t value, int32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
                     _pipeline[chain_id].init_parameter(parameter_name, stage, value, binding);
                 }
             };
-            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  glm::vec4 value, int binding)
+            
+            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  glm::vec3 value, int32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
                     _pipeline[chain_id].init_parameter(parameter_name, stage, value, binding);
                 }
             };
-            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  glm::vec2 value, int binding)
+            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  glm::vec4 value, int32_t binding)
+            {
+                for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
+                {
+                    _pipeline[chain_id].init_parameter(parameter_name, stage, value, binding);
+                }
+            };
+            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  glm::vec2 value, int32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
                     _pipeline[chain_id].init_parameter(parameter_name, stage, value, binding);
                 }
             }
-            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::mat4 value, int binding)
+            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::mat4 value, int32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -269,7 +279,7 @@ namespace vk
             }
             
             inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,
-                                       glm::vec4* vecs,  size_t num_vectors, int binding)
+                                       glm::vec4* vecs,  size_t num_vectors, int32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -278,7 +288,7 @@ namespace vk
             }
             
             inline void init_dynamic_params(const char* parameter_name, visual_material::parameter_stage stage,
-                                            glm::mat4& val, size_t num_objs, int binding)
+                                            glm::mat4& val, size_t num_objs, int32_t binding)
             {
                 
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
@@ -366,9 +376,9 @@ namespace vk
         /////////////////////////////////////////////////////////////////////////////////////
         
         
-        inline void add_object( obj_shape* obj)
+        inline void add_object( obj_shape& obj)
         {
-            _shapes[_num_objects] = obj;
+            _shapes[_num_objects] = &obj;
             _num_objects++;
         }
         
@@ -472,6 +482,11 @@ namespace vk
         
         inline graphics_pipeline_type& get_pipeline( uint32_t swapchain_id, uint32_t subpass_id){ return get_subpass(subpass_id).get_pipeline(swapchain_id);}
 
+        inline subpass_s& add_subpass(vk::material_store* store,  const char* material_name, const char* subpass_name = "" )
+        {
+            return add_subpass(*store, material_name, subpass_name);
+        }
+        
         inline subpass_s& add_subpass(vk::material_store& store,  const char* material_name, const char* subpass_name = "" )
         {
             _subpasses[_num_subpasses]._name = subpass_name;
@@ -519,10 +534,10 @@ namespace vk
     private:
         
         void create_frame_buffers(uint32_t swapchain_id);
-        void begin_command_recording(VkCommandBuffer& buffer, uint32_t swapchain_image_id);
+        //void begin_command_recording(VkCommandBuffer& buffer, uint32_t swapchain_image_id);
         void begin_render_pass(VkCommandBuffer& buffer, uint32_t swapchain_image_id);
-        void end_render_pass();
-        void end_command_recording();
+        void end_render_pass(VkCommandBuffer& buffer);
+        //void end_command_recording();
         
     private:
         
@@ -539,16 +554,16 @@ namespace vk
         std::array<VkClearValue,NUM_ATTACHMENTS + 1> _clear_values {};
         glm::vec2 _dimensions {};
         device* _device = nullptr;
-        VkCommandBuffer* _recording_buffer = VK_NULL_HANDLE;
+        //VkCommandBuffer* _recording_buffer = VK_NULL_HANDLE;
         uint32_t _num_subpasses = 0;
         uint32_t _num_objects = 0;
     };
 
-    template<class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-    void render_pass<TEXTURE_TYPE, NUM_ATTACHMENTS>::record_draw_commands(VkCommandBuffer& buffer, uint32_t swapchain_id)
+    template<uint32_t NUM_ATTACHMENTS>
+    void render_pass< NUM_ATTACHMENTS>::record_draw_commands(VkCommandBuffer& buffer, uint32_t swapchain_id)
     {
         assert(_num_objects != 0 && "you must have objects to render in a subpass");
-        begin_command_recording(buffer, swapchain_id);
+        //begin_command_recording(buffer, swapchain_id);
         begin_render_pass(buffer, swapchain_id);
 
         
@@ -570,12 +585,12 @@ namespace vk
                 next_subpass(buffer);
         }
         
-        end_render_pass();
-        end_command_recording();
+        end_render_pass(buffer);
+        //end_command_recording();
     }
 
-    template<class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-    render_pass<TEXTURE_TYPE, NUM_ATTACHMENTS>::render_pass(vk::device* device,  glm::vec2 dimensions):
+    template< uint32_t NUM_ATTACHMENTS>
+    render_pass< NUM_ATTACHMENTS>::render_pass(vk::device* device,  glm::vec2 dimensions):
     _attachment_group(device, dimensions)
     {
         _dimensions = dimensions;
@@ -591,14 +606,14 @@ namespace vk
         _attachment_group.set_depth_set(_depth_textures);
     }
 
-    template <class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-    attachment_group<NUM_ATTACHMENTS>& render_pass<TEXTURE_TYPE, NUM_ATTACHMENTS>::get_attachment_group()
+    template < uint32_t NUM_ATTACHMENTS>
+    attachment_group<NUM_ATTACHMENTS>& render_pass< NUM_ATTACHMENTS>::get_attachment_group()
     {
         return _attachment_group;
     }
 
-    template <class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-    void render_pass<TEXTURE_TYPE, NUM_ATTACHMENTS>::init(uint32_t swapchain_id)
+    template < uint32_t NUM_ATTACHMENTS>
+    void render_pass< NUM_ATTACHMENTS>::init(uint32_t swapchain_id)
     {
         assert(_attachment_group.size() <= MAX_NUMBER_OF_ATTACHMENTS);
         assert(_attachment_group.size() != 0);
@@ -629,7 +644,7 @@ namespace vk
             attachment_descriptions[attachment_id].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             
             attachment_descriptions[attachment_id].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            attachment_descriptions[attachment_id].finalLayout = static_cast<VkImageLayout>(_attachment_group[attachment_id][swapchain_id]->get_native_layout());//_off_screen_rendering ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL :VK_IMAGE_LAYOUT_PRESENT_SRC_KHR ;
+            attachment_descriptions[attachment_id].finalLayout = static_cast<VkImageLayout>(_attachment_group[attachment_id][swapchain_id]->get_native_layout());
             attachment_descriptions[attachment_id].format = static_cast<VkFormat>(_attachment_group[attachment_id][swapchain_id]->get_format());
             
         }
@@ -681,8 +696,7 @@ namespace vk
                 //note: in this code base, the last attachement is the depth
                 attachment_descriptions[attachment_id] =  _depth_textures[swapchain_id].get_depth_attachment();
                 depth_reference.attachment = attachment_id;
-                vk::image::image_layouts l = _depth_textures[swapchain_id].get_native_layout();
-                depth_reference.layout = static_cast<VkImageLayout>(l);
+                depth_reference.layout = static_cast<VkImageLayout>(_depth_textures[swapchain_id].get_usage_layout(resource::usage_type::STORAGE_IMAGE));
                 subpass[subpass_id].pDepthStencilAttachment = &depth_reference;
             }
 
@@ -719,8 +733,8 @@ namespace vk
         create_frame_buffers(swapchain_id);
     }
 
-    template <class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-    void render_pass<TEXTURE_TYPE, NUM_ATTACHMENTS>::create_frame_buffers(uint32_t swapchain_id)
+    template < uint32_t NUM_ATTACHMENTS>
+    void render_pass< NUM_ATTACHMENTS>::create_frame_buffers(uint32_t swapchain_id)
     {
         std::array<VkImageView, MAX_NUMBER_OF_ATTACHMENTS> attachment_views {};
         
@@ -761,8 +775,8 @@ namespace vk
         
     }
 
-    template <class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-    void render_pass<TEXTURE_TYPE, NUM_ATTACHMENTS>::destroy()
+    template < uint32_t NUM_ATTACHMENTS>
+    void render_pass< NUM_ATTACHMENTS>::destroy()
     {
         
         for( int i = 0; i <  _subpasses.size(); ++i)
@@ -790,8 +804,8 @@ namespace vk
         }
     }
 
-    template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-    void render_pass<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::begin_render_pass(VkCommandBuffer& buffer, uint32_t swapchain_image_id)
+    template< uint32_t NUM_ATTACHMENTS>
+    void render_pass< NUM_ATTACHMENTS>::begin_render_pass(VkCommandBuffer& buffer, uint32_t swapchain_image_id)
     {
         VkRenderPassBeginInfo render_pass_create_info = {};
         render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -823,38 +837,36 @@ namespace vk
         vkCmdSetScissor(buffer, 0, 1, &scissor);
     }
 
-    template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-    void render_pass<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::begin_command_recording(VkCommandBuffer& buffer, uint32_t swapchain_image_id)
-    {
-        assert(_recording_buffer == VK_NULL_HANDLE && "you shouldn't call begin_command_recording before calling end_command_recording");
-        _recording_buffer = &buffer;
-        
-        VkCommandBufferBeginInfo command_buffer_begin_info {};
-        command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        command_buffer_begin_info.pNext = nullptr;
-        command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-        command_buffer_begin_info.pInheritanceInfo = nullptr;
-        
-        VkResult result = vkBeginCommandBuffer(buffer, &command_buffer_begin_info);
-        ASSERT_VULKAN(result);
-    }
+//    template< uint32_t NUM_ATTACHMENTS>
+//    void render_pass< NUM_ATTACHMENTS>::begin_command_recording(VkCommandBuffer& buffer, uint32_t swapchain_image_id)
+//    {
+//        assert(_recording_buffer == VK_NULL_HANDLE && "you shouldn't call begin_command_recording before calling end_command_recording");
+//        _recording_buffer = &buffer;
+//
+//        VkCommandBufferBeginInfo command_buffer_begin_info {};
+//        command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+//        command_buffer_begin_info.pNext = nullptr;
+//        command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+//        command_buffer_begin_info.pInheritanceInfo = nullptr;
+//
+//        VkResult result = vkBeginCommandBuffer(buffer, &command_buffer_begin_info);
+//        ASSERT_VULKAN(result);
+//    }
 
 
-    template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-    void render_pass<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::end_render_pass()
+    template< uint32_t NUM_ATTACHMENTS>
+    void render_pass< NUM_ATTACHMENTS>::end_render_pass(VkCommandBuffer& buffer)
     {
-        assert(_recording_buffer != nullptr && "you must call begin_command_recording");
-        
-        vkCmdEndRenderPass(*_recording_buffer);
+        vkCmdEndRenderPass(buffer);
     }
 
-    template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-    void render_pass<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::end_command_recording()
-    {
-        assert(_recording_buffer != nullptr && "you must call begin_command_recording");
-        
-        vkEndCommandBuffer(*_recording_buffer);
-        
-        _recording_buffer = nullptr;
-    }
+//    template< uint32_t NUM_ATTACHMENTS>
+//    void render_pass< NUM_ATTACHMENTS>::end_command_recording()
+//    {
+//        assert(_recording_buffer != nullptr && "you must call begin_command_recording");
+//        
+//        vkEndCommandBuffer(*_recording_buffer);
+//        
+//        _recording_buffer = nullptr;
+//    }
 }

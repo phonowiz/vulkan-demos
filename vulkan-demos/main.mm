@@ -41,6 +41,10 @@
 #include "vulkan_wrapper/cameras/perspective_camera.h"
 #include "camera_controllers/first_person_controller.h"
 
+#include "graph_nodes/display_texture.h"
+#include "new_operators.h"
+#include "graph.h"
+
 #include <filesystem>
 
 namespace fs = std::filesystem;
@@ -88,8 +92,8 @@ struct App
 {
     vk::device* device = nullptr;
     vk::deferred_renderer*   deferred_renderer = nullptr;
-    vk::renderer<vk::glfw_present_texture, 1>*   three_d_renderer = nullptr;
-    vk::display_2d_texture_renderer * display_renderer = nullptr;
+    vk::renderer<1>*   three_d_renderer = nullptr;
+    vk::graph<1> * graph = nullptr;
     
     first_person_controller* user_controller = nullptr;
     first_person_controller* texture_3d_view_controller = nullptr;
@@ -118,7 +122,7 @@ struct App
 
 App app;
 
-void update_3d_texture_rendering_params( vk::renderer<vk::glfw_present_texture, 1>& three_d_renderer, int next_swap)
+void update_3d_texture_rendering_params( vk::renderer<1>& three_d_renderer, int32_t next_swap)
 {
 
     vk::shader_parameter::shader_params_group& vertex_params =
@@ -167,11 +171,11 @@ void update_renderer_parameters( vk::deferred_renderer& renderer)
     }
 }
 
-void update_ortho_parameters(vk::renderer<vk::glfw_present_texture, 1>& renderer, int32_t next_frame)
-{
-    if(next_frame != -1)
-        renderer.set_next_swapchain_id(next_frame);
-}
+//void update_ortho_parameters(vk::renderer<1>& renderer, int32_t next_frame)
+//{
+//    if(next_frame != -1)
+//        renderer.set_next_swapchain_id(next_frame);
+//}
 
 void game_loop()
 {
@@ -199,8 +203,9 @@ void game_loop()
         {
             next_swap = ++next_swap % 3;
             app.device->wait_for_all_operations_to_finish();
-            update_ortho_parameters(*app.display_renderer, next_swap);
-            app.display_renderer->draw(*app.perspective_camera);
+            //update_ortho_parameters(*app.display_renderer, next_swap);
+            //app.display_renderer->draw(*app.perspective_camera);
+            //app.
         }
     }
     
@@ -228,7 +233,7 @@ void on_window_resize(GLFWwindow * window, int w, int h)
 
 
 
-void game_loop_ortho(vk::renderer<vk::glfw_present_texture, 1> &renderer)
+void game_loop_ortho()
 {
     int i = 0;
 
@@ -236,8 +241,10 @@ void game_loop_ortho(vk::renderer<vk::glfw_present_texture, 1> &renderer)
         static int32_t current_index = -1;
         current_index = (current_index + 1) % vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES;
         glfwPollEvents();
-        update_ortho_parameters( renderer , current_index);
-        renderer.draw(*app.perspective_camera);
+
+        app.graph->update(*app.perspective_camera, current_index);
+        app.graph->record(current_index);
+        app.graph->execute(current_index);
         ++i;
     }
 }
@@ -295,9 +302,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
     if( key == GLFW_KEY_O && action == GLFW_PRESS)
     {
-        vk::shader_parameter::shader_params_group& vertex_params =  app.display_renderer->get_uniform_params(0,vk::visual_material::parameter_stage::VERTEX, 0);
-        vertex_params["width"] = vk::deferred_renderer::VOXEL_CUBE_WIDTH ;
-        vertex_params["height"] = vk::deferred_renderer::VOXEL_CUBE_HEIGHT;
+//        vk::shader_parameter::shader_params_group& vertex_params =  app.display_renderer->get_uniform_params(0,vk::visual_material::parameter_stage::VERTEX, 0);
+//        vertex_params["width"] = vk::deferred_renderer::VOXEL_CUBE_WIDTH ;
+//        vertex_params["height"] = vk::deferred_renderer::VOXEL_CUBE_HEIGHT;
         app.mode = App::render_mode::RENDER_VOXEL_CAM_TEXTURE;
     }
     
@@ -319,17 +326,22 @@ int main()
     
     vk::device device;
     
-    app.device = &device;
-    
     glfwCreateWindowSurface(device._instance, window, nullptr, &surface);
     device.create_logical_device(surface);
     
-    //glfwSetCursorPos(window, width * .5f, height * .5f);
+    vk::material_store material_store;
     vk::glfw_swapchain swapchain(&device, window, surface);
     
+
+    vk::graph<1> graph(&device, material_store, swapchain);
+    
+    app.device = &device;
+    
+    //glfwSetCursorPos(window, width * .5f, height * .5f);
+
     app.swapchain = &swapchain;
     
-    vk::material_store material_store;
+
     
     material_store.create(&device);
     
@@ -377,27 +389,18 @@ int main()
     app.shapes.push_back(&model);
     
     vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store, app.shapes);
-    vk::renderer<vk::glfw_present_texture,1> three_d_renderer(&device, window, &swapchain, material_store, "display_3d_texture");
-    vk::display_2d_texture_renderer display_renderer(&device, window, &swapchain, material_store);
+    vk::renderer<1> three_d_renderer(&device, window, &swapchain, material_store, "display_3d_texture");
     
-    //display_renderer.get_render_pass().get_subpass(0).set_depth_enable(false);
-    //display_renderer.show_texture(deferred_renderer.get_voxelizer_cam_texture());
-    for( int i = 0; i < vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
-    {
-        vk::shader_parameter::shader_params_group& vertex_params = display_renderer.get_pipeline(i, 0).
-                                get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-        vertex_params["width"] = vk::deferred_renderer::VOXEL_CUBE_WIDTH ;
-        vertex_params["height"] = vk::deferred_renderer::VOXEL_CUBE_HEIGHT;
-    }
+    display_texture<1> debug_node(&device, &swapchain, swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height);
+    
 
-    display_renderer.show_texture(&mario);
-    display_renderer.init();
+
+    debug_node.show_texture("mario.png");
     
-    for( uint32_t i = 0; i < vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
-    {
-        display_renderer.get_render_pass().create(i);
-    }
-    app.display_renderer = &display_renderer;
+    
+    graph.add_child(debug_node);
+    
+    app.graph = &graph;
     app.three_d_renderer = &three_d_renderer;
     app.deferred_renderer = &deferred_renderer;
 
@@ -408,9 +411,8 @@ int main()
     app.three_d_renderer->get_render_pass().get_subpass(0).set_image_sampler(voxel_texture, "texture_3d",
                                                                              vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
     
-    app.three_d_renderer->get_render_pass().add_object(&cube);
-    //app.three_d_renderer->add_shape(&cube);
-    //app.three_d_renderer->get_render_pass().get_subpass(0).set_depth_enable(true);
+    app.three_d_renderer->get_render_pass().add_object(cube);
+
     static const uint32_t DEPTH = 1;
     app.three_d_renderer->get_render_pass().get_subpass(0).add_output_attachment(DEPTH);
     
@@ -445,15 +447,19 @@ int main()
     app.user_controller->update();
     app.texture_3d_view_controller->update();
     
-    game_loop();
-    //game_loop_ortho(display_renderer);
+    //game_loop();
+    
+    app.graph->init();
+    game_loop_ortho();
     
     
     device.wait_for_all_operations_to_finish();
     mario.destroy();
     deferred_renderer.destroy();
     three_d_renderer.destroy();
-    display_renderer.destroy();
+
+    debug_node.destroy();
+    graph.destroy();
     
     material_store.destroy();
     model.destroy();

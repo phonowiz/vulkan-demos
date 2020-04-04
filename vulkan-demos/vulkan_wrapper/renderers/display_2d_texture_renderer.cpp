@@ -15,7 +15,7 @@ display_2d_texture_renderer::display_2d_texture_renderer(vk::device* device, GLF
 renderer(device, window, swapchain, store, "display"),
 _render_plane(device)
 {
-    _render_pass.add_object(&_render_plane);
+    _render_pass.add_object(_render_plane);
     _render_plane.create();
 }
 

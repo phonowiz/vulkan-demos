@@ -19,7 +19,7 @@
 
 namespace vk
 {
-    class display_2d_texture_renderer : public renderer<glfw_present_texture, 1>
+    class display_2d_texture_renderer : public renderer<1>
     {
     public:
         display_2d_texture_renderer(vk::device* device, GLFWwindow* window, glfw_swapchain* swapchain, material_store& store);

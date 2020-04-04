@@ -66,28 +66,33 @@ public:
         {
             return vec_.at(pointer_);
         }
+        
+        _value& get()
+        {
+            return vec_.at(pointer_).second;
+        }
     };
     
 public:
     
-    void freeze() { _frozen = true;}
+    inline void freeze() { _frozen = true;}
     
-    iterator<_value> begin()
+    inline iterator<_value> begin()
     {
         return iterator<_value>(_vec);
     }
     
-    iterator<_value> end()
+    inline iterator<_value> end()
     {
         return iterator<_value>(_vec, _vec.size());
     }
     
-    iterator< _value> begin() const
+    inline iterator<_value> begin() const
     {
         return iterator< _value>(_vec);
     }
     
-    iterator< _value> end() const
+    inline iterator<_value> end() const
     {
         return iterator< _value> (_vec, _vec.size());
     }
@@ -114,20 +119,33 @@ public:
         _vec.push_back(p);
         return _vec.back().second;
     }
-    _value & operator [](_key i)
+    inline iterator<_value> find(_key i)
     {
+        size_t index =0;
         for( auto& element : _vec)
         {
             if( element.first == i)
             {
-                return element.second;
+                return iterator<_value>(_vec, index);
             }
+            ++index;
         }
-        assert(!_frozen && "you are looking for key that doesn't exist lock has happened");
-        _value val;
-        std::pair<_key, _value> p =  std::make_pair(i, val);
-        _vec.push_back(p);
-        return _vec.back().second;
+        
+        return end();
+    }
+    inline _value& operator [](_key i)
+    {
+        iterator<_value > p = find(i);
+        
+        if( p == end())
+        {
+            assert(!_frozen && "you are looking for key that doesn't exist lock has happened");
+            _value val;
+            std::pair<_key, _value> p =  std::make_pair(i, val);
+            _vec.push_back(p);
+            return _vec.back().second;
+        }
+        return (p).get();
     }
     
     ordered_map<_key, _value>& operator=( const ordered_map<_key, _value>& right)

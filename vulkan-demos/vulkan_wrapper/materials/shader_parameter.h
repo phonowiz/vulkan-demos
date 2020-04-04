@@ -63,8 +63,8 @@ namespace vk
             glm::vec3 vector3;
             glm::vec2 vector2;
             float   float_value;
-            int     intValue;
-            unsigned int    uintValue;
+            int32_t     intValue;
+            uint32_t    uintValue;
             texture_2d*   sampler2D;
             texture_3d*   sampler3D;
             texture_2d_array* sampler_2d_array;
@@ -109,7 +109,7 @@ namespace vk
             switch( type )
             {
                 case Type::INT:
-                    return sizeof(int);
+                    return sizeof(int32_t);
                 case Type::FLOAT:
                     return sizeof(float);
                 case Type::MAT4:
@@ -121,7 +121,7 @@ namespace vk
                 case Type::VEC2:
                     return sizeof(glm::vec2);
                 case Type::UINT:
-                    return sizeof(unsigned int);
+                    return sizeof(uint32_t);
                 case Type::BOOLEAN:
                     return sizeof(bool);
                 case Type::VEC4_ARRAY:
@@ -138,7 +138,7 @@ namespace vk
             switch( data_type )
             {
                 case Type::INT:
-                    return sizeof(int);
+                    return sizeof(int32_t);
                 case Type::FLOAT:
                     return sizeof(float);
                 case Type::MAT4:
@@ -148,7 +148,7 @@ namespace vk
                 case Type::VEC2:
                     return 2 * sizeof(float);
                 case Type::UINT:
-                    return sizeof(unsigned int);
+                    return sizeof(uint32_t);
                 case Type::BOOLEAN:
                     return sizeof(bool);
                 case Type::VEC4_ARRAY:
@@ -172,7 +172,7 @@ namespace vk
             switch( data_type )
             {
                 case Type::INT:
-                    result = aligned_size(get_std140_alignment(data_type), sizeof(int));
+                    result = aligned_size(get_std140_alignment(data_type), sizeof(int32_t));
                     break;
                 case Type::FLOAT:
                     result =  aligned_size(get_std140_alignment(data_type), sizeof(float));
@@ -181,7 +181,7 @@ namespace vk
                     result =  aligned_size(get_std140_alignment(data_type), sizeof( bool));
                     break;
                 case Type::UINT:
-                    result = aligned_size(get_std140_alignment(data_type), sizeof( unsigned int));
+                    result = aligned_size(get_std140_alignment(data_type), sizeof(uint32_t));
                     break;
                 case Type::MAT4:
                     result = aligned_size(get_std140_alignment(data_type), sizeof(glm::mat4));
@@ -358,7 +358,7 @@ namespace vk
             return *this;
         }
         
-        inline shader_parameter& operator=(const int &value)
+        inline shader_parameter& operator=(const int32_t &value)
         {
             assert( type == Type::NONE || type == Type::INT);
             type = Type::INT;
@@ -367,7 +367,7 @@ namespace vk
             return *this;
         }
         
-        inline shader_parameter& operator=(const unsigned int &value)
+        inline shader_parameter& operator=(const uint32_t &value)
         {
             assert( type == Type::NONE || type == Type::UINT);
             type = Type::UINT;
@@ -467,12 +467,12 @@ namespace vk
             type = Type::VEC2;
         }
         
-        shader_parameter(int _value)
+        shader_parameter(int32_t _value)
         {
             value.intValue = _value;
             type = Type::INT;
         }
-        shader_parameter(unsigned int _value)
+        shader_parameter(uint32_t _value)
         {
             value.uintValue = _value;
             type = Type::UINT;

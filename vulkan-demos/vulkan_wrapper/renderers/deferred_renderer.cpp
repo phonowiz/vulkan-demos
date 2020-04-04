@@ -14,6 +14,10 @@
 #include <iostream>
 #include <assert.h>
 #include "render_pass.h"
+#include "graph.h"
+#include "compute_node.h"
+#include "graphics_node.h"
+
 
 
 using namespace vk;
@@ -85,12 +89,12 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     for( int i = 0; i < shapes.size(); ++i)
     {
         _shapes.push_back(shapes[i]);
-        _mrt_render_pass.add_object(shapes[i]);
-        _voxelize_render_pass.add_object(shapes[i]);
+        _mrt_render_pass.add_object(*shapes[i]);
+        _voxelize_render_pass.add_object(*shapes[i]);
         _mrt_render_pass.skip_subpass(shapes[i], 1);
         
     }
-    _mrt_render_pass.add_object(&_screen_plane);
+    _mrt_render_pass.add_object(_screen_plane);
     
     _mrt_render_pass.skip_subpass(&_screen_plane, 0);
     
@@ -326,52 +330,52 @@ void deferred_renderer::record_3d_mip_maps_commands(uint32_t swapchain_id)
     
     for( int map_id = 0; map_id < TOTAL_LODS-1; ++map_id)
     {
+        
+        assert((VOXEL_CUBE_WIDTH >> map_id) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+        assert((VOXEL_CUBE_HEIGHT >> map_id) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+        assert((VOXEL_CUBE_DEPTH >> map_id) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+
+        uint32_t local_groups_x = (VOXEL_CUBE_WIDTH >> map_id) / compute_pipeline::LOCAL_GROUP_SIZE;
+        uint32_t local_groups_y = (VOXEL_CUBE_HEIGHT >> map_id) / compute_pipeline::LOCAL_GROUP_SIZE;
+        uint32_t local_groups_z = (VOXEL_CUBE_DEPTH >> map_id) / compute_pipeline::LOCAL_GROUP_SIZE;
+
+        if( map_id != 0)
         {
-            assert((VOXEL_CUBE_WIDTH >> map_id) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
-            assert((VOXEL_CUBE_HEIGHT >> map_id) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
-            assert((VOXEL_CUBE_DEPTH >> map_id) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+             _create_voxel_mip_maps_pipelines[map_id][swapchain_id].record_begin_commands( [&]()
+             {
+                 std::array<VkImageMemoryBarrier, 2> image_memory_barrier {};
+                 image_memory_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                 image_memory_barrier[0].pNext = nullptr;
+                 image_memory_barrier[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+                 image_memory_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-            uint32_t local_groups_x = (VOXEL_CUBE_WIDTH >> map_id) / compute_pipeline::LOCAL_GROUP_SIZE;
-            uint32_t local_groups_y = (VOXEL_CUBE_HEIGHT >> map_id) / compute_pipeline::LOCAL_GROUP_SIZE;
-            uint32_t local_groups_z = (VOXEL_CUBE_DEPTH >> map_id) / compute_pipeline::LOCAL_GROUP_SIZE;
+                 image_memory_barrier[0].oldLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[map_id-1][swapchain_id].get_native_layout());;
+                 image_memory_barrier[0].newLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[map_id-1][swapchain_id].get_native_layout());
+                 image_memory_barrier[0].image = _voxel_albedo_textures[map_id-1][swapchain_id].get_image();
+                 image_memory_barrier[0].subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+                 image_memory_barrier[0].srcQueueFamilyIndex = _device->_queue_family_indices.graphics_family.value();
+                 image_memory_barrier[0].dstQueueFamilyIndex = _device->_queue_family_indices.graphics_family.value();
 
-            if( map_id != 0)
-            {
-                 _create_voxel_mip_maps_pipelines[map_id][swapchain_id].record_begin_commands( [=]()
-                 {
-                     std::array<VkImageMemoryBarrier, 2> image_memory_barrier {};
-                     image_memory_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                     image_memory_barrier[0].pNext = nullptr;
-                     image_memory_barrier[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-                     image_memory_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+                 image_memory_barrier[1] = image_memory_barrier[0];
+                 image_memory_barrier[1].image = _voxel_normal_textures[map_id-1][swapchain_id].get_image();
+                 image_memory_barrier[1].oldLayout = static_cast<VkImageLayout>(_voxel_normal_textures[map_id-1][swapchain_id].get_native_layout());;
+                 image_memory_barrier[1].newLayout = static_cast<VkImageLayout>(_voxel_normal_textures[map_id-1][swapchain_id].get_native_layout());
+                 constexpr uint32_t VK_FLAGS_NONE = 0;
 
-                     image_memory_barrier[0].oldLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[map_id-1][swapchain_id].get_native_layout());;
-                     image_memory_barrier[0].newLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[map_id-1][swapchain_id].get_native_layout());
-                     image_memory_barrier[0].image = _voxel_albedo_textures[map_id-1][swapchain_id].get_image();
-                     image_memory_barrier[0].subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-                     image_memory_barrier[0].srcQueueFamilyIndex = _device->_queue_family_indices.graphics_family.value();
-                     image_memory_barrier[0].dstQueueFamilyIndex = _device->_queue_family_indices.graphics_family.value();
-
-                     image_memory_barrier[1] = image_memory_barrier[0];
-                     image_memory_barrier[1].image = _voxel_normal_textures[map_id-1][swapchain_id].get_image();
-                     image_memory_barrier[1].oldLayout = static_cast<VkImageLayout>(_voxel_normal_textures[map_id-1][swapchain_id].get_native_layout());;
-                     image_memory_barrier[1].newLayout = static_cast<VkImageLayout>(_voxel_normal_textures[map_id-1][swapchain_id].get_native_layout());
-                     constexpr uint32_t VK_FLAGS_NONE = 0;
-
-                     vkCmdPipelineBarrier(
-                                          _genered_3d_mip_maps_commands[map_id][swapchain_id],
-                                          VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                          VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
-                                          VK_FLAGS_NONE,
-                                          0, nullptr,
-                                          0, nullptr,
-                                          image_memory_barrier.size(), image_memory_barrier.data());
-                 } );
-            }
-            
-            _create_voxel_mip_maps_pipelines[map_id][swapchain_id].record_dispatch_commands(_genered_3d_mip_maps_commands[map_id][swapchain_id],
-                                                            local_groups_x, local_groups_y, local_groups_z);
+                 vkCmdPipelineBarrier(
+                                      _genered_3d_mip_maps_commands[map_id][swapchain_id],
+                                      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                      VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+                                      VK_FLAGS_NONE,
+                                      0, nullptr,
+                                      0, nullptr,
+                                      image_memory_barrier.size(), image_memory_barrier.data());
+             } );
         }
+            
+        _create_voxel_mip_maps_pipelines[map_id][swapchain_id].record_dispatch_commands(_genered_3d_mip_maps_commands[map_id][swapchain_id],
+                                                            local_groups_x, local_groups_y, local_groups_z);
+        
     }
 }
 

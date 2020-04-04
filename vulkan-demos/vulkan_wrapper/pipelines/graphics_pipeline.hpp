@@ -6,8 +6,8 @@
 //  Copyright © 2019 Rafael Sabino. All rights reserved.
 //
 
-template<class RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::init_blend_attachments()
+template<uint32_t NUM_ATTACHMENTS>
+void graphics_pipeline<NUM_ATTACHMENTS>::init_blend_attachments()
 {
     for( uint32_t i = 0; i < BLEND_ATTACHMENTS; ++i)
     {
@@ -22,8 +22,8 @@ void graphics_pipeline<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::init_blend_attachm
     }
 }
 
-template< class TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
-void graphics_pipeline<TEXTURE_TYPE, NUM_ATTACHMENTS>::create(VkRenderPass& vk_render_passes, uint32_t subpass_id)
+template< uint32_t NUM_ATTACHMENTS>
+void graphics_pipeline<NUM_ATTACHMENTS>::create(VkRenderPass& vk_render_passes, uint32_t subpass_id)
 {
     
     auto vertex_binding_description = vertex::get_binding_description();

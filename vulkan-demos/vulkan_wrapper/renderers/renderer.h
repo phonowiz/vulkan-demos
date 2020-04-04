@@ -30,14 +30,14 @@ namespace vk
     class obj_shape;
     class texture_2d;
     
-    template<typename RENDER_TEXTURE_TYPE, uint32_t NUM_ATTACHMENTS>
+    template< uint32_t NUM_ATTACHMENTS>
     class renderer : public object
     {
         
     public:
         
-        using render_pass_type =  render_pass<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>;
-        using graphics_pipeline_type = typename render_pass<RENDER_TEXTURE_TYPE, NUM_ATTACHMENTS>::graphics_pipeline_type;
+        using render_pass_type =  render_pass< NUM_ATTACHMENTS>;
+        using graphics_pipeline_type = typename render_pass< NUM_ATTACHMENTS>::graphics_pipeline_type;
         enum class subpass_layout
         {
             RENDER_TARGET_LAYOUT = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,

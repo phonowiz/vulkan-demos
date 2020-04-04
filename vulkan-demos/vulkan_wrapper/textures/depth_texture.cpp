@@ -32,8 +32,7 @@ void depth_texture::create(uint32_t width, uint32_t height)
     
     create_image_view( _image, depth_format, _image_view);
     
-    change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, depth_format, static_cast<VkImageLayout>(_image_layout),
-                      static_cast<VkImageLayout>(image_layouts::DEPTH_STENCIL_ATTACHMENT_OPTIMAL));
+    _image_layout = image_layouts::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     
     _created = true;
     _initialized = true;
@@ -103,7 +102,7 @@ VkAttachmentDescription depth_texture::get_depth_attachment()
     depth_attachment.storeOp = _write_to_texture ?  VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
     depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depth_attachment.initialLayout = static_cast<VkImageLayout>(_image_layout);
+    depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     depth_attachment.finalLayout = static_cast<VkImageLayout>(_image_layout);
     
     return depth_attachment;

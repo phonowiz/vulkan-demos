@@ -24,7 +24,7 @@ namespace vk
     class glfw_swapchain;
     class image;
     
-    class deferred_renderer : public renderer<glfw_present_texture, 1>
+    class deferred_renderer : public renderer< 1>
     {
     public:
         deferred_renderer(device* device, GLFWwindow* window, glfw_swapchain* swapchain, material_store& store, std::vector<obj_shape*>& _shapes);
@@ -84,10 +84,10 @@ namespace vk
         VkCommandBuffer *_offscreen_command_buffers = VK_NULL_HANDLE;
         VkCommandBuffer *_voxelize_command_buffers = VK_NULL_HANDLE;
         
-        using mrt_render_pass = render_pass<render_texture, 4>;
+        using mrt_render_pass = render_pass<4>;
         mrt_render_pass _mrt_render_pass;
         
-        using voxelize_render_pass = render_pass<render_texture,1>;
+        using voxelize_render_pass = render_pass<1>;
         voxelize_render_pass _voxelize_render_pass;
   
         static constexpr unsigned int TOTAL_LODS = 6;
@@ -152,7 +152,7 @@ namespace vk
         
         std::array<render_texture_set, 1> _voxel_2d_view {};
         std::array<render_texture_set, 3> _g_buffer_textures {};
-        std::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>                 _g_buffer_depth {};
+        std::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _g_buffer_depth {};
         
         VkFence _fence {};
         std::vector<obj_shape*> _shapes;

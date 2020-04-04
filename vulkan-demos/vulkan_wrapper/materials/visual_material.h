@@ -48,33 +48,39 @@ namespace  vk
 
         virtual void destroy() override;
         
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, float value, int binding)
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, float value, int32_t binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;
         };
         
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, int value, int binding)
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, int32_t value, int32_t binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;
         };
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec3 value, int binding)
+        
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, uint32_t value, int32_t binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;
         };
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec4 value, int binding)
+        
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec3 value, int32_t binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;
         };
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec2 value, int binding)
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec4 value, int32_t binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name] = value;
+        };
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec2 value, int32_t binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;
         }
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::mat4 value, int binding)
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::mat4 value, int32_t binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;
         }
         
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec4* vecs, size_t num_vectors, int binding)
+        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec4* vecs, size_t num_vectors, int32_t binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name].set_vectors_array(vecs, num_vectors);
         }
