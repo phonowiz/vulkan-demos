@@ -18,6 +18,7 @@
 
 namespace vk
 {
+    //based off of frame graph implemented in the frostbite engine: https://www.bilibili.com/video/av10595011/
     template<size_t NUM_CHILDREN>
     class graph : protected node<NUM_CHILDREN>
     {

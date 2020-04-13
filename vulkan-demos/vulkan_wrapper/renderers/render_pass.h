@@ -9,7 +9,7 @@
 #pragma once
 
 #include <vector>
-#include <array>
+#include "EASTL/array.h"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -207,7 +207,7 @@ namespace vk
                     _pipeline[chain_id].set_image_sampler(texture, parameter_name, parameter_stage, binding, usage);
                 }
             }
-            inline void set_image_sampler(std::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
+            inline void set_image_sampler(eastl::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
                                           visual_material::parameter_stage parameter_stage, uint32_t binding,  resource::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < textures.size(); ++chain_id)
@@ -216,7 +216,7 @@ namespace vk
                 }
             }
             
-            inline void set_image_sampler(std::array<render_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
+            inline void set_image_sampler(eastl::array<render_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
                                           visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < textures.size(); ++chain_id)
@@ -298,7 +298,7 @@ namespace vk
                 }
             }
             
-            inline void set_image_sampler(std::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
+            inline void set_image_sampler(eastl::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
                                           visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
@@ -364,10 +364,10 @@ namespace vk
             uint32_t _num_color_references = 0;
             uint32_t _num_input_references = 0;
 
-            std::array<VkAttachmentReference, MAX_NUMBER_OF_ATTACHMENTS> _color_references {};
-            std::array<VkAttachmentReference, MAX_NUMBER_OF_ATTACHMENTS> _input_references {};
-            std::array<graphics_pipeline_type, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _pipeline;
-            std::array< bool, MAX_OBJECTS> _subpass_activate {};
+            eastl::array<VkAttachmentReference, MAX_NUMBER_OF_ATTACHMENTS> _color_references {};
+            eastl::array<VkAttachmentReference, MAX_NUMBER_OF_ATTACHMENTS> _input_references {};
+            eastl::array<graphics_pipeline_type, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _pipeline;
+            eastl::array< bool, MAX_OBJECTS> _subpass_activate {};
             
             attachment_group<NUM_ATTACHMENTS>* _attachment_group = nullptr;
             device* _device = nullptr;
@@ -471,7 +471,7 @@ namespace vk
             return _vk_frame_buffer_infos[swapchain_id];
         }
         
-        inline std::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& get_depth_textures(){ return _depth_textures; }
+        inline eastl::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& get_depth_textures(){ return _depth_textures; }
         
         inline void set_device(device* device)
         {
@@ -542,16 +542,16 @@ namespace vk
     private:
         
         attachment_group<NUM_ATTACHMENTS>  _attachment_group;
-        std::array<depth_texture, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>  _depth_textures;
-        std::array<VkRenderPass,glfw_swapchain::NUM_SWAPCHAIN_IMAGES>   _vk_render_passes {};
-        std::array<VkFramebuffer, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _vk_frame_buffer_infos {};
+        eastl::array<depth_texture, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>  _depth_textures;
+        eastl::array<VkRenderPass,glfw_swapchain::NUM_SWAPCHAIN_IMAGES>   _vk_render_passes {};
+        eastl::array<VkFramebuffer, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _vk_frame_buffer_infos {};
         
-        std::array<subpass_s, MAX_SUBPASSES> _subpasses {};
-        std::array<obj_shape*, MAX_OBJECTS> _shapes {};
+        eastl::array<subpass_s, MAX_SUBPASSES> _subpasses {};
+        eastl::array<obj_shape*, MAX_OBJECTS> _shapes {};
         
         static_assert(MAX_NUMBER_OF_ATTACHMENTS > NUM_ATTACHMENTS, "Number of attachments in your render pass excees what we can handle, increase limit??");
 
-        std::array<VkClearValue,NUM_ATTACHMENTS + 1> _clear_values {};
+        eastl::array<VkClearValue,NUM_ATTACHMENTS + 1> _clear_values {};
         glm::vec2 _dimensions {};
         device* _device = nullptr;
         //VkCommandBuffer* _recording_buffer = VK_NULL_HANDLE;
@@ -620,7 +620,7 @@ namespace vk
         
         _attachment_group.init(swapchain_id);
 
-        std::array<VkAttachmentDescription, MAX_NUMBER_OF_ATTACHMENTS> attachment_descriptions {};
+        eastl::array<VkAttachmentDescription, MAX_NUMBER_OF_ATTACHMENTS> attachment_descriptions {};
         //an excellent explanation of what the heck are these attachment references:
         //https://stackoverflow.com/questions/49652207/what-is-the-purpose-of-vkattachmentreference
         
@@ -651,12 +651,12 @@ namespace vk
         
         assert(attachment_id != 0);
         
-        std::array<VkSubpassDescription, MAX_SUBPASSES> subpass {};
+        eastl::array<VkSubpassDescription, MAX_SUBPASSES> subpass {};
         
         assert(_subpasses[0].is_active() && "You need at least one subpass for rendering to occur");
         int subpass_id = 0;
         
-        std::array<VkSubpassDependency,MAX_SUBPASSES> dependencies {};
+        eastl::array<VkSubpassDependency,MAX_SUBPASSES> dependencies {};
         
         dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
         dependencies[0].dstSubpass = 0;
@@ -736,7 +736,7 @@ namespace vk
     template < uint32_t NUM_ATTACHMENTS>
     void render_pass< NUM_ATTACHMENTS>::create_frame_buffers(uint32_t swapchain_id)
     {
-        std::array<VkImageView, MAX_NUMBER_OF_ATTACHMENTS> attachment_views {};
+        eastl::array<VkImageView, MAX_NUMBER_OF_ATTACHMENTS> attachment_views {};
         
         assert(_attachment_group.size() < MAX_NUMBER_OF_ATTACHMENTS);
         uint32_t num_views = 0;

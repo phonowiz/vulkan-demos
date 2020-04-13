@@ -71,7 +71,7 @@ void renderer<NUM_ATTACHMENTS>::create_semaphore(VkSemaphore& semaphore)
 }
 
 template<uint32_t NUM_ATTACHMENTS>
-void renderer<NUM_ATTACHMENTS>::create_semaphores(std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& semaphores)
+void renderer<NUM_ATTACHMENTS>::create_semaphores(eastl::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& semaphores)
 {
     for( int i = 0; i < semaphores.size(); ++i)
     {

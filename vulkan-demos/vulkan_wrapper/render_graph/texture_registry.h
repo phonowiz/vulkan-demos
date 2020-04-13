@@ -14,6 +14,10 @@
 #include "image.h"
 #include "render_pass.h"
 #include "ordered_map.h"
+#include "texture_2d.h"
+#include "texture_3d.h"
+#include "attachment_group.h"
+#include "glfw_present_texture.h"
 #include "command_recorder.h"
 #include "EASTL/fixed_vector.h"
 #include "EASTL/fixed_map.h"
@@ -23,10 +27,10 @@ namespace vk
     template< uint32_t NUM_CHILDREN_>
     class node;
 
+
     template<uint32_t NUM_CHILDREN>
     class texture_registry : public object
     {
-
         
     using node_type = vk::node<NUM_CHILDREN>;
     static constexpr size_t DEPENDENCIES_SIZE = 10;
@@ -66,12 +70,12 @@ namespace vk
             return _node_dependees_map[obj];
         }
         
-        template <typename T, typename ...ARGS>
-        inline image_ptr get_read_texture(const char* name, node_type* node, vk::image::image_layouts expected_layout)
+        template <typename T>
+        inline std::shared_ptr<T> get_read_texture(const char* name, node_type* node, vk::image::image_layouts expected_layout)
         {
             typename dependee_data_map::iterator iter = _dependee_data_map.find(name);
             
-            image_ptr result = nullptr;
+            std::shared_ptr<T> result = nullptr;
             if( iter != _dependee_data_map.end())
             {
                 dependee_data d = iter->second;
@@ -80,7 +84,7 @@ namespace vk
                 dependant.data = d;
                 dependant.layout = expected_layout;
                 _node_dependees_map[node].push_back(dependant);
-                result = d.image;
+                result = std::static_pointer_cast<T>(d.image);
             }
             
             return result;
@@ -147,8 +151,6 @@ namespace vk
         }
         
     private:
-        
-
         
         node_dependees_map _node_dependees_map;
         dependee_data_map   _dependee_data_map;

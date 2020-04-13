@@ -43,7 +43,7 @@ namespace vk
             DIRECT_LIGHT
         };
         
-        inline std::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& get_voxel_texture( )
+        inline eastl::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& get_voxel_texture( )
         {
             return _voxel_albedo_textures[2];
         }
@@ -92,25 +92,25 @@ namespace vk
   
         static constexpr unsigned int TOTAL_LODS = 6;
         
-        std::array<std::array<compute_pipeline, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS> _clear_voxel_texture_pipeline {};
+        eastl::array<eastl::array<compute_pipeline, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS> _clear_voxel_texture_pipeline {};
         
-        std::array<VkCommandBuffer*, TOTAL_LODS> _clear_3d_texture_command_buffers {};
-        std::array<VkCommandBuffer*, TOTAL_LODS -1> _genered_3d_mip_maps_commands {};
-        std::array<std::array<compute_pipeline, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS -1> _create_voxel_mip_maps_pipelines {};
+        eastl::array<VkCommandBuffer*, TOTAL_LODS> _clear_3d_texture_command_buffers {};
+        eastl::array<VkCommandBuffer*, TOTAL_LODS -1> _genered_3d_mip_maps_commands {};
+        eastl::array<eastl::array<compute_pipeline, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS -1> _create_voxel_mip_maps_pipelines {};
         
-        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _deferred_semaphore_image_available = {};
-        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _g_buffers_rendering_done = {};
-        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>  _voxelize_semaphore {};
-        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _voxelize_semaphore_done = {};
+        eastl::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _deferred_semaphore_image_available = {};
+        eastl::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _g_buffers_rendering_done = {};
+        eastl::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>  _voxelize_semaphore {};
+        eastl::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _voxelize_semaphore_done = {};
         
 
-        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _generate_voxel_x_axis_semaphore {};
-        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _generate_voxel_y_axis_semaphore = {};
-        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _generate_voxel_z_axis_semaphore = {};
+        eastl::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _generate_voxel_x_axis_semaphore {};
+        eastl::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _generate_voxel_y_axis_semaphore = {};
+        eastl::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _generate_voxel_z_axis_semaphore = {};
         
-        std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _voxelize_done {};
+        eastl::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _voxelize_done {};
         
-        std::array<std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS-1> _mip_map_semaphores {};
+        eastl::array<eastl::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS-1> _mip_map_semaphores {};
         
         rendering_mode _rendering_mode = rendering_mode::FULL_RENDERING;
         
@@ -121,14 +121,14 @@ namespace vk
         
         glm::vec4 _light_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
         
-        std::array<VkFence, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _g_buffers_fence {};
-        std::array<VkFence, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _voxelize_inflight_fence {};
-        std::array<VkFence, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _voxel_command_fence {};
+        eastl::array<VkFence, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _g_buffers_fence {};
+        eastl::array<VkFence, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _voxelize_inflight_fence {};
+        eastl::array<VkFence, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _voxel_command_fence {};
         
         
         static constexpr size_t   NUM_SAMPLING_RAYS = 5;
         
-        std::array<glm::vec4, NUM_SAMPLING_RAYS> _sampling_rays = {};
+        eastl::array<glm::vec4, NUM_SAMPLING_RAYS> _sampling_rays = {};
         
         static constexpr glm::vec3 _voxel_world_dimensions = glm::vec3(10.0f, 10.0f, 10.0f);
         bool _setup_initialized[glfw_swapchain::NUM_SWAPCHAIN_IMAGES] = {false};
@@ -136,8 +136,8 @@ namespace vk
     private:
         
         //texture 3d mip maps are not supported moltenvk,so we create our own
-        std::array< std::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>,TOTAL_LODS > _voxel_albedo_textures;
-        std::array< std::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>,TOTAL_LODS > _voxel_normal_textures;
+        eastl::array< eastl::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>,TOTAL_LODS > _voxel_albedo_textures;
+        eastl::array< eastl::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>,TOTAL_LODS > _voxel_normal_textures;
         
         visual_mat_shared_ptr _debug_material = nullptr;
         
@@ -150,9 +150,9 @@ namespace vk
             DEPTH_ATTACHMENT_ID    //DEPTH is always the last attachment and is added automatically
         };
         
-        std::array<render_texture_set, 1> _voxel_2d_view {};
-        std::array<render_texture_set, 3> _g_buffer_textures {};
-        std::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _g_buffer_depth {};
+        eastl::array<render_texture_set, 1> _voxel_2d_view {};
+        eastl::array<render_texture_set, 3> _g_buffer_textures {};
+        eastl::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _g_buffer_depth {};
         
         VkFence _fence {};
         std::vector<obj_shape*> _shapes;

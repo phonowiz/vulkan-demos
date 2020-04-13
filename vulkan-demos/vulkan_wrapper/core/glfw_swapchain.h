@@ -10,7 +10,7 @@
 
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
-#include <array>
+#include "EASTL/array.h"
 
 #include "device.h"
 #include <vector>
@@ -63,7 +63,7 @@ namespace vk
         void                destroy_swapchain();
         void                recreate_swapchain();
         
-        std::array<std::array<glfw_present_texture, NUM_SWAPCHAIN_IMAGES>, 1> present_textures {};
+        eastl::array<eastl::array<glfw_present_texture, NUM_SWAPCHAIN_IMAGES>, 1> present_textures {};
         
         virtual void  destroy() override;
         ~glfw_swapchain();

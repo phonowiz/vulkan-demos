@@ -15,7 +15,7 @@
 
 namespace vk
 {
-    template< uint32_t NUM_ATTACHMENTS, uint32_t NUM_CHILDREN =10u>
+    template< uint32_t NUM_CHILDREN >
     class compute_node : public node<NUM_CHILDREN>
     {
     public:
@@ -34,10 +34,6 @@ namespace vk
             }
         }
         
-        
-
-        using command_vector = typename node_type::command_vector;
-        
         virtual void record_node_commands(command_recorder& buffer, uint32_t image_id) override
         {
             _compute_pipelines[image_id].record_dispatch_commands(buffer,
@@ -46,9 +42,8 @@ namespace vk
         
     protected:
         virtual void create_gpu_resources() override
-        {
-            //TODO: CREATE PIPELINES HERE
-        }
+        {}
+        
     private:
         
         eastl::array<compute_pipeline, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _compute_pipelines {};

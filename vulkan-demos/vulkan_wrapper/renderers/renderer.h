@@ -111,7 +111,7 @@ namespace vk
         virtual void create_semaphores_and_fences();
         
         void create_semaphore(VkSemaphore& semaphore);
-        void create_semaphores(std::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& semaphores);
+        void create_semaphores(eastl::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& semaphores);
         void create_fence(VkFence& fence);
         virtual void record_command_buffers(VkCommandBuffer& command_buffer, uint32_t swapchain_id);
         virtual void perform_final_drawing_setup(VkCommandBuffer& buffer, uint32_t swapchain_id);

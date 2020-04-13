@@ -17,18 +17,18 @@
 
 
 #include <iostream>
-#include <array>
+#include "EASTL/array.h"
 #include <type_traits>
 #include <glm/glm.hpp>
 
 namespace vk {
     
 
-    using image_set = std::array<image*, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
-    using texture_2d_set = std::array<texture_2d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
-    using depth_set = std::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
-    using render_texture_set = std::array< render_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
-    using glfw_present_texture_set = std::array< glfw_present_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
+    using image_set = eastl::array<image*, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
+    using texture_2d_set = eastl::array<texture_2d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
+    using depth_set = eastl::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
+    using render_texture_set = eastl::array< render_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
+    using glfw_present_texture_set = eastl::array< glfw_present_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
 
 
     template< uint32_t NUM_ATTACHMENTS>
@@ -177,7 +177,7 @@ namespace vk {
         device* _device = nullptr;
         
         glm::vec2 _dimensions = glm::vec2(0.0f, 0.0f);
-        std::array<image_set, MAX_NUM_ATTACHMENTS> _attachments = {};
+        eastl::array<image_set, MAX_NUM_ATTACHMENTS> _attachments = {};
         uint32_t num_attachments = 0;
     };
 }

@@ -41,7 +41,9 @@
 #include "vulkan_wrapper/cameras/perspective_camera.h"
 #include "camera_controllers/first_person_controller.h"
 
-#include "graph_nodes/display_texture.h"
+#include "graph_nodes/graphics_nodes/display_texture.h"
+#include "graph_nodes/compute_nodes/mip_map_3d_texture.h"
+
 #include "new_operators.h"
 #include "graph.h"
 
@@ -406,7 +408,7 @@ int main()
 
     app.deferred_renderer->init();
 
-    std::array<vk::texture_3d, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& voxel_texture = deferred_renderer.get_voxel_texture();
+    eastl::array<vk::texture_3d, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& voxel_texture = deferred_renderer.get_voxel_texture();
     
     app.three_d_renderer->get_render_pass().get_subpass(0).set_image_sampler(voxel_texture, "texture_3d",
                                                                              vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
