@@ -143,7 +143,7 @@ namespace  vk
             for(typename tex_registry_type::node_dependees::iterator b = begin ; b != end ; ++b)
             {
                 VkImageMemoryBarrier barrier {};
-                typename tex_registry_type::image_ptr p_image = std::static_pointer_cast<image>((*b).data.image);
+                typename tex_registry_type::image_ptr p_image = std::static_pointer_cast<image>((*b).data.resource);
 
                 barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
                 barrier.pNext = nullptr;

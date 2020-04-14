@@ -28,13 +28,13 @@ namespace vk {
 
         texture_3d():image(){};
         
-        virtual void * const * const get_instance_type() override { return (& _image_type); }
-        static void * const * const  get_class_type(){ return (& _image_type); }
+        virtual char const * const * get_instance_type() override { return (& _image_type); }
+        static char  const * const * get_class_type(){ return (& _image_type); }
         
         virtual void init() override;
     private:
         
-        static constexpr void* _image_type = nullptr;
+        static constexpr const char * _image_type = nullptr;
         
         virtual void create_sampler()  override;
         virtual void create_image_view( VkImage image, VkFormat format, VkImageView& image_view) override;

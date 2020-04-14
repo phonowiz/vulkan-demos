@@ -32,7 +32,7 @@ namespace vk {
 
 
     template< uint32_t NUM_ATTACHMENTS>
-    class attachment_group
+    class attachment_group : public object
     {
     public:
         
@@ -145,6 +145,9 @@ namespace vk {
         uint32_t size() { return num_attachments; }
         
         inline image_set& operator[](int i) { return _attachments[i]; }
+        
+        virtual void destroy() override
+        {}
         
     private:
         

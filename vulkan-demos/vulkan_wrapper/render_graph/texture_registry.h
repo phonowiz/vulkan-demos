@@ -21,6 +21,9 @@
 #include "command_recorder.h"
 #include "EASTL/fixed_vector.h"
 #include "EASTL/fixed_map.h"
+#include "EASTL/fixed_string.h"
+#include "attachment_group.h"
+
 
 namespace vk
 {
@@ -37,11 +40,12 @@ namespace vk
     public:
         
         using image_ptr = std::shared_ptr<image>;
+        using resource_ptr = std::shared_ptr<object>;
         
         struct dependee_data
         {
-            vk::object* obj;
-            image_ptr image = nullptr;
+            node_type* node;
+            resource_ptr resource = nullptr;
         };
         
         struct dependant_data
@@ -59,16 +63,66 @@ namespace vk
         
         texture_registry(){}
         
-        inline node_dependees& get_dependees( vk::object* obj)
+        inline node_dependees& get_dependees( node_type* node)
         {
             
-            if(_node_dependees_map.find(obj) == _node_dependees_map.end() )
+            if(_node_dependees_map.find(node) == _node_dependees_map.end() )
             {
-                _node_dependees_map[obj] = node_dependees();
+                _node_dependees_map[node] = node_dependees();
             }
             
-            return _node_dependees_map[obj];
+            return _node_dependees_map[node];
         }
+        
+        
+//        template <uint32_t NUM_ATTACHMENTS>
+//        void set_write_attachment_group(const char* name, node_type* node, vk::attachment_group<NUM_ATTACHMENTS>& group)
+//        {
+//            static constexpr int MAX_STRING_SIZE = 250;
+//            assert( MAX_STRING_SIZE > std::strlen(name));
+//
+//
+//            assert (_dependee_data_map.find(name) == _dependee_data_map.end() && "this attachment name has already been chosen,"
+//                                                                                  " pick a different one.");
+//
+//            dependee_data info {};
+//            info.resource = std::static_pointer_cast<vk::object>(ptr);
+//            info.node = node;
+//
+//            _dependee_data_map[name] = info;
+//
+////            for(int i = 0; i < NUM_ATTACHMENTS; ++i)
+////            {
+////                for( int s = 0 ; s < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++s)
+////                {
+////                    eastl::fixed_string<char, MAX_STRING_SIZE, true> str(name);
+////                    str.append_sprintf("%i_%i", i, s);
+////
+////                    std::shared_ptr<texture_2d> tex = get_write_texture(str.c_str(), node, expected_layout );
+////                    group[i][s] = tex;
+////                }
+////            }
+//        }
+        
+//        template <uint32_t NUM_ATTACHMENTS>
+//        void get_read_attachment_group(const char* name, node_type* node, vk::image::image_layouts expected_layout,
+//                                  vk::attachment_group<NUM_ATTACHMENTS>& group)
+//        {
+//            static constexpr int MAX_STRING_SIZE = 250;
+//            assert( MAX_STRING_SIZE > std::strlen(name));
+//
+//            for(int i = 0; i < NUM_ATTACHMENTS; ++i)
+//            {
+//                for( int s = 0 ; s < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++s)
+//                {
+//                    eastl::fixed_string<char, MAX_STRING_SIZE, true> str(name);
+//                    str.append_sprintf("%i_%i", i, s);
+//
+//                    std::shared_ptr<texture_2d> tex = get_read_texture(str.c_str(), node, expected_layout );
+//                    group[i][s] = tex;
+//                }
+//            }
+//        }
         
         template <typename T>
         inline std::shared_ptr<T> get_read_texture(const char* name, node_type* node, vk::image::image_layouts expected_layout)
@@ -84,7 +138,7 @@ namespace vk
                 dependant.data = d;
                 dependant.layout = expected_layout;
                 _node_dependees_map[node].push_back(dependant);
-                result = std::static_pointer_cast<T>(d.image);
+                result = std::static_pointer_cast<T>(d.resource);
             }
             
             return result;
@@ -97,18 +151,18 @@ namespace vk
 //            return get_write_texture<vk::texture_2d>(name, node, dev );
 //        }
         
-        inline std::shared_ptr<vk::texture_2d> get_loaded_texture( const char* name, node_type* obj, device* dev, const char* path )
+        inline std::shared_ptr<vk::texture_2d> get_loaded_texture( const char* name, node_type* node, device* dev, const char* path )
         {
             typename dependee_data_map::iterator iter = _dependee_data_map.find(name);
             
             std::shared_ptr<vk::texture_2d> result = nullptr;
             if( iter == _dependee_data_map.end())
             {
-                result = get_write_texture<texture_2d>(name, obj, dev, path);
+                result = get_write_texture<texture_2d>(name, node, dev, path);
                 result->init();
             }
             else
-                result = std::static_pointer_cast<texture_2d>(iter->second.image);
+                result = std::static_pointer_cast<texture_2d>(iter->second.resource);
             
             return result;
         }
@@ -120,15 +174,32 @@ namespace vk
             typename dependee_data_map::iterator end = _dependee_data_map.end();
             while(b != end)
             {
-                b->second.image->destroy();
+                b->second.resource->destroy();
                 ++b;
             }
         }
         
     private:
         
+//        template<uint32_t NUM_ATTACHMENTS>
+//        void set_write_attachment_group(const char* name, node_type* node, attachment_group<NUM_ATTACHMENTS>& group )
+//        {
+//            for(int i = 0; i < NUM_ATTACHMENTS; ++i)
+//            {
+//                for( int s = 0; s < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
+//                {
+//                    dependee_data info {};
+//                    info.image = std::static_pointer_cast<vk::image>(group[i][s]);
+//                    info.obj = obj;
+//
+//                    _dependee_data_map[name] = info;
+//                }
+//
+//            }
+//        }
+        
         template <typename T, typename ...ARGS>
-        inline std::shared_ptr<T> get_write_texture( const char* name, node_type* obj,  ARGS... args)
+        inline std::shared_ptr<T> get_write_texture( const char* name, node_type* node,  ARGS... args)
         {
             
             assert (_dependee_data_map.find(name) == _dependee_data_map.end() && "you are asking for a texture already marked for writing."
@@ -136,8 +207,8 @@ namespace vk
             std::shared_ptr<T> ptr = GREATE_TEXTUE<T>(args...);
             
             dependee_data info {};
-            info.image = std::static_pointer_cast<vk::image>(ptr);
-            info.obj = obj;
+            info.resource = std::static_pointer_cast<vk::object>(ptr);
+            info.node = node;
 
             _dependee_data_map[name] = info;
             

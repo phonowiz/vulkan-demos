@@ -41,8 +41,8 @@ namespace vk
         virtual void create_image_view(VkImage image, VkFormat format, VkImageView& image_view) override;
         virtual void init() override;
         
-        virtual void * const * const get_instance_type() override { return ( &_image_type); };
-        static void * const * const  get_class_type(){ return (&_image_type); }
+        virtual  char const * const * get_instance_type() override { return ( &_image_type); };
+        static char const * const *  get_class_type(){ return (&_image_type); }
         
         void generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQueue queue,
                               int32_t width, int32_t height, int32_t depth = 1);
@@ -73,7 +73,7 @@ namespace vk
         bool _enable_mipmapping = false;
     private:
         
-        static constexpr void* _image_type = nullptr;
+        static constexpr char const * const _image_type = nullptr;
         
         bool _loaded = false;
         

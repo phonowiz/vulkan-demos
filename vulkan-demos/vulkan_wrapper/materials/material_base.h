@@ -111,7 +111,6 @@ namespace vk
         
         virtual VkPipelineShaderStageCreateInfo* get_shader_stages() = 0;
         virtual size_t get_shader_stages_size() = 0;
-        virtual const char* const *get_instance_type() = 0;
         const char* _name = nullptr;
     
     public:

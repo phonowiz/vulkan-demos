@@ -158,7 +158,6 @@ namespace vk
         void set_filter( image::filter filter){ _filter = filter; }
         
         inline bool is_initialized(){ return _initialized; }
-        virtual void* const * const get_instance_type() = 0;
         virtual void init() = 0;
     
     protected:

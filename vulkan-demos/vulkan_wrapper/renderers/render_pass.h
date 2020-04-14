@@ -837,21 +837,6 @@ namespace vk
         vkCmdSetScissor(buffer, 0, 1, &scissor);
     }
 
-//    template< uint32_t NUM_ATTACHMENTS>
-//    void render_pass< NUM_ATTACHMENTS>::begin_command_recording(VkCommandBuffer& buffer, uint32_t swapchain_image_id)
-//    {
-//        assert(_recording_buffer == VK_NULL_HANDLE && "you shouldn't call begin_command_recording before calling end_command_recording");
-//        _recording_buffer = &buffer;
-//
-//        VkCommandBufferBeginInfo command_buffer_begin_info {};
-//        command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-//        command_buffer_begin_info.pNext = nullptr;
-//        command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
-//        command_buffer_begin_info.pInheritanceInfo = nullptr;
-//
-//        VkResult result = vkBeginCommandBuffer(buffer, &command_buffer_begin_info);
-//        ASSERT_VULKAN(result);
-//    }
 
 
     template< uint32_t NUM_ATTACHMENTS>
@@ -860,13 +845,4 @@ namespace vk
         vkCmdEndRenderPass(buffer);
     }
 
-//    template< uint32_t NUM_ATTACHMENTS>
-//    void render_pass< NUM_ATTACHMENTS>::end_command_recording()
-//    {
-//        assert(_recording_buffer != nullptr && "you must call begin_command_recording");
-//        
-//        vkEndCommandBuffer(*_recording_buffer);
-//        
-//        _recording_buffer = nullptr;
-//    }
 }

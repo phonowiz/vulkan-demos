@@ -17,6 +17,9 @@ namespace vk
     public:
         
         object(){};
+        
+        virtual  char const * const * get_instance_type(){ return nullptr; };
+        
         virtual void destroy() = 0;
         virtual ~object(){}
     };

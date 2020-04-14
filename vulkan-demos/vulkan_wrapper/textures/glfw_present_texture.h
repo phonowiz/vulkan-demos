@@ -36,8 +36,8 @@ namespace vk
         virtual void create_image_view( VkImage image, VkFormat format, VkImageView& image_view) override;
         virtual void destroy() override;
         
-        virtual void * const * const get_instance_type() override { return (&_image_type); };
-        static void * const * const get_class_type(){ return (&_image_type); }
+        virtual char const * const * get_instance_type() override { return (&_image_type); };
+        static char const * const * get_class_type(){ return (&_image_type); }
         
     private:
 
@@ -51,6 +51,6 @@ namespace vk
         static constexpr int INVALID = -1;
         int32_t    _swapchain_image_index = INVALID;
         
-        static constexpr void* _image_type = nullptr;
+        static constexpr char  const * _image_type = nullptr;
     };
 }

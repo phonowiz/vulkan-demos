@@ -36,8 +36,8 @@ namespace vk
             return _pipeline_shader_stages.data();
         }
         
-        virtual const char* const * get_instance_type() override { return &_type; }
-        static const char* const * get_material_type() { return &_type; }
+        virtual char const * const * get_instance_type() override { return &_type; }
+        static char const* const * get_material_type() { return &_type; }
         
         virtual size_t get_shader_stages_size() override { return 1; }
         
