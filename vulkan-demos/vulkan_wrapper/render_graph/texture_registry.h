@@ -16,13 +16,13 @@
 #include "ordered_map.h"
 #include "texture_2d.h"
 #include "texture_3d.h"
-#include "attachment_group.h"
+#include "depth_texture.h"
 #include "glfw_present_texture.h"
 #include "command_recorder.h"
 #include "EASTL/fixed_vector.h"
 #include "EASTL/fixed_map.h"
 #include "EASTL/fixed_string.h"
-#include "attachment_group.h"
+#include "resource_set.h"
 
 
 namespace vk
@@ -144,34 +144,26 @@ namespace vk
             return result;
         }
         
+        inline resource_set<texture_2d>& get_write_texture_2d_set( const char* name, node_type* node )
+        {
+            return get_write_texture<resource_set<texture_2d>>(name, node);
+        }
         
-        //note: the point of this macro is to create commonly used "get_attachment_group" functions that
-        //will be commonly used in the code.  Without this macro, the syntax to call this function requires a
-        //"template" keyword before the function call, which is super weird
-//        #define DEFINE_GET_ATTACHMENT_GROUP_FUNCTION( X ) \
-//                                            \
-//        inline attachment_group<X>& get_attachment_set( const char* name, node_type* node ) \
-//        { \
-//            return get_write_texture<attachment_group<X>>(name, node, dev, vec); \
-//        } \
-//
-//        //feel free to add more if you need...
-//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(1)
-//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(2)
-//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(3)
-//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(4)
-//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(5)
-//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(6)
-//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(7)
-//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(8)
-//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(9)
-//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(10)
+        inline resource_set<depth_texture>& get_write_depth_texture_set( const char* name, node_type* node )
+        {
+            return get_write_texture<resource_set<texture_2d>>(name, node);
+        }
         
+        inline resource_set<render_texture>& get_write_render_texture_set( const char* name, node_type* node )
+        {
+            return get_write_texture<resource_set<texture_2d>>(name, node);
+        }
         
-//        inline texture_2d_set& get_attachment_set( const char* name, node_type* node )
-//        {
-//            
-//        }
+        inline resource_set<texture_3d>& get_write_texture_3d( const char* name, node_type* node )
+        {
+            return get_write_texture<resource_set<texture_3d>>(name, node);
+        }
+
         
         inline vk::texture_2d& get_loaded_texture( const char* name, node_type* node, device* dev, const char* path )
         {

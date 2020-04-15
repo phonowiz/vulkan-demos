@@ -678,7 +678,7 @@ void deferred_renderer::destroy()
         _g_buffers_fence[i] = VK_NULL_HANDLE;
         _fence = VK_NULL_HANDLE;
         
-        _voxel_2d_view[0][i].destroy();
+        _voxel_2d_view[0].destroy();
     }
     
     _mrt_render_pass.destroy();

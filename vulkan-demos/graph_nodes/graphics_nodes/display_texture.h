@@ -61,6 +61,8 @@ public:
         _screen_plane.create();
         subpass_type& sub_p = pass.add_subpass(parent_type::_material_store, "display");
         
+        //_tex_registry->get_texture_2d_set("name", this);
+        
         vk::texture_2d& ptr = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
         
         sub_p.set_image_sampler(ptr, "tex", vk::material_base::parameter_stage::FRAGMENT, 1,
