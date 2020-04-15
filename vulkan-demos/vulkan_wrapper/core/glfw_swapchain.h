@@ -11,11 +11,13 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 #include "EASTL/array.h"
+#include "EASTL/type_traits.h"
 
 #include "device.h"
 #include <vector>
 #include "depth_texture.h"
 #include "texture_2d.h"
+#include "resource_set.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -32,7 +34,7 @@ namespace vk
         
     public:
         
-        static constexpr int NUM_SWAPCHAIN_IMAGES = 3;
+        static constexpr int NUM_SWAPCHAIN_IMAGES = vk::NUM_SWAPCHAIN_IMAGES;
 
         device* _device = nullptr;
         
@@ -63,7 +65,8 @@ namespace vk
         void                destroy_swapchain();
         void                recreate_swapchain();
         
-        eastl::array<eastl::array<glfw_present_texture, NUM_SWAPCHAIN_IMAGES>, 1> present_textures {};
+        //eastl::array< resource_set< glfw_present_texture >, 1> present_textures;
+        resource_set< glfw_present_texture > present_textures;
         
         virtual void  destroy() override;
         ~glfw_swapchain();

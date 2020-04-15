@@ -16,9 +16,8 @@
 #include <iostream>
 #include <array>
 
-
+#include "attachment_group.h"
 using namespace vk;
-
 
 
 glfw_swapchain::glfw_swapchain(device* device, GLFWwindow* window, VkSurfaceKHR surface)
@@ -31,12 +30,12 @@ glfw_swapchain::glfw_swapchain(device* device, GLFWwindow* window, VkSurfaceKHR 
     recreate_swapchain();
     for( int i =0; i < NUM_SWAPCHAIN_IMAGES; ++i)
     {
-        present_textures[0][i].set_device(device);
-        present_textures[0][i].set_window(window);
-        present_textures[0][i].set_swapchain(this);
-        present_textures[0][i].set_swapchain_image_index(i);
-        present_textures[0][i].set_dimensions(get_vk_swap_extent().width, get_vk_swap_extent().height, 1);
-        present_textures[0][i].init();
+        present_textures[i].set_device(device);
+        present_textures[i].set_window(window);
+        present_textures[i].set_swapchain(this);
+        present_textures[i].set_swapchain_image_index(i);
+        present_textures[i].set_dimensions(get_vk_swap_extent().width, get_vk_swap_extent().height, 1);
+        present_textures[i].init();
     }
 
     
@@ -224,7 +223,7 @@ void glfw_swapchain::destroy()
     vkDestroySwapchainKHR(_device->_logical_device, _swapchain, nullptr);
     for( int i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
     {
-        present_textures[0][i].destroy();
+        present_textures[i].destroy();
     }
     _swapchain = VK_NULL_HANDLE;
 }

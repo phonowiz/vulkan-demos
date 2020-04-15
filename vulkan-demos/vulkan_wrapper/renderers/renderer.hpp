@@ -32,7 +32,7 @@ _render_pass(device, glm::vec2( swapchain->get_vk_swap_extent().width, swapchain
     _window = window;
     _swapchain = swapchain;
     
-    _render_pass.get_attachment_group().add_attachment( _swapchain->present_textures[0]);
+    _render_pass.get_attachment_group().add_attachment( _swapchain->present_textures);
     typename render_pass_type::subpass_s& subpass = _render_pass.add_subpass(store, material_name);
     
     static constexpr int ATTACHMENT_ID = 0;

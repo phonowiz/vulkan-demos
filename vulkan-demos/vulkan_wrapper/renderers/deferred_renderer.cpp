@@ -39,7 +39,7 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
             mrt_attachment_group.set_format(i, image::formats::R8G8_SIGNED_NORMALIZED);
     }
     
-    mrt_attachment_group.add_attachment(_swapchain->present_textures[0]);
+    mrt_attachment_group.add_attachment(_swapchain->present_textures);
     
     attachment_group<1>& voxel_attachment_group = _voxelize_render_pass.get_attachment_group();
     voxel_attachment_group.add_attachment(_voxel_2d_view[0]);

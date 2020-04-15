@@ -144,27 +144,49 @@ namespace vk
             return result;
         }
         
-//        template<typename ARGS...>
-//        inline std::shared_ptr<vk::texture_2d> get_write_texture( const char* name, node_type* node,  device* dev, ARGS... args)
+        
+        //note: the point of this macro is to create commonly used "get_attachment_group" functions that
+        //will be commonly used in the code.  Without this macro, the syntax to call this function requires a
+        //"template" keyword before the function call, which is super weird
+//        #define DEFINE_GET_ATTACHMENT_GROUP_FUNCTION( X ) \
+//                                            \
+//        inline attachment_group<X>& get_attachment_set( const char* name, node_type* node ) \
+//        { \
+//            return get_write_texture<attachment_group<X>>(name, node, dev, vec); \
+//        } \
+//
+//        //feel free to add more if you need...
+//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(1)
+//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(2)
+//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(3)
+//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(4)
+//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(5)
+//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(6)
+//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(7)
+//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(8)
+//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(9)
+//        DEFINE_GET_ATTACHMENT_GROUP_FUNCTION(10)
+        
+        
+//        inline texture_2d_set& get_attachment_set( const char* name, node_type* node )
 //        {
-//            std::shared_ptr<vk::texture_2d> tex = get_write_texture<vk::texture_2d>(name, node, args);
-//            return get_write_texture<vk::texture_2d>(name, node, dev );
+//            
 //        }
         
-        inline std::shared_ptr<vk::texture_2d> get_loaded_texture( const char* name, node_type* node, device* dev, const char* path )
+        inline vk::texture_2d& get_loaded_texture( const char* name, node_type* node, device* dev, const char* path )
         {
             typename dependee_data_map::iterator iter = _dependee_data_map.find(name);
             
-            std::shared_ptr<vk::texture_2d> result = nullptr;
+            vk::texture_2d* result = nullptr;
             if( iter == _dependee_data_map.end())
             {
-                result = get_write_texture<texture_2d>(name, node, dev, path);
+                result = &(get_write_texture<texture_2d>(name, node, dev, path));
                 result->init();
             }
             else
-                result = std::static_pointer_cast<texture_2d>(iter->second.resource);
+                result = &(*(std::static_pointer_cast<texture_2d>(iter->second.resource)));
             
-            return result;
+            return *result;
         }
         
         
@@ -180,6 +202,7 @@ namespace vk
         }
         
     private:
+        
         
 //        template<uint32_t NUM_ATTACHMENTS>
 //        void set_write_attachment_group(const char* name, node_type* node, attachment_group<NUM_ATTACHMENTS>& group )
@@ -198,8 +221,9 @@ namespace vk
 //            }
 //        }
         
+
         template <typename T, typename ...ARGS>
-        inline std::shared_ptr<T> get_write_texture( const char* name, node_type* node,  ARGS... args)
+        inline T& get_write_texture( const char* name, node_type* node,  ARGS... args)
         {
             
             assert (_dependee_data_map.find(name) == _dependee_data_map.end() && "you are asking for a texture already marked for writing."
@@ -212,7 +236,7 @@ namespace vk
 
             _dependee_data_map[name] = info;
             
-            return ptr;
+            return *ptr;
         }
         
         template <typename T, typename ...ARGS>

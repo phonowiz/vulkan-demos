@@ -14,7 +14,7 @@
 #include "render_texture.h"
 #include "texture_2d.h"
 #include "glfw_present_texture.h"
-
+#include "resource_set.h"
 
 #include <iostream>
 #include "EASTL/array.h"
@@ -24,16 +24,19 @@
 namespace vk {
     
 
-    using image_set = eastl::array<image*, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
-    using texture_2d_set = eastl::array<texture_2d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
-    using depth_set = eastl::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
-    using render_texture_set = eastl::array< render_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
-    using glfw_present_texture_set = eastl::array< glfw_present_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
+//    using image_set = eastl::array<image*, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
+//    using texture_2d_set = eastl::array<texture_2d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
+//    using depth_set = eastl::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
+//    using render_texture_set = eastl::array< render_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
+//    using glfw_present_texture_set = eastl::array< glfw_present_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
 
 
     template< uint32_t NUM_ATTACHMENTS>
     class attachment_group : public object
     {
+        
+//        using image_set = east::array<vk::image, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
+        
     public:
         
         //note: no copying of groups
@@ -49,19 +52,19 @@ namespace vk {
         
         attachment_group(device* device, glm::vec2 dimensions){ _device = device; _dimensions = dimensions; };
         
-        inline void add_attachment(texture_2d_set& textures_set)
-        {
-            assert(num_attachments < NUM_ATTACHMENTS );
-            for( int i = 0; i < textures_set.size(); ++i)
-            {
-                _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
-                _attachments[num_attachments][i]->set_device(_device);
-                assert(_attachments[num_attachments][i]->get_width() == _dimensions.x && _attachments[num_attachments][i]->get_height() == _dimensions.y &&
-                       "the attachment dimensions are not compatible with this attachment group");
-            }
-            ++num_attachments;
-        }
-        inline void set_depth_set(depth_set& textures_set)
+//        inline void add_attachment(texture_2d_set& textures_set)
+//        {
+//            assert(num_attachments < NUM_ATTACHMENTS );
+//            for( int i = 0; i < textures_set.size(); ++i)
+//            {
+//                _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
+//                _attachments[num_attachments][i]->set_device(_device);
+//                assert(_attachments[num_attachments][i]->get_width() == _dimensions.x && _attachments[num_attachments][i]->get_height() == _dimensions.y &&
+//                       "the attachment dimensions are not compatible with this attachment group");
+//            }
+//            ++num_attachments;
+//        }
+        inline void set_depth_set(resource_set<depth_texture>& textures_set)
         {
             for( int i = 0; i < textures_set.size(); ++i)
             {
@@ -72,7 +75,9 @@ namespace vk {
 
             }
         }
-        inline void add_attachment(render_texture_set& textures_set)
+        
+        template< typename R>
+        inline void add_attachment(resource_set<R>& textures_set)
         {
             assert(num_attachments < NUM_ATTACHMENTS );
             for( int i = 0; i < textures_set.size(); ++i)
@@ -85,17 +90,17 @@ namespace vk {
 
         }
         
-        inline void add_attachment(glfw_present_texture_set& textures_set)
-        {
-            assert(num_attachments < NUM_ATTACHMENTS );
-            for( int i = 0; i < textures_set.size(); ++i)
-            {
-                _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
-                _attachments[num_attachments][i]->set_device(_device);
-                _attachments[num_attachments][i]->set_dimensions(_dimensions.x, _dimensions.y, 1);
-            }
-            ++num_attachments;
-        }
+//        inline void add_attachment(glfw_present_texture_set& textures_set)
+//        {
+//            assert(num_attachments < NUM_ATTACHMENTS );
+//            for( int i = 0; i < textures_set.size(); ++i)
+//            {
+//                _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
+//                _attachments[num_attachments][i]->set_device(_device);
+//                _attachments[num_attachments][i]->set_dimensions(_dimensions.x, _dimensions.y, 1);
+//            }
+//            ++num_attachments;
+//        }
         
         inline void set_filter(uint32_t attachment_id, image::filter filter)
         {
@@ -144,7 +149,7 @@ namespace vk {
         
         uint32_t size() { return num_attachments; }
         
-        inline image_set& operator[](int i) { return _attachments[i]; }
+        inline resource_set<vk::image*>& operator[](int i) { return _attachments[i]; }
         
         virtual void destroy() override
         {}
@@ -180,7 +185,7 @@ namespace vk {
         device* _device = nullptr;
         
         glm::vec2 _dimensions = glm::vec2(0.0f, 0.0f);
-        eastl::array<image_set, MAX_NUM_ATTACHMENTS> _attachments = {};
+        eastl::array<resource_set<vk::image*>, MAX_NUM_ATTACHMENTS> _attachments = {};
         uint32_t num_attachments = 0;
     };
 }

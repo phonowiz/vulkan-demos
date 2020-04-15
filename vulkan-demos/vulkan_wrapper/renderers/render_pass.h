@@ -542,7 +542,7 @@ namespace vk
     private:
         
         attachment_group<NUM_ATTACHMENTS>  _attachment_group;
-        eastl::array<depth_texture, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>  _depth_textures;
+        resource_set<depth_texture>  _depth_textures;
         eastl::array<VkRenderPass,glfw_swapchain::NUM_SWAPCHAIN_IMAGES>   _vk_render_passes {};
         eastl::array<VkFramebuffer, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _vk_frame_buffer_infos {};
         

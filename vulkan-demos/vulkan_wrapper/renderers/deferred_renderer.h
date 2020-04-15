@@ -150,8 +150,8 @@ namespace vk
             DEPTH_ATTACHMENT_ID    //DEPTH is always the last attachment and is added automatically
         };
         
-        eastl::array<render_texture_set, 1> _voxel_2d_view {};
-        eastl::array<render_texture_set, 3> _g_buffer_textures {};
+        eastl::array<resource_set<render_texture>, 1> _voxel_2d_view {};
+        eastl::array<resource_set<render_texture>, 3> _g_buffer_textures {};
         eastl::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _g_buffer_depth {};
         
         VkFence _fence {};

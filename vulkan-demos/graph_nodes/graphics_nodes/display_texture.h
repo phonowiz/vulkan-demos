@@ -15,6 +15,7 @@
 #include "glfw_swapchain.h"
 #include "screen_plane.h"
 #include "texture_2d.h"
+#include "attachment_group.h"
 
 template< uint32_t NUM_CHILDREN>
 class display_texture : public vk::graphics_node<1, NUM_CHILDREN>
@@ -50,14 +51,19 @@ public:
         tex_registry_type* _tex_registry = parent_type::_texture_registry;
         
         
-        pass.get_attachment_group().add_attachment( _swapchain->present_textures[0]);
+        //std::shared_ptr<vk::attachment_group<5>> test = nullptr;
+//        vk::attachment_group<5>& test = _tex_registry->get_attach_group_size_5("test", this,  parent_type::_device, glm::vec2(1024.f, 768.f));
+//        vk::attachment_group<5>& test = _tex_registry->
+//                template get_attachment_group< vk::attachment_group<5> > ("test", this,  parent_type::_device, glm::vec2(1024, 768));
+        
+        pass.get_attachment_group().add_attachment( _swapchain->present_textures);
         
         _screen_plane.create();
         subpass_type& sub_p = pass.add_subpass(parent_type::_material_store, "display");
         
-        std::shared_ptr<vk::texture_2d> ptr = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
+        vk::texture_2d& ptr = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
         
-        sub_p.set_image_sampler(*ptr, "tex", vk::material_base::parameter_stage::FRAGMENT, 1,
+        sub_p.set_image_sampler(ptr, "tex", vk::material_base::parameter_stage::FRAGMENT, 1,
                                        vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
         
         int binding = 0;
