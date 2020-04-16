@@ -23,7 +23,6 @@ namespace vk
             _device = device;
         }
         
-
         void set_device(device* dev){ _device = dev; }
         virtual ~pipeline(){};
         

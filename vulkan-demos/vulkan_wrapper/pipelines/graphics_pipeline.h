@@ -98,6 +98,8 @@ namespace vk
         {
             _material[0]->set_image_sampler(&texture, parameter_name, parameter_stage, binding, usage);
         }
+        
+        //TODO: change this to reder_set
         inline void set_image_sampler(std::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
                                       visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
         {
@@ -107,6 +109,7 @@ namespace vk
             }
         }
         
+        //TODO: change this to reder_set
         inline void set_image_sampler(std::array<render_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
                                       visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
         {

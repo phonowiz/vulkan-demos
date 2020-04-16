@@ -21,6 +21,7 @@ namespace vk
     public:
         
         using node_type = node<NUM_CHILDREN>;
+        using compute_pipeline_type = compute_pipeline<vk::NUM_SWAPCHAIN_IMAGES>;
         
         compute_node(device* dev, uint32_t local_group_x, uint32_t local_group_y, uint32_t local_group_z = 1u):
         node_type::node_type(dev),

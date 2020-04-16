@@ -128,7 +128,7 @@ namespace vk
             return get_write_texture<resource_set<texture_2d>>(name, node);
         }
         
-        inline resource_set<texture_3d>& get_write_texture_3d( const char* name, node_type* node )
+        inline resource_set<texture_3d>& get_write_texture_3d_set( const char* name, node_type* node )
         {
             return get_write_texture<resource_set<texture_3d>>(name, node);
         }
