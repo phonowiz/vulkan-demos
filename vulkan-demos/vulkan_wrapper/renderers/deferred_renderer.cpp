@@ -54,7 +54,7 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
         for( size_t j = 0; j < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++j)
         {
             _clear_voxel_texture_pipeline[lod_id][j].set_device(_device);
-            _clear_voxel_texture_pipeline[lod_id][j].set_material(store.GET_MAT<compute_material>("clear_3d_texture"));
+            _clear_voxel_texture_pipeline[lod_id][j].set_material("clear_3d_texture", store);
             
             _voxel_albedo_textures[lod_id][j].set_device(device);
             _voxel_albedo_textures[lod_id][j].set_dimensions(VOXEL_CUBE_WIDTH >> lod_id,  VOXEL_CUBE_HEIGHT >> lod_id, VOXEL_CUBE_DEPTH >> lod_id );
@@ -66,9 +66,9 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
             _voxel_normal_textures[lod_id][j].set_filter(image::filter::LINEAR);
             
             
-            assert(_voxel_albedo_textures[lod_id][j].get_height() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
-            assert(_voxel_albedo_textures[lod_id][j].get_width() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
-            assert(_voxel_albedo_textures[lod_id][j].get_depth() % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
+            assert(_voxel_albedo_textures[lod_id][j].get_height() % compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
+            assert(_voxel_albedo_textures[lod_id][j].get_width() % compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
+            assert(_voxel_albedo_textures[lod_id][j].get_depth() % compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "voxel texture will not clear properly with these dimensions");
         }
     }
     
@@ -226,7 +226,7 @@ void deferred_renderer::create_voxel_texture_pipelines(vk::material_store& store
         for( int j = 0; j < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++j)
         {
             _create_voxel_mip_maps_pipelines[i][j].set_device(_device);
-            _create_voxel_mip_maps_pipelines[i][j].set_material(store.GET_MAT<compute_material>("downsize"));
+            _create_voxel_mip_maps_pipelines[i][j].set_material("downsize",store);
         }
     }
     
@@ -238,7 +238,7 @@ void deferred_renderer::create_voxel_texture_pipelines(vk::material_store& store
         {
             _clear_voxel_texture_pipeline[lod_id][chain_id].set_image_sampler(_voxel_albedo_textures[lod_id][chain_id],
                                                                    "texture_3d", 0);
-            _clear_voxel_texture_pipeline[lod_id][chain_id].commit_parameter_to_gpu();
+            _clear_voxel_texture_pipeline[lod_id][chain_id].commit_parameter_to_gpu(0);
         }
 
     }
@@ -260,7 +260,7 @@ void deferred_renderer::create_voxel_texture_pipelines(vk::material_store& store
             _create_voxel_mip_maps_pipelines[map_id][chain_id].set_image_sampler(_voxel_normal_textures[map_id + 1][chain_id], "w_texture_2",
                                                             3);
             
-            _create_voxel_mip_maps_pipelines[map_id][chain_id].commit_parameter_to_gpu();
+            _create_voxel_mip_maps_pipelines[map_id][chain_id].commit_parameter_to_gpu(0);
         }
 
     }
@@ -331,13 +331,13 @@ void deferred_renderer::record_3d_mip_maps_commands(uint32_t swapchain_id)
     for( int map_id = 0; map_id < TOTAL_LODS-1; ++map_id)
     {
         
-        assert((VOXEL_CUBE_WIDTH >> map_id) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
-        assert((VOXEL_CUBE_HEIGHT >> map_id) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
-        assert((VOXEL_CUBE_DEPTH >> map_id) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+        assert((VOXEL_CUBE_WIDTH >> map_id) % compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+        assert((VOXEL_CUBE_HEIGHT >> map_id) % compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+        assert((VOXEL_CUBE_DEPTH >> map_id) % compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
 
-        uint32_t local_groups_x = (VOXEL_CUBE_WIDTH >> map_id) / compute_pipeline::LOCAL_GROUP_SIZE;
-        uint32_t local_groups_y = (VOXEL_CUBE_HEIGHT >> map_id) / compute_pipeline::LOCAL_GROUP_SIZE;
-        uint32_t local_groups_z = (VOXEL_CUBE_DEPTH >> map_id) / compute_pipeline::LOCAL_GROUP_SIZE;
+        uint32_t local_groups_x = (VOXEL_CUBE_WIDTH >> map_id) / compute_pipeline<1>::LOCAL_GROUP_SIZE;
+        uint32_t local_groups_y = (VOXEL_CUBE_HEIGHT >> map_id) / compute_pipeline<1>::LOCAL_GROUP_SIZE;
+        uint32_t local_groups_z = (VOXEL_CUBE_DEPTH >> map_id) / compute_pipeline<1>::LOCAL_GROUP_SIZE;
 
         if( map_id != 0)
         {
@@ -373,7 +373,7 @@ void deferred_renderer::record_3d_mip_maps_commands(uint32_t swapchain_id)
              } );
         }
             
-        _create_voxel_mip_maps_pipelines[map_id][swapchain_id].record_dispatch_commands(_genered_3d_mip_maps_commands[map_id][swapchain_id],
+        _create_voxel_mip_maps_pipelines[map_id][swapchain_id].record_dispatch_commands(_genered_3d_mip_maps_commands[map_id][swapchain_id], 0,
                                                             local_groups_x, local_groups_y, local_groups_z);
         
     }
@@ -388,15 +388,15 @@ void deferred_renderer::record_clear_texture_3d_buffer( uint32_t swapchain_id)
     for( int lod_id = 0; lod_id < _clear_3d_texture_command_buffers.size(); ++lod_id)
     {
 
-        assert((VOXEL_CUBE_WIDTH >> lod_id) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
-        assert((VOXEL_CUBE_HEIGHT >> lod_id) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
-        assert((VOXEL_CUBE_DEPTH >> lod_id) % compute_pipeline::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+        assert((VOXEL_CUBE_WIDTH >> lod_id) % compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+        assert((VOXEL_CUBE_HEIGHT >> lod_id) % compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+        assert((VOXEL_CUBE_DEPTH >> lod_id) % compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
         
-        uint32_t local_groups_x = (VOXEL_CUBE_WIDTH >> lod_id) / compute_pipeline::LOCAL_GROUP_SIZE;
-        uint32_t local_groups_y = (VOXEL_CUBE_HEIGHT >> lod_id) / compute_pipeline::LOCAL_GROUP_SIZE;
-        uint32_t local_groups_z = (VOXEL_CUBE_DEPTH >> lod_id) / compute_pipeline::LOCAL_GROUP_SIZE;
+        uint32_t local_groups_x = (VOXEL_CUBE_WIDTH >> lod_id) / compute_pipeline<1>::LOCAL_GROUP_SIZE;
+        uint32_t local_groups_y = (VOXEL_CUBE_HEIGHT >> lod_id) / compute_pipeline<1>::LOCAL_GROUP_SIZE;
+        uint32_t local_groups_z = (VOXEL_CUBE_DEPTH >> lod_id) / compute_pipeline<1>::LOCAL_GROUP_SIZE;
         
-        _clear_voxel_texture_pipeline[lod_id][swapchain_id].record_dispatch_commands(_clear_3d_texture_command_buffers[lod_id][swapchain_id],
+        _clear_voxel_texture_pipeline[lod_id][swapchain_id].record_dispatch_commands(_clear_3d_texture_command_buffers[lod_id][swapchain_id], 0,
                                                             local_groups_x, local_groups_y, local_groups_z);
     }
 }

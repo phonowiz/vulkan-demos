@@ -26,6 +26,7 @@ namespace  vk
         
         using node_type = vk::node<NUM_CHILDREN>;
         using tex_registry_type = texture_registry<NUM_CHILDREN>;
+        using material_store_type = material_store;
         
         node(device* device)
         {
@@ -179,7 +180,7 @@ namespace  vk
         device* _device = nullptr;
         eastl::fixed_vector<node_type*, NUM_CHILDREN, true> _children{};
         
-        material_store*     _material_store = nullptr;
+        material_store_type*     _material_store = nullptr;
         tex_registry_type*  _texture_registry = nullptr;
         
         bool _active = false;

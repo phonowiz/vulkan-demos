@@ -6,11 +6,14 @@
 //  Copyright © 2019 Rafael Sabino. All rights reserved.
 //
 
-#include "compute_pipeline.h"
+//#include "compute_pipeline.h"
 
-using namespace vk;
+//using namespace vk;
+//template< uint32_t NUM_ATTACHMENTS>
+//void renderer< NUM_ATTACHMENTS>::draw(camera& camera)
 
-void compute_pipeline::create()
+template< uint32_t NUM_MATERIALS>
+void compute_pipeline< NUM_MATERIALS>::create()
 {
 
     VkPipelineLayoutCreateInfo pipeline_layout_create_info = {};
@@ -35,11 +38,12 @@ void compute_pipeline::create()
     ASSERT_VULKAN(result);
 }
 
-void compute_pipeline::record_dispatch_commands( VkCommandBuffer&  command_buffer,
+template< uint32_t NUM_MATERIALS>
+void compute_pipeline< NUM_MATERIALS>::record_dispatch_commands( VkCommandBuffer&  command_buffer, uint32_t image_id,
                                                  uint32_t local_groups_in_x, uint32_t local_groups_in_y, uint32_t local_groups_in_z)
 {
     //make sure to have all shader parameters ready for consumption, this is necessary to create the pipeline as well
-    _material[0]->commit_parameters_to_gpu();
+    _material[image_id]->commit_parameters_to_gpu();
     
     if(!is_initialized())
     {

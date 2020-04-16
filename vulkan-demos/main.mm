@@ -42,7 +42,7 @@
 #include "camera_controllers/first_person_controller.h"
 
 #include "graph_nodes/graphics_nodes/display_texture.h"
-#include "graph_nodes/compute_nodes/mip_map_3d_texture.h"
+#include "graph_nodes/compute_nodes/mip_map_3d_texture.hpp"
 
 #include "new_operators.h"
 #include "graph.h"

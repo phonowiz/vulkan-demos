@@ -75,73 +75,42 @@ namespace vk
         }
         
         
-//        template <uint32_t NUM_ATTACHMENTS>
-//        void set_write_attachment_group(const char* name, node_type* node, vk::attachment_group<NUM_ATTACHMENTS>& group)
-//        {
-//            static constexpr int MAX_STRING_SIZE = 250;
-//            assert( MAX_STRING_SIZE > std::strlen(name));
-//
-//
-//            assert (_dependee_data_map.find(name) == _dependee_data_map.end() && "this attachment name has already been chosen,"
-//                                                                                  " pick a different one.");
-//
-//            dependee_data info {};
-//            info.resource = std::static_pointer_cast<vk::object>(ptr);
-//            info.node = node;
-//
-//            _dependee_data_map[name] = info;
-//
-////            for(int i = 0; i < NUM_ATTACHMENTS; ++i)
-////            {
-////                for( int s = 0 ; s < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++s)
-////                {
-////                    eastl::fixed_string<char, MAX_STRING_SIZE, true> str(name);
-////                    str.append_sprintf("%i_%i", i, s);
-////
-////                    std::shared_ptr<texture_2d> tex = get_write_texture(str.c_str(), node, expected_layout );
-////                    group[i][s] = tex;
-////                }
-////            }
-//        }
-        
-//        template <uint32_t NUM_ATTACHMENTS>
-//        void get_read_attachment_group(const char* name, node_type* node, vk::image::image_layouts expected_layout,
-//                                  vk::attachment_group<NUM_ATTACHMENTS>& group)
-//        {
-//            static constexpr int MAX_STRING_SIZE = 250;
-//            assert( MAX_STRING_SIZE > std::strlen(name));
-//
-//            for(int i = 0; i < NUM_ATTACHMENTS; ++i)
-//            {
-//                for( int s = 0 ; s < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++s)
-//                {
-//                    eastl::fixed_string<char, MAX_STRING_SIZE, true> str(name);
-//                    str.append_sprintf("%i_%i", i, s);
-//
-//                    std::shared_ptr<texture_2d> tex = get_read_texture(str.c_str(), node, expected_layout );
-//                    group[i][s] = tex;
-//                }
-//            }
-//        }
-        
-        template <typename T>
-        inline std::shared_ptr<T> get_read_texture(const char* name, node_type* node, vk::image::image_layouts expected_layout)
+        inline resource_set<depth_texture>& get_read_depth_texture_set( const char* name, node_type* node, vk::image::image_layouts expected_layout)
         {
-            typename dependee_data_map::iterator iter = _dependee_data_map.find(name);
+            std::shared_ptr< resource_set<depth_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, expected_layout);
+            assert(tex == nullptr && " Invalid graph, the texture you depend on is not found");
             
-            std::shared_ptr<T> result = nullptr;
-            if( iter != _dependee_data_map.end())
-            {
-                dependee_data d = iter->second;
-                
-                dependant_data dependant = {};
-                dependant.data = d;
-                dependant.layout = expected_layout;
-                _node_dependees_map[node].push_back(dependant);
-                result = std::static_pointer_cast<T>(d.resource);
-            }
+            return *tex;
+        }
+        
+        
+        inline resource_set<render_texture>& get_read_render_texture_set( const char* name, node_type* node, vk::image::image_layouts expected_layout)
+        {
+            std::shared_ptr< resource_set<render_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, expected_layout);
+            assert(tex == nullptr && " Invalid graph, the texture you depend on is not found");
             
-            return result;
+            return *tex;
+        }
+        
+        inline resource_set<texture_3d>& get_read_texture_3d_set( const char* name, node_type* node, vk::image::image_layouts expected_layout)
+        {
+            std::shared_ptr< resource_set<texture_3d>> tex =  get_read_texture<resource_set<texture_3d>>(name, node, expected_layout);
+            assert(tex == nullptr && " Invalid graph, the texture you depend on is not found");
+            
+            return *tex;
+        }
+        
+        inline resource_set<texture_2d>& get_read_texture_2d_set( const char* name, node_type* node, vk::image::image_layouts expected_layout)
+        {
+            
+            std::shared_ptr< resource_set<texture_2d>> tex =  get_read_texture<resource_set<texture_2d>>(name, node, expected_layout);
+            
+            //TODO: make it so that we return a default texture if the one we are looking for is not found.  nodes should be able to tell
+            //if the texture they asked for was found.
+            
+            assert(tex == nullptr && " Invalid graph, the texture you depend on is not found");
+            
+            return *tex;
         }
         
         inline resource_set<texture_2d>& get_write_texture_2d_set( const char* name, node_type* node )
@@ -213,6 +182,26 @@ namespace vk
 //            }
 //        }
         
+        
+        template <typename T>
+        inline std::shared_ptr<T> get_read_texture(const char* name, node_type* node, vk::image::image_layouts expected_layout)
+        {
+            typename dependee_data_map::iterator iter = _dependee_data_map.find(name);
+            
+            std::shared_ptr<T> result = nullptr;
+            if( iter != _dependee_data_map.end())
+            {
+                dependee_data d = iter->second;
+                
+                dependant_data dependant = {};
+                dependant.data = d;
+                dependant.layout = expected_layout;
+                _node_dependees_map[node].push_back(dependant);
+                result = std::static_pointer_cast<T>(d.resource);
+            }
+            
+            return result;
+        }
 
         template <typename T, typename ...ARGS>
         inline T& get_write_texture( const char* name, node_type* node,  ARGS... args)

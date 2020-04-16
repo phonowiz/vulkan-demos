@@ -30,13 +30,13 @@ namespace vk
         {
             for( int i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
             {
-                _compute_pipelines[i].set_device(dev);
+                _compute_pipelines.set_device(dev);
             }
         }
         
         virtual void record_node_commands(command_recorder& buffer, uint32_t image_id) override
         {
-            _compute_pipelines[image_id].record_dispatch_commands(buffer,
+            _compute_pipelines.record_dispatch_commands(buffer.get_raw_compute_command(image_id), image_id,
                                                               _group_x, _group_y, _group_z);
         }
         
@@ -44,9 +44,8 @@ namespace vk
         virtual void create_gpu_resources() override
         {}
         
-    private:
         
-        eastl::array<compute_pipeline, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _compute_pipelines {};
+        compute_pipeline<vk::NUM_SWAPCHAIN_IMAGES> _compute_pipelines;
         
         uint32_t _group_x;
         uint32_t _group_y;

@@ -66,7 +66,7 @@ namespace vk
         virtual void create_semaphores_and_fences() override;
         void generate_voxel_textures(vk::camera& camera);
         
-        void compute(VkCommandBuffer command_buffer, vk::compute_pipeline& pipeline);
+        void compute(VkCommandBuffer command_buffer, vk::compute_pipeline<1>& pipeline);
         virtual void record_command_buffers(VkCommandBuffer& buffer, uint32_t swapchain_id) override;
         void record_voxelize_command_buffers(VkCommandBuffer& buffer, uint32_t swapchain_id);
         void record_clear_texture_3d_buffer ( uint32_t swapchain_id);
@@ -92,11 +92,11 @@ namespace vk
   
         static constexpr unsigned int TOTAL_LODS = 6;
         
-        eastl::array<eastl::array<compute_pipeline, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS> _clear_voxel_texture_pipeline {};
+        eastl::array<eastl::array<compute_pipeline<1>, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS> _clear_voxel_texture_pipeline {};
         
         eastl::array<VkCommandBuffer*, TOTAL_LODS> _clear_3d_texture_command_buffers {};
         eastl::array<VkCommandBuffer*, TOTAL_LODS -1> _genered_3d_mip_maps_commands {};
-        eastl::array<eastl::array<compute_pipeline, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS -1> _create_voxel_mip_maps_pipelines {};
+        eastl::array<eastl::array<compute_pipeline<1>, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>, TOTAL_LODS -1> _create_voxel_mip_maps_pipelines {};
         
         eastl::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _deferred_semaphore_image_available = {};
         eastl::array<VkSemaphore, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _g_buffers_rendering_done = {};

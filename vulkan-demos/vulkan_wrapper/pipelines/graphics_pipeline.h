@@ -217,7 +217,7 @@ namespace vk
         
         }
         
-        virtual void commit_parameters_to_gpu() override
+        virtual void commit_parameters_to_gpu()
         {
             _material[0]->commit_parameters_to_gpu();
         }

@@ -63,7 +63,7 @@ namespace vk
             ASSERT_VULKAN(result);
         }
     
-        VkCommandBuffer& get_raw_compute_buffer( uint32_t image_id )
+        VkCommandBuffer& get_raw_compute_command( uint32_t image_id )
         {
             assert( _device->_queue_family_indices.graphics_family.value() ==
                    _device->_queue_family_indices.compute_family.value());

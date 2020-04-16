@@ -56,6 +56,6 @@ namespace vk
         static constexpr char const* const _type = nullptr;
         shader_shared_ptr _compute_shader;
     };
-    
+
     using compute_mat_shared_ptr = std::shared_ptr<compute_material>;
 };
