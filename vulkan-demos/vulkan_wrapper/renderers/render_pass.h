@@ -49,6 +49,12 @@ namespace vk
         static constexpr uint32_t MAX_NUMBER_OF_ATTACHMENTS = 10u;
         static constexpr uint32_t MAX_SUBPASSES = 20u;
         static constexpr uint32_t MAX_OBJECTS = 50u;
+        
+        render_pass & operator=(const render_pass&) = delete;
+        render_pass(const render_pass&) = delete;
+        render_pass & operator=(render_pass&) = delete;
+        render_pass(render_pass&) = delete;
+        
         /////////////////////////////////////////////////////////////////////////////////////
         class subpass_s : object
         {

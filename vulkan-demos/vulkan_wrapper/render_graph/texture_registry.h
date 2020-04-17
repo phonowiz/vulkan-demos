@@ -39,6 +39,11 @@ namespace vk
     static constexpr size_t DEPENDENCIES_SIZE = 10;
     public:
         
+        texture_registry & operator=(const texture_registry&) = delete;
+        texture_registry(const texture_registry&) = delete;
+        texture_registry & operator=(texture_registry&) = delete;
+        texture_registry(texture_registry&) = delete;
+        
         using image_ptr = std::shared_ptr<image>;
         using resource_ptr = std::shared_ptr<object>;
         
@@ -163,25 +168,6 @@ namespace vk
         }
         
     private:
-        
-        
-//        template<uint32_t NUM_ATTACHMENTS>
-//        void set_write_attachment_group(const char* name, node_type* node, attachment_group<NUM_ATTACHMENTS>& group )
-//        {
-//            for(int i = 0; i < NUM_ATTACHMENTS; ++i)
-//            {
-//                for( int s = 0; s < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
-//                {
-//                    dependee_data info {};
-//                    info.image = std::static_pointer_cast<vk::image>(group[i][s]);
-//                    info.obj = obj;
-//
-//                    _dependee_data_map[name] = info;
-//                }
-//
-//            }
-//        }
-        
         
         template <typename T>
         inline std::shared_ptr<T> get_read_texture(const char* name, node_type* node, vk::image::image_layouts expected_layout)

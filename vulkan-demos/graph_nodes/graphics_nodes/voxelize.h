@@ -117,10 +117,7 @@ public:
         
         parent_type::add_dynamic_param("model", 0, vk::visual_material::parameter_stage::VERTEX, glm::mat4(1.0), 3);
         
-        
         voxelize_subpass.set_cull_mode( render_pass_type::graphics_pipeline_type::cull_mode::NONE);
-        
-        
     }
     
     virtual void update(vk::camera& camera, uint32_t image_id) override

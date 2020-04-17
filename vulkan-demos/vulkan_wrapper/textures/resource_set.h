@@ -21,7 +21,13 @@ namespace vk
     struct resource_set : public object
     {
     public:
-
+        
+        resource_set(){};
+        
+        resource_set & operator=(const resource_set&) = delete;
+        resource_set(const resource_set&) = delete;
+        resource_set & operator=(resource_set&) = delete;
+        resource_set(resource_set&) = delete;
         
         virtual char const * const * get_instance_type() override { return (&_resource_type); };
         static char const * const *  get_class_type(){ return (&_resource_type); }

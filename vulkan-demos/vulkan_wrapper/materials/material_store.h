@@ -24,6 +24,10 @@ namespace vk
     {
         
     public:
+        material_store & operator=(const material_store&) = delete;
+        material_store(const material_store&) = delete;
+        material_store & operator=(material_store&) = delete;
+        material_store(material_store&) = delete;
         
         ~material_store();
         template <typename T>
@@ -52,10 +56,6 @@ namespace vk
         void add_material( std::shared_ptr<material_base> material);
         
         device* _device = nullptr;
-        
-        
-        material_store(material_store const &) = delete;
-        void operator=(material_store const &) = delete;
         
         
     };
