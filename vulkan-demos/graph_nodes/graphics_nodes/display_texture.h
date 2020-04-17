@@ -51,17 +51,10 @@ public:
         tex_registry_type* _tex_registry = parent_type::_texture_registry;
         
         
-        //std::shared_ptr<vk::attachment_group<5>> test = nullptr;
-//        vk::attachment_group<5>& test = _tex_registry->get_attach_group_size_5("test", this,  parent_type::_device, glm::vec2(1024.f, 768.f));
-//        vk::attachment_group<5>& test = _tex_registry->
-//                template get_attachment_group< vk::attachment_group<5> > ("test", this,  parent_type::_device, glm::vec2(1024, 768));
-        
         pass.get_attachment_group().add_attachment( _swapchain->present_textures);
         
         _screen_plane.create();
         subpass_type& sub_p = pass.add_subpass(parent_type::_material_store, "display");
-        
-        //_tex_registry->get_texture_2d_set("name", this);
         
         vk::texture_2d& ptr = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
         

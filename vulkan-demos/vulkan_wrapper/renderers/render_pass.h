@@ -298,6 +298,7 @@ namespace vk
                 }
             }
             
+            //TODO: REMOVE
             inline void set_image_sampler(eastl::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
                                           visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
             {
@@ -306,6 +307,34 @@ namespace vk
                     _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, usage) ;
                 }
             }
+            
+            inline void set_image_sampler(resource_set<texture_3d>& textures, const char* parameter_name,
+                                          visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+            {
+                for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
+                {
+                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, usage) ;
+                }
+            }
+            
+            inline void set_image_sampler(resource_set<texture_2d>& textures, const char* parameter_name,
+                                          visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+            {
+                for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
+                {
+                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, usage) ;
+                }
+            }
+            
+            inline void set_image_sampler(resource_set<depth_texture>& textures, const char* parameter_name,
+                                          visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+            {
+                for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
+                {
+                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, usage) ;
+                }
+            }
+            
             
             void set_material( material_store& store, const char* material_name)
             {
