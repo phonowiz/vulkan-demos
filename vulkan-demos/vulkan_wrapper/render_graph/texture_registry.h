@@ -51,6 +51,7 @@ namespace vk
         {
             node_type* node;
             resource_ptr resource = nullptr;
+            bool consumed = false;
         };
         
         struct dependant_data
@@ -68,15 +69,18 @@ namespace vk
         
         texture_registry(){}
         
-        inline node_dependees& get_dependees( node_type* node)
+        inline node_dependees& get_dependees( node_type* dependant_node)
         {
             
-            if(_node_dependees_map.find(node) == _node_dependees_map.end() )
+            if(_node_dependees_map.find(dependant_node) == _node_dependees_map.end() )
             {
-                _node_dependees_map[node] = node_dependees();
+                //note:: if I don't do this, returned value of the key will be garbage, something about
+                //fixed maps causes this to happen.  I don't expect millions of dependent nodes here so it won't play a factor,
+                //but a solution would great!
+                _node_dependees_map[dependant_node] = node_dependees();
             }
             
-            return _node_dependees_map[node];
+            return _node_dependees_map[dependant_node];
         }
         
         
@@ -177,7 +181,10 @@ namespace vk
             std::shared_ptr<T> result = nullptr;
             if( iter != _dependee_data_map.end())
             {
-                dependee_data d = iter->second;
+                dependee_data& d = iter->second;
+                
+                assert(iter->second.consumed == false && "You are reading from texture that has not been written to yet, check your graph");
+                d.consumed = true;
                 
                 dependant_data dependant = {};
                 dependant.data = d;
@@ -192,17 +199,27 @@ namespace vk
         template <typename T, typename ...ARGS>
         inline T& get_write_texture( const char* name, node_type* node,  ARGS... args)
         {
+            typename dependee_data_map::iterator iter = _dependee_data_map.find(name);
             
-            assert (_dependee_data_map.find(name) == _dependee_data_map.end() && "you are asking for a texture already marked for writing."
-                                                                        " Pick a different name");
-            std::shared_ptr<T> ptr = GREATE_TEXTUE<T>(args...);
-            
-            dependee_data info {};
-            info.resource = std::static_pointer_cast<vk::object>(ptr);
-            info.node = node;
+            std::shared_ptr<T> ptr = nullptr;
+            if(iter == _dependee_data_map.end())
+            {
+                ptr = GREATE_TEXTUE<T>(args...);
+                
+                dependee_data info {};
+                info.resource = std::static_pointer_cast<vk::object>(ptr);
+                info.node = node;
+                info.consumed = false;
 
-            _dependee_data_map[name] = info;
+                _dependee_data_map[name] = info;
+            }
+            else
+            {
+                assert(iter->second.consumed == true && "You are writing to texture that has not been consumed yet, check your graph");
+            }
             
+            iter->second.consumed = false;
+            ptr = std::static_pointer_cast<T>(iter->second.resource);
             return *ptr;
         }
         

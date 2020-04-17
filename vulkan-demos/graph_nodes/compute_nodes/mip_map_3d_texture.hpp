@@ -22,7 +22,7 @@ public:
     using material_store_type = typename vk::node<NUM_CHILDREN>::material_store_type;
     using compute_pipeline_type = typename parent_type::compute_pipeline_type;
     
-    mip_map_3d_texture(vk::device* dev, eastl::array<const char*, 2> input_textures, eastl::array<const char*, 2> output_textures,
+    mip_map_3d_texture(vk::device* dev, eastl::array<const char*, 2>& input_textures, eastl::array<const char*, 2>& output_textures,
                        uint32_t group_width, uint32_t group_height, uint32_t group_depth =1):
     parent_type(dev, group_width, group_height, group_depth)
     {
