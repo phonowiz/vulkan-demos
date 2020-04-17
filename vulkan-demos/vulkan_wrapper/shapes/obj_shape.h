@@ -24,7 +24,7 @@ namespace vk {
     class render_pass;
 
     //note: the name obj_shape comes from the fact that these objects are created by reading .obj files
-    class obj_shape  : object
+    class obj_shape  : public object
     {
     protected:
         obj_shape(vk::device* device){ _device = device; };
