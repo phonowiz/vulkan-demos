@@ -44,6 +44,8 @@
 #include "graph_nodes/graphics_nodes/display_texture.h"
 #include "graph_nodes/compute_nodes/mip_map_3d_texture.hpp"
 #include "graph_nodes/graphics_nodes/voxelize.h"
+#include "graph_nodes/compute_nodes/clear_3d_texture.hpp"
+#include "graph_nodes/graphics_nodes/mrt.h"
 
 #include "new_operators.h"
 #include "graph.h"

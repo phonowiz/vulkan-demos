@@ -64,6 +64,9 @@ namespace vk {
 //            }
 //            ++num_attachments;
 //        }
+        
+        inline resource_set<image*>* get_depth_set(){ return &(_attachments[NUM_ATTACHMENTS-1]); }
+        
         inline void set_depth_set(resource_set<depth_texture>& textures_set)
         {
             for( int i = 0; i < textures_set.size(); ++i)
@@ -87,7 +90,12 @@ namespace vk {
                 _attachments[num_attachments][i]->set_dimensions(_dimensions.x, _dimensions.y, 1);
             }
             ++num_attachments;
-
+        }
+        
+        template<>
+        inline void add_attachment<depth_texture>(resource_set<depth_texture>& textures_set)
+        {
+            set_depth_set(textures_set);
         }
         
 //        inline void add_attachment(glfw_present_texture_set& textures_set)
@@ -181,11 +189,11 @@ namespace vk {
         }
         
         //note: we add 1 to accomodate for the depth attachment
-        static const uint32_t MAX_NUM_ATTACHMENTS = NUM_ATTACHMENTS + 1;
+        static const uint32_t MAX_NUM_ATTACHMENTS = NUM_ATTACHMENTS;
         device* _device = nullptr;
         
         glm::vec2 _dimensions = glm::vec2(0.0f, 0.0f);
-        eastl::array<resource_set<vk::image*>, MAX_NUM_ATTACHMENTS> _attachments = {};
+        eastl::array<resource_set<vk::image*>, NUM_ATTACHMENTS> _attachments = {};
         uint32_t num_attachments = 0;
     };
 }

@@ -129,12 +129,12 @@ namespace vk
         
         inline resource_set<depth_texture>& get_write_depth_texture_set( const char* name, node_type* node )
         {
-            return get_write_texture<resource_set<texture_2d>>(name, node);
+            return get_write_texture<resource_set<depth_texture>>(name, node);
         }
         
         inline resource_set<render_texture>& get_write_render_texture_set( const char* name, node_type* node )
         {
-            return get_write_texture<resource_set<texture_2d>>(name, node);
+            return get_write_texture<resource_set<render_texture>>(name, node);
         }
         
         inline resource_set<texture_3d>& get_write_texture_3d_set( const char* name, node_type* node )

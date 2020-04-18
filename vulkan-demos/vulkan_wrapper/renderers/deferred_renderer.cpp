@@ -91,12 +91,12 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
         _shapes.push_back(shapes[i]);
         _mrt_render_pass.add_object(*shapes[i]);
         _voxelize_render_pass.add_object(*shapes[i]);
-        _mrt_render_pass.skip_subpass(shapes[i], 1);
+        _mrt_render_pass.skip_subpass(*shapes[i], 1);
         
     }
     _mrt_render_pass.add_object(_screen_plane);
     
-    _mrt_render_pass.skip_subpass(&_screen_plane, 0);
+    _mrt_render_pass.skip_subpass(_screen_plane, 0);
     
     mrt_subpass.add_output_attachment(NORMALS_ATTACHMENT_ID);
     mrt_subpass.add_output_attachment(ALBEDOS_ATTACHMENT_ID );

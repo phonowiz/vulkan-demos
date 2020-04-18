@@ -145,8 +145,6 @@ public:
         _ortho_camera.up = _up_vector;
         _ortho_camera.update_view_matrix();
         
-        //voxelize_frag_params["project_to_voxel_screen"] =
-        
         voxelize_frag_params["inverse_view_projection"] = glm::inverse( _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix);
         voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
         voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();

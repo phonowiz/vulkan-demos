@@ -44,6 +44,7 @@
 		B93FDCDD23037064000AECBE /* glfw_swapchain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCD523037064000AECBE /* glfw_swapchain.cpp */; };
 		B93FDCE32303709B000AECBE /* display_plane.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCE02303709B000AECBE /* display_plane.cpp */; };
 		B93FDCE723037359000AECBE /* shader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCE423037359000AECBE /* shader.cpp */; };
+		B94247FF244AC8D90080BD66 /* mrt.h in Sources */ = {isa = PBXBuildFile; fileRef = B94247FE244AC8D90080BD66 /* mrt.h */; };
 		B949E659244979A2003E5AD4 /* EAMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B949E645244979A2003E5AD4 /* EAMemory.cpp */; };
 		B949E65A244979A2003E5AD4 /* EAHashCRC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B949E646244979A2003E5AD4 /* EAHashCRC.cpp */; };
 		B949E65B244979A2003E5AD4 /* EAStdC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B949E647244979A2003E5AD4 /* EAStdC.cpp */; };
@@ -174,6 +175,7 @@
 		B93FDCE523037359000AECBE /* shader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shader.h; sourceTree = "<group>"; };
 		B93FDCE623037359000AECBE /* shader_parameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = shader_parameter.h; sourceTree = "<group>"; };
 		B93FDCED230D2C6B000AECBE /* ordered_map.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ordered_map.h; sourceTree = "<group>"; };
+		B94247FE244AC8D90080BD66 /* mrt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mrt.h; sourceTree = "<group>"; };
 		B949E645244979A2003E5AD4 /* EAMemory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EAMemory.cpp; sourceTree = "<group>"; };
 		B949E646244979A2003E5AD4 /* EAHashCRC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EAHashCRC.cpp; sourceTree = "<group>"; };
 		B949E647244979A2003E5AD4 /* EAStdC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = EAStdC.cpp; sourceTree = "<group>"; };
@@ -597,6 +599,7 @@
 			children = (
 				B997A04A24419AC60074ADBE /* display_texture.h */,
 				B9D4644D2448466E0011D358 /* voxelize.h */,
+				B94247FE244AC8D90080BD66 /* mrt.h */,
 			);
 			path = graphics_nodes;
 			sourceTree = "<group>";
@@ -736,6 +739,7 @@
 				B949E669244979A2003E5AD4 /* EAGlobal.cpp in Sources */,
 				B949E65C244979A2003E5AD4 /* EASprintfCore.cpp in Sources */,
 				B949E668244979A2003E5AD4 /* Int128_t.cpp in Sources */,
+				B94247FF244AC8D90080BD66 /* mrt.h in Sources */,
 				B93FDCCC23036FD1000AECBE /* mesh.cpp in Sources */,
 				B949E6B024497B91003E5AD4 /* eathread_semaphore_apple.cpp in Sources */,
 				B93FDCC723036F60000AECBE /* graphics_pipeline.hpp in Sources */,
