@@ -28,6 +28,8 @@ namespace  vk
         using tex_registry_type = texture_registry<NUM_CHILDREN>;
         using material_store_type = material_store;
         
+        node(){}
+        
         node(device* device)
         {
             _device = device;
@@ -35,8 +37,10 @@ namespace  vk
         
         static constexpr size_t MAX_COMMANDS = 20;
         
-        
-        
+        inline void set_device(device* device)
+        {
+            _device = device;
+        }
         node & operator=(const node&) = delete;
         node(const node&) = delete;
         node & operator=(node&) = delete;

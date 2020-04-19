@@ -26,13 +26,16 @@ template< uint32_t NUM_CHILDREN>
 class voxelize : public vk::graphics_node<1, NUM_CHILDREN>
 {
     
-private:
-    static constexpr unsigned int TOTAL_LODS = 6;
+public:
     static constexpr uint32_t VOXEL_CUBE_WIDTH = 256u;
     static constexpr uint32_t VOXEL_CUBE_HEIGHT = 256u;
     static constexpr uint32_t VOXEL_CUBE_DEPTH  =  256u ;
+    static constexpr unsigned int TOTAL_LODS = 6;
     
-    glm::vec3 _voxel_world_dimensions = glm::vec3(0.0f);
+private:
+    
+    static constexpr float WORLD_VOXEL_SIZE = 10.0f;
+    static constexpr glm::vec3 _voxel_world_dimensions = glm::vec3(WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE);
     
     glm::mat4 proj_to_voxel_screen = glm::mat4(1.0f);
     
@@ -55,9 +58,9 @@ public:
     using material_store_type = typename parent_type::material_store_type;
     using object_submask_type = typename parent_type::object_subpass_mask;
     
-    voxelize(vk::device* dev, vk::glfw_swapchain* swapchain, glm::vec2 _render_dims):
-    parent_type(dev, _render_dims.x, _render_dims.y),
-    _ortho_camera(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH)
+    voxelize(vk::device* dev, vk::glfw_swapchain* swapchain):
+    parent_type(dev, static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT)),
+    _ortho_camera(WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE)
     {
         
     }
@@ -118,6 +121,14 @@ public:
         parent_type::add_dynamic_param("model", 0, vk::visual_material::parameter_stage::VERTEX, glm::mat4(1.0), 3);
         
         voxelize_subpass.set_cull_mode( render_pass_type::graphics_pipeline_type::cull_mode::NONE);
+        
+        vk::attachment_group<1>& attachment_group = pass.get_attachment_group();
+        
+        vk::resource_set<vk::texture_2d>& target = _tex_registry->get_write_texture_2d_set("vox_test", this);
+        
+        attachment_group.add_attachment(target);
+        
+        
     }
     
     virtual void update(vk::camera& camera, uint32_t image_id) override
@@ -157,6 +168,7 @@ public:
             parent_type::set_dynamic_param("model", image_id, 0, _obj_vector[i],
                                            _obj_vector[i]->transform.get_transform_matrix(), 3 );
         }
+        
         vox_subpass.commit_parameters_to_gpu(image_id);
     }
     

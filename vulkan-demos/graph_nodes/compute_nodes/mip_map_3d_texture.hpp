@@ -16,11 +16,17 @@
 template<uint32_t NUM_CHILDREN>
 class mip_map_3d_texture : public vk::compute_node<NUM_CHILDREN>
 {
+    
 public:
+    
+    static constexpr unsigned int TOTAL_LODS = 5;
+    
     using parent_type = vk::compute_node<NUM_CHILDREN>;
     using tex_registry_type = typename parent_type::tex_registry_type;
     using material_store_type = typename vk::node<NUM_CHILDREN>::material_store_type;
     using compute_pipeline_type = typename parent_type::compute_pipeline_type;
+    
+    mip_map_3d_texture(){}
     
     mip_map_3d_texture(vk::device* dev, eastl::array<const char*, 2>& input_textures, eastl::array<const char*, 2>& output_textures,
                        uint32_t group_width, uint32_t group_height, uint32_t group_depth =1):
@@ -52,6 +58,17 @@ public:
         _compute_pipelines.set_image_sampler(input_tex2, _input_textures[1], 1);
         _compute_pipelines.set_image_sampler(out_tex1, _output_textures[0], 2);
         _compute_pipelines.set_image_sampler(out_tex2, _output_textures[1], 3);
+        
+        _compute_pipelines.commit_parameter_to_gpu(0);
+    }
+
+    virtual void update(vk::camera& camera, uint32_t image_id) override
+    {
+        
+    }
+    virtual void destroy() override
+    {
+        vk::compute_node<NUM_CHILDREN>::destroy();
     }
     
 private:

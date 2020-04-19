@@ -43,9 +43,9 @@
 
 #include "graph_nodes/graphics_nodes/display_texture.h"
 #include "graph_nodes/compute_nodes/mip_map_3d_texture.hpp"
-#include "graph_nodes/graphics_nodes/voxelize.h"
+#include "graph_nodes/graphics_nodes/voxelize.cpp"
 #include "graph_nodes/compute_nodes/clear_3d_texture.hpp"
-#include "graph_nodes/graphics_nodes/mrt.h"
+#include "graph_nodes/graphics_nodes/mrt.cpp"
 
 #include "new_operators.h"
 #include "graph.h"
@@ -345,9 +345,7 @@ int main()
     //glfwSetCursorPos(window, width * .5f, height * .5f);
 
     app.swapchain = &swapchain;
-    
 
-    
     material_store.create(&device);
     
     vk::texture_2d mario(&device, "mario_small.png");
@@ -397,8 +395,6 @@ int main()
     vk::renderer<1> three_d_renderer(&device, window, &swapchain, material_store, "display_3d_texture");
     
     display_texture<1> debug_node(&device, &swapchain, swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height);
-    
-
 
     debug_node.show_texture("mario.png");
     
@@ -451,6 +447,57 @@ int main()
     
     app.user_controller->update();
     app.texture_3d_view_controller->update();
+    
+    /////////////////
+    
+    vk::graph<4> voxel_cone_tracing(&device, material_store, swapchain);
+    mrt<4> mrt_node(&device, &swapchain);
+    voxelize<4> voxelize_node(&device, &swapchain);
+    
+    eastl::array<clear_3d_textures<4>, mip_map_3d_texture<4>::TOTAL_LODS + 1 > clear_mip_maps;
+    eastl::array<mip_map_3d_texture<4>, mip_map_3d_texture<4>::TOTAL_LODS> three_d_mip_maps;
+    
+    
+    clear_mip_maps[0].set_device(&device);
+    clear_mip_maps[0].set_group_size(voxelize<4>::VOXEL_CUBE_WIDTH,voxelize<4>::VOXEL_CUBE_HEIGHT,voxelize<4>::VOXEL_CUBE_DEPTH);
+    
+    for( int map_id = 1; map_id <= mip_map_3d_texture<4>::TOTAL_LODS; ++map_id)
+    {
+        assert((voxelize<4>::VOXEL_CUBE_WIDTH >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+        assert((voxelize<4>::VOXEL_CUBE_HEIGHT >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+        assert((voxelize<4>::VOXEL_CUBE_DEPTH >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+
+    
+        uint32_t local_groups_x = (voxelize<4>::VOXEL_CUBE_WIDTH >> map_id) / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE;
+        uint32_t local_groups_y = (voxelize<4>::VOXEL_CUBE_HEIGHT >> map_id) / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE;
+        uint32_t local_groups_z = (voxelize<4>::VOXEL_CUBE_DEPTH >> map_id) / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE;
+        
+        
+        three_d_mip_maps[map_id - 1].set_device(&device);
+        three_d_mip_maps[map_id - 1].set_group_size(local_groups_x,local_groups_y,local_groups_z);
+        
+        clear_mip_maps[map_id].set_device(&device);
+        clear_mip_maps[map_id].set_group_size(local_groups_x,local_groups_y,local_groups_z);
+    }
+    
+    //build the graph!
+    
+    for( int i = 0; i < mip_map_3d_texture<4>::TOTAL_LODS + 1; ++i)
+    {
+        voxelize_node.add_child(clear_mip_maps[i]);
+    }
+    
+    for( int i = mip_map_3d_texture<4>::TOTAL_LODS ; i >  1 ; --i)
+    {
+        three_d_mip_maps[i].add_child( three_d_mip_maps[i-1]);
+    }
+    
+    three_d_mip_maps[mip_map_3d_texture<4>::TOTAL_LODS].add_child(voxelize_node);
+    
+    mrt_node.add_child(three_d_mip_maps[mip_map_3d_texture<4>::TOTAL_LODS]);
+    voxel_cone_tracing.add_child(mrt_node);
+    
+    ////////////////////
     
     //game_loop();
     

@@ -21,11 +21,18 @@ public:
     using material_store_type = typename vk::node<NUM_CHILDREN>::material_store_type;
     using compute_pipeline_type = typename parent_type::compute_pipeline_type;
     
+    
+    clear_3d_textures(){}
     clear_3d_textures(vk::device* dev, eastl::array<const char*, 2>& input_textures,
                        uint32_t group_width, uint32_t group_height, uint32_t group_depth =1):
     parent_type(dev, group_width, group_height, group_depth)
     {
         _input_textures = input_textures;
+        
+    }
+    
+    virtual void update(vk::camera& camera, uint32_t image_id) override
+    {
         
     }
     

@@ -512,7 +512,7 @@ namespace vk
         
         inline resource_set<image*>& get_depth_textures()
         {
-            assert(_attachment_group.get_depth_set() != nullptr);
+            assert(_attachment_group.get_depth_set() != nullptr && "This render pass doesn't have a depth texture as an attachment");
             
             resource_set<image*>& depth = *(_attachment_group.get_depth_set());
             return depth;
@@ -741,6 +741,7 @@ namespace vk
              if(_subpasses[subpass_id].get_depth_enable())
             {
                 assert( _subpasses[subpass_id].is_depth_an_input() != true && "depth cannot be both an input an output in subpass, call subpass.set_depth_enable");
+                //TODO: REMOVE THE FOLLOWING COMMENT, NO LONGER APPLIES
                 //note: in this code base, the last attachement is the depth
                 resource_set<image*>& depths =  get_depth_textures();
                 depth_texture* t = static_cast<depth_texture*>( depths[swapchain_id]);
@@ -846,14 +847,14 @@ namespace vk
             vkDestroyRenderPass(_device->_logical_device, _vk_render_passes[i], nullptr);
         }
         
-        if(is_depth_enabled())
-        {
-            resource_set<image*>& depths =  get_depth_textures();
-            for( int i = 0; i < depths.size(); ++i)
-            {
-                depths[i]->destroy();
-            }
-        }
+//        if(is_depth_enabled())
+//        {
+//            resource_set<image*>& depths =  get_depth_textures();
+//            for( int i = 0; i < depths.size(); ++i)
+//            {
+//                depths[i]->destroy();
+//            }
+//        }
     }
 
     template< uint32_t NUM_ATTACHMENTS>

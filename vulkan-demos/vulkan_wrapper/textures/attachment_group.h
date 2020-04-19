@@ -65,19 +65,33 @@ namespace vk {
 //            ++num_attachments;
 //        }
         
-        inline resource_set<image*>* get_depth_set(){ return &(_attachments[NUM_ATTACHMENTS-1]); }
-        
-        inline void set_depth_set(resource_set<depth_texture>& textures_set)
-        {
-            for( int i = 0; i < textures_set.size(); ++i)
+        inline resource_set<image*>* get_depth_set(){
+            
+            
+            //return &(_attachments[NUM_ATTACHMENTS-1]);
+            
+            resource_set<image*>* result = nullptr;
+            for( int i = 0; i < _attachments.size(); ++i)
             {
-                //note: the rule in this code is: depth attachment is always the last one
-                _attachments[NUM_ATTACHMENTS][i] = static_cast<image*>( &textures_set[i] );
-                _attachments[NUM_ATTACHMENTS][i]->set_device(_device);
-                _attachments[NUM_ATTACHMENTS][i]->set_dimensions(_dimensions.x, _dimensions.y, 1);
-
+                if(_attachments[i].get_instance_type() == resource_set<depth_texture>::get_class_type())
+                {
+                    result = &(_attachments[i]);
+                }
             }
+            return result;
         }
+        
+//        inline void set_depth_set(resource_set<depth_texture>& textures_set)
+//        {
+//            for( int i = 0; i < textures_set.size(); ++i)
+//            {
+//                //note: the rule in this code is: depth attachment is always the last one
+//                _attachments[NUM_ATTACHMENTS][i] = static_cast<image*>( &textures_set[i] );
+//                _attachments[NUM_ATTACHMENTS][i]->set_device(_device);
+//                _attachments[NUM_ATTACHMENTS][i]->set_dimensions(_dimensions.x, _dimensions.y, 1);
+//
+//            }
+//        }
         
         template< typename R>
         inline void add_attachment(resource_set<R>& textures_set)
@@ -92,11 +106,11 @@ namespace vk {
             ++num_attachments;
         }
         
-        template<>
-        inline void add_attachment<depth_texture>(resource_set<depth_texture>& textures_set)
-        {
-            set_depth_set(textures_set);
-        }
+//        template<>
+//        inline void add_attachment<depth_texture>(resource_set<depth_texture>& textures_set)
+//        {
+//            set_depth_set(textures_set);
+//        }
         
 //        inline void add_attachment(glfw_present_texture_set& textures_set)
 //        {
@@ -110,12 +124,38 @@ namespace vk {
 //            ++num_attachments;
 //        }
         
+        inline void set_filter( image::filter filter)
+        {
+            //assert(attachment_id < num_attachments);
+            for( int attachment_id = 0; attachment_id < _attachments.size(); ++attachment_id )
+            {
+                for( int i = 0; i < _attachments[attachment_id].size(); ++i)
+                {
+                    //filters don't apply to present textures, they are never sampled by shaders
+                    if(resource_set<glfw_present_texture>::get_class_type() !=
+                       _attachments[attachment_id][i]->get_instance_type())
+                    {
+                        _attachments[attachment_id][i]->set_filter(filter);
+                    }
+                }
+            }
+        }
+        
         inline void set_filter(uint32_t attachment_id, image::filter filter)
         {
             assert(attachment_id < num_attachments);
             for( int i = 0; i < _attachments[attachment_id].size(); ++i)
             {
                 _attachments[attachment_id][i]->set_filter(filter);
+            }
+        }
+        
+        inline void set_format(image::formats format)
+        {
+            
+            for( int i = 0; i < _attachments.size(); ++i)
+            {
+                set_format(i, format);
             }
         }
         
@@ -160,7 +200,16 @@ namespace vk {
         inline resource_set<vk::image*>& operator[](int i) { return _attachments[i]; }
         
         virtual void destroy() override
-        {}
+        {
+            for( int i = 0; i < _attachments.size(); ++i)
+            {
+                for( int j = 0; j < _attachments[i].size(); ++i)
+                {
+                    _attachments[i][j]->destroy();
+                }
+            }
+            
+        }
         
     private:
         

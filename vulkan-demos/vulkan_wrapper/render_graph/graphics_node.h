@@ -30,6 +30,8 @@ namespace vk {
         using object_subpass_mask = eastl::fixed_map<vk::obj_shape*, uint32_t, 20, true>;
         using object_vector_type = eastl::fixed_vector<vk::obj_shape*, 20, true>;
         
+        graphics_node(){}
+        
         graphics_node(device* dev, uint32_t width, uint32_t height):
         _node_render_pass(dev, glm::vec2(width, height)),
         node_type::node_type(dev)
@@ -65,6 +67,7 @@ namespace vk {
             _obj_subpass_mask[&object] = all_subpasses;
             _obj_vector.push_back(&object);
         }
+        
         
     protected:
         
