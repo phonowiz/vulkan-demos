@@ -41,7 +41,7 @@
 #include "vulkan_wrapper/cameras/perspective_camera.h"
 #include "camera_controllers/first_person_controller.h"
 
-#include "graph_nodes/graphics_nodes/display_texture.h"
+#include "graph_nodes/graphics_nodes/display_texture_2d.h"
 #include "graph_nodes/compute_nodes/mip_map_3d_texture.hpp"
 #include "graph_nodes/graphics_nodes/voxelize.cpp"
 #include "graph_nodes/compute_nodes/clear_3d_texture.hpp"
@@ -96,9 +96,11 @@ vk::visual_mat_shared_ptr display_3d_tex_mat;
 struct App
 {
     vk::device* device = nullptr;
-    vk::deferred_renderer*   deferred_renderer = nullptr;
-    vk::renderer<1>*   three_d_renderer = nullptr;
+    //vk::deferred_renderer*   deferred_renderer = nullptr;
+    //vk::renderer<1>*   three_d_renderer = nullptr;
     vk::graph<1> * graph = nullptr;
+    
+    vk::graph<4> * voxel_graph = nullptr;
     
     first_person_controller* user_controller = nullptr;
     first_person_controller* texture_3d_view_controller = nullptr;
@@ -192,17 +194,17 @@ void game_loop()
         app.texture_3d_view_controller->update();
         if(app.mode == App::render_mode::RENDER_DEFFERED)
         {
-            update_renderer_parameters( *app.deferred_renderer );
-            app.deferred_renderer->draw(*app.perspective_camera);
-            next_swap = app.deferred_renderer->get_current_swapchain_image();
+//            update_renderer_parameters( *app.deferred_renderer );
+//            app.deferred_renderer->draw(*app.perspective_camera);
+//            next_swap = app.deferred_renderer->get_current_swapchain_image();
         }
         else if (app.mode == App::render_mode::RENDER_3D_TEXTURE)
         {
             app.device->wait_for_all_operations_to_finish();
-            next_swap = ++next_swap % 3;
-
-            update_3d_texture_rendering_params(*app.three_d_renderer, next_swap );
-            app.three_d_renderer->draw(*app.three_d_texture_camera);
+//            next_swap = ++next_swap % 3;
+//
+//            update_3d_texture_rendering_params(*app.three_d_renderer, next_swap );
+//            app.three_d_renderer->draw(*app.three_d_texture_camera);
         }
         else
         {
@@ -232,7 +234,7 @@ void on_window_resize(GLFWwindow * window, int w, int h)
         width = w;
         height = h;
         
-        app.deferred_renderer->recreate_renderer() ;
+        //app.deferred_renderer->recreate_renderer() ;
     }
 }
 
@@ -259,41 +261,41 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     
     if (key == GLFW_KEY_1 && action == GLFW_PRESS)
     {
-        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::FULL_RENDERING);
+        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::FULL_RENDERING);
         app.mode = App::render_mode::RENDER_DEFFERED;
     }
     
     if (key == GLFW_KEY_2 && action == GLFW_PRESS)
     {
-        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::ALBEDO);
+        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::ALBEDO);
         app.mode = App::render_mode::RENDER_DEFFERED;
     }
     
     if (key == GLFW_KEY_3 && action == GLFW_PRESS)
     {
-        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::NORMALS);
+        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::NORMALS);
         app.mode = App::render_mode::RENDER_DEFFERED;
     }
     
     if( key == GLFW_KEY_4 && action == GLFW_PRESS)
     {
-        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::POSITIONS);
+        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::POSITIONS);
         app.mode = App::render_mode::RENDER_DEFFERED;
     }
     
     if( key == GLFW_KEY_5 && action == GLFW_PRESS)
     {
-        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::DEPTH);
+        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::DEPTH);
         app.mode = App::render_mode::RENDER_DEFFERED;
     }
     if( key == GLFW_KEY_6 && action == GLFW_PRESS)
     {
-        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::AMBIENT_OCCLUSION);
+        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::AMBIENT_OCCLUSION);
         app.mode = App::render_mode::RENDER_DEFFERED;;
     }
     if( key == GLFW_KEY_7 && action == GLFW_PRESS)
     {
-        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::AMBIENT_LIGHT);
+        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::AMBIENT_LIGHT);
         app.mode = App::render_mode::RENDER_DEFFERED;;
     }
     if( key == GLFW_KEY_8 && action == GLFW_PRESS)
@@ -302,7 +304,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     }
     if( key == GLFW_KEY_9 && action == GLFW_PRESS)
     {
-        app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::DIRECT_LIGHT);
+        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::DIRECT_LIGHT);
         app.mode = App::render_mode::RENDER_DEFFERED;
     }
     if( key == GLFW_KEY_O && action == GLFW_PRESS)
@@ -391,10 +393,10 @@ int main()
     app.shapes.push_back(&cornell_box);
     app.shapes.push_back(&model);
     
-    vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store, app.shapes);
-    vk::renderer<1> three_d_renderer(&device, window, &swapchain, material_store, "display_3d_texture");
+    //vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store, app.shapes);
+    //vk::renderer<1> three_d_renderer(&device, window, &swapchain, material_store, "display_3d_texture");
     
-    display_texture<1> debug_node(&device, &swapchain, swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height);
+    display_texture_2d<1> debug_node(&device, &swapchain, swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height);
 
     debug_node.show_texture("mario.png");
     
@@ -402,42 +404,42 @@ int main()
     graph.add_child(debug_node);
     
     app.graph = &graph;
-    app.three_d_renderer = &three_d_renderer;
-    app.deferred_renderer = &deferred_renderer;
+    //app.three_d_renderer = &three_d_renderer;
+    //app.deferred_renderer = &deferred_renderer;
 
-    app.deferred_renderer->init();
+    //app.deferred_renderer->init();
 
-    eastl::array<vk::texture_3d, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& voxel_texture = deferred_renderer.get_voxel_texture();
+    //eastl::array<vk::texture_3d, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& voxel_texture = deferred_renderer.get_voxel_texture();
     
-    app.three_d_renderer->get_render_pass().get_subpass(0).set_image_sampler(voxel_texture, "texture_3d",
-                                                                             vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
+    //app.three_d_renderer->get_render_pass().get_subpass(0).set_image_sampler(voxel_texture, "texture_3d",
+    //                                                                         vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
     
-    app.three_d_renderer->get_render_pass().add_object(cube);
+    //app.three_d_renderer->get_render_pass().add_object(cube);
 
     static const uint32_t DEPTH = 1;
-    app.three_d_renderer->get_render_pass().get_subpass(0).add_output_attachment(DEPTH);
+    //app.three_d_renderer->get_render_pass().get_subpass(0).add_output_attachment(DEPTH);
     
-    app.three_d_renderer->get_render_pass().get_subpass(0).set_cull_mode(vk::standard_pipeline::cull_mode::NONE);
+    //app.three_d_renderer->get_render_pass().get_subpass(0).set_cull_mode(vk::standard_pipeline::cull_mode::NONE);
     
-    app.three_d_renderer->init();
-    for( int i = 0; i < vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
-    {
-        vk::shader_parameter::shader_params_group& vertex_params =
-            three_d_renderer.get_render_pass().get_subpass(0).get_pipeline(i).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-
-        //glm::mat4 mvp = app.three_d_texture_camera->get_projection_matrix() * app.three_d_texture_camera->view_matrix * glm::mat4(1.0f);
-        vertex_params["mvp"] = glm::mat4(1.0f);
-        vertex_params["model"] = glm::mat4(1.0f);
-
-        vk::shader_parameter::shader_params_group& fragment_params = three_d_renderer.get_render_pass().get_subpass(0).
-        get_pipeline(i).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
-        
-        fragment_params["box_eye_position"] =   glm::vec4(1.0f);
-        fragment_params["screen_height"] = (0.0f);
-        fragment_params["screen_width"] = (.0f);
-        
-        app.three_d_renderer->get_render_pass().create(i);
-    }
+    //app.three_d_renderer->init();
+//    for( int i = 0; i < vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
+//    {
+//        vk::shader_parameter::shader_params_group& vertex_params =
+//            three_d_renderer.get_render_pass().get_subpass(0).get_pipeline(i).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+//
+//        //glm::mat4 mvp = app.three_d_texture_camera->get_projection_matrix() * app.three_d_texture_camera->view_matrix * glm::mat4(1.0f);
+//        vertex_params["mvp"] = glm::mat4(1.0f);
+//        vertex_params["model"] = glm::mat4(1.0f);
+//
+//        vk::shader_parameter::shader_params_group& fragment_params = three_d_renderer.get_render_pass().get_subpass(0).
+//        get_pipeline(i).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
+//
+//        fragment_params["box_eye_position"] =   glm::vec4(1.0f);
+//        fragment_params["screen_height"] = (0.0f);
+//        fragment_params["screen_width"] = (.0f);
+//
+//        app.three_d_renderer->get_render_pass().create(i);
+//    }
     
     first_person_controller user_controler( app.perspective_camera, window);
     first_person_controller  texture_3d_view_controller(app.three_d_texture_camera, window);
@@ -453,53 +455,83 @@ int main()
     vk::graph<4> voxel_cone_tracing(&device, material_store, swapchain);
     mrt<4> mrt_node(&device, &swapchain);
     voxelize<4> voxelize_node(&device, &swapchain);
-    
-    eastl::array<clear_3d_textures<4>, mip_map_3d_texture<4>::TOTAL_LODS + 1 > clear_mip_maps;
+
+    eastl::array<clear_3d_textures<4>, mip_map_3d_texture<4>::TOTAL_LODS> clear_mip_maps;
     eastl::array<mip_map_3d_texture<4>, mip_map_3d_texture<4>::TOTAL_LODS> three_d_mip_maps;
-    
-    
+
+
     clear_mip_maps[0].set_device(&device);
     clear_mip_maps[0].set_group_size(voxelize<4>::VOXEL_CUBE_WIDTH,voxelize<4>::VOXEL_CUBE_HEIGHT,voxelize<4>::VOXEL_CUBE_DEPTH);
+
+    static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<4>::TOTAL_LODS > albedo_names = {};
+    static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<4>::TOTAL_LODS > normal_names = {};
     
-    for( int map_id = 1; map_id <= mip_map_3d_texture<4>::TOTAL_LODS; ++map_id)
+    albedo_names[0] = "voxel_albedos";
+    normal_names[1] = "voxel_normals";
+    
+    //TODO: you also need to clear the voxel textures
+    clear_mip_maps[0].set_clear_texture(albedo_names[0]);
+    
+    for( int map_id = 1; map_id < mip_map_3d_texture<4>::TOTAL_LODS; ++map_id)
     {
         assert((voxelize<4>::VOXEL_CUBE_WIDTH >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
         assert((voxelize<4>::VOXEL_CUBE_HEIGHT >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
         assert((voxelize<4>::VOXEL_CUBE_DEPTH >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
 
-    
+
         uint32_t local_groups_x = (voxelize<4>::VOXEL_CUBE_WIDTH >> map_id) / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE;
         uint32_t local_groups_y = (voxelize<4>::VOXEL_CUBE_HEIGHT >> map_id) / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE;
         uint32_t local_groups_z = (voxelize<4>::VOXEL_CUBE_DEPTH >> map_id) / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE;
-        
-        
+
+
         three_d_mip_maps[map_id - 1].set_device(&device);
         three_d_mip_maps[map_id - 1].set_group_size(local_groups_x,local_groups_y,local_groups_z);
+        //three_d_mip_maps[map_id - 1]
+        albedo_names[map_id].sprintf("voxel_albedos%i", map_id);
+        normal_names[map_id].sprintf("voxel_normals%i", map_id);
         
-        clear_mip_maps[map_id].set_device(&device);
-        clear_mip_maps[map_id].set_group_size(local_groups_x,local_groups_y,local_groups_z);
+        eastl::array< eastl::fixed_string<char, 100>, 2 > input_tex;
+        eastl::array< eastl::fixed_string<char, 100>, 2 > output_tex;
+        
+        input_tex[0] = albedo_names[map_id -1];
+        input_tex[1] = normal_names[map_id -1];
+        
+        output_tex[0] = albedo_names[map_id];
+        output_tex[1] = normal_names[map_id];
+        
+        three_d_mip_maps[map_id].set_textures(input_tex, output_tex);
+        three_d_mip_maps[map_id].set_device(&device);
+        three_d_mip_maps[map_id].set_group_size(local_groups_x,local_groups_y,local_groups_z);
+        
+        //TODO: we also need to clear the normal voxel textures
+        clear_mip_maps[map_id].set_clear_texture(albedo_names[map_id]);
     }
     
+    /////////////////////
     //build the graph!
     
-    for( int i = 0; i < mip_map_3d_texture<4>::TOTAL_LODS + 1; ++i)
-    {
-        voxelize_node.add_child(clear_mip_maps[i]);
-    }
-    
-    for( int i = mip_map_3d_texture<4>::TOTAL_LODS ; i >  1 ; --i)
+    for( int i = mip_map_3d_texture<4>::TOTAL_LODS-1 ; i >  1 ; --i)
     {
         three_d_mip_maps[i].add_child( three_d_mip_maps[i-1]);
     }
     
-    three_d_mip_maps[mip_map_3d_texture<4>::TOTAL_LODS].add_child(voxelize_node);
-    
-    mrt_node.add_child(three_d_mip_maps[mip_map_3d_texture<4>::TOTAL_LODS]);
+    for( int i = 0; i < mip_map_3d_texture<4>::TOTAL_LODS; ++i)
+    {
+        voxelize_node.add_child(clear_mip_maps[i]);
+    }
+
+    three_d_mip_maps[0].add_child(voxelize_node);
+
+    mrt_node.add_child(three_d_mip_maps[mip_map_3d_texture<4>::TOTAL_LODS-1]);
     voxel_cone_tracing.add_child(mrt_node);
+
+    app.voxel_graph = &voxel_cone_tracing;
     
     ////////////////////
     
     //game_loop();
+    
+    app.voxel_graph->init();
     
     app.graph->init();
     game_loop_ortho();
@@ -507,8 +539,8 @@ int main()
     
     device.wait_for_all_operations_to_finish();
     mario.destroy();
-    deferred_renderer.destroy();
-    three_d_renderer.destroy();
+    //deferred_renderer.destroy();
+    //three_d_renderer.destroy();
 
     debug_node.destroy();
     graph.destroy();

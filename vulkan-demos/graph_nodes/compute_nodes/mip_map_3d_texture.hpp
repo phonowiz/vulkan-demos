@@ -19,7 +19,7 @@ class mip_map_3d_texture : public vk::compute_node<NUM_CHILDREN>
     
 public:
     
-    static constexpr unsigned int TOTAL_LODS = 5;
+    static constexpr unsigned int TOTAL_LODS = 6;
     
     using parent_type = vk::compute_node<NUM_CHILDREN>;
     using tex_registry_type = typename parent_type::tex_registry_type;
@@ -28,9 +28,17 @@ public:
     
     mip_map_3d_texture(){}
     
-    mip_map_3d_texture(vk::device* dev, eastl::array<const char*, 2>& input_textures, eastl::array<const char*, 2>& output_textures,
-                       uint32_t group_width, uint32_t group_height, uint32_t group_depth =1):
+    mip_map_3d_texture(vk::device* dev, eastl::array< eastl::fixed_string<char, 100>, 2>& input_textures,
+                       eastl::array< eastl::fixed_string<char, 100>, 2>& output_textures, uint32_t group_width, uint32_t group_height, uint32_t group_depth =1):
     parent_type(dev, group_width, group_height, group_depth)
+    {
+        _input_textures = input_textures;
+        _output_textures = output_textures;
+    }
+    
+    
+    void set_textures( eastl::array< eastl::fixed_string<char, 100>, 2>& input_textures,
+                        eastl::array< eastl::fixed_string<char, 100>, 2>& output_textures )
     {
         _input_textures = input_textures;
         _output_textures = output_textures;
@@ -45,19 +53,19 @@ public:
         parent_type::_compute_pipelines.set_material("downsize", *_mat_store);
         
         
-        vk::resource_set<vk::texture_3d>& input_tex1 = _tex_registry->get_read_texture_3d_set(_input_textures[0], this,
+        vk::resource_set<vk::texture_3d>& input_tex1 = _tex_registry->get_read_texture_3d_set(_input_textures[0].c_str(), this,
                                                                                vk::image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
-        vk::resource_set<vk::texture_3d>& input_tex2 = _tex_registry->get_read_texture_3d_set(_input_textures[1], this,
+        vk::resource_set<vk::texture_3d>& input_tex2 = _tex_registry->get_read_texture_3d_set(_input_textures[1].c_str(), this,
                                                                                vk::image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
         
-        vk::resource_set<vk::texture_3d>& out_tex1 = _tex_registry->get_write_texture_3d_set(_output_textures[0], this);
-        vk::resource_set<vk::texture_3d>& out_tex2 = _tex_registry->get_write_texture_3d_set(_output_textures[1], this);
+        vk::resource_set<vk::texture_3d>& out_tex1 = _tex_registry->get_write_texture_3d_set(_output_textures[0].c_str(), this);
+        vk::resource_set<vk::texture_3d>& out_tex2 = _tex_registry->get_write_texture_3d_set(_output_textures[1].c_str(), this);
         
         
-        _compute_pipelines.set_image_sampler(input_tex1, _input_textures[0], 0);
-        _compute_pipelines.set_image_sampler(input_tex2, _input_textures[1], 1);
-        _compute_pipelines.set_image_sampler(out_tex1, _output_textures[0], 2);
-        _compute_pipelines.set_image_sampler(out_tex2, _output_textures[1], 3);
+        _compute_pipelines.set_image_sampler(input_tex1, _input_textures[0].c_str(), 0);
+        _compute_pipelines.set_image_sampler(input_tex2, _input_textures[1].c_str(), 1);
+        _compute_pipelines.set_image_sampler(out_tex1, _output_textures[0].c_str(), 2);
+        _compute_pipelines.set_image_sampler(out_tex2, _output_textures[1].c_str(), 3);
         
         _compute_pipelines.commit_parameter_to_gpu(0);
     }
@@ -72,8 +80,8 @@ public:
     }
     
 private:
-    eastl::array<const char*, 2> _input_textures = {};
-    eastl::array<const char*, 2> _output_textures = {};
+    eastl::array< eastl::fixed_string<char, 100>, 2> _input_textures = {};
+    eastl::array< eastl::fixed_string<char, 100>, 2> _output_textures = {};
 };
 
 

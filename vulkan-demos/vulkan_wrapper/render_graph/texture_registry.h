@@ -212,14 +212,15 @@ namespace vk
                 info.consumed = false;
 
                 _dependee_data_map[name] = info;
+                //TODO: any way to not have to copy the iterator by searching?
             }
             else
             {
-                assert(iter->second.consumed == true && "You are writing to texture that has not been consumed yet, check your graph");
+                ptr = std::static_pointer_cast<T>(iter->second.resource);
+                iter->second.consumed = false;
             }
             
-            iter->second.consumed = false;
-            ptr = std::static_pointer_cast<T>(iter->second.resource);
+            //iter->second.consumed = false;
             return *ptr;
         }
         

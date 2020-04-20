@@ -18,7 +18,7 @@
 #include "attachment_group.h"
 
 template< uint32_t NUM_CHILDREN>
-class display_texture : public vk::graphics_node<1, NUM_CHILDREN>
+class display_texture_2d : public vk::graphics_node<1, NUM_CHILDREN>
 {
 public:
     
@@ -30,7 +30,7 @@ public:
     using tex_registry_type = typename parent_type::tex_registry_type;
     
     
-    display_texture(vk::device* dev, vk::glfw_swapchain* swapchain, uint32_t width,uint32_t height):
+    display_texture_2d(vk::device* dev, vk::glfw_swapchain* swapchain, uint32_t width,uint32_t height):
     parent_type(dev, width, height),
     _screen_plane(dev)
     {

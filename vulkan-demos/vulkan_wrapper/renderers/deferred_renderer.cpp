@@ -29,6 +29,7 @@ _mrt_render_pass(device, glm::vec2(swapchain->get_vk_swap_extent().width, swapch
 _voxelize_render_pass(device, glm::vec2(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT) ),
 _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world_dimensions.z)
 {
+    //TODO: YOU NEED TO ALSO ADD DEPTH TEXTURE HERE
     attachment_group<4>& mrt_attachment_group = _mrt_render_pass.get_attachment_group();
     for(int i = 0; i < _g_buffer_textures.size(); ++i)
     {
@@ -38,7 +39,7 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
         if( buffer_ids::NORMALS_ATTACHMENT_ID == i)
             mrt_attachment_group.set_format(i, image::formats::R8G8_SIGNED_NORMALIZED);
     }
-    
+
     mrt_attachment_group.add_attachment(_swapchain->present_textures);
     
     attachment_group<1>& voxel_attachment_group = _voxelize_render_pass.get_attachment_group();

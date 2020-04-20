@@ -35,6 +35,7 @@ namespace  vk
             _device = device;
         }
         
+        
         static constexpr size_t MAX_COMMANDS = 20;
         
         inline void set_device(device* device)
@@ -120,16 +121,47 @@ namespace  vk
             
             record_node_commands(buffer, image_id);
             record_barriers(buffer, image_id);
-            
         }
         
-        const char* name = nullptr;
-        
+        void set_name(const char* name)
+        {
+            _name = name;
+        }
         
     protected:
         
         virtual void create_gpu_resources() = 0;
         
+        void create_barrier(command_recorder& buffer, vk::image* p_image, typename tex_registry_type::node_dependees::iterator& b, uint32_t image_id)
+        {
+            VkImageMemoryBarrier barrier {};
+            
+            barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            barrier.pNext = nullptr;
+            //TODO: this could potentially be set when connections are formed between nodes
+            barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            barrier.oldLayout = static_cast<VkImageLayout>(p_image->get_native_layout());;
+            barrier.newLayout = static_cast<VkImageLayout>((*b).layout);
+            barrier.image = p_image->get_image();
+            barrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+            //we are not transferring ownership
+            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+
+            constexpr uint32_t VK_FLAGS_NONE = 0;
+
+            vkCmdPipelineBarrier(
+                                 buffer.get_raw_graphics_command(image_id),
+                                 VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+                                 VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+                                 VK_FLAGS_NONE,
+                                 0, nullptr,
+                                 0, nullptr,
+                                 1, &barrier);
+            
+        }
         void record_barriers(command_recorder& buffer,  uint32_t image_id)
         {
             assert( _device->_queue_family_indices.graphics_family.value() ==
@@ -147,33 +179,84 @@ namespace  vk
 
             for(typename tex_registry_type::node_dependees::iterator b = begin ; b != end ; ++b)
             {
-                VkImageMemoryBarrier barrier {};
-                typename tex_registry_type::image_ptr p_image = std::static_pointer_cast<image>((*b).data.resource);
+                
+                std::shared_ptr<vk::object> res = std::static_pointer_cast<vk::object>((*b).data.resource);
+                
+                if(res->get_instance_type() == texture_2d::get_class_type() ||
+                   res->get_instance_type() == texture_3d::get_class_type())
+                {
+                    std::shared_ptr<vk::image> p_image = std::static_pointer_cast<vk::image>(res);
 
-                barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                barrier.pNext = nullptr;
-                //TODO: this could potentially be set when connections are formed between nodes
-                barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-                barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+                    create_barrier(buffer, p_image.get(), b, image_id );
+//                    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+//                    barrier.pNext = nullptr;
+//                    //TODO: this could potentially be set when connections are formed between nodes
+//                    barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+//                    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+//
+//                    barrier.oldLayout = static_cast<VkImageLayout>(p_image->get_native_layout());;
+//                    barrier.newLayout = static_cast<VkImageLayout>((*b).layout);
+//                    barrier.image = p_image->get_image();
+//                    barrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+//                    //we are not transferring ownership
+//                    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+//                    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+//
+//                    constexpr uint32_t VK_FLAGS_NONE = 0;
+//
+//                    vkCmdPipelineBarrier(
+//                                         buffer.get_raw_graphics_command(image_id),
+//                                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+//                                         VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+//                                         VK_FLAGS_NONE,
+//                                         0, nullptr,
+//                                         0, nullptr,
+//                                         1, &barrier);
+                }
+                else
+                {
+                    //this is a resource set...
+//                    assert(res->get_instance_type()  == resource_set<vk::texture_2d>::get_class_type() ||
+//                           res->get_instance_type()  == resource_set<vk::depth_texture>::get_class_type() ||
+//                           res->get_instance_type()  == resource_set<vk::texture_3d>::get_class_type() ||
+//                           res->get_instance_type()  == resource_set<vk::render_texture>::get_class_type());
+                    
+                    if(res->get_instance_type()  == resource_set<vk::texture_2d>::get_class_type())
+                    {
+                        std::shared_ptr< resource_set<vk::texture_2d> > set = std::static_pointer_cast< resource_set<vk::texture_2d>>(res);
+                        vk::texture_2d* tex = &((*set)[image_id]);
+                        
+                        create_barrier(buffer, tex, b, image_id );
+                    }
+                    if(res->get_instance_type()  == resource_set<vk::depth_texture>::get_class_type())
+                    {
+                        std::shared_ptr< resource_set<vk::depth_texture> > set = std::static_pointer_cast< resource_set<vk::depth_texture>>(res);
+                        vk::image* tex = &((*set)[image_id]);
+                        
+                        create_barrier(buffer, tex, b, image_id );
+                    }
+                    if(res->get_instance_type()  == resource_set<vk::depth_texture>::get_class_type())
+                    {
+                        std::shared_ptr< resource_set<vk::texture_3d> > set = std::static_pointer_cast< resource_set<vk::texture_3d>>(res);
+                        vk::image* tex = &((*set)[image_id]);
+                        
+                        create_barrier(buffer, tex, b, image_id );
+                    }
+                    if(res->get_instance_type()  == resource_set<vk::render_texture>::get_class_type())
+                    {
+                        std::shared_ptr< resource_set<vk::render_texture> > set = std::static_pointer_cast< resource_set<vk::render_texture>>(res);
+                        vk::image* tex = &((*set)[image_id]);
+                        
+                        create_barrier(buffer, tex, b, image_id );
+                    }
+                    else
+                    {
+                        assert(0 && "unrecognized resource_set");
+                    }
+                    
+                }
+                
 
-                barrier.oldLayout = static_cast<VkImageLayout>(p_image->get_native_layout());;
-                barrier.newLayout = static_cast<VkImageLayout>((*b).layout);
-                barrier.image = p_image->get_image();
-                barrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-                //we are not transferring ownership
-                barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-                barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-
-                constexpr uint32_t VK_FLAGS_NONE = 0;
-
-                vkCmdPipelineBarrier(
-                                     buffer.get_raw_graphics_command(image_id),
-                                     VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                     VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
-                                     VK_FLAGS_NONE,
-                                     0, nullptr,
-                                     0, nullptr,
-                                     1, &barrier);
             }
             
         }
@@ -186,6 +269,8 @@ namespace  vk
         
         material_store_type*     _material_store = nullptr;
         tex_registry_type*  _texture_registry = nullptr;
+        
+        eastl::fixed_string<char, 100> _name = "default";
         
         bool _active = false;
         bool _visited = false;

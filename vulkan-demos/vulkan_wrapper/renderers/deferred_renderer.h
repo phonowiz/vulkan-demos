@@ -151,7 +151,7 @@ namespace vk
         };
         
         eastl::array<resource_set<render_texture>, 1> _voxel_2d_view {};
-        eastl::array<resource_set<render_texture>, 3> _g_buffer_textures {};
+        eastl::array<resource_set<render_texture>, 4> _g_buffer_textures {};
         eastl::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _g_buffer_depth {};
         
         VkFence _fence {};
