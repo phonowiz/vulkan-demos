@@ -23,6 +23,7 @@ public:
     
     
     clear_3d_textures(){}
+    
     clear_3d_textures(vk::device* dev, eastl::fixed_string< char, 100 >& input_textures,
                        uint32_t group_width, uint32_t group_height, uint32_t group_depth =1):
     parent_type(dev, group_width, group_height, group_depth)
@@ -35,9 +36,9 @@ public:
     {
         _input_texture = input_tex;
     }
+    
     virtual void update(vk::camera& camera, uint32_t image_id) override
     {
-        
     }
     
     virtual void init_node() override
@@ -50,6 +51,16 @@ public:
         
         vk::resource_set<vk::texture_3d>& three_d_texture =
             _tex_registry->get_write_texture_3d_set(_input_texture.c_str(), this);
+        
+        //assert( parent_type::_group_x == parent_type::_group_y == parent_type::_group_z);
+        assert((parent_type::_group_x) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, compute shader won't run properly");
+        uint32_t size =  parent_type::_group_x * vk::compute_pipeline<1>::LOCAL_GROUP_SIZE;
+        for( int i = 0; i < three_d_texture.size(); ++i)
+        {
+            three_d_texture[i].set_device(parent_type::_device);
+            three_d_texture[i].set_dimensions(size, size, size);
+            three_d_texture[i].init();
+        }
         
         parent_type::_compute_pipelines.set_image_sampler( three_d_texture, "texture_3d", 0);
         

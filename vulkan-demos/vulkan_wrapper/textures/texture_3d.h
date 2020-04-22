@@ -27,6 +27,7 @@ namespace vk {
         }
 
         texture_3d():image(){};
+        texture_3d(device* dev): image(dev){};
         
         virtual char const * const * get_instance_type() override { return (& _image_type); }
         static char  const * const * get_class_type(){ return (& _image_type); }

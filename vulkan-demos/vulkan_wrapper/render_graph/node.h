@@ -15,6 +15,8 @@
 #include "texture_registry.h"
 #include "material_store.h"
 
+#include <iostream>
+
 namespace  vk
 {
     class command_recorder;
@@ -56,14 +58,18 @@ namespace  vk
         //init shader parameters here
         virtual void init()
         {
-            assert(!_visited && "we have a cyclic dependency, revise your graph");
-            _visited = true;
+            assert( _device != nullptr);
+
+            debug_print("initting...");
+            
             for( eastl_size_t i = 0; i < _children.size(); ++i)
             {
                 _children[i]->set_stores(*_texture_registry, *_material_store);
+                //std::cout << "\t\tinitting child of " << _name.c_str() << std::endl;
                 _children[i]->init();
             }
             
+
             init_node();
             create_gpu_resources();
         }
@@ -87,7 +93,6 @@ namespace  vk
         inline void add_child( node_type& child )
         {
             _children.push_back(&child);
-            
             assert(_children.size() != 0 );
         }
         
@@ -119,8 +124,10 @@ namespace  vk
                 node_type::_children[i]->record(buffer, image_id);
             }
             
-            record_node_commands(buffer, image_id);
+            std::cout << "recording node: " << _name.c_str() << std::endl;
+            
             record_barriers(buffer, image_id);
+            record_node_commands(buffer, image_id);
         }
         
         void set_name(const char* name)
@@ -129,6 +136,28 @@ namespace  vk
         }
         
     protected:
+        
+        virtual void set_levels( uint32_t i )
+        {
+            assert(!_visited && "we have a cyclic dependency, revise your graph");
+            _visited = true;
+            
+            _level = i;
+            for( int i = 0; i < _children.size(); ++i)
+            {
+                node_type::_children[i]->set_levels(_level + 1);
+            }
+        }
+        
+        void debug_print(const char* message)
+        {
+            for( int i = 0; i <= _level; ++i)
+            {
+                std::cout << "\t";
+            }
+            std::cout << _name.c_str() << ": " << message << std::endl;
+            
+        }
         
         virtual void create_gpu_resources() = 0;
         
@@ -255,8 +284,6 @@ namespace  vk
                     }
                     
                 }
-                
-
             }
             
         }
@@ -275,6 +302,8 @@ namespace  vk
         bool _active = false;
         bool _visited = false;
         bool _enable = true;
+        
+        uint32_t _level = 0;
         
     };
 }

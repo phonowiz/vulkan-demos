@@ -102,7 +102,6 @@
 		B9BD3144244D23CD0093A826 /* display_texture_3d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9BD3143244D23CD0093A826 /* display_texture_3d.cpp */; };
 		B9D4644E2448466E0011D358 /* voxelize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9D4644D2448466E0011D358 /* voxelize.cpp */; };
 		B9DE4A6223517578003559DC /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627E7219B48D700D1358A /* AppKit.framework */; };
-		B9E074702424933400F18A0B /* attachment_group.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9E0746E2424933400F18A0B /* attachment_group.cpp */; };
 		B9E221B02410F96400EFE3DA /* debug_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9E221AE2410F96400EFE3DA /* debug_utils.cpp */; };
 		B9F1E94C23F2A62000B0484A /* vulkan in Resources */ = {isa = PBXBuildFile; fileRef = B9F1E94B23F2A61E00B0484A /* vulkan */; };
 		B9F4EFF622FD2CE20058B38E /* obj_shape.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4EFF422FD2CE20058B38E /* obj_shape.cpp */; };
@@ -247,7 +246,6 @@
 		B9BD3143244D23CD0093A826 /* display_texture_3d.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = display_texture_3d.cpp; sourceTree = "<group>"; };
 		B9C2D0D12444472200D7621F /* mip_map_3d_texture.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = mip_map_3d_texture.hpp; sourceTree = "<group>"; };
 		B9D4644D2448466E0011D358 /* voxelize.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = voxelize.cpp; sourceTree = "<group>"; };
-		B9E0746E2424933400F18A0B /* attachment_group.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = attachment_group.cpp; sourceTree = "<group>"; };
 		B9E0746F2424933400F18A0B /* attachment_group.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = attachment_group.h; sourceTree = "<group>"; };
 		B9E221AE2410F96400EFE3DA /* debug_utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = debug_utils.cpp; sourceTree = "<group>"; };
 		B9E221AF2410F96400EFE3DA /* debug_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = debug_utils.h; sourceTree = "<group>"; };
@@ -374,7 +372,6 @@
 		B93FDCA123036C29000AECBE /* textures */ = {
 			isa = PBXGroup;
 			children = (
-				B9E0746E2424933400F18A0B /* attachment_group.cpp */,
 				B9E0746F2424933400F18A0B /* attachment_group.h */,
 				B93FDCB123036DDE000AECBE /* depth_texture.cpp */,
 				B93FDCB223036DDE000AECBE /* depth_texture.h */,
@@ -725,7 +722,6 @@
 				B93FDCA623036C29000AECBE /* texture_3d.cpp in Sources */,
 				B90583C12442A21B00366F8E /* fixed_pool.cpp in Sources */,
 				B9F4F011230369A10058B38E /* display_2d_texture_renderer.cpp in Sources */,
-				B9E074702424933400F18A0B /* attachment_group.cpp in Sources */,
 				B949E65A244979A2003E5AD4 /* EAHashCRC.cpp in Sources */,
 				B949E6B524497B91003E5AD4 /* eathread_pool.cpp in Sources */,
 				B978317022E54DEC00E5DE71 /* first_person_controller.cpp in Sources */,

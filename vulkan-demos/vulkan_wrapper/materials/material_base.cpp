@@ -59,7 +59,7 @@ void material_base::create_descriptor_sets()
     {
         for( std::pair<const char*, shader_parameter>& pair2 : pair.second)
         {
-            assert( pair2.second.get_image()->get_image_view() != VK_NULL_HANDLE);
+            assert( pair2.second.get_image()->get_image_view() != VK_NULL_HANDLE && "this image has not been initialized");
             descriptor_image_infos[count].sampler = pair2.second.get_image()->get_sampler();
             descriptor_image_infos[count].imageView = pair2.second.get_image()->get_image_view();
             

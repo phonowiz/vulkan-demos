@@ -87,7 +87,7 @@ namespace vk
         inline resource_set<depth_texture>& get_read_depth_texture_set( const char* name, node_type* node, vk::image::image_layouts expected_layout)
         {
             std::shared_ptr< resource_set<depth_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, expected_layout);
-            assert(tex == nullptr && " Invalid graph, the texture you depend on is not found");
+            assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
             
             return *tex;
         }
@@ -96,7 +96,7 @@ namespace vk
         inline resource_set<render_texture>& get_read_render_texture_set( const char* name, node_type* node, vk::image::image_layouts expected_layout)
         {
             std::shared_ptr< resource_set<render_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, expected_layout);
-            assert(tex == nullptr && " Invalid graph, the texture you depend on is not found");
+            assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
             
             return *tex;
         }
@@ -104,7 +104,7 @@ namespace vk
         inline resource_set<texture_3d>& get_read_texture_3d_set( const char* name, node_type* node, vk::image::image_layouts expected_layout)
         {
             std::shared_ptr< resource_set<texture_3d>> tex =  get_read_texture<resource_set<texture_3d>>(name, node, expected_layout);
-            assert(tex == nullptr && " Invalid graph, the texture you depend on is not found");
+            assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
             
             return *tex;
         }
@@ -117,7 +117,7 @@ namespace vk
             //TODO: make it so that we return a default texture if the one we are looking for is not found.  nodes should be able to tell
             //if the texture they asked for was found.
             
-            assert(tex == nullptr && " Invalid graph, the texture you depend on is not found");
+            assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
             
             return *tex;
         }
@@ -212,15 +212,14 @@ namespace vk
                 info.consumed = false;
 
                 _dependee_data_map[name] = info;
-                //TODO: any way to not have to copy the iterator by searching?
             }
             else
             {
+                //TODO: if we hit this else, we may mean there is a dependency that needs to be logged...
                 ptr = std::static_pointer_cast<T>(iter->second.resource);
                 iter->second.consumed = false;
             }
             
-            //iter->second.consumed = false;
             return *ptr;
         }
         

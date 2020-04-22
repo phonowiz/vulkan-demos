@@ -574,6 +574,12 @@ namespace vk
             }
         }
         
+        inline void set_dimensions(glm::vec2 dims)
+        {
+            _dimensions = dims;
+            _attachment_group.set_dimensions(dims);
+        }
+        
         void destroy() override;
         
     private:

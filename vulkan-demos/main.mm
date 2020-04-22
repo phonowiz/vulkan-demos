@@ -416,7 +416,7 @@ int main()
     
     //app.three_d_renderer->get_render_pass().add_object(cube);
 
-    static const uint32_t DEPTH = 1;
+    //static const uint32_t DEPTH = 1;
     //app.three_d_renderer->get_render_pass().get_subpass(0).add_output_attachment(DEPTH);
     
     //app.three_d_renderer->get_render_pass().get_subpass(0).set_cull_mode(vk::standard_pipeline::cull_mode::NONE);
@@ -453,24 +453,56 @@ int main()
     /////////////////
     
     vk::graph<4> voxel_cone_tracing(&device, material_store, swapchain);
+    
     mrt<4> mrt_node(&device, &swapchain);
-    voxelize<4> voxelize_node(&device, &swapchain);
-
+    
+    mrt_node.set_name("mrt");
+    
+    eastl::array<voxelize<4>, 3> voxelizers;
+    
+    constexpr float distance = 8.f;
+    std::array<glm::vec3, 3> cam_positions = {  glm::vec3(0.0f, 0.0f, -distance),glm::vec3(0.0f, distance, 0.0f), glm::vec3(distance, 0.0f, 0.0f)};
+    std::array<glm::vec3, 3> up_vectors = { glm::vec3 {0.0f, 1.0f, 0.0f}, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)};
+    std::array<const char*, 3>     names = { "z-axis", "y-axis", "x-axis"};
+    
+    vk::orthographic_camera vox_proj_cam(10.0f, 10.0f, 10.0f);
+    vox_proj_cam.up = up_vectors[0];
+    vox_proj_cam.position = cam_positions[0];
+    vox_proj_cam.forward = -cam_positions[0];
+    vox_proj_cam.update_view_matrix();
+    
+    for( int i = 0; i < voxelizers.size(); ++i)
+    {
+        //TODO: EVERY FRAME TICK, YOU MUST UPDATE THE LIGHT POSITION FOR EACH VOXELIZER
+        voxelizers[i].set_proj_to_voxel_screen(vox_proj_cam.get_projection_matrix() * vox_proj_cam.view_matrix);
+        
+        voxelizers[i].set_device(&device);
+        voxelizers[i].set_cam_params(cam_positions[i], up_vectors[i]);
+        voxelizers[i].set_name(names[i]);
+    }
+    
+    //voxelize<4> voxelize_node(&device, &swapchain);
+    //voxelize_node.set_name("voxelize");
+    
     eastl::array<clear_3d_textures<4>, mip_map_3d_texture<4>::TOTAL_LODS> clear_mip_maps;
     eastl::array<mip_map_3d_texture<4>, mip_map_3d_texture<4>::TOTAL_LODS> three_d_mip_maps;
 
 
     clear_mip_maps[0].set_device(&device);
-    clear_mip_maps[0].set_group_size(voxelize<4>::VOXEL_CUBE_WIDTH,voxelize<4>::VOXEL_CUBE_HEIGHT,voxelize<4>::VOXEL_CUBE_DEPTH);
+    clear_mip_maps[0].set_group_size(voxelize<4>::VOXEL_CUBE_WIDTH / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE,
+                                     voxelize<4>::VOXEL_CUBE_HEIGHT / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE,
+                                     voxelize<4>::VOXEL_CUBE_DEPTH / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE);
 
     static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<4>::TOTAL_LODS > albedo_names = {};
     static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<4>::TOTAL_LODS > normal_names = {};
     
     albedo_names[0] = "voxel_albedos";
-    normal_names[1] = "voxel_normals";
+    normal_names[0] = "voxel_normals";
     
     //TODO: you also need to clear the voxel textures
     clear_mip_maps[0].set_clear_texture(albedo_names[0]);
+    clear_mip_maps[0].set_name("clear mip map 0");
+    three_d_mip_maps[0].set_name("three d mip map 0");
     
     for( int map_id = 1; map_id < mip_map_3d_texture<4>::TOTAL_LODS; ++map_id)
     {
@@ -505,22 +537,35 @@ int main()
         
         //TODO: we also need to clear the normal voxel textures
         clear_mip_maps[map_id].set_clear_texture(albedo_names[map_id]);
+        clear_mip_maps[map_id].set_device(&device);
+        
+        eastl::fixed_string<char, 100> name = {};
+        name.sprintf("clear mip map node %i with local group %i", map_id, local_groups_x);
+        clear_mip_maps[map_id].set_name( name.c_str()) ;
+        
+        name.sprintf( "three d mip map %i with local group %i", map_id, local_groups_z);
+        three_d_mip_maps[map_id].set_name(name.c_str());
     }
     
     /////////////////////
     //build the graph!
     
-    for( int i = mip_map_3d_texture<4>::TOTAL_LODS-1 ; i >  1 ; --i)
+    for( int i = mip_map_3d_texture<4>::TOTAL_LODS-1 ; i >=  1 ; --i)
     {
         three_d_mip_maps[i].add_child( three_d_mip_maps[i-1]);
     }
     
     for( int i = 0; i < mip_map_3d_texture<4>::TOTAL_LODS; ++i)
     {
-        voxelize_node.add_child(clear_mip_maps[i]);
+        voxelizers[voxelizers.size() -1].add_child(clear_mip_maps[i]);
+    }
+    
+    for( int i = 0; i < voxelizers.size()-1; ++i)
+    {
+        voxelizers[i].add_child( voxelizers[i + 1] );
     }
 
-    three_d_mip_maps[0].add_child(voxelize_node);
+    three_d_mip_maps[0].add_child(voxelizers[0]);
 
     mrt_node.add_child(three_d_mip_maps[mip_map_3d_texture<4>::TOTAL_LODS-1]);
     voxel_cone_tracing.add_child(mrt_node);

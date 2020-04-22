@@ -50,6 +50,7 @@ namespace vk {
         
         static_assert(MAX_NUMBER_OF_ATTACHMENTS > (NUM_ATTACHMENTS + 1));
         
+        attachment_group(){}
         attachment_group(device* device, glm::vec2 dimensions){ _device = device; _dimensions = dimensions; };
         
 //        inline void add_attachment(texture_2d_set& textures_set)
@@ -65,6 +66,10 @@ namespace vk {
 //            ++num_attachments;
 //        }
         
+        inline void set_dimensiosn(glm::vec2 v)
+        {
+            _dimensions = v;
+        }
         inline resource_set<image*>* get_depth_set(){
             
             
@@ -96,12 +101,14 @@ namespace vk {
         template< typename R>
         inline void add_attachment(resource_set<R>& textures_set)
         {
+            assert(textures_set.get_instance_type() != resource_set<texture_2d>::get_class_type() && "texture 2d's are pre initialized since they are loaded from hard drive, "
+                   "did you mean to use a render_texture instead?");
             assert(num_attachments < NUM_ATTACHMENTS );
             for( int i = 0; i < textures_set.size(); ++i)
             {
                 _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
                 _attachments[num_attachments][i]->set_device(_device);
-                _attachments[num_attachments][i]->set_dimensions(_dimensions.x, _dimensions.y, 1);
+                //_attachments[num_attachments][i]->set_dimensions(_dimensions.x, _dimensions.y, 1);
             }
             ++num_attachments;
         }
@@ -213,29 +220,29 @@ namespace vk {
         
     private:
         
-        inline void set_dimensions(uint32_t width, uint32_t height)
-        {
-            _dimensions.x = static_cast<float>(width);
-            _dimensions.y = static_cast<float>(height);
-            
-            assert(num_attachments == NUM_ATTACHMENTS && "you must have all attachments before trying to set all of their dimensions");
-            for( int i = 0; i < MAX_NUM_ATTACHMENTS; ++i)
-            {
-                for( int j = 0; j < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++j)
-                {
-                    if(_attachments[i][j]->get_instance_type() == glfw_present_texture::get_class_type() ||
-                       _attachments[i][j]->get_instance_type() == depth_texture::get_class_type())
-                    {
-                        //note: you cannot change present textures width/height/depth, and other textures must
-                        //match these dimensions if this is an attachment to a render pass
-                        assert(_attachments[i][j]->get_width() == width);
-                        assert(_attachments[i][j]->get_height() == height);
-                    }
-                    //note: as far I know, you cant render to 3d attachments yet, I could be wrong...
-                    _attachments[i][j]->set_dimensions(width, height, 1);
-                }
-            }
-        }
+//        inline void set_dimensions(uint32_t width, uint32_t height)
+//        {
+//            _dimensions.x = static_cast<float>(width);
+//            _dimensions.y = static_cast<float>(height);
+//            
+//            assert(num_attachments == NUM_ATTACHMENTS && "you must have all attachments before trying to set all of their dimensions");
+//            for( int i = 0; i < MAX_NUM_ATTACHMENTS; ++i)
+//            {
+//                for( int j = 0; j < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++j)
+//                {
+//                    if(_attachments[i][j]->get_instance_type() == glfw_present_texture::get_class_type() ||
+//                       _attachments[i][j]->get_instance_type() == depth_texture::get_class_type())
+//                    {
+//                        //note: you cannot change present textures width/height/depth, and other textures must
+//                        //match these dimensions if this is an attachment to a render pass
+//                        assert(_attachments[i][j]->get_width() == width);
+//                        assert(_attachments[i][j]->get_height() == height);
+//                    }
+//                    //note: as far I know, you cant render to 3d attachments yet, I could be wrong...
+//                    _attachments[i][j]->set_dimensions(width, height, 1);
+//                }
+//            }
+//        }
         
         //note: we add 1 to accomodate for the depth attachment
         static const uint32_t MAX_NUM_ATTACHMENTS = NUM_ATTACHMENTS;

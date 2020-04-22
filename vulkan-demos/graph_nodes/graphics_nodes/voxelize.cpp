@@ -12,7 +12,7 @@
 #include "graphics_node.h"
 #include "material_store.h"
 #include "texture_registry.h"
-#include "glfw_swapchain.h"
+//#include "glfw_swapchain.h"
 #include "screen_plane.h"
 #include "texture_2d.h"
 #include "attachment_group.h"
@@ -58,7 +58,8 @@ public:
     using material_store_type = typename parent_type::material_store_type;
     using object_submask_type = typename parent_type::object_subpass_mask;
     
-    voxelize(vk::device* dev, vk::glfw_swapchain* swapchain):
+    voxelize(){}
+    voxelize(vk::device* dev):
     parent_type(dev, static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT)),
     _ortho_camera(WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE)
     {
@@ -90,19 +91,30 @@ public:
         object_submask_type& _obj_masks = parent_type::_obj_subpass_mask;
         object_vector_type& _obj_vector = parent_type::_obj_vector;
         
+        parent_type::debug_print("initializing node voxelize!!!");
         subpass_type& voxelize_subpass = pass.add_subpass(_mat_store, "voxelizer");
         
-        enum{ VOXEL_ATTACHMENT_ID = 0 };
-        voxelize_subpass.add_output_attachment(VOXEL_ATTACHMENT_ID);
         
         voxelize_subpass.set_number_of_blend_attachments(1);
         voxelize_subpass.modify_attachment_blend(0, render_pass_type::write_channels::RGBA, false);
         
-        vk::resource_set<vk::texture_3d>& albedo_textures = _tex_registry->get_write_texture_3d_set("voxel_albedo_texture", this);
-        vk::resource_set<vk::texture_3d>& normal_textures = _tex_registry->get_write_texture_3d_set("voxel_normal_texture", this);
+        vk::resource_set<vk::texture_3d>& albedo_textures = _tex_registry->get_write_texture_3d_set("voxel_albedos", this);
+        vk::resource_set<vk::texture_3d>& normal_textures = _tex_registry->get_write_texture_3d_set("voxel_normals", this);
         
         voxelize_subpass.set_image_sampler(albedo_textures, "voxel_albedo_texture",
                                            vk::visual_material::parameter_stage::FRAGMENT, 6, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER );
+        
+        for( int i = 0; i < normal_textures.size(); ++i)
+        {
+            normal_textures[i].set_device(parent_type::_device);
+            albedo_textures[i].set_device(parent_type::_device);
+            
+            normal_textures[i].set_dimensions(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH);
+            albedo_textures[i].set_dimensions(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH);
+            
+            normal_textures[i].init();
+            albedo_textures[i].init();
+        }
         
         voxelize_subpass.set_image_sampler(normal_textures, "voxel_normal_texture",
                                            vk::visual_material::parameter_stage::FRAGMENT, 7, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER );
@@ -124,11 +136,20 @@ public:
         
         vk::attachment_group<1>& attachment_group = pass.get_attachment_group();
         
-        vk::resource_set<vk::texture_2d>& target = _tex_registry->get_write_texture_2d_set("vox_test", this);
+        eastl::fixed_string<char, 100> test_name;
+        test_name.sprintf("vox_test<%f, %f, %f>", _cam_position.x, _cam_position.y, _cam_position.z );
+        vk::resource_set<vk::render_texture>& target = _tex_registry->get_write_render_texture_set(test_name.c_str(), this);
+        
+        for( int i = 0; i < target.size(); ++i)
+        {
+            target[i].set_device(parent_type::_device);
+            target[i].set_dimensions(float(VOXEL_CUBE_WIDTH), float(VOXEL_CUBE_HEIGHT), float(VOXEL_CUBE_DEPTH));
+            target[i].init();
+        }
+        enum{ VOXEL_ATTACHMENT_ID = 0 };
+        voxelize_subpass.add_output_attachment(VOXEL_ATTACHMENT_ID);
         
         attachment_group.add_attachment(target);
-        
-        
     }
     
     virtual void update(vk::camera& camera, uint32_t image_id) override

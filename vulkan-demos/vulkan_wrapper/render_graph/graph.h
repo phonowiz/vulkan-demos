@@ -32,7 +32,7 @@ namespace vk
         _material_store(mat_store)
         {
             node_type::_device = dev;
-            
+            node<NUM_CHILDREN>::_name = "root";
             node_type::set_stores(_texture_store, _material_store);
         }
         
@@ -44,9 +44,9 @@ namespace vk
         
         virtual void init() override
         {
+            node_type::set_levels(node_type::_level);
             create_gpu_resources();
-            assert(!node_type::_visited && "we have a cyclic dependency, revise your graph");
-            node_type::_visited = true;
+
             for( eastl_size_t i = 0; i < node_type::_children.size(); ++i)
             {
                 node_type::_children[i]->set_stores(_texture_store, _material_store);
