@@ -77,12 +77,12 @@ public:
         
         vk::attachment_group<4>& mrt_attachment_group = pass.get_attachment_group();
         
-        vk::resource_set<vk::render_texture>& normals = _tex_registry->get_write_render_texture_set("normals", this);
-        vk::resource_set<vk::render_texture>& albedos = _tex_registry->get_write_render_texture_set("albedos", this);
+        vk::resource_set<vk::render_texture>& normals = _tex_registry->get_write_render_texture_set("normals", this, vk::image::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::render_texture>& albedos = _tex_registry->get_write_render_texture_set("albedos", this, vk::image::usage_type::INPUT_ATTACHMENT);
         
         //TODO: you can derive positon from depth and sampling fragment position
-        vk::resource_set<vk::render_texture>& positions = _tex_registry->get_write_render_texture_set("positions", this);
-        vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_write_depth_texture_set("depth", this);
+        vk::resource_set<vk::render_texture>& positions = _tex_registry->get_write_render_texture_set("positions", this, vk::image::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_write_depth_texture_set("depth", this, vk::image::usage_type::INPUT_ATTACHMENT);
         
         
         //GBUFFER SUBPASS
@@ -181,8 +181,8 @@ public:
             normal_lods[i].sprintf("voxel_normals%i", i);
             albedo_lods[i].sprintf("voxel_normals%i", i);
             
-            vk::resource_set<vk::texture_3d>& normal3d = _tex_registry->get_read_texture_3d_set(normal_lods[i].c_str(), this, vk::image::image_layouts::GENERAL);
-            vk::resource_set<vk::texture_3d>& albedo3d = _tex_registry->get_read_texture_3d_set(albedo_lods[i].c_str(), this, vk::image::image_layouts::GENERAL);
+            vk::resource_set<vk::texture_3d>& normal3d = _tex_registry->get_read_texture_3d_set(normal_lods[i].c_str(), this, vk::image::usage_type::COMBINED_IMAGE_SAMPLER);
+            vk::resource_set<vk::texture_3d>& albedo3d = _tex_registry->get_read_texture_3d_set(albedo_lods[i].c_str(), this, vk::image::usage_type::COMBINED_IMAGE_SAMPLER);
             
             subpass.set_image_sampler(albedo3d, albedo_lods[i].c_str(), vk::visual_material::parameter_stage::FRAGMENT, binding_index, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
             subpass.set_image_sampler(normal3d, normal_lods[i].c_str(), vk::visual_material::parameter_stage::FRAGMENT, binding_index + offset, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);

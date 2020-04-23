@@ -138,7 +138,8 @@ public:
         
         eastl::fixed_string<char, 100> test_name;
         test_name.sprintf("vox_test<%f, %f, %f>", _cam_position.x, _cam_position.y, _cam_position.z );
-        vk::resource_set<vk::render_texture>& target = _tex_registry->get_write_render_texture_set(test_name.c_str(), this);
+        vk::resource_set<vk::render_texture>& target = _tex_registry->get_write_render_texture_set(test_name.c_str(),
+                                                                                                   this, vk::image::usage_type::INPUT_ATTACHMENT);
         
         for( int i = 0; i < target.size(); ++i)
         {
@@ -146,10 +147,13 @@ public:
             target[i].set_dimensions(float(VOXEL_CUBE_WIDTH), float(VOXEL_CUBE_HEIGHT), float(VOXEL_CUBE_DEPTH));
             target[i].init();
         }
+        
+        attachment_group.add_attachment(target);
+        
         enum{ VOXEL_ATTACHMENT_ID = 0 };
         voxelize_subpass.add_output_attachment(VOXEL_ATTACHMENT_ID);
         
-        attachment_group.add_attachment(target);
+        
     }
     
     virtual void update(vk::camera& camera, uint32_t image_id) override

@@ -84,26 +84,26 @@ namespace vk
         }
         
         
-        inline resource_set<depth_texture>& get_read_depth_texture_set( const char* name, node_type* node, vk::image::image_layouts expected_layout)
+        inline resource_set<depth_texture>& get_read_depth_texture_set( const char* name, node_type* node, vk::image::usage_type usage_type)
         {
-            std::shared_ptr< resource_set<depth_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, expected_layout);
+            std::shared_ptr< resource_set<depth_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, usage_type);
             assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
             
             return *tex;
         }
         
         
-        inline resource_set<render_texture>& get_read_render_texture_set( const char* name, node_type* node, vk::image::image_layouts expected_layout)
+        inline resource_set<render_texture>& get_read_render_texture_set( const char* name, node_type* node, vk::image::usage_type usage_type)
         {
-            std::shared_ptr< resource_set<render_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, expected_layout);
+            std::shared_ptr< resource_set<render_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, usage_type);
             assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
             
             return *tex;
         }
         
-        inline resource_set<texture_3d>& get_read_texture_3d_set( const char* name, node_type* node, vk::image::image_layouts expected_layout)
+        inline resource_set<texture_3d>& get_read_texture_3d_set( const char* name, node_type* node, vk::image::usage_type usage_type)
         {
-            std::shared_ptr< resource_set<texture_3d>> tex =  get_read_texture<resource_set<texture_3d>>(name, node, expected_layout);
+            std::shared_ptr< resource_set<texture_3d>> tex =  get_read_texture<resource_set<texture_3d>>(name, node, usage_type);
             assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
             
             return *tex;
@@ -114,32 +114,31 @@ namespace vk
             
             std::shared_ptr< resource_set<texture_2d>> tex =  get_read_texture<resource_set<texture_2d>>(name, node, expected_layout);
             
-            //TODO: make it so that we return a default texture if the one we are looking for is not found.  nodes should be able to tell
-            //if the texture they asked for was found.
-            
             assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
             
             return *tex;
         }
         
-        inline resource_set<texture_2d>& get_write_texture_2d_set( const char* name, node_type* node )
+        inline resource_set<texture_2d>& get_write_texture_2d_set( const char* name, node_type* node, vk::image::usage_type usage_type )
         {
-            return get_write_texture<resource_set<texture_2d>>(name, node);
+            return get_write_texture<resource_set<texture_2d>>(name, node, usage_type);
         }
         
-        inline resource_set<depth_texture>& get_write_depth_texture_set( const char* name, node_type* node )
+        inline resource_set<depth_texture>& get_write_depth_texture_set( const char* name, node_type* node, vk::image::usage_type usage_type)
         {
-            return get_write_texture<resource_set<depth_texture>>(name, node);
+            return get_write_texture<resource_set<depth_texture>>(name, node, usage_type);
         }
         
-        inline resource_set<render_texture>& get_write_render_texture_set( const char* name, node_type* node )
+        inline resource_set<render_texture>& get_write_render_texture_set( const char* name, node_type* node, vk::image::usage_type usage_type )
         {
-            return get_write_texture<resource_set<render_texture>>(name, node);
+            return get_write_texture<resource_set<render_texture>>(name, node, usage_type);
         }
         
+        //note: for texture_3d's the layout is always the same no matter the usage, this is why we don't pass in
+        // a usage parameter
         inline resource_set<texture_3d>& get_write_texture_3d_set( const char* name, node_type* node )
         {
-            return get_write_texture<resource_set<texture_3d>>(name, node);
+            return get_write_texture<resource_set<texture_3d>>(name, node, vk::image::usage_type::STORAGE_IMAGE);
         }
 
         
@@ -150,7 +149,7 @@ namespace vk
             vk::texture_2d* result = nullptr;
             if( iter == _dependee_data_map.end())
             {
-                result = &(get_write_texture<texture_2d>(name, node, dev, path));
+                result = &(get_write_texture<texture_2d>(name, node, vk::image::usage_type::COMBINED_IMAGE_SAMPLER, dev, path));
                 result->init();
             }
             else
@@ -173,8 +172,27 @@ namespace vk
         
     private:
         
+        
+        template<typename T>
+        void make_dependency(T& type, dependee_data& d, node_type* node, vk::image::usage_type usage_type)
+        {
+            dependant_data dependant = {};
+            dependant.data = d;
+            dependant.layout = type.get_usage_layout(usage_type);
+            _node_dependees_map[node].push_back(dependant);
+        }
+        
+        template<typename T>
+        void make_dependency(resource_set<T>& type, dependee_data& d, node_type* node, vk::image::usage_type usage_type)
+        {
+            dependant_data dependant = {};
+            dependant.data = d;
+            dependant.layout = type[0].get_usage_layout(usage_type);
+            _node_dependees_map[node].push_back(dependant);
+        }
+        
         template <typename T>
-        inline std::shared_ptr<T> get_read_texture(const char* name, node_type* node, vk::image::image_layouts expected_layout)
+        inline std::shared_ptr<T> get_read_texture(const char* name, node_type* node, vk::image::usage_type usage_type)
         {
             typename dependee_data_map::iterator iter = _dependee_data_map.find(name);
             
@@ -183,21 +201,23 @@ namespace vk
             {
                 dependee_data& d = iter->second;
                 
-                assert(iter->second.consumed == false && "You are reading from texture that has not been written to yet, check your graph");
+                //assert(iter->second.consumed == false && "You are reading from texture that has not been written to yet, check your graph");
                 d.consumed = true;
                 
-                dependant_data dependant = {};
-                dependant.data = d;
-                dependant.layout = expected_layout;
-                _node_dependees_map[node].push_back(dependant);
+                make_dependency(*result, d, node, usage_type);
+//                dependant_data dependant = {};
+//                dependant.data = d;
+//                dependant.layout = result->get_transition_layout(usage_type);
+//                _node_dependees_map[node].push_back(dependant);
                 result = std::static_pointer_cast<T>(d.resource);
             }
             
             return result;
         }
 
+        //template <typename T>
         template <typename T, typename ...ARGS>
-        inline T& get_write_texture( const char* name, node_type* node,  ARGS... args)
+        inline T& get_write_texture( const char* name, node_type* node,  vk::image::usage_type usage_type, ARGS... args)
         {
             typename dependee_data_map::iterator iter = _dependee_data_map.find(name);
             
@@ -206,6 +226,7 @@ namespace vk
             {
                 ptr = GREATE_TEXTUE<T>(args...);
                 
+                //TODO: do we need expected layout
                 dependee_data info {};
                 info.resource = std::static_pointer_cast<vk::object>(ptr);
                 info.node = node;
@@ -215,8 +236,18 @@ namespace vk
             }
             else
             {
-                //TODO: if we hit this else, we may mean there is a dependency that needs to be logged...
                 ptr = std::static_pointer_cast<T>(iter->second.resource);
+                
+                dependee_data& d = iter->second;
+                
+                make_dependency(*ptr, d, node, usage_type);
+                
+//                dependant_data dependant = {};
+//                dependant.data = d;
+//                dependant.layout = (*ptr)[0].get_transition_layout(usage_type);
+//                _node_dependees_map[node].push_back(dependant);
+                
+                
                 iter->second.consumed = false;
             }
             

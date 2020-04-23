@@ -54,9 +54,9 @@ public:
         
         
         vk::resource_set<vk::texture_3d>& input_tex1 = _tex_registry->get_read_texture_3d_set(_input_textures[0].c_str(), this,
-                                                                               vk::image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
+                                                                               vk::image::usage_type::STORAGE_IMAGE);
         vk::resource_set<vk::texture_3d>& input_tex2 = _tex_registry->get_read_texture_3d_set(_input_textures[1].c_str(), this,
-                                                                               vk::image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
+                                                                               vk::image::usage_type::STORAGE_IMAGE);
         
         vk::resource_set<vk::texture_3d>& out_tex1 = _tex_registry->get_write_texture_3d_set(_output_textures[0].c_str(), this);
         vk::resource_set<vk::texture_3d>& out_tex2 = _tex_registry->get_write_texture_3d_set(_output_textures[1].c_str(), this);
