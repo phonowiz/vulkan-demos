@@ -479,6 +479,13 @@ int main()
         voxelizers[i].set_device(&device);
         voxelizers[i].set_cam_params(cam_positions[i], up_vectors[i]);
         voxelizers[i].set_name(names[i]);
+        voxelizers[i].set_dimensions(voxelize<4>::VOXEL_CUBE_WIDTH, voxelize<4>::VOXEL_CUBE_HEIGHT);
+        
+        //TODO: LET'S CREATE A MESH NODE, ATTACH THESE TO VOXELIZERS
+        for(int j = 0; j < app.shapes.size(); ++j)
+        {
+            voxelizers[i].add_object(*(app.shapes[j]));
+        }
     }
     
     //voxelize<4> voxelize_node(&device, &swapchain);

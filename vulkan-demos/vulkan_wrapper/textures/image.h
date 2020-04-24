@@ -55,7 +55,7 @@ namespace vk
             return _channels;
         }
         
-        void set_dimensions(uint32_t width, uint32_t height, uint32_t depth)
+        void set_dimensions(uint32_t width, uint32_t height, uint32_t depth = 1)
         {
             _width = width;
             _height = height;
@@ -76,7 +76,9 @@ namespace vk
         {
             return _depth;
         }
-
+        
+        inline bool is_initted(){ return _image != VK_NULL_HANDLE; }
+    
         
         device*         _device = nullptr;
         VkImage         _image =        VK_NULL_HANDLE;

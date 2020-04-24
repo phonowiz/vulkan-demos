@@ -45,12 +45,24 @@ namespace vk {
             _node_render_pass.record_draw_commands(buffer.get_raw_graphics_command(image_id), image_id);
         }
         
+        inline void set_dimensions( uint32_t width, uint32_t height)
+        {
+            _node_render_pass.set_dimensions(glm::vec2(width, height));
+        }
+        
+        virtual void init() override
+        {
+            assert(node_type::_device != nullptr);
+            _node_render_pass.set_device(node_type::_device);
+            
+            node_type::init();
+        }
         virtual void destroy() override
         {
             _node_render_pass.destroy();
         }
         
-        void skip_subpass( vk::object& object, uint32_t subpass_id)
+        void skip_subpass( vk::obj_shape& object, uint32_t subpass_id)
         {
             uint32_t new_mask = 1 << subpass_id;
             new_mask = ~new_mask;
@@ -61,7 +73,7 @@ namespace vk {
             _obj_subpass_mask[object] = combine;
         }
         
-        void add_object(vk::object& object)
+        void add_object(vk::obj_shape& object)
         {
             uint32_t all_subpasses = ~0;
             _obj_subpass_mask[&object] = all_subpasses;
@@ -103,6 +115,7 @@ namespace vk {
                                vk::visual_material::parameter_stage stage, glm::mat4 mat, uint32_t binding)
         {
             
+            assert(_obj_vector.size() != 0 && "dynamic parameters cannot be created without adding objects to this node");
             int count = 0;
             typename render_pass_type::subpass_s& subpass = _node_render_pass.get_subpass(subpass_id);
             for( int i = 0; i < _obj_vector.size(); ++i)

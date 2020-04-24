@@ -66,7 +66,7 @@ namespace vk {
 //            ++num_attachments;
 //        }
         
-        inline void set_dimensiosn(glm::vec2 v)
+        inline void set_dimensions(glm::vec2 v)
         {
             _dimensions = v;
         }
@@ -191,15 +191,15 @@ namespace vk {
         
         inline void set_device(device* device)
         {
-            assert(num_attachments == NUM_ATTACHMENTS && "you must have all attachments before trying to set their devices");
+//            assert(num_attachments == NUM_ATTACHMENTS && "you must have all attachments before trying to set their devices");
             _device = device;
-            for( int i = 0; i < NUM_ATTACHMENTS; ++i)
-            {
-                for( int j = 0; j < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++j)
-                {
-                    _attachments[i][j]->set_device(device);
-                }
-            }
+//            for( int i = 0; i < NUM_ATTACHMENTS; ++i)
+//            {
+//                for( int j = 0; j < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++j)
+//                {
+//                    _attachments[i][j]->set_device(device);
+//                }
+//            }
         }
         
         uint32_t size() { return num_attachments; }

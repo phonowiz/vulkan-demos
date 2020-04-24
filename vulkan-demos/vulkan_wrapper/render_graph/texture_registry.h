@@ -64,7 +64,7 @@ namespace vk
         
         using node_dependees_map = eastl::fixed_map<vk::object*,node_dependees, DEPENDENCIES_SIZE, false>;
         
-        using dependee_data_map = eastl::fixed_map<const char*, dependee_data, 50, true> ;
+        using dependee_data_map = eastl::fixed_map< eastl::fixed_string<char, 100>, dependee_data, 50, true> ;
         
         
         texture_registry(){}
@@ -201,6 +201,10 @@ namespace vk
             {
                 dependee_data& d = iter->second;
                 
+                eastl::fixed_string<char, 100> msg {};
+                msg.sprintf("accessing resource: %s", name);
+                node->debug_print(msg.c_str());
+                
                 //assert(iter->second.consumed == false && "You are reading from texture that has not been written to yet, check your graph");
                 d.consumed = true;
                 
@@ -224,6 +228,10 @@ namespace vk
             std::shared_ptr<T> ptr = nullptr;
             if(iter == _dependee_data_map.end())
             {
+                eastl::fixed_string<char, 100> msg {};
+                msg.sprintf("creating texture '%s'", name);
+                node->debug_print( msg.c_str());
+                
                 ptr = GREATE_TEXTUE<T>(args...);
                 
                 //TODO: do we need expected layout
@@ -233,6 +241,8 @@ namespace vk
                 info.consumed = false;
 
                 _dependee_data_map[name] = info;
+                
+                assert(_dependee_data_map.find(name) != _dependee_data_map.end());
             }
             else
             {

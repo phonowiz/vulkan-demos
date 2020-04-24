@@ -668,6 +668,8 @@ namespace vk
     {
         assert(_attachment_group.size() <= MAX_NUMBER_OF_ATTACHMENTS);
         assert(_attachment_group.size() != 0);
+        assert(_dimensions.x != 0 && _dimensions.y !=0 );
+        assert(_device != nullptr);
         
         _attachment_group.init(swapchain_id);
 

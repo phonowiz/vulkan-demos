@@ -135,6 +135,16 @@ namespace  vk
             _name = name;
         }
         
+        void debug_print(const char* message)
+        {
+            for( int i = 0; i <= _level; ++i)
+            {
+                std::cout << "\t";
+            }
+            std::cout << _name.c_str() << ": " << message << std::endl;
+            
+        }
+        
     protected:
         
         virtual void set_levels( uint32_t i )
@@ -147,16 +157,6 @@ namespace  vk
             {
                 node_type::_children[i]->set_levels(_level + 1);
             }
-        }
-        
-        void debug_print(const char* message)
-        {
-            for( int i = 0; i <= _level; ++i)
-            {
-                std::cout << "\t";
-            }
-            std::cout << _name.c_str() << ": " << message << std::endl;
-            
         }
         
         virtual void create_gpu_resources() = 0;

@@ -12,7 +12,6 @@
 #include "graphics_node.h"
 #include "material_store.h"
 #include "texture_registry.h"
-//#include "glfw_swapchain.h"
 #include "screen_plane.h"
 #include "texture_2d.h"
 #include "attachment_group.h"
@@ -102,22 +101,24 @@ public:
         vk::resource_set<vk::texture_3d>& normal_textures = _tex_registry->get_write_texture_3d_set("voxel_normals", this);
         
         voxelize_subpass.set_image_sampler(albedo_textures, "voxel_albedo_texture",
-                                           vk::visual_material::parameter_stage::FRAGMENT, 6, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER );
+                                           vk::visual_material::parameter_stage::FRAGMENT, 1, vk::material_base::usage_type::STORAGE_IMAGE );
         
+        //TODO: CHECK IF TEXTURES HAVE ALREADY BEEN INITTED...
         for( int i = 0; i < normal_textures.size(); ++i)
         {
             normal_textures[i].set_device(parent_type::_device);
-            albedo_textures[i].set_device(parent_type::_device);
+            //albedo_textures[i].set_device(parent_type::_device);
             
             normal_textures[i].set_dimensions(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH);
-            albedo_textures[i].set_dimensions(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH);
+            //albedo_textures[i].set_dimensions(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH);
+            
             
             normal_textures[i].init();
-            albedo_textures[i].init();
+            //albedo_textures[i].init();
         }
         
         voxelize_subpass.set_image_sampler(normal_textures, "voxel_normal_texture",
-                                           vk::visual_material::parameter_stage::FRAGMENT, 7, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER );
+                                           vk::visual_material::parameter_stage::FRAGMENT, 4, vk::material_base::usage_type::STORAGE_IMAGE );
         
         voxelize_subpass.init_parameter("inverse_view_projection", vk::visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
         voxelize_subpass.init_parameter("project_to_voxel_screen", vk::visual_material::parameter_stage::FRAGMENT, _proj_to_voxel_screen, 2);
@@ -144,12 +145,14 @@ public:
         for( int i = 0; i < target.size(); ++i)
         {
             target[i].set_device(parent_type::_device);
-            target[i].set_dimensions(float(VOXEL_CUBE_WIDTH), float(VOXEL_CUBE_HEIGHT), float(VOXEL_CUBE_DEPTH));
-            target[i].init();
+            target[i].set_dimensions(float(VOXEL_CUBE_WIDTH), float(VOXEL_CUBE_HEIGHT));
+            //TODO: YOU SHOULD COMMENT THIS BACK WHEN ATTACHMENTS DON'T GET INITIATED.  WE NEED TEXTURE INITIATION TO BE CONSISTENT 
+            //target[i].init();
         }
         
         attachment_group.add_attachment(target);
-        
+        //TODO: THIS SHOULDN'T BE NECESSARY
+        attachment_group.set_device(parent_type::_device);
         enum{ VOXEL_ATTACHMENT_ID = 0 };
         voxelize_subpass.add_output_attachment(VOXEL_ATTACHMENT_ID);
         
