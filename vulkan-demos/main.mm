@@ -492,7 +492,7 @@ int main()
     //voxelize_node.set_name("voxelize");
     
     eastl::array<clear_3d_textures<4>, mip_map_3d_texture<4>::TOTAL_LODS> clear_mip_maps;
-    eastl::array<mip_map_3d_texture<4>, mip_map_3d_texture<4>::TOTAL_LODS> three_d_mip_maps;
+    eastl::array<mip_map_3d_texture<4>, mip_map_3d_texture<4>::TOTAL_LODS-1> three_d_mip_maps;
 
 
     clear_mip_maps[0].set_device(&device);
@@ -506,12 +506,33 @@ int main()
     albedo_names[0] = "voxel_albedos";
     normal_names[0] = "voxel_normals";
     
-    //TODO: you also need to clear the voxel textures
-    clear_mip_maps[0].set_clear_texture(albedo_names[0]);
+    
+    eastl::array< eastl::fixed_string<char, 100>, 2 > input_tex;
+    eastl::array< eastl::fixed_string<char, 100>, 2 > output_tex;
+    
+    input_tex[0] = "voxel_albedos4";
+    input_tex[1] = "voxel_normals4";
+    
+    output_tex[0] = "voxel_albedos5";
+    output_tex[1] = "voxel_normals5";
+    
+    clear_mip_maps[0].set_clear_texture(albedo_names[0], normal_names[0]);
+    
     clear_mip_maps[0].set_name("clear mip map 0");
     three_d_mip_maps[0].set_name("three d mip map 0");
     
-    for( int map_id = 1; map_id < mip_map_3d_texture<4>::TOTAL_LODS; ++map_id)
+    //initialize the last three d mip mpa
+//    three_d_mip_maps[three_d_mip_maps.size() -1].set_textures(input_tex, output_tex);
+//    three_d_mip_maps[three_d_mip_maps.size() -1].set_device(&device);
+//
+//    three_d_mip_maps[three_d_mip_maps.size() -1].set_group_size((voxelize<4>::VOXEL_CUBE_WIDTH >> 5) /vk::compute_pipeline<1>::LOCAL_GROUP_SIZE,
+//                                                                (voxelize<4>::VOXEL_CUBE_HEIGHT >> 5) /vk::compute_pipeline<1>::LOCAL_GROUP_SIZE,
+//                                                                (voxelize<4>::VOXEL_CUBE_DEPTH >> 5) /vk::compute_pipeline<1>::LOCAL_GROUP_SIZE);
+//
+//    three_d_mip_maps[three_d_mip_maps.size() -1].set_textures(input_tex, output_tex);
+    
+    
+    for( int map_id = 1; map_id < clear_mip_maps.size(); ++map_id)
     {
         assert((voxelize<4>::VOXEL_CUBE_WIDTH >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
         assert((voxelize<4>::VOXEL_CUBE_HEIGHT >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
@@ -522,15 +543,8 @@ int main()
         uint32_t local_groups_y = (voxelize<4>::VOXEL_CUBE_HEIGHT >> map_id) / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE;
         uint32_t local_groups_z = (voxelize<4>::VOXEL_CUBE_DEPTH >> map_id) / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE;
 
-
-        three_d_mip_maps[map_id - 1].set_device(&device);
-        three_d_mip_maps[map_id - 1].set_group_size(local_groups_x,local_groups_y,local_groups_z);
-        //three_d_mip_maps[map_id - 1]
         albedo_names[map_id].sprintf("voxel_albedos%i", map_id);
         normal_names[map_id].sprintf("voxel_normals%i", map_id);
-        
-        eastl::array< eastl::fixed_string<char, 100>, 2 > input_tex;
-        eastl::array< eastl::fixed_string<char, 100>, 2 > output_tex;
         
         input_tex[0] = albedo_names[map_id -1];
         input_tex[1] = normal_names[map_id -1];
@@ -538,43 +552,52 @@ int main()
         output_tex[0] = albedo_names[map_id];
         output_tex[1] = normal_names[map_id];
         
-        three_d_mip_maps[map_id].set_textures(input_tex, output_tex);
-        three_d_mip_maps[map_id].set_device(&device);
-        three_d_mip_maps[map_id].set_group_size(local_groups_x,local_groups_y,local_groups_z);
-        
-        //TODO: we also need to clear the normal voxel textures
-        clear_mip_maps[map_id].set_clear_texture(albedo_names[map_id]);
-        clear_mip_maps[map_id].set_device(&device);
+        three_d_mip_maps[map_id -1].set_textures(input_tex, output_tex);
+        three_d_mip_maps[map_id -1].set_device(&device);
+        three_d_mip_maps[map_id -1].set_group_size(local_groups_x,local_groups_y,local_groups_z);
         
         eastl::fixed_string<char, 100> name = {};
-        name.sprintf("clear mip map node %i with local group %i", map_id, local_groups_x);
-        clear_mip_maps[map_id].set_name( name.c_str()) ;
         
         name.sprintf( "three d mip map %i with local group %i", map_id, local_groups_z);
-        three_d_mip_maps[map_id].set_name(name.c_str());
+        three_d_mip_maps[map_id -1].set_name(name.c_str());
+        
+        //TODO: we also need to clear the normal voxel textures
+        clear_mip_maps[map_id].set_clear_texture(albedo_names[map_id], normal_names[map_id]);
+        clear_mip_maps[map_id].set_device(&device);
+
+        name.sprintf("clear mip map node %i with local group %i", map_id, local_groups_x);
+        clear_mip_maps[map_id].set_name( name.c_str()) ;
+
     }
     
     /////////////////////
     //build the graph!
     
-    for( int i = mip_map_3d_texture<4>::TOTAL_LODS-1 ; i >=  1 ; --i)
+    //attach mip map nodes together starting with the lowest mip map all the way up to the highest
+    for( unsigned long i = three_d_mip_maps.size()-1 ; i > 0 ; --i)
     {
         three_d_mip_maps[i].add_child( three_d_mip_maps[i-1]);
     }
     
-    for( int i = 0; i < mip_map_3d_texture<4>::TOTAL_LODS; ++i)
+    //attach all clear maps to the last voxelizer
+    for( int i = 0; i < clear_mip_maps.size(); ++i)
     {
         voxelizers[voxelizers.size() -1].add_child(clear_mip_maps[i]);
     }
     
+    //chain voxelizers together
     for( int i = 0; i < voxelizers.size()-1; ++i)
     {
         voxelizers[i].add_child( voxelizers[i + 1] );
     }
 
+    //attach the zero voxelizer to the highest three_d mip map...
     three_d_mip_maps[0].add_child(voxelizers[0]);
 
-    mrt_node.add_child(three_d_mip_maps[mip_map_3d_texture<4>::TOTAL_LODS-1]);
+    //attach the lowest mipmap to the mrt node
+    mrt_node.add_child(three_d_mip_maps[three_d_mip_maps.size()-1]);
+    
+    //attach the mrt node to the graph
     voxel_cone_tracing.add_child(mrt_node);
 
     app.voxel_graph = &voxel_cone_tracing;

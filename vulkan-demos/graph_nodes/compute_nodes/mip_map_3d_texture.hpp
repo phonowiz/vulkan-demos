@@ -46,7 +46,10 @@ public:
     
     virtual void init_node() override
     {
-        tex_registry_type* _tex_registry = parent_type::_texture_registry;
+        assert( !_input_textures[0].empty() && !_input_textures[1].empty() &&"you need 2 input textures");
+        assert( !_output_textures[0].empty() && !_output_textures[1].empty() && "you need 2 output textures");
+        
+         tex_registry_type* _tex_registry = parent_type::_texture_registry;
         material_store_type* _mat_store = parent_type::_material_store;
         compute_pipeline_type& _compute_pipelines = parent_type::_compute_pipelines;
         
@@ -58,6 +61,8 @@ public:
         vk::resource_set<vk::texture_3d>& input_tex2 = _tex_registry->get_read_texture_3d_set(_input_textures[1].c_str(), this,
                                                                                vk::image::usage_type::STORAGE_IMAGE);
         
+        assert(_tex_registry->is_resource_created(_output_textures[0].c_str()) && "output resource hasn't been created");
+        
         vk::resource_set<vk::texture_3d>& out_tex1 = _tex_registry->get_write_texture_3d_set(_output_textures[0].c_str(), this);
         vk::resource_set<vk::texture_3d>& out_tex2 = _tex_registry->get_write_texture_3d_set(_output_textures[1].c_str(), this);
         
@@ -66,8 +71,6 @@ public:
         _compute_pipelines.set_image_sampler(input_tex2, _input_textures[1].c_str(), 1);
         _compute_pipelines.set_image_sampler(out_tex1, _output_textures[0].c_str(), 2);
         _compute_pipelines.set_image_sampler(out_tex2, _output_textures[1].c_str(), 3);
-        
-        _compute_pipelines.commit_parameter_to_gpu(0);
     }
 
     virtual void update(vk::camera& camera, uint32_t image_id) override

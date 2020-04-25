@@ -35,6 +35,30 @@ namespace vk
         inline T& operator[](int i) { return elements[i]; }
         
         
+        void set_dimensions( uint32_t width, uint32_t height, uint32_t depth = 1)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i].set_dimensions(width, height, depth);
+            }
+        }
+        
+        void init()
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i].init();
+            }
+        }
+        
+        void set_device( vk::device* dev)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i].set_device(dev);
+            }
+        }
+        
         eastl_size_t size(){ return elements.size(); }
         
         virtual void destroy() override
@@ -67,6 +91,31 @@ namespace vk
         inline T*& operator[](int i) { return elements[i]; }
         
         eastl_size_t size(){ return elements.size(); }
+        
+        void init()
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i]->init();
+            }
+        }
+        void set_dimensions( uint32_t width, uint32_t height, uint32_t depth = 1)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i]->set_dimensions(width, height, depth);
+            }
+        }
+        
+        
+        void set_device( vk::device* dev)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i]->set_device(dev);
+            }
+        }
+        
         
         virtual void destroy() override
         {

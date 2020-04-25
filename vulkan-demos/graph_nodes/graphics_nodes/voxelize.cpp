@@ -103,19 +103,22 @@ public:
         voxelize_subpass.set_image_sampler(albedo_textures, "voxel_albedo_texture",
                                            vk::visual_material::parameter_stage::FRAGMENT, 1, vk::material_base::usage_type::STORAGE_IMAGE );
         
+    
         //TODO: CHECK IF TEXTURES HAVE ALREADY BEEN INITTED...
-        for( int i = 0; i < normal_textures.size(); ++i)
-        {
-            normal_textures[i].set_device(parent_type::_device);
-            //albedo_textures[i].set_device(parent_type::_device);
-            
-            normal_textures[i].set_dimensions(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH);
-            //albedo_textures[i].set_dimensions(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH);
-            
-            
-            normal_textures[i].init();
-            //albedo_textures[i].init();
-        }
+//        for( int i = 0; i < normal_textures.size(); ++i)
+//        {
+//            if( normal_textures[i].is_initialized() )
+//                continue;
+//            normal_textures[i].set_device(parent_type::_device);
+//            //albedo_textures[i].set_device(parent_type::_device);
+//            
+//            normal_textures[i].set_dimensions(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH);
+//            //albedo_textures[i].set_dimensions(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH);
+//            
+//            
+//            normal_textures[i].init();
+//            //albedo_textures[i].init();
+//        }
         
         voxelize_subpass.set_image_sampler(normal_textures, "voxel_normal_texture",
                                            vk::visual_material::parameter_stage::FRAGMENT, 4, vk::material_base::usage_type::STORAGE_IMAGE );
@@ -138,12 +141,16 @@ public:
         vk::attachment_group<1>& attachment_group = pass.get_attachment_group();
         
         eastl::fixed_string<char, 100> test_name;
+        
+        //TODO: MAKE IT SO THAT WE CAN RE-USE THE SAME TEXTURE BETWEEN THE VOXELIZATION  NODES
         test_name.sprintf("vox_test<%f, %f, %f>", _cam_position.x, _cam_position.y, _cam_position.z );
         vk::resource_set<vk::render_texture>& target = _tex_registry->get_write_render_texture_set(test_name.c_str(),
                                                                                                    this, vk::image::usage_type::INPUT_ATTACHMENT);
         
         for( int i = 0; i < target.size(); ++i)
         {
+            if(target[i].is_initialized())
+                continue;
             target[i].set_device(parent_type::_device);
             target[i].set_dimensions(float(VOXEL_CUBE_WIDTH), float(VOXEL_CUBE_HEIGHT));
             //TODO: YOU SHOULD COMMENT THIS BACK WHEN ATTACHMENTS DON'T GET INITIATED.  WE NEED TEXTURE INITIATION TO BE CONSISTENT 

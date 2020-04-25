@@ -291,8 +291,8 @@ void material_base::init_shader_parameters()
         shader_parameter::shader_params_group& group = _uniform_parameters[pair.first];
         for (std::pair<const char* , shader_parameter >& pair : group)
         {
-            //std::string_view name = pair.first;
-            //std::cout << name << std::endl;
+//            std::string_view name = pair.first;
+//            std::cout << name << std::endl;
             shader_parameter setting = pair.second;
             total_size += setting.get_max_std140_aligned_size_in_bytes();
             ++_uniform_parameters_added_on_init;
@@ -302,7 +302,7 @@ void material_base::init_shader_parameters()
         
         if(total_size != 0)
         {
-            assert(mem.device_memory == VK_NULL_HANDLE && mem.uniform_buffer == VK_NULL_HANDLE);
+            assert(mem.device_memory == VK_NULL_HANDLE && mem.uniform_buffer == VK_NULL_HANDLE && "this material has already been initialized");
             create_buffer(_device->_logical_device, _device->_physical_device, total_size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, mem.uniform_buffer,
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mem.device_memory);
         }
@@ -350,6 +350,8 @@ void material_base::init_shader_parameters()
 }
 void material_base::set_image_sampler(image* texture, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage)
 {
+    
+    assert( texture->is_initialized() && "This image has not been initialized");
     buffer_info& mem = _sampler_buffers[stage][parameter_name];
     mem.binding = binding;
     mem.usage_type = usage;
@@ -357,6 +359,7 @@ void material_base::set_image_sampler(image* texture, const char* parameter_name
     _sampler_parameters[stage][parameter_name] = texture;
 }
 
+//TODO: THESE TWO COULD BE MADE AS A TEMPLATE
 void material_base::set_image_smapler(texture_2d* texture, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage)
 {
     set_image_sampler(static_cast<image*>(texture), parameter_name, stage, binding, usage);
@@ -461,24 +464,24 @@ material_base& material_base::operator=( const material_base& right)
 {
     if( this != &right)
     {
-        _descriptor_set_layout = right._descriptor_set_layout;
-        _descriptor_pool = right._descriptor_pool;
-        _descriptor_set = right._descriptor_set;
+        //_descriptor_set_layout = right._descriptor_set_layout;
+        //_descriptor_pool = right._descriptor_pool;
+        //_descriptor_set = right._descriptor_set;
         
-        _uniform_buffers = right._uniform_buffers;
-        _uniform_parameters = right._uniform_parameters;
-        _uniform_dynamic_buffers = right._uniform_dynamic_buffers;
-        _uniform_dynamic_parameters = right._uniform_dynamic_parameters;
-        _sampler_buffers = right._sampler_buffers;
-        _sampler_parameters = right._sampler_parameters;
+        //_uniform_buffers = right._uniform_buffers;
+        //_uniform_parameters = right._uniform_parameters;
+        //_uniform_dynamic_buffers = right._uniform_dynamic_buffers;
+        //_uniform_dynamic_parameters = right._uniform_dynamic_parameters;
+        //_sampler_buffers = right._sampler_buffers;
+        //_sampler_parameters = right._sampler_parameters;
         
-        _descriptor_set_layout_bindings = right._descriptor_set_layout_bindings;
-        _pipeline_shader_stages = right._pipeline_shader_stages;
+        //_descriptor_set_layout_bindings = right._descriptor_set_layout_bindings;
+        //_pipeline_shader_stages = right._pipeline_shader_stages;
         _device = right._device;
         _initialized = false;
-        _uniform_parameters_added_on_init = right._uniform_parameters_added_on_init;
-        _uniform_dynamic_parameters_added_on_init = right._uniform_dynamic_parameters_added_on_init;
-        _samplers_added_on_init = right._samplers_added_on_init;
+        //_uniform_parameters_added_on_init = right._uniform_parameters_added_on_init;
+        //_uniform_dynamic_parameters_added_on_init = right._uniform_dynamic_parameters_added_on_init;
+        //_samplers_added_on_init = right._samplers_added_on_init;
         
         for(int i = 0; i < _pipeline_shader_stages.size(); ++i)
         {

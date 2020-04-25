@@ -56,7 +56,13 @@ namespace vk
         
     protected:
         virtual void create_gpu_resources() override
-        {}
+        {
+            for(int i = 0; i < vk::NUM_SWAPCHAIN_IMAGES; ++i)
+            {
+                //committing for the first time will create gpu resources
+                _compute_pipelines.commit_parameter_to_gpu(i);
+            }
+        }
         
         
         compute_pipeline<vk::NUM_SWAPCHAIN_IMAGES> _compute_pipelines;

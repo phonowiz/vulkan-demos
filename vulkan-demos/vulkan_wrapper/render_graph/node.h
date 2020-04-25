@@ -92,6 +92,7 @@ namespace  vk
         
         inline void add_child( node_type& child )
         {
+            child.set_device(_device);
             _children.push_back(&child);
             assert(_children.size() != 0 );
         }
@@ -147,15 +148,18 @@ namespace  vk
         
     protected:
         
-        virtual void set_levels( uint32_t i )
+        virtual void pre_init( uint32_t i, vk::device* device )
         {
             assert(!_visited && "we have a cyclic dependency, revise your graph");
             _visited = true;
-            
+            _device = device;
             _level = i;
+            
+            //debug_print(_name.c_str());
+            
             for( int i = 0; i < _children.size(); ++i)
             {
-                node_type::_children[i]->set_levels(_level + 1);
+                node_type::_children[i]->pre_init(_level + 1, device);
             }
         }
         

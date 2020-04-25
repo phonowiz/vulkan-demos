@@ -77,7 +77,7 @@ namespace vk
             return _depth;
         }
         
-        inline bool is_initted(){ return _image != VK_NULL_HANDLE; }
+        inline bool is_initialized(){ return _image != VK_NULL_HANDLE; }
     
         
         device*         _device = nullptr;
@@ -159,7 +159,7 @@ namespace vk
         }
         void set_filter( image::filter filter){ _filter = filter; }
         
-        inline bool is_initialized(){ return _initialized; }
+        //inline bool is_initialized(){ return _initialized; }
         virtual void init() = 0;
     
     protected:

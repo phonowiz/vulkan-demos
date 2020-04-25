@@ -158,6 +158,13 @@ namespace vk
             return *result;
         }
         
+        bool is_resource_created(const char* name)
+        {
+            typename dependee_data_map::iterator iter = _dependee_data_map.find(name);
+            
+            return iter != _dependee_data_map.end();
+        }
+        
         
         virtual void destroy() override
         {
@@ -169,6 +176,7 @@ namespace vk
                 ++b;
             }
         }
+        
         
     private:
         
@@ -201,6 +209,11 @@ namespace vk
             {
                 dependee_data& d = iter->second;
                 
+                result = std::static_pointer_cast<T>(d.resource);
+                
+                //TODO: add the name of the node here using EAASSERT
+                assert( result != nullptr && "The asset this node depends on was not created, check the node which creates this asset");
+                
                 eastl::fixed_string<char, 100> msg {};
                 msg.sprintf("accessing resource: %s", name);
                 node->debug_print(msg.c_str());
@@ -213,7 +226,7 @@ namespace vk
 //                dependant.data = d;
 //                dependant.layout = result->get_transition_layout(usage_type);
 //                _node_dependees_map[node].push_back(dependant);
-                result = std::static_pointer_cast<T>(d.resource);
+                
             }
             
             return result;

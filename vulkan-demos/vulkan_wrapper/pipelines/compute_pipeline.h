@@ -41,33 +41,43 @@ namespace vk
             
         }
         
-        inline void set_image_sampler(resource_set<depth_texture>& textures, const char* parameter_name, uint32_t binding)
+        template<typename T>
+        inline void set_image_sampler(resource_set<T>& textures, const char* parameter_name, uint32_t binding)
         {
-            for( int i = 0; i < NUM_MATERIALS; ++i)
+            for( int i = 0; i < textures.size(); ++i)
             {
                 //note: here we force STORAGE_IMAGE usage because the validation layers will throw errors if you use anything else
                 _material[i]->set_image_sampler(&textures[i], parameter_name, material_base::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
             }
         }
         
-        
-        inline void set_image_sampler(resource_set<texture_2d>& textures, const char* parameter_name, uint32_t binding)
-        {
-            for( int i = 0; i < NUM_MATERIALS; ++i)
-            {
-                //note: here we force STORAGE_IMAGE usage because the validation layers will throw errors if you use anything else
-                _material[i]->set_image_sampler(&textures[i], parameter_name, material_base::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
-            }
-        }
-        
-        inline void set_image_sampler(resource_set<texture_3d>& textures, const char* parameter_name, uint32_t binding)
-        {
-            for( int i = 0; i < NUM_MATERIALS; ++i)
-            {
-                //note: here we force STORAGE_IMAGE usage because the validation layers will throw errors if you use anything else
-                _material[i]->set_image_sampler(&textures[i], parameter_name, material_base::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
-            }
-        }
+//        inline void set_image_sampler(resource_set<depth_texture>& textures, const char* parameter_name, uint32_t binding)
+//        {
+//            for( int i = 0; i < NUM_MATERIALS; ++i)
+//            {
+//                //note: here we force STORAGE_IMAGE usage because the validation layers will throw errors if you use anything else
+//                _material[i]->set_image_sampler(&textures[i], parameter_name, material_base::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
+//            }
+//        }
+//
+//
+//        inline void set_image_sampler(resource_set<texture_2d>& textures, const char* parameter_name, uint32_t binding)
+//        {
+//            for( int i = 0; i < NUM_MATERIALS; ++i)
+//            {
+//                //note: here we force STORAGE_IMAGE usage because the validation layers will throw errors if you use anything else
+//                _material[i]->set_image_sampler(&textures[i], parameter_name, material_base::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
+//            }
+//        }
+//
+//        inline void set_image_sampler(resource_set<texture_3d>& textures, const char* parameter_name, uint32_t binding)
+//        {
+//            for( int i = 0; i < NUM_MATERIALS; ++i)
+//            {
+//                //note: here we force STORAGE_IMAGE usage because the validation layers will throw errors if you use anything else
+//                _material[i]->set_image_sampler(&textures[i], parameter_name, material_base::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
+//            }
+//        }
         
         inline void set_image_sampler(texture_3d& textures, const char* parameter_name, uint32_t binding)
         {
