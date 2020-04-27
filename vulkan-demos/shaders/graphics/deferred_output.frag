@@ -17,6 +17,7 @@ layout(location = 0) out vec4 out_color;
 layout(input_attachment_index = 0, binding = 1 ) uniform subpassInput normals;//albedo;
 layout(input_attachment_index = 1, binding = 2 ) uniform subpassInput albedo;
 layout(input_attachment_index = 2, binding = 3 ) uniform subpassInput world_positions;
+//the 3rd input attachment are the present textures...
 layout(input_attachment_index = 4, binding = 4 ) uniform subpassInput depth;
 
 layout(binding = 5, std140) uniform _rendering_state

@@ -32,7 +32,8 @@ namespace vk {
         virtual void set_write_to_texture(bool write){ _write_to_texture = write; };
         
         
-        static void * const * const  get_class_type(){ return (&_image_type); }
+        static  char const * const *  get_class_type(){ return (&_image_type); }
+        virtual char const * const *  get_instance_type() override { return (&_image_type); };
         
         virtual image_layouts get_usage_layout( resource::usage_type usage) override
         {
@@ -42,8 +43,9 @@ namespace vk {
             {
                 layout = image::image_layouts::DEPTH_STENCIL_READ_ONLY_OPTIMAL;
             }
-            else if(usage == resource::usage_type::STORAGE_IMAGE)
+            if(usage == resource::usage_type::STORAGE_IMAGE)
             {
+                //TODO: IS THERE A BETTER ONE? 
                 layout = image::image_layouts::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             }
             
@@ -55,7 +57,7 @@ namespace vk {
         
         
     private:
-        static constexpr void* _image_type = nullptr;
+        static constexpr char const * _image_type = nullptr;
     protected:
         bool _created = false;
         bool _write_to_texture = false;

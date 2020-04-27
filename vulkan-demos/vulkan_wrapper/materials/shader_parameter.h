@@ -16,6 +16,7 @@
 #include "texture_2d_array.h"
 #include "glfw_present_texture.h"
 #include "render_texture.h"
+#include "depth_texture.h"
 
 #include <map>
 #include "ordered_map.h"
@@ -423,7 +424,8 @@ namespace vk
             }
             else if( sampler->get_instance_type() == texture_2d::get_class_type() ||
                     sampler->get_instance_type() == glfw_present_texture::get_class_type() ||
-                    sampler->get_instance_type() == render_texture::get_class_type())
+                    sampler->get_instance_type() == render_texture::get_class_type() ||
+                    sampler->get_instance_type() == depth_texture::get_class_type())
             {
                 type = Type::SAMPLER_2D;
                 value.sampler2D = static_cast<texture_2d*>( sampler );

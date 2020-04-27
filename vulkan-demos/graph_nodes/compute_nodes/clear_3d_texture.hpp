@@ -62,8 +62,11 @@ public:
         
         albedo_tx.set_device(parent_type::_device);
         albedo_tx.set_dimensions(size, size, size);
+        albedo_tx.set_filter(vk::image::filter::LINEAR);
+        
         normal_tx.set_device(parent_type::_device);
         normal_tx.set_dimensions(size, size, size);
+        normal_tx.set_filter(vk::image::filter::LINEAR);
         
         
         albedo_tx.init();

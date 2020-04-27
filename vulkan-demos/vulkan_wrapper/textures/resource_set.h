@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "glfw_present_texture.h"
 #include "EASTL/array.h"
 
 namespace vk
@@ -59,6 +60,28 @@ namespace vk
             }
         }
         
+        inline void set_format(image::formats format)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i].set_format(format);
+            }
+        }
+        inline void set_filter( image::filter filter)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i].set_filter(filter);
+            }
+        }
+        
+//        template<>
+//        void resource_set<glfw_present_texture>::set_filter( image::filter)
+//        {
+//            //present textures don't need filters, they are not to be used for
+//            //shader samplers
+//        }
+        
         eastl_size_t size(){ return elements.size(); }
         
         virtual void destroy() override
@@ -80,7 +103,7 @@ namespace vk
         static constexpr char const * _resource_type = nullptr;
     };
 
-
+    
     //specialize the resource_set class for pointers
     template< typename T>
     class resource_set<T*> : public object
@@ -107,6 +130,21 @@ namespace vk
             }
         }
         
+        inline void set_format(image::formats format)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i]->set_format(format);
+            }
+        }
+        
+        void set_filter( image::filter filter)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i]->set_filter(filter);
+            }
+        }
         
         void set_device( vk::device* dev)
         {

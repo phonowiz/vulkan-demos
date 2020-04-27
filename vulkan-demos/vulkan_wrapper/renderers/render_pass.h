@@ -156,10 +156,16 @@ namespace vk
             inline bool is_depth_an_input()
             {
                 bool result = false;
-                for(int i = 0; i < _num_color_references; ++i)
+                for( int i = 0; i < _num_color_references; ++i)
                 {
-                    result = result ||  _color_references[i].attachment == NUM_ATTACHMENTS;
+                    result = result || (*_attachment_group)[ _color_references[i].attachment ][0]->get_instance_type() ==
+                    depth_texture::get_class_type();
                 }
+                
+//                for(int i = 0; i < _num_color_references; ++i)
+//                {
+//                    result = result ||  _color_references[i].attachment == NUM_ATTACHMENTS;
+//                }
                 return result;
             }
             
@@ -170,7 +176,8 @@ namespace vk
             
             inline void add_output_attachment( uint32_t attachment_id)
             {
-                if( attachment_id == NUM_ATTACHMENTS)
+                if( (*_attachment_group)[attachment_id][0]->get_instance_type() ==
+                        depth_texture::get_class_type())
                 {
                     set_depth_enable(true);
                 }
@@ -182,8 +189,9 @@ namespace vk
                                              visual_material::parameter_stage parameter_stage, uint32_t binding)
             {
                 assert(_attachment_group != nullptr);
-                //note: plus one because NUM_ATTACHMENTS doesn't include depth
-                assert(attachment_id < NUM_ATTACHMENTS + 1);
+                
+                assert(attachment_id < NUM_ATTACHMENTS);
+                
                 _input_references[_num_input_references].attachment = attachment_id;
                 _input_references[_num_input_references].layout =
                             static_cast<VkImageLayout>((*_attachment_group)[attachment_id][0]->get_usage_layout(resource::usage_type::INPUT_ATTACHMENT));
@@ -580,6 +588,11 @@ namespace vk
             _attachment_group.set_dimensions(dims);
         }
         
+        inline glm::vec2 get_dimensions()
+        {
+            return _dimensions;
+        }
+        
         void destroy() override;
         
     private:
@@ -602,7 +615,7 @@ namespace vk
         
         static_assert(MAX_NUMBER_OF_ATTACHMENTS > NUM_ATTACHMENTS, "Number of attachments in your render pass excees what we can handle, increase limit??");
 
-        eastl::array<VkClearValue,NUM_ATTACHMENTS + 1> _clear_values {};
+        eastl::array<VkClearValue,NUM_ATTACHMENTS> _clear_values {};
         glm::vec2 _dimensions {};
         device* _device = nullptr;
         //VkCommandBuffer* _recording_buffer = VK_NULL_HANDLE;
@@ -682,23 +695,31 @@ namespace vk
         uint32_t attachment_id = 0;
         assert(_attachment_group[attachment_id].size() == glfw_swapchain::NUM_SWAPCHAIN_IMAGES);
         
-        for( ; attachment_id < _attachment_group.size(); ++attachment_id)
+        for(int i =0 ; i < _attachment_group.size(); ++i)
         {
+            
             assert(_attachment_group.size() != 0);
-            assert(_attachment_group[attachment_id][swapchain_id]->is_initialized() && "call init on all your attachment group textures");
-            _attachment_group[attachment_id][swapchain_id]->set_device(_device);
-            assert(_dimensions.x == _attachment_group[attachment_id][swapchain_id]->get_width());
-            assert(_dimensions.y == _attachment_group[attachment_id][swapchain_id]->get_height());
+            assert(_attachment_group[i][swapchain_id]->is_initialized() && "call init on all your attachment group textures");
+            _attachment_group[i][swapchain_id]->set_device(_device);
+            assert(_dimensions.x == _attachment_group[i][swapchain_id]->get_width());
+            assert(_dimensions.y == _attachment_group[i][swapchain_id]->get_height());
+            
+            //depth will be dealt with later in this function...
+            if(_attachment_group[i][0]->get_instance_type() == depth_texture::get_class_type())
+                continue;
             
             attachment_descriptions[attachment_id].samples = VK_SAMPLE_COUNT_1_BIT;
             attachment_descriptions[attachment_id].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            //TODO: MAYBE THIS NEEDS TO BE SPECIFIED BY USER, YOU DON'T HAVE TO STORE ALL THE TIME...
             attachment_descriptions[attachment_id].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             attachment_descriptions[attachment_id].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             attachment_descriptions[attachment_id].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             
             attachment_descriptions[attachment_id].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            attachment_descriptions[attachment_id].finalLayout = static_cast<VkImageLayout>(_attachment_group[attachment_id][swapchain_id]->get_native_layout());
-            attachment_descriptions[attachment_id].format = static_cast<VkFormat>(_attachment_group[attachment_id][swapchain_id]->get_format());
+            attachment_descriptions[attachment_id].finalLayout = static_cast<VkImageLayout>(_attachment_group[i][swapchain_id]->get_native_layout());
+            attachment_descriptions[attachment_id].format = static_cast<VkFormat>(_attachment_group[i][swapchain_id]->get_format());
+            
+            attachment_id++;
             
         }
         
@@ -719,22 +740,24 @@ namespace vk
         dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
         dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
         
-        if(is_depth_enabled())
-        {
-            assert(nullptr != _attachment_group.get_depth_set() && "subpasses require a depth attachment not found on this render pass");
-            
-            //notes: attachments all have the same width and height
-            uint32_t width = _dimensions.x;
-            uint32_t height = _dimensions.y;
-            
-            resource_set<image*>& depths =  get_depth_textures();
-            image::filter f = depths[0]->get_filter();
-
-            depths[swapchain_id]->set_device(_device);
-            depths[swapchain_id]->set_dimensions(width,height, 1.0f);
-            depths[swapchain_id]->set_filter(f);
-            depths[swapchain_id]->init();
-        }
+//        if(is_depth_enabled())
+//        {
+//            assert(nullptr != _attachment_group.get_depth_set() && "subpasses require a depth attachment not found on this render pass");
+//
+//            //notes: attachments all have the same width and height
+//            uint32_t width = _dimensions.x;
+//            uint32_t height = _dimensions.y;
+//
+//
+//            resource_set<image*>& depths =  get_depth_textures();
+//            //TODO: WE SHOULD VALIDATE THAT THIS IS TRUE INSTEAD OF FORCING IT TO BE TRUE
+//            image::filter f = depths[0]->get_filter();
+//
+//            depths[swapchain_id]->set_device(_device);
+//            depths[swapchain_id]->set_dimensions(width,height, 1.0f);
+//            depths[swapchain_id]->set_filter(f);
+//            depths[swapchain_id]->init();
+//        }
         
         VkAttachmentReference depth_reference {};
         
@@ -749,14 +772,14 @@ namespace vk
              if(_subpasses[subpass_id].get_depth_enable())
             {
                 assert( _subpasses[subpass_id].is_depth_an_input() != true && "depth cannot be both an input an output in subpass, call subpass.set_depth_enable");
-                //TODO: REMOVE THE FOLLOWING COMMENT, NO LONGER APPLIES
-                //note: in this code base, the last attachement is the depth
+                //note: in this code base, the last attachement is the depth, the frame buffer creating code assumes this as well.
                 resource_set<image*>& depths =  get_depth_textures();
                 depth_texture* t = static_cast<depth_texture*>( depths[swapchain_id]);
                 attachment_descriptions[attachment_id] =  t->get_depth_attachment();
                 depth_reference.attachment = attachment_id;
                 depth_reference.layout = static_cast<VkImageLayout>(depths[swapchain_id]->get_usage_layout(resource::usage_type::STORAGE_IMAGE));
                 subpass[subpass_id].pDepthStencilAttachment = &depth_reference;
+                ++attachment_id;
             }
 
             //note: for a great explanation of VK_SUBPASS_EXTERNAL:
@@ -775,7 +798,7 @@ namespace vk
             ++subpass_id;
         }
         
-        attachment_id = is_depth_enabled() ? attachment_id + 1 : attachment_id;
+        //attachment_id = is_depth_enabled() ? attachment_id + 1 : attachment_id;
 
         VkRenderPassCreateInfo render_pass_info = {};
         render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -801,20 +824,23 @@ namespace vk
         uint32_t num_views = 0;
         
         //add all num views for this swapchain id
-        for( ; num_views < _attachment_group.size(); ++num_views)
+        for( int i = 0; i < _attachment_group.size(); ++i)
         {
-            assert(_attachment_group[num_views][swapchain_id]->is_initialized());
-            assert(_attachment_group[num_views][swapchain_id] != nullptr);
-            assert(_attachment_group[num_views][swapchain_id]->_image_view != VK_NULL_HANDLE && "did you initialize this image?");
-            attachment_views[num_views] = _attachment_group[num_views][swapchain_id]->_image_view;
+            //depth will be dealt with later in this function...
+            if(_attachment_group[i][0]->get_instance_type() == depth_texture::get_class_type())
+                continue;
+            assert(_attachment_group[i][swapchain_id]->is_initialized());
+            assert(_attachment_group[i][swapchain_id] != nullptr);
+            assert(_attachment_group[i][swapchain_id]->_image_view != VK_NULL_HANDLE && "did you initialize this image?");
+            attachment_views[num_views++] = _attachment_group[i][swapchain_id]->_image_view;
         }
+        
         if(is_depth_enabled())
         {
             resource_set<image*>& depths =  get_depth_textures();
             assert(depths[swapchain_id]->_image_view != VK_NULL_HANDLE);
             //the render pass assume this as well... depth texture is the last one...
-            attachment_views[num_views]  = depths[swapchain_id]->_image_view;
-            num_views++;
+            attachment_views[num_views++]  = depths[swapchain_id]->_image_view;
         }
         
         VkFramebufferCreateInfo framebuffer_create_info {};

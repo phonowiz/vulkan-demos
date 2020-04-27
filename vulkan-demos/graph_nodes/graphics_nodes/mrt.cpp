@@ -16,7 +16,7 @@
 
 
 template<uint32_t NUM_CHILDREN>
-class mrt: public vk::graphics_node<4, NUM_CHILDREN>
+class mrt: public vk::graphics_node<5, NUM_CHILDREN>
 {
 public:
     
@@ -32,7 +32,7 @@ public:
         DIRECT_LIGHT
     };
     
-    using parent_type = vk::graphics_node<4, NUM_CHILDREN>;
+    using parent_type = vk::graphics_node<5, NUM_CHILDREN>;
     using render_pass_type = typename parent_type::render_pass_type;
     using subpass_type = typename parent_type::render_pass_type::subpass_s;
     using object_vector_type = typename parent_type::object_vector_type;
@@ -69,13 +69,14 @@ public:
         pass.add_object(_screen_plane);
         pass.skip_subpass(_screen_plane, 0);
         
+        assert(_obj_vector.size() != 0);
         for(int i = 0; i < _obj_vector.size(); ++i)
         {
             pass.add_object(*_obj_vector[i]);
             pass.skip_subpass( *_obj_vector[i], 1);
         }
         
-        vk::attachment_group<4>& mrt_attachment_group = pass.get_attachment_group();
+        vk::attachment_group<5>& mrt_attachment_group = pass.get_attachment_group();
         
         vk::resource_set<vk::render_texture>& normals = _tex_registry->get_write_render_texture_set("normals", this, vk::image::usage_type::INPUT_ATTACHMENT);
         vk::resource_set<vk::render_texture>& albedos = _tex_registry->get_write_render_texture_set("albedos", this, vk::image::usage_type::INPUT_ATTACHMENT);
@@ -85,25 +86,45 @@ public:
         vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_write_depth_texture_set("depth", this, vk::image::usage_type::INPUT_ATTACHMENT);
         
         
+        //TODO: MAKE MAKE SURE TO INITIALIZE ATTACHMENTS MANUALLY WHEN YOU REMOVE ATTACHMENT INIT FROM RENDERPASS INIT
+        //TODO: add_attachment CALLS SHOULD BE ACCOMPANIED WITH A STRING NAME SO WE CAN REFERENCE IT.
         //GBUFFER SUBPASS
-
         //follow the order in which the attachments are expected in the shader
         mrt_attachment_group.add_attachment(normals);
         mrt_attachment_group.add_attachment(albedos);
         mrt_attachment_group.add_attachment(positions);
+        mrt_attachment_group.add_attachment(_swapchain->present_textures);
         mrt_attachment_group.add_attachment(depth);
         
+        //TODO: GET RID OF THIS AND REPLACE IT WITH STRING NAMES
         enum
         {
             NORMALS_ATTACHMENT_ID,
             ALBEDOS_ATTACHMENT_ID,
             POSITIONS_ATTACHMENT_ID,
-            DEPTH_ATTACHMENT_ID,
-            PRESENT_ATTACHMENT_ID
+            PRESENT_ATTACHMENT_ID,
+            DEPTH_ATTACHMENT_ID
         };
         
-        mrt_attachment_group.set_format(NORMALS_ATTACHMENT_ID, vk::image::formats::R8G8_SIGNED_NORMALIZED);
-        mrt_attachment_group.set_filter(vk::image::filter::NEAREST);
+        //mrt_attachment_group.set_format(NORMALS_ATTACHMENT_ID, vk::image::formats::R8G8_SIGNED_NORMALIZED);
+        
+        glm::vec2 dims = parent_type::_node_render_pass.get_dimensions();
+        
+        normals.set_format(vk::image::formats::R8G8_SIGNED_NORMALIZED);
+        normals.set_dimensions(dims.x, dims.y);
+        normals.set_filter(vk::image::filter::NEAREST);
+        //albedos.set_format(vk::image::formats::R8G8_SIGNED_NORMALIZED);
+        albedos.set_dimensions(dims.x, dims.y);
+        albedos.set_filter(vk::image::filter::NEAREST);
+        //positions.set_format(vk::image::formats::R8G8_SIGNED_NORMALIZED);
+        positions.set_dimensions(dims.x, dims.y);
+        positions.set_filter(vk::image::filter::NEAREST);
+        
+        depth.set_format(vk::image::formats::DEPTH_32_FLOAT);
+        depth.set_dimensions(dims.x, dims.y);
+        depth.set_filter(vk::image::filter::NEAREST);
+        
+        //mrt_attachment_group.set_filter(vk::image::filter::NEAREST);
         
         //TODO: set_number_of_blend_attachments function could now go away...
         mrt_subpass.set_number_of_blend_attachments(3);
@@ -111,7 +132,7 @@ public:
         mrt_subpass.modify_attachment_blend(ALBEDOS_ATTACHMENT_ID, render_pass_type::write_channels::RGBA, false);
         mrt_subpass.modify_attachment_blend(POSITIONS_ATTACHMENT_ID, render_pass_type::write_channels::RGBA, false);
         
-        mrt_attachment_group.add_attachment(_swapchain->present_textures);
+        
         
         
         mrt_subpass.add_output_attachment(NORMALS_ATTACHMENT_ID);
@@ -140,16 +161,16 @@ public:
         subpass.init_parameter("width", vk::visual_material::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().width), 0);
         subpass.init_parameter("height", vk::visual_material::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().height), 0);
         
-        vk::resource_set<vk::texture_3d>& voxel_normal_set = _tex_registry->get_write_texture_3d_set("voxel_normal_set", this);
-        vk::resource_set<vk::texture_3d>& voxel_albedo_set = _tex_registry->get_write_texture_3d_set("voxel_albedo_set", this);
+        vk::resource_set<vk::texture_3d>& voxel_normal_set = _tex_registry->get_read_texture_3d_set("voxel_normals", this, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        vk::resource_set<vk::texture_3d>& voxel_albedo_set = _tex_registry->get_read_texture_3d_set("voxel_albedos", this, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
         
-        for( int i = 0; i < voxel_normal_set.size(); ++i )
-        {
-            voxel_normal_set[i].set_dimensions( voxelize<NUM_CHILDREN>::VOXEL_CUBE_WIDTH, voxelize<NUM_CHILDREN>::VOXEL_CUBE_HEIGHT, voxelize<NUM_CHILDREN>::VOXEL_CUBE_DEPTH );
-            voxel_albedo_set[i].set_dimensions( voxelize<NUM_CHILDREN>::VOXEL_CUBE_WIDTH, voxelize<NUM_CHILDREN>::VOXEL_CUBE_HEIGHT, voxelize<NUM_CHILDREN>::VOXEL_CUBE_DEPTH );
-            voxel_albedo_set[i].set_filter( vk::image::filter::LINEAR );
-            voxel_normal_set[i].set_filter( vk::image::filter::LINEAR );
-        }
+//        for( int i = 0; i < voxel_normal_set.size(); ++i )
+//        {
+//            voxel_normal_set[i].set_dimensions( voxelize<NUM_CHILDREN>::VOXEL_CUBE_WIDTH, voxelize<NUM_CHILDREN>::VOXEL_CUBE_HEIGHT, voxelize<NUM_CHILDREN>::VOXEL_CUBE_DEPTH );
+//            voxel_albedo_set[i].set_dimensions( voxelize<NUM_CHILDREN>::VOXEL_CUBE_WIDTH, voxelize<NUM_CHILDREN>::VOXEL_CUBE_HEIGHT, voxelize<NUM_CHILDREN>::VOXEL_CUBE_DEPTH );
+//            voxel_albedo_set[i].set_filter( vk::image::filter::LINEAR );
+//            voxel_normal_set[i].set_filter( vk::image::filter::LINEAR );
+//        }
         
         
         glm::vec4 world_scale_voxel = glm::vec4(float(_voxel_world_dimensions.x/voxelize<NUM_CHILDREN>::VOXEL_CUBE_WIDTH),
@@ -176,17 +197,17 @@ public:
         int binding_index = 8;
         int offset = 5;
         
-        for( int i = 1; i <= mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS; ++i)
+        for( int i = 1; i < mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS; ++i)
         {
             normal_lods[i].sprintf("voxel_normals%i", i);
-            albedo_lods[i].sprintf("voxel_normals%i", i);
+            albedo_lods[i].sprintf("voxel_albedos%i", i);
             
             vk::resource_set<vk::texture_3d>& normal3d = _tex_registry->get_read_texture_3d_set(normal_lods[i].c_str(), this, vk::image::usage_type::COMBINED_IMAGE_SAMPLER);
             vk::resource_set<vk::texture_3d>& albedo3d = _tex_registry->get_read_texture_3d_set(albedo_lods[i].c_str(), this, vk::image::usage_type::COMBINED_IMAGE_SAMPLER);
             
             subpass.set_image_sampler(albedo3d, albedo_lods[i].c_str(), vk::visual_material::parameter_stage::FRAGMENT, binding_index, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
             subpass.set_image_sampler(normal3d, normal_lods[i].c_str(), vk::visual_material::parameter_stage::FRAGMENT, binding_index + offset, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
-            
+            binding_index++;
         }
         
     }

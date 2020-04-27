@@ -488,6 +488,11 @@ int main()
         }
     }
     
+    for( int i = 0; i < app.shapes.size(); ++i)
+    {
+        mrt_node.add_object(*(app.shapes[i]));
+    }
+    
     //voxelize<4> voxelize_node(&device, &swapchain);
     //voxelize_node.set_name("voxelize");
     

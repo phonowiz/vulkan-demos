@@ -48,7 +48,7 @@ namespace vk {
         
         static constexpr uint32_t MAX_NUMBER_OF_ATTACHMENTS = 10u;
         
-        static_assert(MAX_NUMBER_OF_ATTACHMENTS > (NUM_ATTACHMENTS + 1));
+        static_assert(MAX_NUMBER_OF_ATTACHMENTS > (NUM_ATTACHMENTS ));
         
         attachment_group(){}
         attachment_group(device* device, glm::vec2 dimensions){ _device = device; _dimensions = dimensions; };
@@ -78,9 +78,10 @@ namespace vk {
             resource_set<image*>* result = nullptr;
             for( int i = 0; i < _attachments.size(); ++i)
             {
-                if(_attachments[i].get_instance_type() == resource_set<depth_texture>::get_class_type())
+                if(_attachments[i][0]->get_instance_type() == depth_texture::get_class_type())
                 {
                     result = &(_attachments[i]);
+                    break;
                 }
             }
             return result;
@@ -104,6 +105,11 @@ namespace vk {
             assert(textures_set.get_instance_type() != resource_set<texture_2d>::get_class_type() && "texture 2d's are pre initialized since they are loaded from hard drive, "
                    "did you mean to use a render_texture instead?");
             assert(num_attachments < NUM_ATTACHMENTS );
+            
+//            if( textures_set.get_instance_type() != resource_set<depth_texture>::get_class_type())
+//            {
+//                set_depth_enble(true);
+//            }
             for( int i = 0; i < textures_set.size(); ++i)
             {
                 _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
@@ -131,8 +137,10 @@ namespace vk {
 //            ++num_attachments;
 //        }
         
+        //TODO: REMOVE THIS FUNCTION, USE RENDER SETS INSTEAD
         inline void set_filter( image::filter filter)
         {
+            assert(0 && "do not use");
             //assert(attachment_id < num_attachments);
             for( int attachment_id = 0; attachment_id < _attachments.size(); ++attachment_id )
             {
@@ -148,8 +156,10 @@ namespace vk {
             }
         }
         
+        //TODO: REMOVE THIS FUNCTION, USE RENDER SETS INSTEAD
         inline void set_filter(uint32_t attachment_id, image::filter filter)
         {
+            assert(0 && "dont use this function");
             assert(attachment_id < num_attachments);
             for( int i = 0; i < _attachments[attachment_id].size(); ++i)
             {
@@ -157,18 +167,21 @@ namespace vk {
             }
         }
         
+        //TODO: REMOVE THIS FUNCTION, USE RENDER SETS INSTEAD
         inline void set_format(image::formats format)
         {
-            
+            assert(0 && "dont use this function");
             for( int i = 0; i < _attachments.size(); ++i)
             {
                 set_format(i, format);
             }
         }
         
+        //TODO: REMOVE THIS FUNCTION, USE RENDER SETS INSTEAD
         inline void set_format(uint32_t attachment_id, image::formats format)
         {
-            assert(num_attachments < NUM_ATTACHMENTS );
+            assert(0 && "dont use this function");
+            assert(num_attachments < NUM_ATTACHMENTS);
             for( int i = 0; i < _attachments[attachment_id].size(); ++i)
             {
                 _attachments[attachment_id][i]->set_format(format);
@@ -177,6 +190,7 @@ namespace vk {
         
         inline void init(uint32_t swapchain_id)
         {
+            assert(num_attachments ==NUM_ATTACHMENTS && "you haven't populated all attachments");
             //note: here we don't initialize the depth texture, render passes decide that
             for( int i = 0; i < NUM_ATTACHMENTS; ++i)
             {
@@ -184,6 +198,7 @@ namespace vk {
                 //using libraries such as glfw that talk to the OS
                 
                 if(_attachments[i][swapchain_id]->get_instance_type() != glfw_present_texture::get_class_type())
+                    //TODO: ATTACHMENTS SHOULD BE INITTED BEFORE WE GET HERE...
                     _attachments[i][swapchain_id]->init();
             }
         }
