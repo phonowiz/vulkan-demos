@@ -83,6 +83,9 @@ namespace  vk
         virtual void init_node() = 0;
         virtual void record_node_commands(command_recorder& buffer, uint32_t image_id) = 0;
         
+        virtual VkPipelineStageFlagBits get_producer_stage() = 0;
+        virtual VkPipelineStageFlagBits get_consumer_stage() = 0;
+        
         
         //use this to show on screen  a texture
         virtual bool debug_display(){ return false; };
@@ -107,19 +110,18 @@ namespace  vk
             return node_type::_children[i];
         }
         
-        void reset()
-        {
-            _visited = false;
-            for( int i = 0; i < _children.size(); ++i)
-            {
-                node_type::_children[i]->reset();
-            }
-            
-        }
+//        void reset()
+//        {
+//            _visited = false;
+//            for( int i = 0; i < _children.size(); ++i)
+//            {
+//                node_type::_children[i]->reset();
+//            }
+//
+//        }
         
         virtual void record(command_recorder& buffer, uint32_t image_id)
         {
-            _visited = false;
             for( int i = 0; i < _children.size(); ++i)
             {
                 node_type::_children[i]->record(buffer, image_id);
@@ -155,8 +157,6 @@ namespace  vk
             _device = device;
             _level = i;
             
-            //debug_print(_name.c_str());
-            
             for( int i = 0; i < _children.size(); ++i)
             {
                 node_type::_children[i]->pre_init(_level + 1, device);
@@ -167,6 +167,11 @@ namespace  vk
         
         void create_barrier(command_recorder& buffer, vk::image* p_image, typename tex_registry_type::node_dependees::iterator& b, uint32_t image_id)
         {
+            node_type* dependee_node = (*b).data.node;
+            
+            assert( _device->_queue_family_indices.graphics_family.value() ==
+                   _device->_queue_family_indices.compute_family.value() && "If this assert fails, we will need to transfer dependent "
+                                                                            "resources from compute to graphics queues and vice versa");
             VkImageMemoryBarrier barrier {};
             
             barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -184,11 +189,13 @@ namespace  vk
             barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
             constexpr uint32_t VK_FLAGS_NONE = 0;
-
+            
+            VkPipelineStageFlagBits producer = dependee_node->get_producer_stage();
+            VkPipelineStageFlagBits consumer = this->get_consumer_stage();
             vkCmdPipelineBarrier(
                                  buffer.get_raw_graphics_command(image_id),
-                                 VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                 VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+                                 producer,
+                                 consumer,
                                  VK_FLAGS_NONE,
                                  0, nullptr,
                                  0, nullptr,
@@ -261,21 +268,21 @@ namespace  vk
                         
                         create_barrier(buffer, tex, b, image_id );
                     }
-                    if(res->get_instance_type()  == resource_set<vk::depth_texture>::get_class_type())
-                    {
-                        std::shared_ptr< resource_set<vk::depth_texture> > set = std::static_pointer_cast< resource_set<vk::depth_texture>>(res);
-                        vk::image* tex = &((*set)[image_id]);
-                        
-                        create_barrier(buffer, tex, b, image_id );
-                    }
-                    if(res->get_instance_type()  == resource_set<vk::depth_texture>::get_class_type())
+                    else if(res->get_instance_type()  == resource_set<vk::texture_3d>::get_class_type())
                     {
                         std::shared_ptr< resource_set<vk::texture_3d> > set = std::static_pointer_cast< resource_set<vk::texture_3d>>(res);
                         vk::image* tex = &((*set)[image_id]);
                         
                         create_barrier(buffer, tex, b, image_id );
                     }
-                    if(res->get_instance_type()  == resource_set<vk::render_texture>::get_class_type())
+                    else if(res->get_instance_type()  == resource_set<vk::depth_texture>::get_class_type())
+                    {
+                        std::shared_ptr< resource_set<vk::texture_3d> > set = std::static_pointer_cast< resource_set<vk::texture_3d>>(res);
+                        vk::image* tex = &((*set)[image_id]);
+                        
+                        create_barrier(buffer, tex, b, image_id );
+                    }
+                    else if(res->get_instance_type()  == resource_set<vk::render_texture>::get_class_type())
                     {
                         std::shared_ptr< resource_set<vk::render_texture> > set = std::static_pointer_cast< resource_set<vk::render_texture>>(res);
                         vk::image* tex = &((*set)[image_id]);

@@ -342,36 +342,36 @@ void deferred_renderer::record_3d_mip_maps_commands(uint32_t swapchain_id)
 
         if( map_id != 0)
         {
-             _create_voxel_mip_maps_pipelines[map_id][swapchain_id].record_begin_commands( [&]()
-             {
-                 std::array<VkImageMemoryBarrier, 2> image_memory_barrier {};
-                 image_memory_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                 image_memory_barrier[0].pNext = nullptr;
-                 image_memory_barrier[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-                 image_memory_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-
-                 image_memory_barrier[0].oldLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[map_id-1][swapchain_id].get_native_layout());;
-                 image_memory_barrier[0].newLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[map_id-1][swapchain_id].get_native_layout());
-                 image_memory_barrier[0].image = _voxel_albedo_textures[map_id-1][swapchain_id].get_image();
-                 image_memory_barrier[0].subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-                 image_memory_barrier[0].srcQueueFamilyIndex = _device->_queue_family_indices.graphics_family.value();
-                 image_memory_barrier[0].dstQueueFamilyIndex = _device->_queue_family_indices.graphics_family.value();
-
-                 image_memory_barrier[1] = image_memory_barrier[0];
-                 image_memory_barrier[1].image = _voxel_normal_textures[map_id-1][swapchain_id].get_image();
-                 image_memory_barrier[1].oldLayout = static_cast<VkImageLayout>(_voxel_normal_textures[map_id-1][swapchain_id].get_native_layout());;
-                 image_memory_barrier[1].newLayout = static_cast<VkImageLayout>(_voxel_normal_textures[map_id-1][swapchain_id].get_native_layout());
-                 constexpr uint32_t VK_FLAGS_NONE = 0;
-
-                 vkCmdPipelineBarrier(
-                                      _genered_3d_mip_maps_commands[map_id][swapchain_id],
-                                      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                                      VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
-                                      VK_FLAGS_NONE,
-                                      0, nullptr,
-                                      0, nullptr,
-                                      image_memory_barrier.size(), image_memory_barrier.data());
-             } );
+//             _create_voxel_mip_maps_pipelines[map_id][swapchain_id].record_begin_commands( [&]()
+//             {
+//                 std::array<VkImageMemoryBarrier, 2> image_memory_barrier {};
+//                 image_memory_barrier[0].sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+//                 image_memory_barrier[0].pNext = nullptr;
+//                 image_memory_barrier[0].srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+//                 image_memory_barrier[0].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+//
+//                 image_memory_barrier[0].oldLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[map_id-1][swapchain_id].get_native_layout());;
+//                 image_memory_barrier[0].newLayout = static_cast<VkImageLayout>(_voxel_albedo_textures[map_id-1][swapchain_id].get_native_layout());
+//                 image_memory_barrier[0].image = _voxel_albedo_textures[map_id-1][swapchain_id].get_image();
+//                 image_memory_barrier[0].subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+//                 image_memory_barrier[0].srcQueueFamilyIndex = _device->_queue_family_indices.graphics_family.value();
+//                 image_memory_barrier[0].dstQueueFamilyIndex = _device->_queue_family_indices.graphics_family.value();
+//
+//                 image_memory_barrier[1] = image_memory_barrier[0];
+//                 image_memory_barrier[1].image = _voxel_normal_textures[map_id-1][swapchain_id].get_image();
+//                 image_memory_barrier[1].oldLayout = static_cast<VkImageLayout>(_voxel_normal_textures[map_id-1][swapchain_id].get_native_layout());;
+//                 image_memory_barrier[1].newLayout = static_cast<VkImageLayout>(_voxel_normal_textures[map_id-1][swapchain_id].get_native_layout());
+//                 constexpr uint32_t VK_FLAGS_NONE = 0;
+//
+//                 vkCmdPipelineBarrier(
+//                                      _genered_3d_mip_maps_commands[map_id][swapchain_id],
+//                                      VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+//                                      VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
+//                                      VK_FLAGS_NONE,
+//                                      0, nullptr,
+//                                      0, nullptr,
+//                                      image_memory_barrier.size(), image_memory_barrier.data());
+//             } );
         }
             
         _create_voxel_mip_maps_pipelines[map_id][swapchain_id].record_dispatch_commands(_genered_3d_mip_maps_commands[map_id][swapchain_id], 0,

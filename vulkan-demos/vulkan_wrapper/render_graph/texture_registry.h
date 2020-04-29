@@ -62,9 +62,9 @@ namespace vk
         
         using node_dependees  = eastl::fixed_vector<dependant_data, DEPENDENCIES_SIZE,true>;
         
-        using node_dependees_map = eastl::fixed_map<vk::object*,node_dependees, DEPENDENCIES_SIZE, false>;
+        using node_dependees_map = eastl::map<vk::object*,node_dependees>;
         
-        using dependee_data_map = eastl::fixed_map< eastl::fixed_string<char, 100>, dependee_data, 50, true> ;
+        using dependee_data_map = eastl::map< eastl::fixed_string<char, 100>, dependee_data> ;
         
         
         texture_registry(){}
@@ -77,10 +77,12 @@ namespace vk
                 //note:: if I don't do this, returned value of the key will be garbage, something about
                 //fixed maps causes this to happen.  I don't expect millions of dependent nodes here so it won't play a factor,
                 //but a solution would great!
-                _node_dependees_map[dependant_node] = node_dependees();
+//                _node_dependees_map[static_cast<vk::object*>(dependant_node)].insert();
+//                _node_dependees_map[static_cast<vk::object*>(dependant_node)] = node_dependees();
+                _node_dependees_map.insert( dependant_node  );
             }
             
-            return _node_dependees_map[dependant_node];
+            return _node_dependees_map[static_cast<vk::object*>(dependant_node)];
         }
         
         

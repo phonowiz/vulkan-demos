@@ -197,6 +197,8 @@ void game_loop()
 //            update_renderer_parameters( *app.deferred_renderer );
 //            app.deferred_renderer->draw(*app.perspective_camera);
 //            next_swap = app.deferred_renderer->get_current_swapchain_image();
+            app.voxel_graph->record(next_swap);
+            next_swap = ++next_swap % vk::NUM_SWAPCHAIN_IMAGES;
         }
         else if (app.mode == App::render_mode::RENDER_3D_TEXTURE)
         {
@@ -607,15 +609,10 @@ int main()
 
     app.voxel_graph = &voxel_cone_tracing;
     
-    ////////////////////
-    
-    //game_loop();
-    
     app.voxel_graph->init();
-    
     app.graph->init();
-    game_loop_ortho();
-    
+    //game_loop_ortho();
+    game_loop();
     
     device.wait_for_all_operations_to_finish();
     mario.destroy();

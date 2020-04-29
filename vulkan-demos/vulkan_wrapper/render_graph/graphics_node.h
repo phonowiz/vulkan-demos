@@ -80,6 +80,8 @@ namespace vk {
             _obj_vector.push_back(&object);
         }
         
+        VkPipelineStageFlagBits get_producer_stage() override {  return VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; };
+        VkPipelineStageFlagBits get_consumer_stage() override {  return VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; };
         
     protected:
         
@@ -90,7 +92,7 @@ namespace vk {
             typename render_pass_type::subpass_s& subpass = _node_render_pass.get_subpass(subpass_id);
             
             //TODO: This is slow. This will not be a factor in the near futre since we don't have that many
-            //objects.
+            //objects.  Possible solution?: east::fixed_map.
             
             //find the object index
             int count = -1;

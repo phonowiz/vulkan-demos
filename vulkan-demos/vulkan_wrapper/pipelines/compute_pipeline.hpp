@@ -55,15 +55,15 @@ void compute_pipeline< NUM_MATERIALS>::record_dispatch_commands( VkCommandBuffer
     command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     command_buffer_begin_info.pInheritanceInfo = nullptr;
     
-    VkResult result = vkBeginCommandBuffer(command_buffer, &command_buffer_begin_info);
-    ASSERT_VULKAN(result);
+    //VkResult result = vkBeginCommandBuffer(command_buffer, &command_buffer_begin_info);
+    //ASSERT_VULKAN(result);
     vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipeline[0]);
 
-    _on_begin();
+    //_on_begin();
     vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, _pipeline_layout[0], 0, 1, _material[0]->get_descriptor_set(), 0, 0);
     
     vkCmdDispatch(command_buffer, local_groups_in_x, local_groups_in_y, local_groups_in_z);
     
-    result = vkEndCommandBuffer(command_buffer);
-    ASSERT_VULKAN(result);
+    //VkResult result = vkEndCommandBuffer(command_buffer);
+    //ASSERT_VULKAN(result);
 }

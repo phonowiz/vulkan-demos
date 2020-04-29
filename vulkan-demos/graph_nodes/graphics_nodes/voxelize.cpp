@@ -103,23 +103,6 @@ public:
         voxelize_subpass.set_image_sampler(albedo_textures, "voxel_albedo_texture",
                                            vk::visual_material::parameter_stage::FRAGMENT, 1, vk::material_base::usage_type::STORAGE_IMAGE );
         
-    
-        //TODO: CHECK IF TEXTURES HAVE ALREADY BEEN INITTED...
-//        for( int i = 0; i < normal_textures.size(); ++i)
-//        {
-//            if( normal_textures[i].is_initialized() )
-//                continue;
-//            normal_textures[i].set_device(parent_type::_device);
-//            //albedo_textures[i].set_device(parent_type::_device);
-//            
-//            normal_textures[i].set_dimensions(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH);
-//            //albedo_textures[i].set_dimensions(VOXEL_CUBE_WIDTH, VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH);
-//            
-//            
-//            normal_textures[i].init();
-//            //albedo_textures[i].init();
-//        }
-        
         voxelize_subpass.set_image_sampler(normal_textures, "voxel_normal_texture",
                                            vk::visual_material::parameter_stage::FRAGMENT, 4, vk::material_base::usage_type::STORAGE_IMAGE );
         
@@ -147,15 +130,17 @@ public:
         vk::resource_set<vk::render_texture>& target = _tex_registry->get_write_render_texture_set(test_name.c_str(),
                                                                                                    this, vk::image::usage_type::INPUT_ATTACHMENT);
         
-        for( int i = 0; i < target.size(); ++i)
-        {
-            if(target[i].is_initialized())
-                continue;
-            target[i].set_device(parent_type::_device);
-            target[i].set_dimensions(float(VOXEL_CUBE_WIDTH), float(VOXEL_CUBE_HEIGHT));
-            //TODO: YOU SHOULD COMMENT THIS BACK WHEN ATTACHMENTS DON'T GET INITIATED.  WE NEED TEXTURE INITIATION TO BE CONSISTENT 
-            //target[i].init();
-        }
+        target.set_device(parent_type::_device);
+        target.set_dimensions(float(VOXEL_CUBE_WIDTH), float(VOXEL_CUBE_HEIGHT));
+//        for( int i = 0; i < target.size(); ++i)
+//        {
+//            if(target[i].is_initialized())
+//                continue;
+//            target[i].set_device(parent_type::_device);
+//            target[i].set_dimensions(float(VOXEL_CUBE_WIDTH), float(VOXEL_CUBE_HEIGHT));
+//            //TODO: YOU SHOULD COMMENT THIS BACK WHEN ATTACHMENTS DON'T GET INITIATED.  WE NEED TEXTURE INITIATION TO BE CONSISTENT
+//            //target[i].init();
+//        }
         
         attachment_group.add_attachment(target);
         //TODO: THIS SHOULDN'T BE NECESSARY

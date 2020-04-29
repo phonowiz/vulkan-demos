@@ -92,7 +92,7 @@ namespace vk
                                        uint32_t local_groups_in_x, uint32_t local_groups_in_y, uint32_t local_groups_in_z);
         
         //TODO: THIS SHOULD GO AWAY...
-        inline void record_begin_commands(  std::function<void()> f){ _on_begin = f; };
+        //inline void record_begin_commands(  std::function<void()> f){ _on_begin = f; };
         
 //        void commit_parameters_to_gpu(uint32_t i)
 //        {
@@ -146,7 +146,7 @@ namespace vk
         
         std::array<compute_mat_shared_ptr, NUM_MATERIALS> _material = {};
         
-        std::function<void()> _on_begin = [](){};
+        //std::function<void()> _on_begin = [](){};
 
         void create();
     };

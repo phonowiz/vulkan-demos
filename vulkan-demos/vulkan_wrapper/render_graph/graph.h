@@ -49,6 +49,7 @@ namespace vk
 
             for( eastl_size_t i = 0; i < node_type::_children.size(); ++i)
             {
+                node_type::_children[i]->set_device(node_type::_device);
                 node_type::_children[i]->set_stores(_texture_store, _material_store);
                 node_type::_children[i]->init();
             }
@@ -95,6 +96,9 @@ namespace vk
         
         virtual void init_node() override
         {}
+        
+        virtual VkPipelineStageFlagBits get_producer_stage() override {return VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;};
+        virtual VkPipelineStageFlagBits get_consumer_stage() override { return VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;};
         
         virtual void record(command_recorder& buffer, uint32_t image_id) override
         {

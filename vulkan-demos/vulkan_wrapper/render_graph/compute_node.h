@@ -45,6 +45,8 @@ namespace vk
         }
         virtual void record_node_commands(command_recorder& buffer, uint32_t image_id) override
         {
+            assert(node_type::_device != nullptr && "no device set for this node");
+            _compute_pipelines.set_device(node_type::_device);
             _compute_pipelines.record_dispatch_commands(buffer.get_raw_compute_command(image_id), image_id,
                                                               _group_x, _group_y, _group_z);
         }
@@ -53,6 +55,9 @@ namespace vk
         {
             _compute_pipelines.destroy();
         }
+        
+        VkPipelineStageFlagBits get_producer_stage() override {  return VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT; };
+        VkPipelineStageFlagBits get_consumer_stage() override {  return VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT; };
         
     protected:
         virtual void create_gpu_resources() override

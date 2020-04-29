@@ -66,6 +66,9 @@ public:
         subpass_type& mrt_subpass = pass.add_subpass(_mat_store, "mrt");
         subpass_type& subpass = pass.add_subpass(_mat_store, "deferred_output");
         
+        
+        setup_sampling_rays();
+        
         pass.add_object(_screen_plane);
         pass.skip_subpass(_screen_plane, 0);
         
