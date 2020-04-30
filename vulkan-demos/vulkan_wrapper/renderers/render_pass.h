@@ -158,8 +158,8 @@ namespace vk
                 bool result = false;
                 for( int i = 0; i < _num_color_references; ++i)
                 {
-                    result = result || (*_attachment_group)[ _color_references[i].attachment ][0]->get_instance_type() ==
-                    depth_texture::get_class_type();
+                    result = result || (*_attachment_group)[ _color_references[i].attachment ].get_instance_type() ==
+                    resource_set<depth_texture>::get_class_type();
                 }
                 
 //                for(int i = 0; i < _num_color_references; ++i)
@@ -176,8 +176,8 @@ namespace vk
             
             inline void add_output_attachment( uint32_t attachment_id)
             {
-                if( (*_attachment_group)[attachment_id][0]->get_instance_type() ==
-                        depth_texture::get_class_type())
+                if( (*_attachment_group)[attachment_id].get_instance_type() ==
+                        resource_set<depth_texture*>::get_class_type())
                 {
                     set_depth_enable(true);
                 }
@@ -447,15 +447,15 @@ namespace vk
         }
         attachment_group<NUM_ATTACHMENTS>& get_attachment_group();
 
-        render_pass(){ set_clear_depth(glm::vec2(1.0f, 0.0f)); }
+        render_pass(){ /*set_clear_depth(glm::vec2(1.0f, 0.0f));*/ }
         render_pass(device* device, glm::vec2 dimensions);
         
-        void set_clear_depth( glm::vec2 depth_stencil)
-        {
-            //note: depth value is always the last one...
-            _clear_values[_clear_values.size()-1].depthStencil = {depth_stencil.x, (uint32_t)depth_stencil.y};
-            
-        }
+//        void set_clear_depth( glm::vec2 depth_stencil)
+//        {
+//            int32_t i = _attachment_group.get_depth_set_index();
+//            _clear_values[i].depthStencil = {depth_stencil.x, (uint32_t)depth_stencil.y};
+//
+//        }
         
         inline bool is_depth_enabled()
         {
@@ -481,14 +481,16 @@ namespace vk
             assert( result == true && "you are asking to ignore an object not yet added to render pass");
             return result;
         }
-        inline void set_clear_attachments_colors( glm::vec4 color)
-        {
-            //note: -2 because the last one is depth attachment
-            for(int i = 0; i < _clear_values.size()-2; ++i)
-            {
-                _clear_values[i].color = {color.x, color.y, color.z, color.w};
-            }
-        }
+//        inline void set_clear_attachments_colors( glm::vec4 color)
+//        {
+//            for(int i = 0; i < _clear_values.size()-2; ++i)
+//            {
+//                if(i == _attachment_group.get_depth_set_index())
+//                    continue;
+//
+//                _clear_values[i].color = {color.x, color.y, color.z, color.w};
+//            }
+//        }
         
         void init(uint32_t swapchain_id);
         
@@ -615,7 +617,6 @@ namespace vk
         
         static_assert(MAX_NUMBER_OF_ATTACHMENTS > NUM_ATTACHMENTS, "Number of attachments in your render pass excees what we can handle, increase limit??");
 
-        eastl::array<VkClearValue,NUM_ATTACHMENTS> _clear_values {};
         glm::vec2 _dimensions {};
         device* _device = nullptr;
         //VkCommandBuffer* _recording_buffer = VK_NULL_HANDLE;
@@ -660,7 +661,7 @@ namespace vk
         _dimensions = dimensions;
         _device = device;
         
-        set_clear_depth(glm::vec2(1.0f, 0.0f));
+        //set_clear_depth(glm::vec2(1.0f, 0.0f));
         for( int subpass_id = 0; subpass_id < _subpasses.size(); ++subpass_id )
         {
             _subpasses[subpass_id].set_device(device);
@@ -904,8 +905,8 @@ namespace vk
         render_pass_create_info.renderArea.offset = { 0, 0 };
         render_pass_create_info.renderArea.extent = { (uint32_t)_dimensions.x, (uint32_t)_dimensions.y };
         
-        render_pass_create_info.clearValueCount = is_depth_enabled() ? static_cast<uint32_t>(_clear_values.size()) : static_cast<uint32_t>(_clear_values.size() -1);
-        render_pass_create_info.pClearValues = _clear_values.data();
+        render_pass_create_info.clearValueCount = NUM_ATTACHMENTS;//is_depth_enabled() ? static_cast<uint32_t>(_clear_values.size()) : static_cast<uint32_t>(_clear_values.size() -1);
+        render_pass_create_info.pClearValues = _attachment_group.get_clear_values();//_clear_values.data();
 
         vkCmdBeginRenderPass(buffer, &render_pass_create_info, VK_SUBPASS_CONTENTS_INLINE);
         

@@ -33,17 +33,17 @@ _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world
     attachment_group<4>& mrt_attachment_group = _mrt_render_pass.get_attachment_group();
     for(int i = 0; i < _g_buffer_textures.size(); ++i)
     {
-        mrt_attachment_group.add_attachment(_g_buffer_textures[i]);
+        mrt_attachment_group.add_attachment(_g_buffer_textures[i], glm::vec4(0.0f));
         mrt_attachment_group.set_filter(i, image::filter::NEAREST);
         
         if( buffer_ids::NORMALS_ATTACHMENT_ID == i)
             mrt_attachment_group.set_format(i, image::formats::R8G8_SIGNED_NORMALIZED);
     }
 
-    mrt_attachment_group.add_attachment(_swapchain->present_textures);
+    mrt_attachment_group.add_attachment(_swapchain->present_textures, glm::vec4(0.0f));
     
     attachment_group<1>& voxel_attachment_group = _voxelize_render_pass.get_attachment_group();
-    voxel_attachment_group.add_attachment(_voxel_2d_view[0]);
+    voxel_attachment_group.add_attachment(_voxel_2d_view[0], glm::vec4(1.0f));
 
 
     VkFenceCreateInfo fenceInfo = {};
@@ -315,7 +315,7 @@ void deferred_renderer::create_semaphores_and_fences()
 void deferred_renderer::record_voxelize_command_buffers(VkCommandBuffer& buffer, uint32_t swapchain_id)
 {
     
-    _voxelize_render_pass.set_clear_attachments_colors(glm::vec4(1.0f, 1.0f, 1.0f, .0f));
+    //_voxelize_render_pass.set_clear_attachments_colors(glm::vec4(1.0f, 1.0f, 1.0f, .0f));
 
     _voxelize_render_pass.record_draw_commands(buffer, swapchain_id);
 
@@ -405,8 +405,8 @@ void deferred_renderer::record_clear_texture_3d_buffer( uint32_t swapchain_id)
 void deferred_renderer::record_command_buffers(VkCommandBuffer& buffer, uint32_t swapchain_id)
 {
     
-    _mrt_render_pass.set_clear_attachments_colors(glm::vec4(0.f));
-    _mrt_render_pass.set_clear_depth(glm::vec2(1.0f, 0.0f));
+    //_mrt_render_pass.set_clear_attachments_colors(glm::vec4(0.f));
+    //_mrt_render_pass.set_clear_depth(glm::vec2(1.0f, 0.0f));
         
     _mrt_render_pass.record_draw_commands(_offscreen_command_buffers[swapchain_id], swapchain_id);
     

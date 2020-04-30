@@ -70,20 +70,32 @@ namespace vk {
         {
             _dimensions = v;
         }
+        
+        inline int32_t get_depth_set_index()
+        {
+            int32_t result = -1;
+            for( int i = 0; i < _attachments.size(); ++i)
+            {
+                if( _attachments[i].get_instance_type() == resource_set<depth_texture*>::get_class_type())
+                {
+                    result = i;
+                    break;
+                }
+            }
+            return result;
+        }
+        
         inline resource_set<image*>* get_depth_set(){
             
             
             //return &(_attachments[NUM_ATTACHMENTS-1]);
             
             resource_set<image*>* result = nullptr;
-            for( int i = 0; i < _attachments.size(); ++i)
-            {
-                if(_attachments[i][0]->get_instance_type() == depth_texture::get_class_type())
-                {
-                    result = &(_attachments[i]);
-                    break;
-                }
-            }
+                
+            int32_t i = get_depth_set_index();
+            assert(i != -1);
+            result = &(_attachments[i]);
+                
             return result;
         }
         
@@ -99,24 +111,18 @@ namespace vk {
 //            }
 //        }
         
-        template< typename R>
-        inline void add_attachment(resource_set<R>& textures_set)
+        inline void add_attachment(resource_set<depth_texture>& depth_set, float default_depth, float default_stencil)
         {
-            assert(textures_set.get_instance_type() != resource_set<texture_2d>::get_class_type() && "texture 2d's are pre initialized since they are loaded from hard drive, "
-                   "did you mean to use a render_texture instead?");
-            assert(num_attachments < NUM_ATTACHMENTS );
+            _clear_values[num_attachments] = { default_depth, default_stencil};
+            add_attachment(depth_set);
+        }
+        
+        template< typename R>
+        inline void add_attachment(resource_set<R>& textures_set, glm::vec4 clear_color)
+        {
+            _clear_values[num_attachments] = { clear_color.x, clear_color.y, clear_color.z, clear_color.w};
             
-//            if( textures_set.get_instance_type() != resource_set<depth_texture>::get_class_type())
-//            {
-//                set_depth_enble(true);
-//            }
-            for( int i = 0; i < textures_set.size(); ++i)
-            {
-                _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
-                _attachments[num_attachments][i]->set_device(_device);
-                //_attachments[num_attachments][i]->set_dimensions(_dimensions.x, _dimensions.y, 1);
-            }
-            ++num_attachments;
+            add_attachment(textures_set);
         }
         
 //        template<>
@@ -217,6 +223,9 @@ namespace vk {
 //            }
         }
         
+        
+        VkClearValue* get_clear_values() { return _clear_values.data(); }
+        
         uint32_t size() { return num_attachments; }
         
         inline resource_set<vk::image*>& operator[](int i) { return _attachments[i]; }
@@ -234,6 +243,27 @@ namespace vk {
         }
         
     private:
+        
+        
+        template< typename R>
+        inline void add_attachment(resource_set<R>& textures_set)
+        {
+            assert(textures_set.get_instance_type() != resource_set<texture_2d>::get_class_type() && "texture 2d's are pre initialized since they are loaded from hard drive, "
+                   "did you mean to use a render_texture instead?");
+            assert(num_attachments < NUM_ATTACHMENTS );
+            
+//            if( textures_set.get_instance_type() != resource_set<depth_texture>::get_class_type())
+//            {
+//                set_depth_enble(true);
+//            }
+            for( int i = 0; i < textures_set.size(); ++i)
+            {
+                _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
+                _attachments[num_attachments][i]->set_device(_device);
+                //_attachments[num_attachments][i]->set_dimensions(_dimensions.x, _dimensions.y, 1);
+            }
+            ++num_attachments;
+        }
         
 //        inline void set_dimensions(uint32_t width, uint32_t height)
 //        {
@@ -259,8 +289,9 @@ namespace vk {
 //            }
 //        }
         
+        eastl::array<VkClearValue,NUM_ATTACHMENTS> _clear_values {};
+        
         //note: we add 1 to accomodate for the depth attachment
-        static const uint32_t MAX_NUM_ATTACHMENTS = NUM_ATTACHMENTS;
         device* _device = nullptr;
         
         glm::vec2 _dimensions = glm::vec2(0.0f, 0.0f);

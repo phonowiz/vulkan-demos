@@ -152,29 +152,31 @@ namespace vk
         
         eastl_size_t size(){ return elements.size(); }
         
+        static char const * const *  get_class_type(){ return (&_resource_type); }
+        
         virtual char const * const * get_instance_type() override
         {
             //note: the need for need arises because resource_set<image> does not return the right type,
             //this if statements will guarantee correct indentity, the expense of maintenance...
             if( elements[0]->get_instance_type() == depth_texture::get_class_type())
             {
-                return resource_set<depth_texture>::get_class_type();
+                return resource_set<depth_texture*>::get_class_type();
             }
             else if( elements[0]->get_instance_type() == glfw_present_texture::get_class_type())
             {
-                return resource_set<glfw_present_texture>::get_class_type();
+                return resource_set<glfw_present_texture*>::get_class_type();
             }
             else if( elements[0]->get_instance_type() == texture_3d::get_class_type())
             {
-                return resource_set<texture_3d>::get_class_type();
+                return resource_set<texture_3d*>::get_class_type();
             }
             else if( elements[0]->get_instance_type() == texture_2d::get_class_type())
             {
-                return resource_set<texture_2d>::get_class_type();
+                return resource_set<texture_2d*>::get_class_type();
             }
             else if( elements[0]->get_instance_type() == render_texture::get_class_type())
             {
-                return resource_set<render_texture>::get_class_type();
+                return resource_set<render_texture*>::get_class_type();
             }
             else
             {
@@ -232,6 +234,8 @@ namespace vk
         }
         
     private:
+        
+        static constexpr char const * _resource_type = nullptr;
         eastl::array<T*, NUM_SWAPCHAIN_IMAGES> elements {};
         void private_destroy()
         {

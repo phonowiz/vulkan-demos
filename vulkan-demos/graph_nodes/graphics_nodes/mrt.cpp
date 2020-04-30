@@ -93,11 +93,11 @@ public:
         //TODO: add_attachment CALLS SHOULD BE ACCOMPANIED WITH A STRING NAME SO WE CAN REFERENCE IT.
         //GBUFFER SUBPASS
         //follow the order in which the attachments are expected in the shader
-        mrt_attachment_group.add_attachment(normals);
-        mrt_attachment_group.add_attachment(albedos);
-        mrt_attachment_group.add_attachment(positions);
-        mrt_attachment_group.add_attachment(_swapchain->present_textures);
-        mrt_attachment_group.add_attachment(depth);
+        mrt_attachment_group.add_attachment(normals, glm::vec4(0.0f));
+        mrt_attachment_group.add_attachment(albedos, glm::vec4(0.0f));
+        mrt_attachment_group.add_attachment(positions, glm::vec4(0.0f));
+        mrt_attachment_group.add_attachment(_swapchain->present_textures, glm::vec4(0.0f));
+        mrt_attachment_group.add_attachment(depth, 1.0f, 0.0f);
         
         //TODO: GET RID OF THIS AND REPLACE IT WITH STRING NAMES
         enum

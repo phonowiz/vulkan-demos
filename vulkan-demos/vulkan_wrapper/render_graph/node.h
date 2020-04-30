@@ -14,7 +14,7 @@
 #include "camera.h"
 #include "texture_registry.h"
 #include "material_store.h"
-
+#include "EASTL/fixed_string.h"
 #include <iostream>
 
 namespace  vk
@@ -133,9 +133,14 @@ namespace  vk
             record_node_commands(buffer, image_id);
         }
         
-        void set_name(const char* name)
+        inline void set_name(const char* name)
         {
             _name = name;
+        }
+        
+        inline const char* const get_name()
+        {
+            return _name.c_str();
         }
         
         void debug_print(const char* message)
@@ -190,6 +195,13 @@ namespace  vk
 
             constexpr uint32_t VK_FLAGS_NONE = 0;
             
+            
+            eastl::fixed_string<char, 100> msg {};
+            
+            msg.sprintf("creating dependency between %s and %s", this->get_name(), dependee_node->get_name());
+            
+            this->debug_print(msg.c_str());
+            
             VkPipelineStageFlagBits producer = dependee_node->get_producer_stage();
             VkPipelineStageFlagBits consumer = this->get_consumer_stage();
             vkCmdPipelineBarrier(
@@ -217,6 +229,7 @@ namespace  vk
             typename tex_registry_type::node_dependees::iterator begin = dependees.begin();
             typename tex_registry_type::node_dependees::iterator end = dependees.end();
 
+            //TODO: In theory we could collect all the barriers and have one vkCmdPipelineBarrier
             for(typename tex_registry_type::node_dependees::iterator b = begin ; b != end ; ++b)
             {
                 

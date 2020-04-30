@@ -142,7 +142,7 @@ public:
 //            //target[i].init();
 //        }
         
-        attachment_group.add_attachment(target);
+        attachment_group.add_attachment(target, glm::vec4(1.0f, 1.0f, 1.0f, .0f));
         //TODO: THIS SHOULDN'T BE NECESSARY
         attachment_group.set_device(parent_type::_device);
         enum{ VOXEL_ATTACHMENT_ID = 0 };

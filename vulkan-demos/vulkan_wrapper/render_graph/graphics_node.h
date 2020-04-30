@@ -39,8 +39,8 @@ namespace vk {
         
         virtual void record_node_commands(command_recorder& buffer, uint32_t image_id) override
         {
-            _node_render_pass.set_clear_attachments_colors(glm::vec4(0.f));
-            _node_render_pass.set_clear_depth(glm::vec2(1.0f, 0.0f));
+            //_node_render_pass.set_clear_attachments_colors(glm::vec4(0.f));
+            //_node_render_pass.set_clear_depth(glm::vec2(1.0f, 0.0f));
             
             _node_render_pass.record_draw_commands(buffer.get_raw_graphics_command(image_id), image_id);
         }
@@ -81,7 +81,7 @@ namespace vk {
         }
         
         VkPipelineStageFlagBits get_producer_stage() override {  return VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; };
-        VkPipelineStageFlagBits get_consumer_stage() override {  return VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT; };
+        VkPipelineStageFlagBits get_consumer_stage() override {  return VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT; };
         
     protected:
         

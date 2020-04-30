@@ -51,7 +51,7 @@ public:
         tex_registry_type* _tex_registry = parent_type::_texture_registry;
         
         
-        pass.get_attachment_group().add_attachment( _swapchain->present_textures);
+        pass.get_attachment_group().add_attachment( _swapchain->present_textures, glm::vec4(0.0f));
         
         _screen_plane.create();
         subpass_type& sub_p = pass.add_subpass(parent_type::_material_store, "display");
