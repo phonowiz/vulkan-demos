@@ -43,8 +43,9 @@ private:
     glm::vec3 _up_vector{};
     
     glm::mat4 _proj_to_voxel_screen = glm::mat4(1.0f);
-    
     glm::vec3 _light_pos = glm::vec3(0.0f, .8f, 0.0f);
+    
+    vk::screen_plane _screen_plane;
     
 public:
     
@@ -60,9 +61,10 @@ public:
     voxelize(){}
     voxelize(vk::device* dev):
     parent_type(dev, static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT)),
-    _ortho_camera(WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE)
+    _ortho_camera(WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE),
+    _screen_plane(dev)
     {
-        
+        _screen_plane.create();
     }
     
     void set_cam_params(glm::vec3 cam_pos, glm::vec3 up)
@@ -144,11 +146,14 @@ public:
         
         attachment_group.add_attachment(target, glm::vec4(1.0f, 1.0f, 1.0f, .0f));
         //TODO: THIS SHOULDN'T BE NECESSARY
-        attachment_group.set_device(parent_type::_device);
+        //attachment_group.set_device(parent_type::_device);
         enum{ VOXEL_ATTACHMENT_ID = 0 };
         voxelize_subpass.add_output_attachment(VOXEL_ATTACHMENT_ID);
         
+        _screen_plane.set_device(parent_type::_device);
+        _screen_plane.create();
         
+        pass.add_object(_screen_plane); //add_object(&_screen_plane);
     }
     
     virtual void update(vk::camera& camera, uint32_t image_id) override

@@ -16,10 +16,16 @@ namespace vk
     class display_plane : public mesh
     {
     public:
+        
+        display_plane(){}
+        
+        void set_device(vk::device* dev)
+        {
+            _device = dev;
+        }
         display_plane(device* device)
         {
             _device = device;
-            create();
         }
         
         void create();

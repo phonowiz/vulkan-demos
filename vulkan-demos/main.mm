@@ -198,7 +198,9 @@ void game_loop()
 //            app.deferred_renderer->draw(*app.perspective_camera);
 //            next_swap = app.deferred_renderer->get_current_swapchain_image();
             app.voxel_graph->record(next_swap);
+            app.voxel_graph->execute(next_swap);
             next_swap = ++next_swap % vk::NUM_SWAPCHAIN_IMAGES;
+        
         }
         else if (app.mode == App::render_mode::RENDER_3D_TEXTURE)
         {

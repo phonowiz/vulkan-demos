@@ -634,16 +634,18 @@ namespace vk
         
         for( uint32_t subpass_id = 0; subpass_id < _num_subpasses; ++subpass_id)
         {
+            int drawn_obj = 0;
             for( uint32_t obj_id = 0; obj_id < _num_objects; ++obj_id)
             {
                 if(!_subpasses[subpass_id].is_ignored(obj_id))
                 {
-                    _subpasses[subpass_id].begin_subpass_recording(buffer, swapchain_id, obj_id );
+                    _subpasses[subpass_id].begin_subpass_recording(buffer, swapchain_id, drawn_obj );
                     for( uint32_t mesh_id = 0; mesh_id < _shapes[obj_id]->get_num_meshes(); ++mesh_id)
                     {
                         _shapes[obj_id]->bind_verteces(buffer, mesh_id);
                         _shapes[obj_id]->draw_indexed(buffer, mesh_id );
                     }
+                    ++drawn_obj;
                 }
             }
             if(_num_subpasses != (subpass_id + 1))

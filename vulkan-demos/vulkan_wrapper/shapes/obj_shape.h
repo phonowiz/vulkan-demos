@@ -29,17 +29,28 @@ namespace vk {
     protected:
         obj_shape(vk::device* device){ _device = device; };
     public:
+        
+        obj_shape(){}
         obj_shape(device* device, const char* path);
         
+        void set_device(device* dev)
+        {
+            _device = dev;
+        }
         virtual void destroy() override;
         
         virtual void create();
         
-        inline void set_id(uint32_t id) { _id = id; }
-        inline uint32_t get_id(){
-            
+        inline void set_id(uint32_t id)
+        {
+            _id = id;
+        }
+        
+        inline uint32_t get_id()
+        {
             return _id;
         }
+        
         inline void bind_verteces(VkCommandBuffer& buffer, uint32_t mesh_id)
         {
             assert(_meshes.size() > mesh_id);

@@ -16,6 +16,8 @@ namespace vk
     {
     public:
         
+        inline screen_plane(){}
+        
         inline screen_plane(vk::device* device):
         obj_shape(device),
         _display_plane( device ){  }
@@ -24,9 +26,13 @@ namespace vk
         {
             _meshes.push_back(&_display_plane);
             _path = "display_plane";
-            
+            _display_plane.create();
         }
         
+        void set_device(vk::device* dev)
+        {
+            _display_plane.set_device(dev);
+        }
         
         virtual void destroy() override
         {
