@@ -41,7 +41,7 @@ namespace vk {
         {
             //_node_render_pass.set_clear_attachments_colors(glm::vec4(0.f));
             //_node_render_pass.set_clear_depth(glm::vec2(1.0f, 0.0f));
-            
+            _node_render_pass.commit_parameters_to_gpu(image_id);
             _node_render_pass.record_draw_commands(buffer.get_raw_graphics_command(image_id), image_id);
         }
         
@@ -86,7 +86,7 @@ namespace vk {
     protected:
         
         
-        void set_dynamic_param(const char* name, uint32_t image_id,
+        bool set_dynamic_param(const char* name, uint32_t image_id,
                                 uint32_t subpass_id, vk::obj_shape* obj,  glm::mat4 mat, uint32_t binding)
         {
             typename render_pass_type::subpass_s& subpass = _node_render_pass.get_subpass(subpass_id);
@@ -94,23 +94,28 @@ namespace vk {
             //TODO: This is slow. This will not be a factor in the near futre since we don't have that many
             //objects.  Possible solution?: east::fixed_map.
             
-            //find the object index
-            int count = -1;
-            while(count < _obj_vector.size())
+            int32_t count = 0;
+            int i = 0;
+            
+            bool result = false;
+            while(i < _obj_vector.size())
             {
-                ++count;
                 if(apply_subpass(_obj_vector[count], subpass_id))
                 {
                     if(obj == _obj_vector[count])
+                    {
+                        //use the index to access the dynamic parameter memory for this object
+                        subpass.get_pipeline(image_id).
+                            get_dynamic_parameters(vk::visual_material::parameter_stage::VERTEX, binding)[count][name] = mat;
+                        
+                        result = true;
                         break;
+                    }
+                    ++count;
                 }
+                ++i;
             }
-            
-            assert(count < _obj_vector.size() && "object wasn't found");
-            //use the index to access the dynamic parameter memory for this object
-            subpass.get_pipeline(image_id).
-                get_dynamic_parameters(vk::visual_material::parameter_stage::VERTEX, binding)[count][name] = mat;
-            
+            return result;
         }
         
         void add_dynamic_param(const char* name, uint32_t subpass_id,

@@ -338,6 +338,8 @@ void material_base::init_shader_parameters()
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, mem.device_memory);
         }
         
+        group.freeze();
+        obj_group.freeze();
         total_size = 0;
     }
     
@@ -407,6 +409,9 @@ void material_base::commit_dynamic_parameters_to_gpu()
             prev_obj_parameters_count = uniform_parameters_count;
             uniform_parameters_count = 0;
             start += get_dynamic_ubo_stride();
+            
+            pair2.second.freeze();
+            pair.second.freeze();
         }
         
         VkMappedMemoryRange mapped_memory_range {};
@@ -449,6 +454,8 @@ void material_base::commit_parameters_to_gpu( )
                 vkUnmapMemory(_device->_logical_device, mem.device_memory);
             }
         }
+        pair.second.freeze();
+        group.freeze();
     }
     _uniform_parameters.freeze();
     _sampler_parameters.freeze();

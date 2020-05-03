@@ -38,7 +38,7 @@ public:
         _normal_texture = normal_texture;
     }
     
-    virtual void update(vk::camera& camera, uint32_t image_id) override
+    virtual void update_node(vk::camera& camera, uint32_t image_id) override
     {
     }
     

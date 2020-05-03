@@ -73,7 +73,7 @@ public:
         _compute_pipelines.set_image_sampler(out_tex2, "w_texture_2", 3);
     }
 
-    virtual void update(vk::camera& camera, uint32_t image_id) override
+    virtual void update_node(vk::camera& camera, uint32_t image_id) override
     {
         
     }

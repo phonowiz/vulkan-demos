@@ -45,7 +45,7 @@ private:
     glm::mat4 _proj_to_voxel_screen = glm::mat4(1.0f);
     glm::vec3 _light_pos = glm::vec3(0.0f, .8f, 0.0f);
     
-    vk::screen_plane _screen_plane;
+    //vk::screen_plane _screen_plane;
     
 public:
     
@@ -61,10 +61,10 @@ public:
     voxelize(){}
     voxelize(vk::device* dev):
     parent_type(dev, static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT)),
-    _ortho_camera(WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE),
-    _screen_plane(dev)
+    _ortho_camera(WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE)
+    //_screen_plane(dev)
     {
-        _screen_plane.create();
+        //_screen_plane.create();
     }
     
     void set_cam_params(glm::vec3 cam_pos, glm::vec3 up)
@@ -150,13 +150,19 @@ public:
         enum{ VOXEL_ATTACHMENT_ID = 0 };
         voxelize_subpass.add_output_attachment(VOXEL_ATTACHMENT_ID);
         
-        _screen_plane.set_device(parent_type::_device);
-        _screen_plane.create();
+        //_screen_plane.set_device(parent_type::_device);
+        //_screen_plane.create();
         
-        pass.add_object(_screen_plane); //add_object(&_screen_plane);
+        //pass.add_object(_screen_plane); //add_object(&_screen_plane);
+        
+        for(int i = 0; i < _obj_vector.size(); ++i)
+        {
+            pass.add_object(*_obj_vector[i]);
+            //pass.skip_subpass( *_obj_vector[i], 1);
+        }
     }
     
-    virtual void update(vk::camera& camera, uint32_t image_id) override
+    virtual void update_node(vk::camera& camera, uint32_t image_id) override
     {
 
         render_pass_type &pass = parent_type::_node_render_pass;
@@ -182,9 +188,12 @@ public:
         _ortho_camera.update_view_matrix();
         
         voxelize_frag_params["inverse_view_projection"] = glm::inverse( _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix);
+
+        glm::mat4 project_to_voxel_screen = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
+        voxelize_frag_params["project_to_voxel_screen"] = project_to_voxel_screen;
+        
         voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
         voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
-
         voxelize_vertex_params["light_position"] = _light_pos;
         voxelize_vertex_params["eye_position"] = camera.position;
     
@@ -194,7 +203,7 @@ public:
                                            _obj_vector[i]->transform.get_transform_matrix(), 3 );
         }
         
-        vox_subpass.commit_parameters_to_gpu(image_id);
+        //vox_subpass.commit_parameters_to_gpu(image_id);
     }
     
     virtual void destroy() override

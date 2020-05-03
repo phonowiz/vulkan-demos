@@ -72,7 +72,7 @@ namespace vk
             _commands.submit_graphics_commands(image_id);
         }
         
-        virtual void update(vk::camera& camera, uint32_t image_id) override
+        void update(vk::camera& camera, uint32_t image_id) override
         {
             for( eastl_size_t i = 0; i < node_type::_children.size(); ++i)
             {
@@ -95,6 +95,9 @@ namespace vk
         {}
         
         virtual void init_node() override
+        {}
+        
+        virtual void update_node(vk::camera& camera, uint32_t image_id) override
         {}
         
         virtual VkPipelineStageFlagBits get_producer_stage() override {return VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;};

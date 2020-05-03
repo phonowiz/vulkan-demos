@@ -18,6 +18,9 @@
 template<uint32_t NUM_CHILDREN>
 class mrt: public vk::graphics_node<5, NUM_CHILDREN>
 {
+private:
+    vk::orthographic_camera _ortho_camera;
+    
 public:
     
     enum class rendering_mode
@@ -43,11 +46,13 @@ public:
     
     mrt(vk::device* dev, vk::glfw_swapchain* swapchain):
     parent_type(dev, swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height),
+    _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world_dimensions.z),
     _screen_plane(dev)
     {
         _swapchain= swapchain;
         _screen_plane.create();
     }
+    
     
     void set_light_pos(glm::vec3 v)
     {
@@ -215,26 +220,42 @@ public:
         
     }
     
-    virtual void update(vk::camera& camera, uint32_t image_id) override
+    virtual void update_node(vk::camera& camera, uint32_t image_id) override
     {
         render_pass_type &pass = parent_type::_node_render_pass;
         //object_vector_type &obj_vec = parent_type::_obj_vector;
-        tex_registry_type* _tex_registry = parent_type::_texture_registry;
-        material_store_type* _mat_store = parent_type::_material_store;
+        //tex_registry_type* _tex_registry = parent_type::_texture_registry;
+        //material_store_type* _mat_store = parent_type::_material_store;
         //object_submask_type& _obj_masks = parent_type::_obj_subpass_mask;
-        object_vector_type& _obj_vector = parent_type::_obj_vector;
+        //object_vector_type& _obj_vector = parent_type::_obj_vector;
         
         subpass_type& mrt_pass = pass.get_subpass(0);
         subpass_type& subpass = pass.get_subpass(1);
         
+        vk::shader_parameter::shader_params_group& vertex_params = mrt_pass.get_pipeline(image_id).
+                                                get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+        
         vk::shader_parameter::shader_params_group& display_fragment_params = subpass.get_pipeline(image_id).
                                                 get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5) ;
         
-    
+        //TODO: THIS NEEDS TO MATCH THE VOXELIZER NODE DISTANCE...
+        constexpr float distance = 8.f;
+        _ortho_camera.position = { 0.0f, 0.0f, -distance};
+        _ortho_camera.forward = -_ortho_camera.position;
+        
+        _ortho_camera.up = camera.up;
+        _ortho_camera.update_view_matrix();
+        
+        vertex_params["view"] = camera.view_matrix;
+        vertex_params["projection"] =  camera.get_projection_matrix();
+        
+        display_fragment_params["eye_inverse_view_matrix"] = glm::inverse(camera.view_matrix);
+        display_fragment_params["vox_view_projection"] = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
+        display_fragment_params["eye_in_world_space"] = camera.position;
         //TODO: width and height needed here?? It is set at init... do check that this is working...
         display_fragment_params["world_cam_position"] = glm::vec4(camera.position, 1.0f);
         display_fragment_params["world_light_position"] = _light_pos;
-        display_fragment_params["light_color"] = _light_pos;
+        display_fragment_params["light_color"] = _light_color;
         display_fragment_params["mode"] = static_cast<int>(_rendering_mode);
     }
     
@@ -242,7 +263,7 @@ public:
     
 private:
     
-    rendering_mode _rendering_mode = rendering_mode::FULL_RENDERING;
+    rendering_mode _rendering_mode = rendering_mode::ALBEDO;
     
     void setup_sampling_rays()
     {
@@ -270,6 +291,7 @@ private:
     eastl::array<glm::vec4, NUM_SAMPLING_RAYS> _sampling_rays = {};
     
     glm::vec3 _light_pos = glm::vec3(0.0f, .8f, 0.0f);
+    glm::vec4 _light_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 };
 
 template class mrt<4>;

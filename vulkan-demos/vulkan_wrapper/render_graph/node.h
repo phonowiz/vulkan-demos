@@ -77,8 +77,19 @@ namespace  vk
         //?????
         //virtual void validate() = 0;
         
+        virtual void update(vk::camera& camera, uint32_t image_id)
+        {
+            for( eastl_size_t i = 0; i < node_type::_children.size(); ++i)
+            {
+                node_type::_children[i]->update(camera,  image_id);
+            }
+            
+            debug_print("updating...");
+            update_node(camera, image_id);
+        }
+        
         //update shader parameters here every frame
-        virtual void update(vk::camera& camera, uint32_t image_id) = 0;
+        virtual void update_node(vk::camera& camera, uint32_t image_id) = 0;
         
         virtual void init_node() = 0;
         virtual void record_node_commands(command_recorder& buffer, uint32_t image_id) = 0;
@@ -110,15 +121,6 @@ namespace  vk
             return node_type::_children[i];
         }
         
-//        void reset()
-//        {
-//            _visited = false;
-//            for( int i = 0; i < _children.size(); ++i)
-//            {
-//                node_type::_children[i]->reset();
-//            }
-//
-//        }
         
         virtual void record(command_recorder& buffer, uint32_t image_id)
         {
@@ -127,8 +129,7 @@ namespace  vk
                 node_type::_children[i]->record(buffer, image_id);
             }
             
-            std::cout << "recording node: " << _name.c_str() << std::endl;
-            
+            debug_print("recording...");
             record_barriers(buffer, image_id);
             record_node_commands(buffer, image_id);
         }
