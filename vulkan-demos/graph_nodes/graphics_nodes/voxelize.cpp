@@ -58,7 +58,10 @@ public:
     using material_store_type = typename parent_type::material_store_type;
     using object_submask_type = typename parent_type::object_subpass_mask;
     
-    voxelize(){}
+    voxelize():
+    _ortho_camera(WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE)
+    {}
+    
     voxelize(vk::device* dev):
     parent_type(dev, static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT)),
     _ortho_camera(WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE)
@@ -187,7 +190,9 @@ public:
         _ortho_camera.up = _up_vector;
         _ortho_camera.update_view_matrix();
         
-        voxelize_frag_params["inverse_view_projection"] = glm::inverse( _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix);
+        glm::mat4 ivp = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
+        ivp = glm::inverse( ivp );
+        voxelize_frag_params["inverse_view_projection"] = ivp;
 
         glm::mat4 project_to_voxel_screen = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
         voxelize_frag_params["project_to_voxel_screen"] = project_to_voxel_screen;

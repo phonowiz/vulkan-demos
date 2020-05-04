@@ -223,7 +223,7 @@ public:
     virtual void update_node(vk::camera& camera, uint32_t image_id) override
     {
         render_pass_type &pass = parent_type::_node_render_pass;
-        //object_vector_type &obj_vec = parent_type::_obj_vector;
+        object_vector_type &obj_vec = parent_type::_obj_vector;
         //tex_registry_type* _tex_registry = parent_type::_texture_registry;
         //material_store_type* _mat_store = parent_type::_material_store;
         //object_submask_type& _obj_masks = parent_type::_obj_subpass_mask;
@@ -257,13 +257,20 @@ public:
         display_fragment_params["world_light_position"] = _light_pos;
         display_fragment_params["light_color"] = _light_color;
         display_fragment_params["mode"] = static_cast<int>(_rendering_mode);
+        
+        for( int i = 0; i < obj_vec.size(); ++i)
+        {
+            parent_type::set_dynamic_param("model", image_id, 0, obj_vec[i],
+                                           obj_vec[i]->transform.get_transform_matrix(), 0 );
+        }
+        
     }
     
     inline void set_rendering_state( rendering_mode state ){ _rendering_mode = state; }
     
 private:
     
-    rendering_mode _rendering_mode = rendering_mode::ALBEDO;
+    rendering_mode _rendering_mode = rendering_mode::AMBIENT_OCCLUSION;
     
     void setup_sampling_rays()
     {

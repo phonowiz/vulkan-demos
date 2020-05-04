@@ -57,7 +57,7 @@ public:
         _tex_registry->get_write_texture_3d_set(_normal_texture.c_str(), this);
         
         //assert( parent_type::_group_x == parent_type::_group_y == parent_type::_group_z);
-        assert((parent_type::_group_x) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, compute shader won't run properly");
+        //assert((parent_type::_group_x) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, compute shader won't run properly");
         uint32_t size =  parent_type::_group_x * vk::compute_pipeline<1>::LOCAL_GROUP_SIZE;
         
         albedo_tx.set_device(parent_type::_device);

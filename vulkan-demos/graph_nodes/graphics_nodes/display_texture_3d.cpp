@@ -47,12 +47,12 @@ public:
         tex_registry_type* _tex_registry = parent_type::_texture_registry;
         
         
-        pass.get_attachment_group().add_attachment( _swapchain->present_textures);
+        pass.get_attachment_group().add_attachment( _swapchain->present_textures, glm::vec4(0.0f));
         
         _screen_plane.create();
         subpass_type& sub_p = pass.add_subpass(parent_type::_material_store, "display_3d_texture");
         
-        vk::texture_3d& tex = _tex_registry->get_read_texture_3d_set(_texture, vk::image::image_layouts::SHADER_READ_ONLY_OPTIMAL, this);
+        vk::resource_set<vk::texture_3d>& tex = _tex_registry->get_read_texture_3d_set(_texture, this, vk::image::usage_type::COMBINED_IMAGE_SAMPLER);
         //vk::texture_2d& ptr = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
         
         sub_p.set_image_sampler(tex, "texture_3d", vk::material_base::parameter_stage::FRAGMENT, 2,
@@ -77,7 +77,7 @@ public:
         
     }
     
-    virtual void update(vk::camera& camera, uint32_t image_id) override
+    virtual void update_node(vk::camera& camera, uint32_t image_id) override
     {
         render_pass_type &pass = parent_type::_node_render_pass;
         

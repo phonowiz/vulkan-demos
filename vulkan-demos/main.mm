@@ -42,6 +42,8 @@
 #include "camera_controllers/first_person_controller.h"
 
 #include "graph_nodes/graphics_nodes/display_texture_2d.h"
+#include "graph_nodes/graphics_nodes/display_texture_3d.cpp"
+
 #include "graph_nodes/compute_nodes/mip_map_3d_texture.hpp"
 #include "graph_nodes/graphics_nodes/voxelize.cpp"
 #include "graph_nodes/compute_nodes/clear_3d_texture.hpp"
@@ -190,8 +192,8 @@ void game_loop()
     while (!glfwWindowShouldClose(window) && !app.quit)
     {
         glfwPollEvents();
-        app.user_controller->update();
-        app.texture_3d_view_controller->update();
+        //app.user_controller->update();
+        //app.texture_3d_view_controller->update();
         if(app.mode == App::render_mode::RENDER_DEFFERED)
         {
 //            update_renderer_parameters( *app.deferred_renderer );
@@ -401,6 +403,10 @@ int main()
     //vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store, app.shapes);
     //vk::renderer<1> three_d_renderer(&device, window, &swapchain, material_store, "display_3d_texture");
     
+    
+//    glm::vec2 dims = {swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height };
+//    display_texture_3d<1> debug_node_3d(&device,&swapchain, dims, "voxel_albedos" );
+    
     display_texture_2d<1> debug_node(&device, &swapchain, swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height);
 
     debug_node.show_texture("mario.png");
@@ -460,6 +466,8 @@ int main()
     vk::graph<4> voxel_cone_tracing(&device, material_store, swapchain);
     
     mrt<4> mrt_node(&device, &swapchain);
+    
+    
     
     mrt_node.set_name("mrt");
     
@@ -574,6 +582,7 @@ int main()
         //TODO: we also need to clear the normal voxel textures
         clear_mip_maps[map_id].set_clear_texture(albedo_names[map_id], normal_names[map_id]);
         clear_mip_maps[map_id].set_device(&device);
+        clear_mip_maps[map_id].set_group_size(local_groups_x, local_groups_y, local_groups_z);
 
         name.sprintf("clear mip map node %i with local group %i", map_id, local_groups_x);
         clear_mip_maps[map_id].set_name( name.c_str()) ;

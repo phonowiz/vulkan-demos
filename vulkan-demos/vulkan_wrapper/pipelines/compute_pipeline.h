@@ -100,17 +100,15 @@ namespace vk
 //                _material[i]->commit_parameters_to_gpu();
 //        }
         
-        bool is_initialized()
+        bool is_initialized(uint32_t image_id)
         {
             bool result = true;
-            for( int i =0; i < _pipeline.size(); ++i)
+
+            if(_pipeline[image_id] == VK_NULL_HANDLE || _pipeline_layout[image_id] == VK_NULL_HANDLE)
             {
-                if(_pipeline[i] == VK_NULL_HANDLE || _pipeline_layout[i] == VK_NULL_HANDLE)
-                {
-                    result = false;
-                    break;
-                }
+                result = false;
             }
+            
             return result;
         }
         
@@ -140,7 +138,6 @@ namespace vk
         
     private:
         
-        //TODO:: ARE THESE TWO ANY USE?????
         std::array<VkPipeline, NUM_MATERIALS >       _pipeline {};
         std::array<VkPipelineLayout, NUM_MATERIALS>  _pipeline_layout {};
         
@@ -148,7 +145,7 @@ namespace vk
         
         //std::function<void()> _on_begin = [](){};
 
-        void create();
+        void create(uint32_t image_id);
     };
 
     #include "compute_pipeline.hpp"

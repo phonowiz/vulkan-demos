@@ -102,7 +102,6 @@
 		B9BD3144244D23CD0093A826 /* display_texture_3d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9BD3143244D23CD0093A826 /* display_texture_3d.cpp */; };
 		B9D4644E2448466E0011D358 /* voxelize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9D4644D2448466E0011D358 /* voxelize.cpp */; };
 		B9DE4A6223517578003559DC /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627E7219B48D700D1358A /* AppKit.framework */; };
-		B9E221B02410F96400EFE3DA /* debug_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9E221AE2410F96400EFE3DA /* debug_utils.cpp */; };
 		B9F1E94C23F2A62000B0484A /* vulkan in Resources */ = {isa = PBXBuildFile; fileRef = B9F1E94B23F2A61E00B0484A /* vulkan */; };
 		B9F4EFF622FD2CE20058B38E /* obj_shape.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4EFF422FD2CE20058B38E /* obj_shape.cpp */; };
 		B9F4EFF922FE084E0058B38E /* screen_plane.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4EFF722FE084E0058B38E /* screen_plane.cpp */; };
@@ -247,7 +246,6 @@
 		B9C2D0D12444472200D7621F /* mip_map_3d_texture.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = mip_map_3d_texture.hpp; sourceTree = "<group>"; };
 		B9D4644D2448466E0011D358 /* voxelize.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = voxelize.cpp; sourceTree = "<group>"; };
 		B9E0746F2424933400F18A0B /* attachment_group.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = attachment_group.h; sourceTree = "<group>"; };
-		B9E221AE2410F96400EFE3DA /* debug_utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = debug_utils.cpp; sourceTree = "<group>"; };
 		B9E221AF2410F96400EFE3DA /* debug_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = debug_utils.h; sourceTree = "<group>"; };
 		B9F1E94B23F2A61E00B0484A /* vulkan */ = {isa = PBXFileReference; lastKnownFileType = folder; name = vulkan; path = "vulkan-demos/vulkan"; sourceTree = "<group>"; };
 		B9F4EFF422FD2CE20058B38E /* obj_shape.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = obj_shape.cpp; sourceTree = "<group>"; };
@@ -362,7 +360,6 @@
 				B94CEB9922482516001AEDEE /* stb_image.h */,
 				B94CEB982248243F001AEDEE /* tiny_obj_loader.h */,
 				B93FDCED230D2C6B000AECBE /* ordered_map.h */,
-				B9E221AE2410F96400EFE3DA /* debug_utils.cpp */,
 				B9E221AF2410F96400EFE3DA /* debug_utils.h */,
 				B90583C62442BEF600366F8E /* new_operators.h */,
 			);
@@ -770,7 +767,6 @@
 				B949E6CE24497B91003E5AD4 /* eathread_thread.cpp in Sources */,
 				B93FDCB323036DDE000AECBE /* depth_texture.cpp in Sources */,
 				B949E66C244979A2003E5AD4 /* EAFixedPoint.cpp in Sources */,
-				B9E221B02410F96400EFE3DA /* debug_utils.cpp in Sources */,
 				B949E6CF24497B91003E5AD4 /* eathread_storage.cpp in Sources */,
 				B90583C42442A21B00366F8E /* string.cpp in Sources */,
 				B991089B2372B8AC00990E39 /* texture_2d_array.cpp in Sources */,

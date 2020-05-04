@@ -37,6 +37,11 @@ public:
         _swapchain = swapchain;
     }
     
+    
+    void use_shader(const char* shader)
+    {
+        _shader = shader;
+    }
     void show_texture(const char* texture)
     {
         _texture = texture;
@@ -54,7 +59,7 @@ public:
         pass.get_attachment_group().add_attachment( _swapchain->present_textures, glm::vec4(0.0f));
         
         _screen_plane.create();
-        subpass_type& sub_p = pass.add_subpass(parent_type::_material_store, "display");
+        subpass_type& sub_p = pass.add_subpass(parent_type::_material_store, _shader);
         
         vk::texture_2d& ptr = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
         
@@ -87,6 +92,7 @@ private:
     
     using parent_type::add_object;
     
+    const char* _shader = "display";
     vk::screen_plane _screen_plane;
     vk::glfw_swapchain* _swapchain = nullptr;
     const char* _texture = nullptr;
