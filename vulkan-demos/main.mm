@@ -86,12 +86,6 @@ void shutdown_glfw() {
     glfwTerminate();
 }
 
-
-vk::visual_mat_shared_ptr standard_mat;
-vk::visual_mat_shared_ptr mrt_mat;
-vk::visual_mat_shared_ptr display_3d_tex_mat;
-
-
 struct App
 {
     vk::device* device = nullptr;
@@ -99,6 +93,8 @@ struct App
     vk::graph<1> * graph = nullptr;
     
     vk::graph<4> * voxel_graph = nullptr;
+    mrt<4> * mrt_node = nullptr;
+    display_texture_3d<4> * debug_node_3d = nullptr;
     
     first_person_controller* user_controller = nullptr;
     first_person_controller* texture_3d_view_controller = nullptr;
@@ -109,15 +105,8 @@ struct App
     
     std::vector<vk::obj_shape*> shapes;
      
-    enum class render_mode
-    {
-        RENDER_3D_TEXTURE,
-        RENDER_VOXEL_CAM_TEXTURE,
-        RENDER_DEFFERED
-    };
     
     bool quit = false;
-    render_mode mode = render_mode::RENDER_DEFFERED;
     glm::mat4 model = glm::mat4(1.0f);
     
 };
@@ -134,30 +123,11 @@ void game_loop()
         glfwPollEvents();
         app.user_controller->update();
         app.texture_3d_view_controller->update();
-        if(app.mode == App::render_mode::RENDER_DEFFERED)
-        {
-            app.voxel_graph->update(*app.perspective_camera, next_swap);
-            app.voxel_graph->record(next_swap);
-            app.voxel_graph->execute(next_swap);
-            next_swap = ++next_swap % vk::NUM_SWAPCHAIN_IMAGES;
-        
-        }
-        else if (app.mode == App::render_mode::RENDER_3D_TEXTURE)
-        {
-            app.device->wait_for_all_operations_to_finish();
-//            next_swap = ++next_swap % 3;
-//
-//            update_3d_texture_rendering_params(*app.three_d_renderer, next_swap );
-//            app.three_d_renderer->draw(*app.three_d_texture_camera);
-        }
-        else
-        {
-            next_swap = ++next_swap % 3;
-            app.device->wait_for_all_operations_to_finish();
-            //update_ortho_parameters(*app.display_renderer, next_swap);
-            //app.display_renderer->draw(*app.perspective_camera);
-            //app.
-        }
+
+        app.voxel_graph->update(*app.perspective_camera, next_swap);
+        app.voxel_graph->record(next_swap);
+        app.voxel_graph->execute(next_swap);
+        next_swap = ++next_swap % vk::NUM_SWAPCHAIN_IMAGES;
     }
     
 }
@@ -200,61 +170,39 @@ void game_loop_ortho()
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    
     if (key == GLFW_KEY_1 && action == GLFW_PRESS)
     {
-        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::FULL_RENDERING);
-        app.mode = App::render_mode::RENDER_DEFFERED;
+        app.debug_node_3d->set_active(false);
+        app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::FULL_RENDERING);
     }
     
     if (key == GLFW_KEY_2 && action == GLFW_PRESS)
     {
-        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::ALBEDO);
-        app.mode = App::render_mode::RENDER_DEFFERED;
+        app.debug_node_3d->set_active(false);
+        app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::ALBEDO);
     }
     
     if (key == GLFW_KEY_3 && action == GLFW_PRESS)
     {
-        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::NORMALS);
-        app.mode = App::render_mode::RENDER_DEFFERED;
+        app.debug_node_3d->set_active(false);
+        app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::NORMALS);
     }
     
     if( key == GLFW_KEY_4 && action == GLFW_PRESS)
     {
-        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::POSITIONS);
-        app.mode = App::render_mode::RENDER_DEFFERED;
+        app.debug_node_3d->set_active(false);
+        app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::POSITIONS);
     }
     
     if( key == GLFW_KEY_5 && action == GLFW_PRESS)
     {
-        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::DEPTH);
-        app.mode = App::render_mode::RENDER_DEFFERED;
+        app.debug_node_3d->set_active(false);
+        app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::DEPTH);
     }
     if( key == GLFW_KEY_6 && action == GLFW_PRESS)
     {
-        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::AMBIENT_OCCLUSION);
-        app.mode = App::render_mode::RENDER_DEFFERED;;
-    }
-    if( key == GLFW_KEY_7 && action == GLFW_PRESS)
-    {
-        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::AMBIENT_LIGHT);
-        app.mode = App::render_mode::RENDER_DEFFERED;;
-    }
-    if( key == GLFW_KEY_8 && action == GLFW_PRESS)
-    {
-        app.mode = App::render_mode::RENDER_3D_TEXTURE;
-    }
-    if( key == GLFW_KEY_9 && action == GLFW_PRESS)
-    {
-        //app.deferred_renderer->set_rendering_state(vk::deferred_renderer::rendering_mode::DIRECT_LIGHT);
-        app.mode = App::render_mode::RENDER_DEFFERED;
-    }
-    if( key == GLFW_KEY_O && action == GLFW_PRESS)
-    {
-//        vk::shader_parameter::shader_params_group& vertex_params =  app.display_renderer->get_uniform_params(0,vk::visual_material::parameter_stage::VERTEX, 0);
-//        vertex_params["width"] = vk::deferred_renderer::VOXEL_CUBE_WIDTH ;
-//        vertex_params["height"] = vk::deferred_renderer::VOXEL_CUBE_HEIGHT;
-        app.mode = App::render_mode::RENDER_VOXEL_CAM_TEXTURE;
+        app.debug_node_3d->set_active(true);
+        
     }
     
     if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -358,6 +306,8 @@ int main()
     
     
     mrt_node.set_name("mrt");
+    
+    app.mrt_node = &mrt_node;
     
     eastl::array<voxelize<4>, 3> voxelizers;
     
@@ -492,7 +442,7 @@ int main()
     display_texture_3d<4> debug_node_3d(&device,&swapchain, dims, "voxel_albedos2" );
 
     debug_node_3d.set_name("3d-texture-render");
-    debug_node_3d.set_active(true);
+    debug_node_3d.set_active(false);
     
     debug_node_3d.set_3D_texture_cam(three_d_texture_cam);
     
@@ -504,6 +454,7 @@ int main()
     voxel_cone_tracing.add_child(mrt_node);
 
     app.voxel_graph = &voxel_cone_tracing;
+    app.debug_node_3d = &debug_node_3d;
     
     app.voxel_graph->init();
     app.graph->init();

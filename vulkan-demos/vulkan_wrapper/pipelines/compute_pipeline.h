@@ -29,7 +29,6 @@ namespace vk
         compute_pipeline(device* device, compute_mat_shared_ptr material) :
         pipeline(device)
         {
-            //set_material(material);
         }
         
         inline void set_material(const char* name, material_store& store)
@@ -51,34 +50,6 @@ namespace vk
             }
         }
         
-//        inline void set_image_sampler(resource_set<depth_texture>& textures, const char* parameter_name, uint32_t binding)
-//        {
-//            for( int i = 0; i < NUM_MATERIALS; ++i)
-//            {
-//                //note: here we force STORAGE_IMAGE usage because the validation layers will throw errors if you use anything else
-//                _material[i]->set_image_sampler(&textures[i], parameter_name, material_base::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
-//            }
-//        }
-//
-//
-//        inline void set_image_sampler(resource_set<texture_2d>& textures, const char* parameter_name, uint32_t binding)
-//        {
-//            for( int i = 0; i < NUM_MATERIALS; ++i)
-//            {
-//                //note: here we force STORAGE_IMAGE usage because the validation layers will throw errors if you use anything else
-//                _material[i]->set_image_sampler(&textures[i], parameter_name, material_base::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
-//            }
-//        }
-//
-//        inline void set_image_sampler(resource_set<texture_3d>& textures, const char* parameter_name, uint32_t binding)
-//        {
-//            for( int i = 0; i < NUM_MATERIALS; ++i)
-//            {
-//                //note: here we force STORAGE_IMAGE usage because the validation layers will throw errors if you use anything else
-//                _material[i]->set_image_sampler(&textures[i], parameter_name, material_base::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
-//            }
-//        }
-        
         inline void set_image_sampler(texture_3d& textures, const char* parameter_name, uint32_t binding)
         {
             for( int i = 0; i < NUM_MATERIALS; ++i )
@@ -90,15 +61,6 @@ namespace vk
 
         void record_dispatch_commands(VkCommandBuffer&  command_buffer, uint32_t image_id,
                                        uint32_t local_groups_in_x, uint32_t local_groups_in_y, uint32_t local_groups_in_z);
-        
-        //TODO: THIS SHOULD GO AWAY...
-        //inline void record_begin_commands(  std::function<void()> f){ _on_begin = f; };
-        
-//        void commit_parameters_to_gpu(uint32_t i)
-//        {
-//            for( int i = 0; i < NUM_MATERIALS; ++i)
-//                _material[i]->commit_parameters_to_gpu();
-//        }
         
         bool is_initialized(uint32_t image_id)
         {
@@ -142,8 +104,6 @@ namespace vk
         std::array<VkPipelineLayout, NUM_MATERIALS>  _pipeline_layout {};
         
         std::array<compute_mat_shared_ptr, NUM_MATERIALS> _material = {};
-        
-        //std::function<void()> _on_begin = [](){};
 
         void create(uint32_t image_id);
     };

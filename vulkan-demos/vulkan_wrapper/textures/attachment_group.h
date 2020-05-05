@@ -125,75 +125,6 @@ namespace vk {
             add_attachment(textures_set);
         }
         
-//        template<>
-//        inline void add_attachment<depth_texture>(resource_set<depth_texture>& textures_set)
-//        {
-//            set_depth_set(textures_set);
-//        }
-        
-//        inline void add_attachment(glfw_present_texture_set& textures_set)
-//        {
-//            assert(num_attachments < NUM_ATTACHMENTS );
-//            for( int i = 0; i < textures_set.size(); ++i)
-//            {
-//                _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
-//                _attachments[num_attachments][i]->set_device(_device);
-//                _attachments[num_attachments][i]->set_dimensions(_dimensions.x, _dimensions.y, 1);
-//            }
-//            ++num_attachments;
-//        }
-        
-        //TODO: REMOVE THIS FUNCTION, USE RENDER SETS INSTEAD
-        inline void set_filter( image::filter filter)
-        {
-            assert(0 && "do not use");
-            //assert(attachment_id < num_attachments);
-            for( int attachment_id = 0; attachment_id < _attachments.size(); ++attachment_id )
-            {
-                for( int i = 0; i < _attachments[attachment_id].size(); ++i)
-                {
-                    //filters don't apply to present textures, they are never sampled by shaders
-                    if(resource_set<glfw_present_texture>::get_class_type() !=
-                       _attachments[attachment_id][i]->get_instance_type())
-                    {
-                        _attachments[attachment_id][i]->set_filter(filter);
-                    }
-                }
-            }
-        }
-        
-        //TODO: REMOVE THIS FUNCTION, USE RENDER SETS INSTEAD
-        inline void set_filter(uint32_t attachment_id, image::filter filter)
-        {
-            assert(0 && "dont use this function");
-            assert(attachment_id < num_attachments);
-            for( int i = 0; i < _attachments[attachment_id].size(); ++i)
-            {
-                _attachments[attachment_id][i]->set_filter(filter);
-            }
-        }
-        
-        //TODO: REMOVE THIS FUNCTION, USE RENDER SETS INSTEAD
-        inline void set_format(image::formats format)
-        {
-            assert(0 && "dont use this function");
-            for( int i = 0; i < _attachments.size(); ++i)
-            {
-                set_format(i, format);
-            }
-        }
-        
-        //TODO: REMOVE THIS FUNCTION, USE RENDER SETS INSTEAD
-        inline void set_format(uint32_t attachment_id, image::formats format)
-        {
-            assert(0 && "dont use this function");
-            assert(num_attachments < NUM_ATTACHMENTS);
-            for( int i = 0; i < _attachments[attachment_id].size(); ++i)
-            {
-                _attachments[attachment_id][i]->set_format(format);
-            }
-        }
-        
         inline void init(uint32_t swapchain_id)
         {
             assert(num_attachments ==NUM_ATTACHMENTS && "you haven't populated all attachments");
@@ -212,15 +143,7 @@ namespace vk {
         
         inline void set_device(device* device)
         {
-//            assert(num_attachments == NUM_ATTACHMENTS && "you must have all attachments before trying to set their devices");
             _device = device;
-//            for( int i = 0; i < NUM_ATTACHMENTS; ++i)
-//            {
-//                for( int j = 0; j < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++j)
-//                {
-//                    _attachments[i][j]->set_device(device);
-//                }
-//            }
         }
         
         

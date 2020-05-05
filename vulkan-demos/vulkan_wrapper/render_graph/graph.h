@@ -45,7 +45,7 @@ namespace vk
         
         virtual void init() override
         {
-            node_type::pre_init(node_type::_level, node_type::_device);
+            node_type::validate(node_type::_level, node_type::_device);
             create_gpu_resources();
 
             for( eastl_size_t i = 0; i < node_type::_children.size(); ++i)

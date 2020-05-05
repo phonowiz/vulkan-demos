@@ -175,7 +175,7 @@ namespace  vk
         
     protected:
         
-        virtual void pre_init( uint32_t i, vk::device* device )
+        virtual void validate( uint32_t i, vk::device* device )
         {
             assert(!_visited && "we have a cyclic dependency, revise your graph");
             _visited = true;
@@ -184,7 +184,7 @@ namespace  vk
             
             for( int i = 0; i < _children.size(); ++i)
             {
-                node_type::_children[i]->pre_init(_level + 1, device);
+                node_type::_children[i]->validate(_level + 1, device);
             }
         }
         

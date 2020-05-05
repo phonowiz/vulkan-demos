@@ -99,26 +99,6 @@ namespace vk
             _material[0]->set_image_sampler(&texture, parameter_name, parameter_stage, binding, usage);
         }
         
-        //TODO: change this to reder_set
-        inline void set_image_sampler(std::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
-                                      visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
-        {
-            for( int i = 0; i < textures.size(); ++i)
-            {
-                _material[0]->set_image_sampler(&textures[i], parameter_name, parameter_stage, binding, usage) ;
-            }
-        }
-        
-        //TODO: change this to reder_set
-        inline void set_image_sampler(std::array<render_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
-                                      visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
-        {
-            for( int i = 0; i < textures.size(); ++i)
-            {
-                _material[0]->set_image_sampler(&textures[i], parameter_name, parameter_stage, binding, usage) ;
-            }
-        }
-        
         inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, float value, int binding)
         {
             _material[0]->init_parameter(parameter_name, stage, value, binding);
