@@ -65,16 +65,14 @@ namespace  vk
         {
             assert( _device != nullptr);
 
-            debug_print("initting...");
+            //debug_print("initting...");
             
             for( eastl_size_t i = 0; i < _children.size(); ++i)
             {
                 _children[i]->set_stores(*_texture_registry, *_material_store);
-                //std::cout << "\t\tinitting child of " << _name.c_str() << std::endl;
                 _children[i]->init();
             }
             
-
             init_node();
             create_gpu_resources();
         }
@@ -89,7 +87,7 @@ namespace  vk
             
             destroy();
         }
-        //?????
+        //how to validate
         //virtual void validate() = 0;
         
         virtual void update(vk::camera& camera, uint32_t image_id)
@@ -99,7 +97,7 @@ namespace  vk
                 node_type::_children[i]->update(camera,  image_id);
             }
             
-            debug_print("updating...");
+            //debug_print("updating...");
             update_node(camera, image_id);
         }
         
@@ -147,7 +145,7 @@ namespace  vk
             
             if( result && _active)
             {
-                debug_print("recording...");
+                //debug_print("recording...");
                 record_barriers(buffer, image_id);
                 result = record_node_commands(buffer, image_id);
             }
@@ -217,12 +215,9 @@ namespace  vk
 
             constexpr uint32_t VK_FLAGS_NONE = 0;
             
-            
-            eastl::fixed_string<char, 100> msg {};
-            
-            msg.sprintf("creating dependency between %s and %s", this->get_name(), dependee_node->get_name());
-            
-            this->debug_print(msg.c_str());
+//            eastl::fixed_string<char, 100> msg {};
+//            msg.sprintf("creating dependency between %s and %s", this->get_name(), dependee_node->get_name());
+//            this->debug_print(msg.c_str());
             
             VkPipelineStageFlagBits producer = dependee_node->get_producer_stage();
             VkPipelineStageFlagBits consumer = this->get_consumer_stage();
@@ -263,38 +258,10 @@ namespace  vk
                     std::shared_ptr<vk::image> p_image = std::static_pointer_cast<vk::image>(res);
 
                     create_barrier(buffer, p_image.get(), b, image_id );
-//                    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-//                    barrier.pNext = nullptr;
-//                    //TODO: this could potentially be set when connections are formed between nodes
-//                    barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-//                    barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-//
-//                    barrier.oldLayout = static_cast<VkImageLayout>(p_image->get_native_layout());;
-//                    barrier.newLayout = static_cast<VkImageLayout>((*b).layout);
-//                    barrier.image = p_image->get_image();
-//                    barrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-//                    //we are not transferring ownership
-//                    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-//                    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-//
-//                    constexpr uint32_t VK_FLAGS_NONE = 0;
-//
-//                    vkCmdPipelineBarrier(
-//                                         buffer.get_raw_graphics_command(image_id),
-//                                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-//                                         VK_PIPELINE_STAGE_VERTEX_SHADER_BIT,
-//                                         VK_FLAGS_NONE,
-//                                         0, nullptr,
-//                                         0, nullptr,
-//                                         1, &barrier);
                 }
                 else
                 {
                     //this is a resource set...
-//                    assert(res->get_instance_type()  == resource_set<vk::texture_2d>::get_class_type() ||
-//                           res->get_instance_type()  == resource_set<vk::depth_texture>::get_class_type() ||
-//                           res->get_instance_type()  == resource_set<vk::texture_3d>::get_class_type() ||
-//                           res->get_instance_type()  == resource_set<vk::render_texture>::get_class_type());
                     
                     if(res->get_instance_type()  == resource_set<vk::texture_2d>::get_class_type())
                     {

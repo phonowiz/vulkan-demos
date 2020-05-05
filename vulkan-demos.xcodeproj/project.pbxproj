@@ -106,9 +106,6 @@
 		B9F4EFF622FD2CE20058B38E /* obj_shape.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4EFF422FD2CE20058B38E /* obj_shape.cpp */; };
 		B9F4EFF922FE084E0058B38E /* screen_plane.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4EFF722FE084E0058B38E /* screen_plane.cpp */; };
 		B9F4EFFC22FE1F380058B38E /* cornell_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4EFFA22FE1F370058B38E /* cornell_box.cpp */; };
-		B9F4F00E230369620058B38E /* renderer.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4F00D230369610058B38E /* renderer.hpp */; };
-		B9F4F011230369A10058B38E /* display_2d_texture_renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4F00F230369A10058B38E /* display_2d_texture_renderer.cpp */; };
-		B9F4F014230369D20058B38E /* deferred_renderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4F012230369D20058B38E /* deferred_renderer.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -124,6 +121,7 @@
 		B90583BA2442A21B00366F8E /* assert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = assert.cpp; path = "vulkan-demos/eastl-3.16.05/source/assert.cpp"; sourceTree = SOURCE_ROOT; };
 		B90583BB2442A21B00366F8E /* string.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = string.cpp; path = "vulkan-demos/eastl-3.16.05/source/string.cpp"; sourceTree = SOURCE_ROOT; };
 		B90583C62442BEF600366F8E /* new_operators.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = new_operators.h; sourceTree = "<group>"; };
+		B92354E3246133A800BEC4F3 /* render_pass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = render_pass.h; sourceTree = "<group>"; };
 		B92627DE219B476200D1358A /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		B92627E1219B47CA00D1358A /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		B92627E4219B481700D1358A /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
@@ -215,7 +213,6 @@
 		B95E4F9223BC113F00C13609 /* glfw_present_texture.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = glfw_present_texture.cpp; sourceTree = "<group>"; };
 		B95E4F9323BC113F00C13609 /* glfw_present_texture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = glfw_present_texture.h; sourceTree = "<group>"; };
 		B95FF50923B738C400F8580F /* libMoltenVKGLSLToSPIRVConverter.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVKGLSLToSPIRVConverter.dylib; path = "vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/dynamic/libMoltenVKGLSLToSPIRVConverter.dylib"; sourceTree = "<group>"; };
-		B95FF50E23B739F800F8580F /* render_pass.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = render_pass.h; sourceTree = "<group>"; };
 		B960021D23B5DFDA0025A8AF /* MoltenVKGLSLToSPIRVConverter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MoltenVKGLSLToSPIRVConverter.framework; path = "vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/framework/MoltenVKGLSLToSPIRVConverter.framework"; sourceTree = "<group>"; };
 		B960021F23B5E0290025A8AF /* textures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = textures; path = "vulkan-demos/textures"; sourceTree = "<group>"; };
 		B960022123B5E04A0025A8AF /* models */ = {isa = PBXFileReference; lastKnownFileType = folder; name = models; path = "vulkan-demos/models"; sourceTree = "<group>"; };
@@ -254,12 +251,6 @@
 		B9F4EFF822FE084E0058B38E /* screen_plane.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = screen_plane.h; sourceTree = "<group>"; };
 		B9F4EFFA22FE1F370058B38E /* cornell_box.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cornell_box.cpp; sourceTree = "<group>"; };
 		B9F4EFFB22FE1F380058B38E /* cornell_box.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cornell_box.h; sourceTree = "<group>"; };
-		B9F4F00C230369610058B38E /* renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = renderer.h; sourceTree = "<group>"; };
-		B9F4F00D230369610058B38E /* renderer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = renderer.hpp; sourceTree = "<group>"; };
-		B9F4F00F230369A10058B38E /* display_2d_texture_renderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = display_2d_texture_renderer.cpp; sourceTree = "<group>"; };
-		B9F4F010230369A10058B38E /* display_2d_texture_renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = display_2d_texture_renderer.h; sourceTree = "<group>"; };
-		B9F4F012230369D20058B38E /* deferred_renderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = deferred_renderer.cpp; sourceTree = "<group>"; };
-		B9F4F013230369D20058B38E /* deferred_renderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = deferred_renderer.h; sourceTree = "<group>"; };
 		B9FD1B4D23747747002B1985 /* texture_2d_array.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = texture_2d_array.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -576,6 +567,7 @@
 				B9939B4E24394E9600D9D345 /* graph.h */,
 				B9A23CC323D3D84E00D4D556 /* graphics_node.h */,
 				B9A23CC023D3D21A00D4D556 /* node.h */,
+				B92354E3246133A800BEC4F3 /* render_pass.h */,
 				B9939B512439668D00D9D345 /* texture_registry.h */,
 			);
 			path = render_graph;
@@ -609,25 +601,10 @@
 				B93FDCB423036EB0000AECBE /* materials */,
 				B93FDCC123036F60000AECBE /* pipelines */,
 				B9A23CBE23D3D1A900D4D556 /* render_graph */,
-				B9F4F00B230369610058B38E /* renderers */,
 				B96AB61B22EE5BBA00F33807 /* shapes */,
 				B93FDCA123036C29000AECBE /* textures */,
 			);
 			path = vulkan_wrapper;
-			sourceTree = "<group>";
-		};
-		B9F4F00B230369610058B38E /* renderers */ = {
-			isa = PBXGroup;
-			children = (
-				B9F4F012230369D20058B38E /* deferred_renderer.cpp */,
-				B9F4F013230369D20058B38E /* deferred_renderer.h */,
-				B9F4F00F230369A10058B38E /* display_2d_texture_renderer.cpp */,
-				B9F4F010230369A10058B38E /* display_2d_texture_renderer.h */,
-				B9F4F00C230369610058B38E /* renderer.h */,
-				B9F4F00D230369610058B38E /* renderer.hpp */,
-				B95FF50E23B739F800F8580F /* render_pass.h */,
-			);
-			path = renderers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -718,7 +695,6 @@
 				B93FDCDD23037064000AECBE /* glfw_swapchain.cpp in Sources */,
 				B93FDCA623036C29000AECBE /* texture_3d.cpp in Sources */,
 				B90583C12442A21B00366F8E /* fixed_pool.cpp in Sources */,
-				B9F4F011230369A10058B38E /* display_2d_texture_renderer.cpp in Sources */,
 				B949E65A244979A2003E5AD4 /* EAHashCRC.cpp in Sources */,
 				B949E6B524497B91003E5AD4 /* eathread_pool.cpp in Sources */,
 				B978317022E54DEC00E5DE71 /* first_person_controller.cpp in Sources */,
@@ -757,7 +733,6 @@
 				B949E659244979A2003E5AD4 /* EAMemory.cpp in Sources */,
 				B9384E75220171E500565024 /* main.mm in Sources */,
 				B949E65D244979A2003E5AD4 /* EARandom.cpp in Sources */,
-				B9F4F00E230369620058B38E /* renderer.hpp in Sources */,
 				B93FDCE723037359000AECBE /* shader.cpp in Sources */,
 				B93FDCBE23036EB0000AECBE /* compute_material.cpp in Sources */,
 				B949E660244979A2003E5AD4 /* EAString.cpp in Sources */,
@@ -791,7 +766,6 @@
 				B90583BE2442A21B00366F8E /* thread_support.cpp in Sources */,
 				B949E6B224497B91003E5AD4 /* eathread_barrier.cpp in Sources */,
 				B949E666244979A2003E5AD4 /* EACType.cpp in Sources */,
-				B9F4F014230369D20058B38E /* deferred_renderer.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -312,16 +312,6 @@ namespace vk
                 }
             }
             
-            //TODO: REMOVE
-            inline void set_image_sampler(eastl::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
-                                          visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
-            {
-                for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
-                {
-                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, usage) ;
-                }
-            }
-            
             inline void set_image_sampler(resource_set<texture_3d>& textures, const char* parameter_name,
                                           visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
             {
@@ -447,15 +437,8 @@ namespace vk
         }
         attachment_group<NUM_ATTACHMENTS>& get_attachment_group();
 
-        render_pass(){ /*set_clear_depth(glm::vec2(1.0f, 0.0f));*/ }
+        render_pass(){ }
         render_pass(device* device, glm::vec2 dimensions);
-        
-//        void set_clear_depth( glm::vec2 depth_stencil)
-//        {
-//            int32_t i = _attachment_group.get_depth_set_index();
-//            _clear_values[i].depthStencil = {depth_stencil.x, (uint32_t)depth_stencil.y};
-//
-//        }
         
         inline bool is_depth_enabled()
         {
@@ -481,16 +464,6 @@ namespace vk
             assert( result == true && "you are asking to ignore an object not yet added to render pass");
             return result;
         }
-//        inline void set_clear_attachments_colors( glm::vec4 color)
-//        {
-//            for(int i = 0; i < _clear_values.size()-2; ++i)
-//            {
-//                if(i == _attachment_group.get_depth_set_index())
-//                    continue;
-//
-//                _clear_values[i].color = {color.x, color.y, color.z, color.w};
-//            }
-//        }
         
         void init(uint32_t swapchain_id);
         
@@ -600,15 +573,13 @@ namespace vk
     private:
         
         void create_frame_buffers(uint32_t swapchain_id);
-        //void begin_command_recording(VkCommandBuffer& buffer, uint32_t swapchain_image_id);
         void begin_render_pass(VkCommandBuffer& buffer, uint32_t swapchain_image_id);
         void end_render_pass(VkCommandBuffer& buffer);
-        //void end_command_recording();
+
         
     private:
         
         attachment_group<NUM_ATTACHMENTS>  _attachment_group;
-        //resource_set<depth_texture>*  _depth_textures = nullptr;
         eastl::array<VkRenderPass,glfw_swapchain::NUM_SWAPCHAIN_IMAGES>   _vk_render_passes {};
         eastl::array<VkFramebuffer, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _vk_frame_buffer_infos {};
         
@@ -619,7 +590,6 @@ namespace vk
 
         glm::vec2 _dimensions {};
         device* _device = nullptr;
-        //VkCommandBuffer* _recording_buffer = VK_NULL_HANDLE;
         uint32_t _num_subpasses = 0;
         uint32_t _num_objects = 0;
     };
@@ -628,7 +598,6 @@ namespace vk
     void render_pass< NUM_ATTACHMENTS>::record_draw_commands(VkCommandBuffer& buffer, uint32_t swapchain_id)
     {
         assert(_num_objects != 0 && "you must have objects to render in a subpass");
-        //begin_command_recording(buffer, swapchain_id);
         begin_render_pass(buffer, swapchain_id);
 
         
@@ -653,7 +622,6 @@ namespace vk
         }
         
         end_render_pass(buffer);
-        //end_command_recording();
     }
 
     template< uint32_t NUM_ATTACHMENTS>
@@ -662,15 +630,12 @@ namespace vk
     {
         _dimensions = dimensions;
         _device = device;
-        
-        //set_clear_depth(glm::vec2(1.0f, 0.0f));
+
         for( int subpass_id = 0; subpass_id < _subpasses.size(); ++subpass_id )
         {
             _subpasses[subpass_id].set_device(device);
             _subpasses[subpass_id].set_viewport(dimensions);
         }
-        
-        //_attachment_group.set_depth_set(_depth_textures);
     }
 
     template < uint32_t NUM_ATTACHMENTS>
@@ -743,25 +708,6 @@ namespace vk
         dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
         dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
         
-//        if(is_depth_enabled())
-//        {
-//            assert(nullptr != _attachment_group.get_depth_set() && "subpasses require a depth attachment not found on this render pass");
-//
-//            //notes: attachments all have the same width and height
-//            uint32_t width = _dimensions.x;
-//            uint32_t height = _dimensions.y;
-//
-//
-//            resource_set<image*>& depths =  get_depth_textures();
-//            //TODO: WE SHOULD VALIDATE THAT THIS IS TRUE INSTEAD OF FORCING IT TO BE TRUE
-//            image::filter f = depths[0]->get_filter();
-//
-//            depths[swapchain_id]->set_device(_device);
-//            depths[swapchain_id]->set_dimensions(width,height, 1.0f);
-//            depths[swapchain_id]->set_filter(f);
-//            depths[swapchain_id]->init();
-//        }
-        
         VkAttachmentReference depth_reference {};
         
         while(_subpasses[subpass_id].is_active())
@@ -800,8 +746,6 @@ namespace vk
             
             ++subpass_id;
         }
-        
-        //attachment_id = is_depth_enabled() ? attachment_id + 1 : attachment_id;
 
         VkRenderPassCreateInfo render_pass_info = {};
         render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
@@ -883,15 +827,6 @@ namespace vk
         {
             vkDestroyRenderPass(_device->_logical_device, _vk_render_passes[i], nullptr);
         }
-        
-//        if(is_depth_enabled())
-//        {
-//            resource_set<image*>& depths =  get_depth_textures();
-//            for( int i = 0; i < depths.size(); ++i)
-//            {
-//                depths[i]->destroy();
-//            }
-//        }
     }
 
     template< uint32_t NUM_ATTACHMENTS>
@@ -907,8 +842,8 @@ namespace vk
         render_pass_create_info.renderArea.offset = { 0, 0 };
         render_pass_create_info.renderArea.extent = { (uint32_t)_dimensions.x, (uint32_t)_dimensions.y };
         
-        render_pass_create_info.clearValueCount = NUM_ATTACHMENTS;//is_depth_enabled() ? static_cast<uint32_t>(_clear_values.size()) : static_cast<uint32_t>(_clear_values.size() -1);
-        render_pass_create_info.pClearValues = _attachment_group.get_clear_values();//_clear_values.data();
+        render_pass_create_info.clearValueCount = NUM_ATTACHMENTS;
+        render_pass_create_info.pClearValues = _attachment_group.get_clear_values();
 
         vkCmdBeginRenderPass(buffer, &render_pass_create_info, VK_SUBPASS_CONTENTS_INLINE);
         

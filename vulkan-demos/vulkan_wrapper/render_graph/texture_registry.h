@@ -77,8 +77,6 @@ namespace vk
                 //note:: if I don't do this, returned value of the key will be garbage, something about
                 //fixed maps causes this to happen.  I don't expect millions of dependent nodes here so it won't play a factor,
                 //but a solution would great!
-//                _node_dependees_map[static_cast<vk::object*>(dependant_node)].insert();
-//                _node_dependees_map[static_cast<vk::object*>(dependant_node)] = node_dependees();
                 _node_dependees_map.insert( dependant_node  );
             }
             
@@ -216,18 +214,13 @@ namespace vk
                 //TODO: add the name of the node here using EAASSERT
                 assert( result != nullptr && "The asset this node depends on was not created, check the node which creates this asset");
                 
-                eastl::fixed_string<char, 100> msg {};
-                msg.sprintf("accessing resource: %s", name);
-                node->debug_print(msg.c_str());
+                //eastl::fixed_string<char, 100> msg {};
+                //msg.sprintf("accessing resource: %s", name);
+                //node->debug_print(msg.c_str());
                 
-                //assert(iter->second.consumed == false && "You are reading from texture that has not been written to yet, check your graph");
                 d.consumed = true;
                 
                 make_dependency(*result, d, node, usage_type);
-//                dependant_data dependant = {};
-//                dependant.data = d;
-//                dependant.layout = result->get_transition_layout(usage_type);
-//                _node_dependees_map[node].push_back(dependant);
                 
             }
             
@@ -243,9 +236,9 @@ namespace vk
             std::shared_ptr<T> ptr = nullptr;
             if(iter == _dependee_data_map.end())
             {
-                eastl::fixed_string<char, 100> msg {};
-                msg.sprintf("creating texture '%s'", name);
-                node->debug_print( msg.c_str());
+//                eastl::fixed_string<char, 100> msg {};
+//                msg.sprintf("creating texture '%s'", name);
+//                node->debug_print( msg.c_str());
                 
                 ptr = GREATE_TEXTUE<T>(args...);
                 
@@ -266,12 +259,6 @@ namespace vk
                 dependee_data& d = iter->second;
                 
                 make_dependency(*ptr, d, node, usage_type);
-                
-//                dependant_data dependant = {};
-//                dependant.data = d;
-//                dependant.layout = (*ptr)[0].get_transition_layout(usage_type);
-//                _node_dependees_map[node].push_back(dependant);
-                
                 
                 iter->second.consumed = false;
             }

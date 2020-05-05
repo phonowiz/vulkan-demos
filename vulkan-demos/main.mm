@@ -30,9 +30,6 @@
 
 #include "vulkan_wrapper/core/device.h"
 #include "vulkan_wrapper/core/glfw_swapchain.h"
-#include "vulkan_wrapper/renderers/renderer.h"
-#include "vulkan_wrapper/renderers/display_2d_texture_renderer.h"
-#include "vulkan_wrapper/renderers/deferred_renderer.h"
 
 #include "vulkan_wrapper/materials/material_store.h"
 #include "vulkan_wrapper/shapes/obj_shape.h"
@@ -98,8 +95,7 @@ vk::visual_mat_shared_ptr display_3d_tex_mat;
 struct App
 {
     vk::device* device = nullptr;
-    //vk::deferred_renderer*   deferred_renderer = nullptr;
-    //vk::renderer<1>*   three_d_renderer = nullptr;
+
     vk::graph<1> * graph = nullptr;
     
     vk::graph<4> * voxel_graph = nullptr;
@@ -110,8 +106,6 @@ struct App
     vk::camera*     perspective_camera = nullptr;
     vk::camera*     three_d_texture_camera = nullptr;
     vk::glfw_swapchain*  swapchain = nullptr;
-    
-    vk::deferred_renderer::rendering_mode state = vk::deferred_renderer::rendering_mode::FULL_RENDERING;
     
     std::vector<vk::obj_shape*> shapes;
      
@@ -131,60 +125,6 @@ struct App
 
 App app;
 
-void update_3d_texture_rendering_params( vk::renderer<1>& three_d_renderer, int32_t next_swap)
-{
-
-    vk::shader_parameter::shader_params_group& vertex_params =
-        three_d_renderer.get_render_pass().get_subpass(0).get_pipeline(next_swap).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-    app.three_d_texture_camera->update_view_matrix();
-
-
-    glm::mat4 mvp = app.three_d_texture_camera->get_projection_matrix() * app.three_d_texture_camera->view_matrix * glm::mat4(1.0f);
-    
-    vertex_params["mvp"] = mvp;
-    vertex_params["model"] = glm::mat4(1.0f);
-
-    vk::shader_parameter::shader_params_group& fragment_params = three_d_renderer.get_render_pass().get_subpass(0).
-    get_pipeline(next_swap).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
-    
-    fragment_params["box_eye_position"] =   glm::vec4(app.three_d_texture_camera->position, 1.0f);
-    fragment_params["screen_height"] = static_cast<float>(app.swapchain->get_vk_swap_extent().width);
-    fragment_params["screen_width"] = static_cast<float>(app.swapchain->get_vk_swap_extent().height);
-    
-    three_d_renderer.set_next_swapchain_id(next_swap);
-}
-
-
-void update_renderer_parameters( vk::deferred_renderer& renderer)
-{
-    std::chrono::time_point frame_time = std::chrono::high_resolution_clock::now();
-    float time_since_start = std::chrono::duration_cast<std::chrono::milliseconds>( frame_time - game_start_time ).count()/1000.0f;
-    
-    app.model = glm::rotate(glm::mat4(1.0f), time_since_start * glm::radians(30.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    
-    glm::vec3 temp = glm::vec3(sinf(float(time_since_start * 0.67)), sinf(float(time_since_start * 0.78)), cosf(float(time_since_start * 0.67))) * .6f;
-    
-    renderer._light_pos = temp;
-    static int32_t next_frame = -1;
-    next_frame = (next_frame + 1) % vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES;
-    vk::shader_parameter::shader_params_group& vertex_params = renderer.get_mrt_uniform_params(vk::visual_material::parameter_stage::VERTEX,0, 0, next_frame);
-
-    
-    app.perspective_camera->update_view_matrix();
-    
-    vertex_params["view"] = app.perspective_camera->view_matrix;
-    vertex_params["projection"] =  app.perspective_camera->get_projection_matrix();
-    for( uint32_t i = 0; i < app.shapes.size(); ++i)
-    {
-        renderer.get_mrt_dynamic_params(vk::visual_material::parameter_stage::VERTEX, 0,1, next_frame)[i]["model"] = app.shapes[i]->transform.get_transform_matrix();
-    }
-}
-
-//void update_ortho_parameters(vk::renderer<1>& renderer, int32_t next_frame)
-//{
-//    if(next_frame != -1)
-//        renderer.set_next_swapchain_id(next_frame);
-//}
 
 void game_loop()
 {
@@ -192,13 +132,10 @@ void game_loop()
     while (!glfwWindowShouldClose(window) && !app.quit)
     {
         glfwPollEvents();
-        //app.user_controller->update();
+        app.user_controller->update();
         app.texture_3d_view_controller->update();
         if(app.mode == App::render_mode::RENDER_DEFFERED)
         {
-//            update_renderer_parameters( *app.deferred_renderer );
-//            app.deferred_renderer->draw(*app.perspective_camera);
-//            next_swap = app.deferred_renderer->get_current_swapchain_image();
             app.voxel_graph->update(*app.perspective_camera, next_swap);
             app.voxel_graph->record(next_swap);
             app.voxel_graph->execute(next_swap);
@@ -240,8 +177,6 @@ void on_window_resize(GLFWwindow * window, int w, int h)
         
         width = w;
         height = h;
-        
-        //app.deferred_renderer->recreate_renderer() ;
     }
 }
 
@@ -357,9 +292,6 @@ int main()
 
     material_store.create(&device);
     
-    vk::texture_2d mario(&device, "mario_small.png");
-    mario.set_enable_mipmapping(true);
-    mario.init();
     
     vk::obj_shape model(&device, "dragon.obj");
     vk::obj_shape cube(&device, "cube.obj");
@@ -418,8 +350,6 @@ int main()
     
     app.user_controller->update();
     app.texture_3d_view_controller->update();
-    
-    /////////////////
     
     vk::graph<4> voxel_cone_tracing(&device, material_store, swapchain);
     
@@ -535,7 +465,6 @@ int main()
 
     }
     
-    /////////////////////
     //build the graph!
     
     //attach mip map nodes together starting with the lowest mip map all the way up to the highest
@@ -570,8 +499,6 @@ int main()
     debug_node_3d.add_child( three_d_mip_maps[three_d_mip_maps.size()-1]);
     
     mrt_node.add_child(debug_node_3d);
-    //attach the lowest mipmap to the mrt node
-    //mrt_node.add_child(three_d_mip_maps[three_d_mip_maps.size()-1]);
     
     //attach the mrt node to the graph
     voxel_cone_tracing.add_child(mrt_node);
@@ -580,12 +507,11 @@ int main()
     
     app.voxel_graph->init();
     app.graph->init();
+    
     //game_loop_ortho();
     game_loop();
     
     device.wait_for_all_operations_to_finish();
-    mario.destroy();
-
 
     app.voxel_graph->destroy_all();
     app.graph->destroy_all();
