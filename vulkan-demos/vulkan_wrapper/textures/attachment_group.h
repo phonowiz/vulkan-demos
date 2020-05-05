@@ -21,21 +21,13 @@
 #include <type_traits>
 #include <glm/glm.hpp>
 
-namespace vk {
-    
-
-//    using image_set = eastl::array<image*, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
-//    using texture_2d_set = eastl::array<texture_2d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
-//    using depth_set = eastl::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
-//    using render_texture_set = eastl::array< render_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
-//    using glfw_present_texture_set = eastl::array< glfw_present_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
+namespace vk
+{
 
 
     template< uint32_t NUM_ATTACHMENTS>
     class attachment_group : public object
     {
-        
-//        using image_set = east::array<vk::image, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>;
         
     public:
         
@@ -52,19 +44,6 @@ namespace vk {
         
         attachment_group(){}
         attachment_group(device* device, glm::vec2 dimensions){ _device = device; _dimensions = dimensions; };
-        
-//        inline void add_attachment(texture_2d_set& textures_set)
-//        {
-//            assert(num_attachments < NUM_ATTACHMENTS );
-//            for( int i = 0; i < textures_set.size(); ++i)
-//            {
-//                _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
-//                _attachments[num_attachments][i]->set_device(_device);
-//                assert(_attachments[num_attachments][i]->get_width() == _dimensions.x && _attachments[num_attachments][i]->get_height() == _dimensions.y &&
-//                       "the attachment dimensions are not compatible with this attachment group");
-//            }
-//            ++num_attachments;
-//        }
         
         inline void set_dimensions(glm::vec2 v)
         {
@@ -85,11 +64,8 @@ namespace vk {
             return result;
         }
         
-        inline resource_set<image*>* get_depth_set(){
-            
-            
-            //return &(_attachments[NUM_ATTACHMENTS-1]);
-            
+        inline resource_set<image*>* get_depth_set()
+        {
             resource_set<image*>* result = nullptr;
                 
             int32_t i = get_depth_set_index();
@@ -98,18 +74,6 @@ namespace vk {
                 
             return result;
         }
-        
-//        inline void set_depth_set(resource_set<depth_texture>& textures_set)
-//        {
-//            for( int i = 0; i < textures_set.size(); ++i)
-//            {
-//                //note: the rule in this code is: depth attachment is always the last one
-//                _attachments[NUM_ATTACHMENTS][i] = static_cast<image*>( &textures_set[i] );
-//                _attachments[NUM_ATTACHMENTS][i]->set_device(_device);
-//                _attachments[NUM_ATTACHMENTS][i]->set_dimensions(_dimensions.x, _dimensions.y, 1);
-//
-//            }
-//        }
         
         inline void add_attachment(resource_set<depth_texture>& depth_set, float default_depth, float default_stencil)
         {
@@ -175,42 +139,13 @@ namespace vk {
                    "did you mean to use a render_texture instead?");
             assert(num_attachments < NUM_ATTACHMENTS );
             
-//            if( textures_set.get_instance_type() != resource_set<depth_texture>::get_class_type())
-//            {
-//                set_depth_enble(true);
-//            }
             for( int i = 0; i < textures_set.size(); ++i)
             {
                 _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
                 _attachments[num_attachments][i]->set_device(_device);
-                //_attachments[num_attachments][i]->set_dimensions(_dimensions.x, _dimensions.y, 1);
             }
             ++num_attachments;
         }
-        
-//        inline void set_dimensions(uint32_t width, uint32_t height)
-//        {
-//            _dimensions.x = static_cast<float>(width);
-//            _dimensions.y = static_cast<float>(height);
-//            
-//            assert(num_attachments == NUM_ATTACHMENTS && "you must have all attachments before trying to set all of their dimensions");
-//            for( int i = 0; i < MAX_NUM_ATTACHMENTS; ++i)
-//            {
-//                for( int j = 0; j < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++j)
-//                {
-//                    if(_attachments[i][j]->get_instance_type() == glfw_present_texture::get_class_type() ||
-//                       _attachments[i][j]->get_instance_type() == depth_texture::get_class_type())
-//                    {
-//                        //note: you cannot change present textures width/height/depth, and other textures must
-//                        //match these dimensions if this is an attachment to a render pass
-//                        assert(_attachments[i][j]->get_width() == width);
-//                        assert(_attachments[i][j]->get_height() == height);
-//                    }
-//                    //note: as far I know, you cant render to 3d attachments yet, I could be wrong...
-//                    _attachments[i][j]->set_dimensions(width, height, 1);
-//                }
-//            }
-//        }
         
         eastl::array<VkClearValue,NUM_ATTACHMENTS> _clear_values {};
         
