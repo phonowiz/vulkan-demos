@@ -11,7 +11,7 @@
 #include "graphics_node.h"
 #include "material_store.h"
 #include "texture_registry.h"
-#include "voxelize.cpp"
+#include "voxelize.h"
 #include "mip_map_3d_texture.hpp"
 
 
