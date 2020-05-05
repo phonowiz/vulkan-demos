@@ -41,6 +41,7 @@ namespace vk
         bool validate();
         
         using node_type::add_child;
+        using node_type::destroy_all;
         
         virtual void init() override
         {
@@ -91,8 +92,10 @@ namespace vk
         virtual void create_gpu_resources() override
         {}
         
-        virtual void record_node_commands(command_recorder& buffer, uint32_t image_id) override
-        {}
+        virtual bool record_node_commands(command_recorder& buffer, uint32_t image_id) override
+        {
+            return false;
+        }
         
         virtual void init_node() override
         {}
@@ -103,9 +106,11 @@ namespace vk
         virtual VkPipelineStageFlagBits get_producer_stage() override {return VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;};
         virtual VkPipelineStageFlagBits get_consumer_stage() override { return VK_PIPELINE_STAGE_FLAG_BITS_MAX_ENUM;};
         
-        virtual void record(command_recorder& buffer, uint32_t image_id) override
+        virtual bool  record(command_recorder& buffer, uint32_t image_id) override
         {
             node_type::record(buffer, image_id);
+            
+            return false;
         }
     private:
         

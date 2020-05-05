@@ -43,12 +43,17 @@ namespace vk
             _group_y = group_y;
             _group_z = group_z;
         }
-        virtual void record_node_commands(command_recorder& buffer, uint32_t image_id) override
+        virtual bool record_node_commands(command_recorder& buffer, uint32_t image_id) override
         {
-            assert(node_type::_device != nullptr && "no device set for this node");
-            _compute_pipelines.set_device(node_type::_device);
-            _compute_pipelines.record_dispatch_commands(buffer.get_raw_compute_command(image_id), image_id,
-                                                              _group_x, _group_y, _group_z);
+            if( node_type::_active )
+            {
+                assert(node_type::_device != nullptr && "no device set for this node");
+                _compute_pipelines.set_device(node_type::_device);
+                _compute_pipelines.record_dispatch_commands(buffer.get_raw_compute_command(image_id), image_id,
+                                                                  _group_x, _group_y, _group_z);
+            }
+            
+            return true;
         }
         
         virtual void destroy() override

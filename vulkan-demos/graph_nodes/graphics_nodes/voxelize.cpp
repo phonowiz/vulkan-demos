@@ -194,8 +194,8 @@ public:
         ivp = glm::inverse( ivp );
         voxelize_frag_params["inverse_view_projection"] = ivp;
 
-        glm::mat4 project_to_voxel_screen = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
-        voxelize_frag_params["project_to_voxel_screen"] = project_to_voxel_screen;
+//        glm::mat4 project_to_voxel_screen = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
+//        voxelize_frag_params["project_to_voxel_screen"] = project_to_voxel_screen;
         
         voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
         voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();

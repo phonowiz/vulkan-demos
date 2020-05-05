@@ -55,6 +55,11 @@ namespace  vk
             _texture_registry = &tex_registry;
         }
         
+        
+        inline void set_active(bool b)
+        {
+            _active = b;
+        }
         //init shader parameters here
         virtual void init()
         {
@@ -74,6 +79,16 @@ namespace  vk
             create_gpu_resources();
         }
         
+        
+        void destroy_all()
+        {
+            for( eastl_size_t i = 0; i < _children.size(); ++i)
+            {
+                _children[i]->destroy_all();
+            }
+            
+            destroy();
+        }
         //?????
         //virtual void validate() = 0;
         
@@ -92,7 +107,7 @@ namespace  vk
         virtual void update_node(vk::camera& camera, uint32_t image_id) = 0;
         
         virtual void init_node() = 0;
-        virtual void record_node_commands(command_recorder& buffer, uint32_t image_id) = 0;
+        virtual bool record_node_commands(command_recorder& buffer, uint32_t image_id) = 0;
         
         virtual VkPipelineStageFlagBits get_producer_stage() = 0;
         virtual VkPipelineStageFlagBits get_consumer_stage() = 0;
@@ -122,16 +137,22 @@ namespace  vk
         }
         
         
-        virtual void record(command_recorder& buffer, uint32_t image_id)
+        virtual bool record(command_recorder& buffer, uint32_t image_id)
         {
+            bool result = true;
             for( int i = 0; i < _children.size(); ++i)
             {
-                node_type::_children[i]->record(buffer, image_id);
+                result = result && node_type::_children[i]->record(buffer, image_id);
             }
             
-            debug_print("recording...");
-            record_barriers(buffer, image_id);
-            record_node_commands(buffer, image_id);
+            if( result && _active)
+            {
+                debug_print("recording...");
+                record_barriers(buffer, image_id);
+                result = record_node_commands(buffer, image_id);
+            }
+            
+            return result;
         }
         
         inline void set_name(const char* name)
@@ -310,9 +331,7 @@ namespace  vk
                     
                 }
             }
-            
         }
-        
         
         
     protected:
@@ -324,7 +343,7 @@ namespace  vk
         
         eastl::fixed_string<char, 100> _name = "default";
         
-        bool _active = false;
+        bool _active = true;
         bool _visited = false;
         bool _enable = true;
         

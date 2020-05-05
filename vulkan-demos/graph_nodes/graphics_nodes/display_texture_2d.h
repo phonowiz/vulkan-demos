@@ -79,7 +79,12 @@ public:
     
     virtual void update_node(vk::camera& camera, uint32_t image_id) override
     {
-
+    }
+    
+    virtual bool record_node_commands(vk::command_recorder& buffer, uint32_t image_id) override
+    {
+        parent_type::record_node_commands(buffer, image_id);
+        return false;
     }
     
     virtual void destroy() override

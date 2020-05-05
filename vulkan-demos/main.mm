@@ -193,7 +193,7 @@ void game_loop()
     {
         glfwPollEvents();
         //app.user_controller->update();
-        //app.texture_3d_view_controller->update();
+        app.texture_3d_view_controller->update();
         if(app.mode == App::render_mode::RENDER_DEFFERED)
         {
 //            update_renderer_parameters( *app.deferred_renderer );
@@ -399,13 +399,7 @@ int main()
     
     app.shapes.push_back(&cornell_box);
     app.shapes.push_back(&model);
-    
-    //vk::deferred_renderer deferred_renderer(&device, window, &swapchain, material_store, app.shapes);
-    //vk::renderer<1> three_d_renderer(&device, window, &swapchain, material_store, "display_3d_texture");
-    
-    
-//    glm::vec2 dims = {swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height };
-//    display_texture_3d<1> debug_node_3d(&device,&swapchain, dims, "voxel_albedos" );
+
     
     display_texture_2d<1> debug_node(&device, &swapchain, swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height);
 
@@ -415,42 +409,6 @@ int main()
     graph.add_child(debug_node);
     
     app.graph = &graph;
-    //app.three_d_renderer = &three_d_renderer;
-    //app.deferred_renderer = &deferred_renderer;
-
-    //app.deferred_renderer->init();
-
-    //eastl::array<vk::texture_3d, vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& voxel_texture = deferred_renderer.get_voxel_texture();
-    
-    //app.three_d_renderer->get_render_pass().get_subpass(0).set_image_sampler(voxel_texture, "texture_3d",
-    //                                                                         vk::visual_material::parameter_stage::FRAGMENT, 2, vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
-    
-    //app.three_d_renderer->get_render_pass().add_object(cube);
-
-    //static const uint32_t DEPTH = 1;
-    //app.three_d_renderer->get_render_pass().get_subpass(0).add_output_attachment(DEPTH);
-    
-    //app.three_d_renderer->get_render_pass().get_subpass(0).set_cull_mode(vk::standard_pipeline::cull_mode::NONE);
-    
-    //app.three_d_renderer->init();
-//    for( int i = 0; i < vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
-//    {
-//        vk::shader_parameter::shader_params_group& vertex_params =
-//            three_d_renderer.get_render_pass().get_subpass(0).get_pipeline(i).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
-//
-//        //glm::mat4 mvp = app.three_d_texture_camera->get_projection_matrix() * app.three_d_texture_camera->view_matrix * glm::mat4(1.0f);
-//        vertex_params["mvp"] = glm::mat4(1.0f);
-//        vertex_params["model"] = glm::mat4(1.0f);
-//
-//        vk::shader_parameter::shader_params_group& fragment_params = three_d_renderer.get_render_pass().get_subpass(0).
-//        get_pipeline(i).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1);
-//
-//        fragment_params["box_eye_position"] =   glm::vec4(1.0f);
-//        fragment_params["screen_height"] = (0.0f);
-//        fragment_params["screen_width"] = (.0f);
-//
-//        app.three_d_renderer->get_render_pass().create(i);
-//    }
     
     first_person_controller user_controler( app.perspective_camera, window);
     first_person_controller  texture_3d_view_controller(app.three_d_texture_camera, window);
@@ -505,9 +463,7 @@ int main()
     {
         mrt_node.add_object(*(app.shapes[i]));
     }
-    
-    //voxelize<4> voxelize_node(&device, &swapchain);
-    //voxelize_node.set_name("voxelize");
+
     
     eastl::array<clear_3d_textures<4>, mip_map_3d_texture<4>::TOTAL_LODS> clear_mip_maps;
     eastl::array<mip_map_3d_texture<4>, mip_map_3d_texture<4>::TOTAL_LODS-1> three_d_mip_maps;
@@ -538,16 +494,6 @@ int main()
     
     clear_mip_maps[0].set_name("clear mip map 0");
     three_d_mip_maps[0].set_name("three d mip map 0");
-    
-    //initialize the last three d mip mpa
-//    three_d_mip_maps[three_d_mip_maps.size() -1].set_textures(input_tex, output_tex);
-//    three_d_mip_maps[three_d_mip_maps.size() -1].set_device(&device);
-//
-//    three_d_mip_maps[three_d_mip_maps.size() -1].set_group_size((voxelize<4>::VOXEL_CUBE_WIDTH >> 5) /vk::compute_pipeline<1>::LOCAL_GROUP_SIZE,
-//                                                                (voxelize<4>::VOXEL_CUBE_HEIGHT >> 5) /vk::compute_pipeline<1>::LOCAL_GROUP_SIZE,
-//                                                                (voxelize<4>::VOXEL_CUBE_DEPTH >> 5) /vk::compute_pipeline<1>::LOCAL_GROUP_SIZE);
-//
-//    three_d_mip_maps[three_d_mip_maps.size() -1].set_textures(input_tex, output_tex);
     
     
     for( int map_id = 1; map_id < clear_mip_maps.size(); ++map_id)
@@ -613,8 +559,19 @@ int main()
     //attach the zero voxelizer to the highest three_d mip map...
     three_d_mip_maps[0].add_child(voxelizers[0]);
 
+    glm::vec2 dims = {swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height };
+    display_texture_3d<4> debug_node_3d(&device,&swapchain, dims, "voxel_albedos2" );
+
+    debug_node_3d.set_name("3d-texture-render");
+    debug_node_3d.set_active(true);
+    
+    debug_node_3d.set_3D_texture_cam(three_d_texture_cam);
+    
+    debug_node_3d.add_child( three_d_mip_maps[three_d_mip_maps.size()-1]);
+    
+    mrt_node.add_child(debug_node_3d);
     //attach the lowest mipmap to the mrt node
-    mrt_node.add_child(three_d_mip_maps[three_d_mip_maps.size()-1]);
+    //mrt_node.add_child(three_d_mip_maps[three_d_mip_maps.size()-1]);
     
     //attach the mrt node to the graph
     voxel_cone_tracing.add_child(mrt_node);
@@ -628,11 +585,10 @@ int main()
     
     device.wait_for_all_operations_to_finish();
     mario.destroy();
-    //deferred_renderer.destroy();
-    //three_d_renderer.destroy();
 
-    debug_node.destroy();
-    graph.destroy();
+
+    app.voxel_graph->destroy_all();
+    app.graph->destroy_all();
     
     material_store.destroy();
     model.destroy();

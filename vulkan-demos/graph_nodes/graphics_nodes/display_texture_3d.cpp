@@ -15,6 +15,7 @@
 #include "screen_plane.h"
 #include "texture_3d.h"
 #include "attachment_group.h"
+#include "perspective_camera.h"
 
 
 template< uint32_t NUM_CHILDREN>
@@ -32,10 +33,15 @@ public:
     
     display_texture_3d(vk::device* dev, vk::glfw_swapchain* swapchain, glm::vec2 dims, const char* texture):
     parent_type(dev, dims.x, dims.y),
-    _screen_plane(dev)
+    _cube(dev, "cube.obj")
     {
         _swapchain = swapchain;
         _texture = texture;
+    }
+    
+    void set_3D_texture_cam(vk::perspective_camera& cam)
+    {
+        _three_d_cam = &cam;
     }
     
     virtual void init_node() override
@@ -49,11 +55,11 @@ public:
         
         pass.get_attachment_group().add_attachment( _swapchain->present_textures, glm::vec4(0.0f));
         
-        _screen_plane.create();
+        _cube.create();
         subpass_type& sub_p = pass.add_subpass(parent_type::_material_store, "display_3d_texture");
         
-        vk::resource_set<vk::texture_3d>& tex = _tex_registry->get_read_texture_3d_set(_texture, this, vk::image::usage_type::COMBINED_IMAGE_SAMPLER);
-        //vk::texture_2d& ptr = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
+        vk::resource_set<vk::texture_3d>& tex = _tex_registry->get_read_texture_3d_set(_texture, this,
+                                                                vk::image::usage_type::COMBINED_IMAGE_SAMPLER);
         
         sub_p.set_image_sampler(tex, "texture_3d", vk::material_base::parameter_stage::FRAGMENT, 2,
                                        vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
@@ -66,24 +72,29 @@ public:
         
         binding = 1;
         sub_p.init_parameter("box_eye_position", vk::visual_material::parameter_stage::FRAGMENT,
-                             glm::mat4(1.0f), binding);
+                             glm::vec4(1.0f), binding);
         sub_p.init_parameter("screen_height", vk::visual_material::parameter_stage::FRAGMENT,
                              (float)_swapchain->get_vk_swap_extent().height, binding);
         sub_p.init_parameter("screen_width", vk::visual_material::parameter_stage::FRAGMENT,
                              (float)_swapchain->get_vk_swap_extent().width, binding);
         
         sub_p.add_output_attachment(0);
-        pass.add_object(_screen_plane);
+        
+        sub_p.set_cull_mode(vk::standard_pipeline::cull_mode::BACK_FACE);
+        pass.add_object(_cube);
         
     }
     
     virtual void update_node(vk::camera& camera, uint32_t image_id) override
     {
+        
+        assert(_three_d_cam != nullptr);
         render_pass_type &pass = parent_type::_node_render_pass;
         
         subpass_type& sub_p = pass.get_subpass(0);
         
-        glm::mat4 mvp = camera.get_projection_matrix() * camera.view_matrix * glm::mat4(1.0f);
+        _three_d_cam->update_view_matrix();
+        glm::mat4 mvp = _three_d_cam->get_projection_matrix() * _three_d_cam->view_matrix * glm::mat4(1.0f);
         
         vk::shader_parameter::shader_params_group& vertex_params =
             sub_p.get_pipeline(image_id).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
@@ -94,21 +105,29 @@ public:
         vk::shader_parameter::shader_params_group& fragment_params = sub_p.get_pipeline(image_id).
                                                 get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 1) ;
         
-        fragment_params["box_eye_position"] =   glm::vec4(camera.position, 1.0f);
+        fragment_params["box_eye_position"] =   glm::vec4(_three_d_cam->position, 1.0f);
         
     }
     
+    virtual bool record_node_commands(vk::command_recorder& buffer, uint32_t image_id) override
+    {
+        parent_type::record_node_commands(buffer, image_id);
+        return false;
+    }
+    
+    
     virtual void destroy() override
     {
-        _screen_plane.destroy();
+        _cube.destroy();
         parent_type::destroy();
     }
     
 private:
     
     using parent_type::add_object;
-    
-    vk::screen_plane _screen_plane;
+
+    vk::obj_shape _cube;
     vk::glfw_swapchain* _swapchain = nullptr;
+    vk::perspective_camera* _three_d_cam = nullptr;
     const char* _texture = nullptr;
 };

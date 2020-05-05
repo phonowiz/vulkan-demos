@@ -37,12 +37,17 @@ namespace vk {
         node_type::node_type(dev)
         {}
         
-        virtual void record_node_commands(command_recorder& buffer, uint32_t image_id) override
+        virtual bool record_node_commands(command_recorder& buffer, uint32_t image_id) override
         {
-            //_node_render_pass.set_clear_attachments_colors(glm::vec4(0.f));
-            //_node_render_pass.set_clear_depth(glm::vec2(1.0f, 0.0f));
-            _node_render_pass.commit_parameters_to_gpu(image_id);
-            _node_render_pass.record_draw_commands(buffer.get_raw_graphics_command(image_id), image_id);
+            if(node_type::_active)
+            {
+                //_node_render_pass.set_clear_attachments_colors(glm::vec4(0.f));
+                //_node_render_pass.set_clear_depth(glm::vec2(1.0f, 0.0f));
+                _node_render_pass.commit_parameters_to_gpu(image_id);
+                _node_render_pass.record_draw_commands(buffer.get_raw_graphics_command(image_id), image_id);
+            }
+            
+            return true;
         }
         
         inline void set_dimensions( uint32_t width, uint32_t height)

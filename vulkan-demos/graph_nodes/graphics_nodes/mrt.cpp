@@ -69,7 +69,7 @@ public:
         object_vector_type& _obj_vector = parent_type::_obj_vector;
         
         subpass_type& mrt_subpass = pass.add_subpass(_mat_store, "mrt");
-        subpass_type& subpass = pass.add_subpass(_mat_store, "deferred_output");
+        subpass_type& composite = pass.add_subpass(_mat_store, "deferred_output");
         
         
         setup_sampling_rays();
@@ -114,17 +114,15 @@ public:
             DEPTH_ATTACHMENT_ID
         };
         
-        //mrt_attachment_group.set_format(NORMALS_ATTACHMENT_ID, vk::image::formats::R8G8_SIGNED_NORMALIZED);
-        
         glm::vec2 dims = parent_type::_node_render_pass.get_dimensions();
         
         normals.set_format(vk::image::formats::R8G8_SIGNED_NORMALIZED);
         normals.set_dimensions(dims.x, dims.y);
         normals.set_filter(vk::image::filter::NEAREST);
-        //albedos.set_format(vk::image::formats::R8G8_SIGNED_NORMALIZED);
+        
         albedos.set_dimensions(dims.x, dims.y);
         albedos.set_filter(vk::image::filter::NEAREST);
-        //positions.set_format(vk::image::formats::R8G8_SIGNED_NORMALIZED);
+        
         positions.set_dimensions(dims.x, dims.y);
         positions.set_filter(vk::image::filter::NEAREST);
         
@@ -139,9 +137,6 @@ public:
         mrt_subpass.modify_attachment_blend(NORMALS_ATTACHMENT_ID, render_pass_type::write_channels::RGBA, false);
         mrt_subpass.modify_attachment_blend(ALBEDOS_ATTACHMENT_ID, render_pass_type::write_channels::RGBA, false);
         mrt_subpass.modify_attachment_blend(POSITIONS_ATTACHMENT_ID, render_pass_type::write_channels::RGBA, false);
-        
-        
-        
         
         mrt_subpass.add_output_attachment(NORMALS_ATTACHMENT_ID);
         mrt_subpass.add_output_attachment(ALBEDOS_ATTACHMENT_ID );
@@ -158,16 +153,16 @@ public:
         
         
         //COMPOSITE SUBPASS
-        subpass.add_input_attachment( "normals", NORMALS_ATTACHMENT_ID, vk::visual_material::parameter_stage::FRAGMENT, 1 );
-        subpass.add_input_attachment("albedos", ALBEDOS_ATTACHMENT_ID, vk::visual_material::parameter_stage::FRAGMENT, 2);
-        subpass.add_input_attachment("positions", POSITIONS_ATTACHMENT_ID, vk::visual_material::parameter_stage::FRAGMENT, 3);
+        composite.add_input_attachment( "normals", NORMALS_ATTACHMENT_ID, vk::visual_material::parameter_stage::FRAGMENT, 1 );
+        composite.add_input_attachment("albedos", ALBEDOS_ATTACHMENT_ID, vk::visual_material::parameter_stage::FRAGMENT, 2);
+        composite.add_input_attachment("positions", POSITIONS_ATTACHMENT_ID, vk::visual_material::parameter_stage::FRAGMENT, 3);
 
-        subpass.add_input_attachment("depth", DEPTH_ATTACHMENT_ID, vk::visual_material::parameter_stage::FRAGMENT, 4);
+        composite.add_input_attachment("depth", DEPTH_ATTACHMENT_ID, vk::visual_material::parameter_stage::FRAGMENT, 4);
         
-        subpass.add_output_attachment(PRESENT_ATTACHMENT_ID);
+        composite.add_output_attachment(PRESENT_ATTACHMENT_ID);
         
-        subpass.init_parameter("width", vk::visual_material::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().width), 0);
-        subpass.init_parameter("height", vk::visual_material::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().height), 0);
+        composite.init_parameter("width", vk::visual_material::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().width), 0);
+        composite.init_parameter("height", vk::visual_material::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().height), 0);
         
         vk::resource_set<vk::texture_3d>& voxel_normal_set = _tex_registry->get_read_texture_3d_set("voxel_normals", this, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
         vk::resource_set<vk::texture_3d>& voxel_albedo_set = _tex_registry->get_read_texture_3d_set("voxel_albedos", this, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
@@ -185,19 +180,19 @@ public:
                                                 float(_voxel_world_dimensions.y/voxelize<NUM_CHILDREN>::VOXEL_CUBE_HEIGHT),
                                                 float(_voxel_world_dimensions.z/voxelize<NUM_CHILDREN>::VOXEL_CUBE_DEPTH), 1.0f);
         
-        subpass.init_parameter("world_cam_position", vk::visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
-        subpass.init_parameter("world_light_position", vk::visual_material::parameter_stage::FRAGMENT, glm::vec3(0.0f), 5);
-        subpass.init_parameter("light_color", vk::visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
-        subpass.init_parameter("voxel_size_in_world_space", vk::visual_material::parameter_stage::FRAGMENT, world_scale_voxel, 5);
-        subpass.init_parameter("mode", vk::visual_material::parameter_stage::FRAGMENT, int(0), 5);
-        subpass.init_parameter("sampling_rays", vk::visual_material::parameter_stage::FRAGMENT, _sampling_rays.data(), _sampling_rays.size(), 5);
-        subpass.init_parameter("vox_view_projection", vk::visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
-        subpass.init_parameter("num_of_lods", vk::visual_material::parameter_stage::FRAGMENT, int(mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS), 5);
-        subpass.init_parameter("eye_in_world_space", vk::visual_material::parameter_stage::FRAGMENT, glm::vec3(0), 5);
-        subpass.init_parameter("eye_inverse_view_matrix", vk::visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
+        composite.init_parameter("world_cam_position", vk::visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+        composite.init_parameter("world_light_position", vk::visual_material::parameter_stage::FRAGMENT, glm::vec3(0.0f), 5);
+        composite.init_parameter("light_color", vk::visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+        composite.init_parameter("voxel_size_in_world_space", vk::visual_material::parameter_stage::FRAGMENT, world_scale_voxel, 5);
+        composite.init_parameter("mode", vk::visual_material::parameter_stage::FRAGMENT, int(0), 5);
+        composite.init_parameter("sampling_rays", vk::visual_material::parameter_stage::FRAGMENT, _sampling_rays.data(), _sampling_rays.size(), 5);
+        composite.init_parameter("vox_view_projection", vk::visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
+        composite.init_parameter("num_of_lods", vk::visual_material::parameter_stage::FRAGMENT, int(mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS), 5);
+        composite.init_parameter("eye_in_world_space", vk::visual_material::parameter_stage::FRAGMENT, glm::vec3(0), 5);
+        composite.init_parameter("eye_inverse_view_matrix", vk::visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
         
-        subpass.set_image_sampler(voxel_normal_set, "voxel_normals", vk::visual_material::parameter_stage::FRAGMENT, 6, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-        subpass.set_image_sampler(voxel_albedo_set, "voxel_albedos", vk::visual_material::parameter_stage::FRAGMENT, 7, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        composite.set_image_sampler(voxel_normal_set, "voxel_normals", vk::visual_material::parameter_stage::FRAGMENT, 6, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        composite.set_image_sampler(voxel_albedo_set, "voxel_albedos", vk::visual_material::parameter_stage::FRAGMENT, 7, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
         
         static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS> albedo_lods;
         static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS> normal_lods;
@@ -213,8 +208,8 @@ public:
             vk::resource_set<vk::texture_3d>& normal3d = _tex_registry->get_read_texture_3d_set(normal_lods[i].c_str(), this, vk::image::usage_type::COMBINED_IMAGE_SAMPLER);
             vk::resource_set<vk::texture_3d>& albedo3d = _tex_registry->get_read_texture_3d_set(albedo_lods[i].c_str(), this, vk::image::usage_type::COMBINED_IMAGE_SAMPLER);
             
-            subpass.set_image_sampler(albedo3d, albedo_lods[i].c_str(), vk::visual_material::parameter_stage::FRAGMENT, binding_index, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
-            subpass.set_image_sampler(normal3d, normal_lods[i].c_str(), vk::visual_material::parameter_stage::FRAGMENT, binding_index + offset, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
+            composite.set_image_sampler(albedo3d, albedo_lods[i].c_str(), vk::visual_material::parameter_stage::FRAGMENT, binding_index, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
+            composite.set_image_sampler(normal3d, normal_lods[i].c_str(), vk::visual_material::parameter_stage::FRAGMENT, binding_index + offset, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
             binding_index++;
         }
         
@@ -230,12 +225,12 @@ public:
         //object_vector_type& _obj_vector = parent_type::_obj_vector;
         
         subpass_type& mrt_pass = pass.get_subpass(0);
-        subpass_type& subpass = pass.get_subpass(1);
+        subpass_type& composite = pass.get_subpass(1);
         
         vk::shader_parameter::shader_params_group& vertex_params = mrt_pass.get_pipeline(image_id).
                                                 get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
         
-        vk::shader_parameter::shader_params_group& display_fragment_params = subpass.get_pipeline(image_id).
+        vk::shader_parameter::shader_params_group& display_fragment_params = composite.get_pipeline(image_id).
                                                 get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5) ;
         
         //TODO: THIS NEEDS TO MATCH THE VOXELIZER NODE DISTANCE...
@@ -268,9 +263,15 @@ public:
     
     inline void set_rendering_state( rendering_mode state ){ _rendering_mode = state; }
     
+    virtual void destroy() override
+    {
+        parent_type::destroy();
+        _screen_plane.destroy();
+    }
+    
 private:
     
-    rendering_mode _rendering_mode = rendering_mode::AMBIENT_OCCLUSION;
+    rendering_mode _rendering_mode = rendering_mode::FULL_RENDERING;
     
     void setup_sampling_rays()
     {
