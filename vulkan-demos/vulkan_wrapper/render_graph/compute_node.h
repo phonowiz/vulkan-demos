@@ -37,6 +37,13 @@ namespace vk
         }
         
         
+        virtual void init() override
+        {
+            _compute_pipelines.set_device(node_type::_device);
+            node_type::init();
+
+        }
+        
         inline void set_group_size(uint32_t group_x, uint32_t group_y, uint32_t group_z)
         {
             _group_x = group_x;
