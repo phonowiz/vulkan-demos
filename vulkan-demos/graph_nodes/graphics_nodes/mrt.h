@@ -137,7 +137,7 @@ public:
         
         //TODO: set_number_of_blend_attachments function could now go away...
         mrt_subpass.set_number_of_blend_attachments(3);
-        mrt_subpass.modify_attachment_blend(NORMALS_ATTACHMENT_ID, render_pass_type::write_channels::RGBA, false);
+        mrt_subpass.modify_attachment_blend(NORMALS_ATTACHMENT_ID, render_pass_type::write_channels::RG, false);
         mrt_subpass.modify_attachment_blend(ALBEDOS_ATTACHMENT_ID, render_pass_type::write_channels::RGBA, false);
         mrt_subpass.modify_attachment_blend(POSITIONS_ATTACHMENT_ID, render_pass_type::write_channels::RGBA, false);
         

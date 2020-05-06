@@ -102,6 +102,7 @@ void device::create_logical_device( VkSurfaceKHR surface)
     device_features.samplerAnisotropy = VK_TRUE;
     device_features.shaderStorageImageWriteWithoutFormat = VK_TRUE;
     device_features.fragmentStoresAndAtomics = VK_TRUE;
+    device_features.independentBlend = VK_TRUE;
 
 #if !defined(__APPLE__)
     //not supported by mac os
