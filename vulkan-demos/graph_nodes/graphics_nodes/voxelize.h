@@ -137,31 +137,17 @@ public:
         
         target.set_device(parent_type::_device);
         target.set_dimensions(float(VOXEL_CUBE_WIDTH), float(VOXEL_CUBE_HEIGHT));
-//        for( int i = 0; i < target.size(); ++i)
-//        {
-//            if(target[i].is_initialized())
-//                continue;
-//            target[i].set_device(parent_type::_device);
-//            target[i].set_dimensions(float(VOXEL_CUBE_WIDTH), float(VOXEL_CUBE_HEIGHT));
-//            //TODO: YOU SHOULD COMMENT THIS BACK WHEN ATTACHMENTS DON'T GET INITIATED.  WE NEED TEXTURE INITIATION TO BE CONSISTENT
-//            //target[i].init();
-//        }
+        
+        target.init();
         
         attachment_group.add_attachment(target, glm::vec4(1.0f, 1.0f, 1.0f, .0f));
-        //TODO: THIS SHOULDN'T BE NECESSARY
-        //attachment_group.set_device(parent_type::_device);
         enum{ VOXEL_ATTACHMENT_ID = 0 };
         voxelize_subpass.add_output_attachment(VOXEL_ATTACHMENT_ID);
         
-        //_screen_plane.set_device(parent_type::_device);
-        //_screen_plane.create();
-        
-        //pass.add_object(_screen_plane); //add_object(&_screen_plane);
         
         for(int i = 0; i < _obj_vector.size(); ++i)
         {
             pass.add_object(*_obj_vector[i]);
-            //pass.skip_subpass( *_obj_vector[i], 1);
         }
     }
     

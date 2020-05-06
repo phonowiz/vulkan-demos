@@ -130,7 +130,10 @@ public:
         depth.set_dimensions(dims.x, dims.y);
         depth.set_filter(vk::image::filter::NEAREST);
         
-        //mrt_attachment_group.set_filter(vk::image::filter::NEAREST);
+        normals.init();
+        albedos.init();
+        positions.init();
+        depth.init();
         
         //TODO: set_number_of_blend_attachments function could now go away...
         mrt_subpass.set_number_of_blend_attachments(3);
@@ -167,13 +170,6 @@ public:
         vk::resource_set<vk::texture_3d>& voxel_normal_set = _tex_registry->get_read_texture_3d_set("voxel_normals", this, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
         vk::resource_set<vk::texture_3d>& voxel_albedo_set = _tex_registry->get_read_texture_3d_set("voxel_albedos", this, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
         
-//        for( int i = 0; i < voxel_normal_set.size(); ++i )
-//        {
-//            voxel_normal_set[i].set_dimensions( voxelize<NUM_CHILDREN>::VOXEL_CUBE_WIDTH, voxelize<NUM_CHILDREN>::VOXEL_CUBE_HEIGHT, voxelize<NUM_CHILDREN>::VOXEL_CUBE_DEPTH );
-//            voxel_albedo_set[i].set_dimensions( voxelize<NUM_CHILDREN>::VOXEL_CUBE_WIDTH, voxelize<NUM_CHILDREN>::VOXEL_CUBE_HEIGHT, voxelize<NUM_CHILDREN>::VOXEL_CUBE_DEPTH );
-//            voxel_albedo_set[i].set_filter( vk::image::filter::LINEAR );
-//            voxel_normal_set[i].set_filter( vk::image::filter::LINEAR );
-//        }
         
         
         glm::vec4 world_scale_voxel = glm::vec4(float(_voxel_world_dimensions.x/voxelize<NUM_CHILDREN>::VOXEL_CUBE_WIDTH),
@@ -247,7 +243,7 @@ public:
         display_fragment_params["eye_inverse_view_matrix"] = glm::inverse(camera.view_matrix);
         display_fragment_params["vox_view_projection"] = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
         display_fragment_params["eye_in_world_space"] = camera.position;
-        //TODO: width and height needed here?? It is set at init... do check that this is working...
+
         display_fragment_params["world_cam_position"] = glm::vec4(camera.position, 1.0f);
         display_fragment_params["world_light_position"] = _light_pos;
         display_fragment_params["light_color"] = _light_color;

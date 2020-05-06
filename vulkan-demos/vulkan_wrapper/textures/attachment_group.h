@@ -92,16 +92,6 @@ namespace vk
         inline void init(uint32_t swapchain_id)
         {
             assert(num_attachments ==NUM_ATTACHMENTS && "you haven't populated all attachments");
-            //note: here we don't initialize the depth texture, render passes decide that
-            for( int i = 0; i < NUM_ATTACHMENTS; ++i)
-            {
-                //note: present textures are special and need not need to be initialized here, they are initialized
-                //using libraries such as glfw that talk to the OS
-                
-                if(_attachments[i][swapchain_id]->get_instance_type() != glfw_present_texture::get_class_type())
-                    //TODO: ATTACHMENTS SHOULD BE INITTED BEFORE WE GET HERE...
-                    _attachments[i][swapchain_id]->init();
-            }
         }
         
         
