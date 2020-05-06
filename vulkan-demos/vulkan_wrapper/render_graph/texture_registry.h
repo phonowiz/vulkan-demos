@@ -121,24 +121,34 @@ namespace vk
         
         inline resource_set<texture_2d>& get_write_texture_2d_set( const char* name, node_type* node, vk::image::usage_type usage_type )
         {
+            resource_set<texture_2d>& result = get_write_texture<resource_set<texture_2d>>(name, node, usage_type);
+            result.set_name(name);
+            
             return get_write_texture<resource_set<texture_2d>>(name, node, usage_type);
         }
         
         inline resource_set<depth_texture>& get_write_depth_texture_set( const char* name, node_type* node, vk::image::usage_type usage_type)
         {
-            return get_write_texture<resource_set<depth_texture>>(name, node, usage_type);
+            resource_set<depth_texture>& result = get_write_texture<resource_set<depth_texture>>(name, node, usage_type);
+            result.set_name(name);
+            
+            return result;
         }
         
         inline resource_set<render_texture>& get_write_render_texture_set( const char* name, node_type* node, vk::image::usage_type usage_type )
         {
-            return get_write_texture<resource_set<render_texture>>(name, node, usage_type);
+            resource_set<render_texture>& result = get_write_texture<resource_set<render_texture>>(name, node, usage_type);
+            result.set_name(name);
+            return result;
         }
         
         //note: for texture_3d's the layout is always the same no matter the usage, this is why we don't pass in
         // a usage parameter
         inline resource_set<texture_3d>& get_write_texture_3d_set( const char* name, node_type* node )
         {
-            return get_write_texture<resource_set<texture_3d>>(name, node, vk::image::usage_type::STORAGE_IMAGE);
+            resource_set<texture_3d>& result = get_write_texture<resource_set<texture_3d>>(name, node, vk::image::usage_type::STORAGE_IMAGE);
+            result.set_name(name);
+            return result;
         }
 
         

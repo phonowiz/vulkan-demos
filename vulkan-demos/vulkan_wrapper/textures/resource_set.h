@@ -15,6 +15,7 @@
 #include "render_texture.h"
 
 #include "EASTL/array.h"
+#include "EASTL/fixed_string.h"
 
 namespace vk
 {
@@ -34,6 +35,18 @@ namespace vk
         resource_set(const resource_set&) = delete;
         resource_set & operator=(resource_set&) = delete;
         resource_set(resource_set&) = delete;
+        
+        
+        void set_name(const char* name)
+        {
+            _name.clear();
+            _name = name;
+        }
+        
+        auto& get_name()
+        {
+            return _name;
+        }
         
         virtual char const * const * get_instance_type() override
         {
@@ -112,13 +125,6 @@ namespace vk
             }
         }
         
-//        template<>
-//        void resource_set<glfw_present_texture>::set_filter( image::filter)
-//        {
-//            //present textures don't need filters, they are not to be used for
-//            //shader samplers
-//        }
-        
         eastl_size_t size(){ return elements.size(); }
         
         virtual void destroy() override
@@ -127,7 +133,8 @@ namespace vk
         }
         
     private:
-            
+        
+        eastl::fixed_string<char, 50> _name = {};
         eastl::array<T, NUM_SWAPCHAIN_IMAGES> elements {};
         void private_destroy()
         {
@@ -147,6 +154,17 @@ namespace vk
     {
         
     public:
+        
+        void set_name(const char* name)
+        {
+            _name.clear();
+            _name = name;
+        }
+        
+        auto& get_name()
+        {
+            return _name;
+        }
         
         inline T*& operator[](int i) { return elements[i]; }
         
@@ -237,6 +255,9 @@ namespace vk
         
         static constexpr char const * _resource_type = nullptr;
         eastl::array<T*, NUM_SWAPCHAIN_IMAGES> elements {};
+        
+        eastl::fixed_string<char, 50> _name = {};
+        
         void private_destroy()
         {
             for( int i = 0; i < NUM_SWAPCHAIN_IMAGES; ++i)

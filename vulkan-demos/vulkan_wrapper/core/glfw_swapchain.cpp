@@ -28,6 +28,7 @@ glfw_swapchain::glfw_swapchain(device* device, GLFWwindow* window, VkSurfaceKHR 
     _surface = surface;
     
     recreate_swapchain();
+    present_textures.set_name("present");
     for( int i =0; i < NUM_SWAPCHAIN_IMAGES; ++i)
     {
         present_textures[i].set_device(device);

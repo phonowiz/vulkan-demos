@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include "EASTL/array.h"
+#include "EASTL/fixed_string.h"
 #include <type_traits>
 #include <glm/glm.hpp>
 
@@ -64,6 +65,24 @@ namespace vk
             return result;
         }
         
+        inline int32_t get_attachment_id(const char* attachment_name)
+        {
+            int32_t result = -1;
+            for( int i = 0; i < _attachments.size(); ++i)
+            {
+                eastl::fixed_string<char, 50> n = {};
+                n = attachment_name;
+                if( _attachments[i].get_name() == n)
+                {
+                    result = i;
+                    break;
+                }
+            }
+            
+            assert( result != -1 && "attachment not found, did you misspell the name?");
+            return result;
+        }
+        
         inline resource_set<image*>* get_depth_set()
         {
             resource_set<image*>* result = nullptr;
@@ -75,7 +94,8 @@ namespace vk
             return result;
         }
         
-        inline void add_attachment(resource_set<depth_texture>& depth_set, float default_depth, float default_stencil)
+        inline void add_attachment(resource_set<depth_texture>& depth_set,
+                                   float default_depth, float default_stencil)
         {
             _clear_values[num_attachments] = { default_depth, default_stencil};
             add_attachment(depth_set);
@@ -85,7 +105,6 @@ namespace vk
         inline void add_attachment(resource_set<R>& textures_set, glm::vec4 clear_color)
         {
             _clear_values[num_attachments] = { clear_color.x, clear_color.y, clear_color.z, clear_color.w};
-            
             add_attachment(textures_set);
         }
         
@@ -116,7 +135,6 @@ namespace vk
                     _attachments[i][j]->destroy();
                 }
             }
-            
         }
         
     private:
@@ -129,6 +147,7 @@ namespace vk
                    "did you mean to use a render_texture instead?");
             assert(num_attachments < NUM_ATTACHMENTS );
             
+            _attachments[num_attachments].set_name( textures_set.get_name().c_str());
             for( int i = 0; i < textures_set.size(); ++i)
             {
                 _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );

@@ -141,13 +141,14 @@ public:
         mrt_subpass.modify_attachment_blend(ALBEDOS_ATTACHMENT_ID, render_pass_type::write_channels::RGBA, false);
         mrt_subpass.modify_attachment_blend(POSITIONS_ATTACHMENT_ID, render_pass_type::write_channels::RGBA, false);
         
-        mrt_subpass.add_output_attachment(NORMALS_ATTACHMENT_ID);
-        mrt_subpass.add_output_attachment(ALBEDOS_ATTACHMENT_ID );
-        mrt_subpass.add_output_attachment(POSITIONS_ATTACHMENT_ID);
-        mrt_subpass.add_output_attachment(DEPTH_ATTACHMENT_ID);
+        mrt_subpass.add_output_attachment("normals");
+        mrt_subpass.add_output_attachment("albedos" );
+        mrt_subpass.add_output_attachment("positions");
+        mrt_subpass.add_output_attachment("depth");
         
         
         int binding = 0;
+        //note: parameters are initialized in the order found in the shader
         mrt_subpass.init_parameter("view", vk::visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
         mrt_subpass.init_parameter("projection", vk::visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
         mrt_subpass.init_parameter("lightPosition", vk::visual_material::parameter_stage::VERTEX, glm::vec3(0), binding);
@@ -156,13 +157,13 @@ public:
         
         
         //COMPOSITE SUBPASS
-        composite.add_input_attachment( "normals", NORMALS_ATTACHMENT_ID, vk::visual_material::parameter_stage::FRAGMENT, 1 );
-        composite.add_input_attachment("albedos", ALBEDOS_ATTACHMENT_ID, vk::visual_material::parameter_stage::FRAGMENT, 2);
-        composite.add_input_attachment("positions", POSITIONS_ATTACHMENT_ID, vk::visual_material::parameter_stage::FRAGMENT, 3);
+        composite.add_input_attachment( "normals", "normals", vk::visual_material::parameter_stage::FRAGMENT, 1 );
+        composite.add_input_attachment("albedos", "albedos", vk::visual_material::parameter_stage::FRAGMENT, 2);
+        composite.add_input_attachment("positions", "positions", vk::visual_material::parameter_stage::FRAGMENT, 3);
 
-        composite.add_input_attachment("depth", DEPTH_ATTACHMENT_ID, vk::visual_material::parameter_stage::FRAGMENT, 4);
+        composite.add_input_attachment("depth", "depth", vk::visual_material::parameter_stage::FRAGMENT, 4);
         
-        composite.add_output_attachment(PRESENT_ATTACHMENT_ID);
+        composite.add_output_attachment("present");
         
         composite.init_parameter("width", vk::visual_material::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().width), 0);
         composite.init_parameter("height", vk::visual_material::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().height), 0);

@@ -162,10 +162,6 @@ namespace vk
                     resource_set<depth_texture>::get_class_type();
                 }
                 
-//                for(int i = 0; i < _num_color_references; ++i)
-//                {
-//                    result = result ||  _color_references[i].attachment == NUM_ATTACHMENTS;
-//                }
                 return result;
             }
             
@@ -174,33 +170,41 @@ namespace vk
                 _id = index;
             }
             
-            inline void add_output_attachment( uint32_t attachment_id)
+            inline void add_output_attachment( const char* name)
             {
-                if( (*_attachment_group)[attachment_id].get_instance_type() ==
-                        resource_set<depth_texture*>::get_class_type())
+                
+                bool found = false;
+                for( int i = 0; i < _attachment_group->size(); ++i)
                 {
-                    set_depth_enable(true);
+                    eastl::fixed_string<char, 50> n = name;
+                    if( (*_attachment_group)[i].get_name() == n)
+                    {
+                        add_output_attachment( i );
+                        found = true;
+                        break;
+                    }
                 }
-                else
-                    _color_references[_num_color_references++].attachment = attachment_id;
+                
+                assert(found && "Attachment name not found.  Your resource set must be added to attachment group before calling this function");
             }
             
-            inline void add_input_attachment( const char* parameter_name, uint32_t attachment_id,
+            inline void add_input_attachment( const char* parameter_name, const char* attachment_name,
                                              visual_material::parameter_stage parameter_stage, uint32_t binding)
             {
                 assert(_attachment_group != nullptr);
                 
-                assert(attachment_id < NUM_ATTACHMENTS);
+                int32_t id = (*_attachment_group).get_attachment_id(attachment_name);
+                assert(id < NUM_ATTACHMENTS);
                 
-                _input_references[_num_input_references].attachment = attachment_id;
+                _input_references[_num_input_references].attachment = id;
                 _input_references[_num_input_references].layout =
-                            static_cast<VkImageLayout>((*_attachment_group)[attachment_id][0]->get_usage_layout(resource::usage_type::INPUT_ATTACHMENT));
+                            static_cast<VkImageLayout>((*_attachment_group)[id][0]->get_usage_layout(resource::usage_type::INPUT_ATTACHMENT));
                 
                 ++_num_input_references;
                 
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
-                    _pipeline[chain_id].add_input_attachment((*_attachment_group)[attachment_id][chain_id], parameter_name, attachment_id, parameter_stage, binding);
+                    _pipeline[chain_id].add_input_attachment((*_attachment_group)[id][chain_id], parameter_name, id, parameter_stage, binding);
                 }
             }
             
@@ -390,6 +394,17 @@ namespace vk
         private:
 
             inline void set_depth_enable( bool depth) { _depth_enable = depth; }
+            
+            inline void add_output_attachment( uint32_t attachment_id)
+            {
+                if( (*_attachment_group)[attachment_id].get_instance_type() ==
+                        resource_set<depth_texture*>::get_class_type())
+                {
+                    set_depth_enable(true);
+                }
+                else
+                    _color_references[_num_color_references++].attachment = attachment_id;
+            }
             
             VkSubpassDescription _subpass_description {};
             bool _active = false;

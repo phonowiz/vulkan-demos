@@ -72,7 +72,7 @@ public:
         sub_p.init_parameter("height", vk::visual_material::parameter_stage::VERTEX,
                              _swapchain->get_vk_swap_extent().height, binding);
         
-        sub_p.add_output_attachment(0);
+        sub_p.add_output_attachment("present");
         pass.add_object(_screen_plane);
         
     }

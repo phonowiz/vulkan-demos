@@ -142,7 +142,7 @@ public:
         
         attachment_group.add_attachment(target, glm::vec4(1.0f, 1.0f, 1.0f, .0f));
         enum{ VOXEL_ATTACHMENT_ID = 0 };
-        voxelize_subpass.add_output_attachment(VOXEL_ATTACHMENT_ID);
+        voxelize_subpass.add_output_attachment(test_name.c_str());
         
         
         for(int i = 0; i < _obj_vector.size(); ++i)

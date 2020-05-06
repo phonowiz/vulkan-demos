@@ -71,6 +71,7 @@ public:
                              glm::mat4(1.0f), binding);
         
         binding = 1;
+        
         sub_p.init_parameter("box_eye_position", vk::visual_material::parameter_stage::FRAGMENT,
                              glm::vec4(1.0f), binding);
         sub_p.init_parameter("screen_height", vk::visual_material::parameter_stage::FRAGMENT,
@@ -78,7 +79,7 @@ public:
         sub_p.init_parameter("screen_width", vk::visual_material::parameter_stage::FRAGMENT,
                              (float)_swapchain->get_vk_swap_extent().width, binding);
         
-        sub_p.add_output_attachment(0);
+        sub_p.add_output_attachment( _swapchain->present_textures.get_name().c_str());
         
         sub_p.set_cull_mode(vk::standard_pipeline::cull_mode::BACK_FACE);
         pass.add_object(_cube);
