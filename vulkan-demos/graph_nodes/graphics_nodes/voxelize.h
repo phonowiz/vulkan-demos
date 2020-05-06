@@ -98,10 +98,6 @@ public:
         parent_type::debug_print("initializing node voxelize!!!");
         subpass_type& voxelize_subpass = pass.add_subpass(_mat_store, "voxelizer");
         
-        
-        voxelize_subpass.set_number_of_blend_attachments(1);
-        voxelize_subpass.modify_attachment_blend(0, render_pass_type::write_channels::RGBA, false);
-        
         vk::resource_set<vk::texture_3d>& albedo_textures = _tex_registry->get_write_texture_3d_set("voxel_albedos", this);
         vk::resource_set<vk::texture_3d>& normal_textures = _tex_registry->get_write_texture_3d_set("voxel_normals", this);
         
@@ -142,7 +138,7 @@ public:
         
         attachment_group.add_attachment(target, glm::vec4(1.0f, 1.0f, 1.0f, .0f));
         enum{ VOXEL_ATTACHMENT_ID = 0 };
-        voxelize_subpass.add_output_attachment(test_name.c_str());
+        voxelize_subpass.add_output_attachment(test_name.c_str(), render_pass_type::write_channels::RGBA, false);
         
         
         for(int i = 0; i < _obj_vector.size(); ++i)

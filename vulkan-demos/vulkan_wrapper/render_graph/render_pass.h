@@ -104,26 +104,11 @@ namespace vk
                 return _subpass_activate[obj_id];
             }
             
-            inline void set_number_of_blend_attachments( uint32_t blend_attachments)
-            {
-                for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
-                {
-                    _pipeline[chain_id].set_number_of_blend_attachments(blend_attachments);
-                }
-            }
-            
             inline void set_cull_mode(typename graphics_pipeline_type::cull_mode mode)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
                     _pipeline[chain_id].set_cull_mode(mode);
-                }
-            }
-            void modify_attachment_blend( uint32_t index, write_channels channels, bool depth_enable)
-            {
-                for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
-                {
-                    _pipeline[chain_id].modify_attachment_blend(index, channels, depth_enable);
                 }
             }
             
@@ -179,12 +164,45 @@ namespace vk
                     eastl::fixed_string<char, 50> n = name;
                     if( (*_attachment_group)[i].get_name() == n)
                     {
+                        if( !( (*_attachment_group)[i].get_instance_type() == resource_set<depth_texture*>::get_class_type() ||
+                             (*_attachment_group)[i].get_instance_type() == resource_set<depth_texture>::get_class_type()) )
+                        {
+                            set_number_of_blend_attachments(++_blend_attachments);
+                        }
+                        
                         add_output_attachment( i );
                         found = true;
                         break;
                     }
                 }
+
+                assert(found && "Attachment name not found.  Your resource set must be added to attachment group before calling this function");
+            }
+            
+            inline void add_output_attachment( const char* name, write_channels wc, bool enable_blend)
+            {
                 
+                bool found = false;
+                for( int i = 0; i < _attachment_group->size(); ++i)
+                {
+                    eastl::fixed_string<char, 50> n = name;
+                    if( (*_attachment_group)[i].get_name() == n)
+                    {
+                        
+                        add_output_attachment( i );
+                        
+                        if( !((*_attachment_group)[i].get_instance_type() == resource_set<depth_texture*>::get_class_type() ||
+                             (*_attachment_group)[i].get_instance_type() == resource_set<depth_texture>::get_class_type()))
+                        {
+                            set_number_of_blend_attachments(++_blend_attachments);
+                            modify_attachment_blend(_blend_attachments-1, wc, enable_blend);
+                        }
+                        
+                        found = true;
+                        break;
+                    }
+                }
+
                 assert(found && "Attachment name not found.  Your resource set must be added to attachment group before calling this function");
             }
             
@@ -393,6 +411,22 @@ namespace vk
             const char* _name = nullptr;
         private:
 
+            inline void set_number_of_blend_attachments( uint32_t blend_attachments)
+            {
+                for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
+                {
+                    _pipeline[chain_id].set_number_of_blend_attachments(blend_attachments);
+                }
+            }
+            
+            void modify_attachment_blend( uint32_t index, write_channels channels, bool depth_enable)
+            {
+                for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
+                {
+                    _pipeline[chain_id].modify_attachment_blend(index, channels, depth_enable);
+                }
+            }
+            
             inline void set_depth_enable( bool depth) { _depth_enable = depth; }
             
             inline void add_output_attachment( uint32_t attachment_id)
@@ -411,6 +445,7 @@ namespace vk
             uint32_t _id = INVALID_ATTACHMENT;
             uint32_t _num_color_references = 0;
             uint32_t _num_input_references = 0;
+            uint32_t _blend_attachments = 0;
 
             eastl::array<VkAttachmentReference, MAX_NUMBER_OF_ATTACHMENTS> _color_references {};
             eastl::array<VkAttachmentReference, MAX_NUMBER_OF_ATTACHMENTS> _input_references {};

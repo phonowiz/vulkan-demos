@@ -93,9 +93,6 @@ public:
         vk::resource_set<vk::render_texture>& positions = _tex_registry->get_write_render_texture_set("positions", this, vk::image::usage_type::INPUT_ATTACHMENT);
         vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_write_depth_texture_set("depth", this, vk::image::usage_type::INPUT_ATTACHMENT);
         
-        
-        //TODO: MAKE MAKE SURE TO INITIALIZE ATTACHMENTS MANUALLY WHEN YOU REMOVE ATTACHMENT INIT FROM RENDERPASS INIT
-        //TODO: add_attachment CALLS SHOULD BE ACCOMPANIED WITH A STRING NAME SO WE CAN REFERENCE IT.
         //GBUFFER SUBPASS
         //follow the order in which the attachments are expected in the shader
         mrt_attachment_group.add_attachment(normals, glm::vec4(0.0f));
@@ -104,7 +101,6 @@ public:
         mrt_attachment_group.add_attachment(_swapchain->present_textures, glm::vec4(0.0f));
         mrt_attachment_group.add_attachment(depth, 1.0f, 0.0f);
         
-        //TODO: GET RID OF THIS AND REPLACE IT WITH STRING NAMES
         enum
         {
             NORMALS_ATTACHMENT_ID,
@@ -135,15 +131,9 @@ public:
         positions.init();
         depth.init();
         
-        //TODO: set_number_of_blend_attachments function could now go away...
-        mrt_subpass.set_number_of_blend_attachments(3);
-        mrt_subpass.modify_attachment_blend(NORMALS_ATTACHMENT_ID, render_pass_type::write_channels::RG, false);
-        mrt_subpass.modify_attachment_blend(ALBEDOS_ATTACHMENT_ID, render_pass_type::write_channels::RGBA, false);
-        mrt_subpass.modify_attachment_blend(POSITIONS_ATTACHMENT_ID, render_pass_type::write_channels::RGBA, false);
-        
-        mrt_subpass.add_output_attachment("normals");
-        mrt_subpass.add_output_attachment("albedos" );
-        mrt_subpass.add_output_attachment("positions");
+        mrt_subpass.add_output_attachment("normals", render_pass_type::write_channels::RG, false);
+        mrt_subpass.add_output_attachment("albedos", render_pass_type::write_channels::RGBA, false);
+        mrt_subpass.add_output_attachment("positions", render_pass_type::write_channels::RGBA, false);
         mrt_subpass.add_output_attachment("depth");
         
         
