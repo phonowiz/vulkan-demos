@@ -93,18 +93,34 @@ namespace vk
                 
             return result;
         }
-        
+    
         inline void add_attachment(resource_set<depth_texture>& depth_set,
-                                   float default_depth, float default_stencil)
+                                glm::vec2 defaults, bool clear = true, bool store = true)
         {
-            _clear_values[num_attachments] = { default_depth, default_stencil};
+            _clear_values[num_attachments] = { defaults.x, defaults.y};
+            _clear[num_attachments] = clear;
+            _store[num_attachments] = store;
             add_attachment(depth_set);
         }
         
+        //when render pass is done, should we store attachment
+        inline bool should_store(uint32_t i)
+        {
+            return _store[i];
+        }
+        
+        //when we load this attachment, should it clear?
+        inline bool should_clear( uint32_t i )
+        {
+            return _clear[i] = true;
+        }
+        
         template< typename R>
-        inline void add_attachment(resource_set<R>& textures_set, glm::vec4 clear_color)
+        inline void add_attachment(resource_set<R>& textures_set, glm::vec4 clear_color, bool clear = true, bool store = true)
         {
             _clear_values[num_attachments] = { clear_color.x, clear_color.y, clear_color.z, clear_color.w};
+            _clear[num_attachments] = clear;
+            _store[num_attachments] = store;
             add_attachment(textures_set);
         }
         
@@ -162,7 +178,9 @@ namespace vk
         device* _device = nullptr;
         
         glm::vec2 _dimensions = glm::vec2(0.0f, 0.0f);
-        eastl::array<resource_set<vk::image*>, NUM_ATTACHMENTS> _attachments = {};
+        eastl::array<resource_set<vk::image*>, NUM_ATTACHMENTS> _attachments {};
+        eastl::array<bool, NUM_ATTACHMENTS> _clear {};
+        eastl::array<bool, NUM_ATTACHMENTS> _store {};
         uint32_t num_attachments = 0;
     };
 }

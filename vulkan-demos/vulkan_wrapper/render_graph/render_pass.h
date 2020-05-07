@@ -727,9 +727,9 @@ namespace vk
                 continue;
             
             attachment_descriptions[attachment_id].samples = VK_SAMPLE_COUNT_1_BIT;
-            attachment_descriptions[attachment_id].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            //TODO: MAYBE THIS NEEDS TO BE SPECIFIED BY USER, YOU DON'T HAVE TO STORE ALL THE TIME...
-            attachment_descriptions[attachment_id].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            attachment_descriptions[attachment_id].loadOp =  _attachment_group.should_clear(i) ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+
+            attachment_descriptions[attachment_id].storeOp = _attachment_group.should_store(i) ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
             attachment_descriptions[attachment_id].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             attachment_descriptions[attachment_id].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             

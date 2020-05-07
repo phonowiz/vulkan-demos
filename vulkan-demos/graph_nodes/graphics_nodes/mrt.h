@@ -95,11 +95,11 @@ public:
         
         //GBUFFER SUBPASS
         //follow the order in which the attachments are expected in the shader
-        mrt_attachment_group.add_attachment(normals, glm::vec4(0.0f));
-        mrt_attachment_group.add_attachment(albedos, glm::vec4(0.0f));
-        mrt_attachment_group.add_attachment(positions, glm::vec4(0.0f));
-        mrt_attachment_group.add_attachment(_swapchain->present_textures, glm::vec4(0.0f));
-        mrt_attachment_group.add_attachment(depth, 1.0f, 0.0f);
+        mrt_attachment_group.add_attachment(normals, glm::vec4(0.0f), true, false);
+        mrt_attachment_group.add_attachment(albedos, glm::vec4(0.0f), true, false);
+        mrt_attachment_group.add_attachment(positions, glm::vec4(0.0f), true, false);
+        mrt_attachment_group.add_attachment(_swapchain->present_textures, glm::vec4(0.0f), false, false);
+        mrt_attachment_group.add_attachment(depth, glm::vec2(1.0f, 0.0f), false, false);
         
         enum
         {
