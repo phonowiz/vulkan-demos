@@ -57,9 +57,9 @@ public:
         
         
         vk::resource_set<vk::texture_3d>& input_tex1 = _tex_registry->get_read_texture_3d_set(_input_textures[0].c_str(), this,
-                                                                               vk::image::usage_type::STORAGE_IMAGE);
+                                                                               vk::usage_type::STORAGE_IMAGE);
         vk::resource_set<vk::texture_3d>& input_tex2 = _tex_registry->get_read_texture_3d_set(_input_textures[1].c_str(), this,
-                                                                               vk::image::usage_type::STORAGE_IMAGE);
+                                                                               vk::usage_type::STORAGE_IMAGE);
         
         assert(_tex_registry->is_resource_created(_output_textures[0].c_str()) && "output resource hasn't been created");
         

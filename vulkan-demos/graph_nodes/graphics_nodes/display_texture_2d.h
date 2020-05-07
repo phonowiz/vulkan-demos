@@ -64,7 +64,7 @@ public:
         vk::texture_2d& ptr = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
         
         sub_p.set_image_sampler(ptr, "tex", vk::parameter_stage::FRAGMENT, 1,
-                                       vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
+                                       vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         int binding = 0;
         sub_p.init_parameter("width", vk::parameter_stage::VERTEX,

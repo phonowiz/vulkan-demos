@@ -16,6 +16,16 @@
 
 namespace  vk
 {
+    enum class usage_type
+    {
+        COMBINED_IMAGE_SAMPLER = VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+        STORAGE_IMAGE = VkDescriptorType::VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+        UNIFORM_BUFFER = VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+        DYNAMIC_UNIFORM_BUFFER = VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+        INPUT_ATTACHMENT = VkDescriptorType::VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
+        INVALID = VkDescriptorType::VK_DESCRIPTOR_TYPE_MAX_ENUM
+    };
+
     class resource : public object
     {
     public:
@@ -33,15 +43,7 @@ namespace  vk
         
         uint32_t find_memory_type_index( VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
     
-        enum class usage_type
-        {
-            COMBINED_IMAGE_SAMPLER = VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-            STORAGE_IMAGE = VkDescriptorType::VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-            UNIFORM_BUFFER = VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-            DYNAMIC_UNIFORM_BUFFER = VkDescriptorType::VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
-            INPUT_ATTACHMENT = VkDescriptorType::VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
-            INVALID = VkDescriptorType::VK_DESCRIPTOR_TYPE_MAX_ENUM
-        };
+
         
     protected:
         struct buffer_info

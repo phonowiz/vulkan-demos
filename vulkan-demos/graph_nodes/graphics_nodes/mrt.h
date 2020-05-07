@@ -86,12 +86,12 @@ public:
         
         vk::attachment_group<5>& mrt_attachment_group = pass.get_attachment_group();
         
-        vk::resource_set<vk::render_texture>& normals = _tex_registry->get_write_render_texture_set("normals", this, vk::image::usage_type::INPUT_ATTACHMENT);
-        vk::resource_set<vk::render_texture>& albedos = _tex_registry->get_write_render_texture_set("albedos", this, vk::image::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::render_texture>& normals = _tex_registry->get_write_render_texture_set("normals", this, vk::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::render_texture>& albedos = _tex_registry->get_write_render_texture_set("albedos", this, vk::usage_type::INPUT_ATTACHMENT);
         
         //TODO: you can derive positon from depth and sampling fragment position
-        vk::resource_set<vk::render_texture>& positions = _tex_registry->get_write_render_texture_set("positions", this, vk::image::usage_type::INPUT_ATTACHMENT);
-        vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_write_depth_texture_set("depth", this, vk::image::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::render_texture>& positions = _tex_registry->get_write_render_texture_set("positions", this, vk::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_write_depth_texture_set("depth", this, vk::usage_type::INPUT_ATTACHMENT);
         
         //GBUFFER SUBPASS
         //follow the order in which the attachments are expected in the shader
@@ -158,8 +158,8 @@ public:
         composite.init_parameter("width", vk::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().width), 0);
         composite.init_parameter("height", vk::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().height), 0);
         
-        vk::resource_set<vk::texture_3d>& voxel_normal_set = _tex_registry->get_read_texture_3d_set("voxel_normals", this, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-        vk::resource_set<vk::texture_3d>& voxel_albedo_set = _tex_registry->get_read_texture_3d_set("voxel_albedos", this, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        vk::resource_set<vk::texture_3d>& voxel_normal_set = _tex_registry->get_read_texture_3d_set("voxel_normals", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        vk::resource_set<vk::texture_3d>& voxel_albedo_set = _tex_registry->get_read_texture_3d_set("voxel_albedos", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         
         
@@ -178,8 +178,8 @@ public:
         composite.init_parameter("eye_in_world_space", vk::parameter_stage::FRAGMENT, glm::vec3(0), 5);
         composite.init_parameter("eye_inverse_view_matrix", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
         
-        composite.set_image_sampler(voxel_normal_set, "voxel_normals", vk::parameter_stage::FRAGMENT, 6, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-        composite.set_image_sampler(voxel_albedo_set, "voxel_albedos", vk::parameter_stage::FRAGMENT, 7, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        composite.set_image_sampler(voxel_normal_set, "voxel_normals", vk::parameter_stage::FRAGMENT, 6, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        composite.set_image_sampler(voxel_albedo_set, "voxel_albedos", vk::parameter_stage::FRAGMENT, 7, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS> albedo_lods;
         static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS> normal_lods;
@@ -192,11 +192,11 @@ public:
             normal_lods[i].sprintf("voxel_normals%i", i);
             albedo_lods[i].sprintf("voxel_albedos%i", i);
             
-            vk::resource_set<vk::texture_3d>& normal3d = _tex_registry->get_read_texture_3d_set(normal_lods[i].c_str(), this, vk::image::usage_type::COMBINED_IMAGE_SAMPLER);
-            vk::resource_set<vk::texture_3d>& albedo3d = _tex_registry->get_read_texture_3d_set(albedo_lods[i].c_str(), this, vk::image::usage_type::COMBINED_IMAGE_SAMPLER);
+            vk::resource_set<vk::texture_3d>& normal3d = _tex_registry->get_read_texture_3d_set(normal_lods[i].c_str(), this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            vk::resource_set<vk::texture_3d>& albedo3d = _tex_registry->get_read_texture_3d_set(albedo_lods[i].c_str(), this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
             
-            composite.set_image_sampler(albedo3d, albedo_lods[i].c_str(), vk::parameter_stage::FRAGMENT, binding_index, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
-            composite.set_image_sampler(normal3d, normal_lods[i].c_str(), vk::parameter_stage::FRAGMENT, binding_index + offset, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
+            composite.set_image_sampler(albedo3d, albedo_lods[i].c_str(), vk::parameter_stage::FRAGMENT, binding_index, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            composite.set_image_sampler(normal3d, normal_lods[i].c_str(), vk::parameter_stage::FRAGMENT, binding_index + offset, vk::usage_type::COMBINED_IMAGE_SAMPLER);
             binding_index++;
         }
         

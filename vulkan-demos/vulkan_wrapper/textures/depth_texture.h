@@ -35,15 +35,15 @@ namespace vk {
         static  char const * const *  get_class_type(){ return (&_image_type); }
         virtual char const * const *  get_instance_type() override { return (&_image_type); };
         
-        virtual image_layouts get_usage_layout( resource::usage_type usage) override
+        virtual image_layouts get_usage_layout( vk::usage_type usage) override
         {
             image::image_layouts layout = texture_2d::get_usage_layout(usage);
             
-            if(usage == resource::usage_type::INPUT_ATTACHMENT)
+            if(usage == vk::usage_type::INPUT_ATTACHMENT)
             {
                 layout = image::image_layouts::DEPTH_STENCIL_READ_ONLY_OPTIMAL;
             }
-            if(usage == resource::usage_type::STORAGE_IMAGE)
+            if(usage == vk::usage_type::STORAGE_IMAGE)
             {
                 //TODO: IS THERE A BETTER ONE? 
                 layout = image::image_layouts::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;

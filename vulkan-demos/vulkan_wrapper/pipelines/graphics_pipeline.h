@@ -88,13 +88,13 @@ namespace vk
         }
         
         inline void set_image_sampler(texture_3d& texture, const char* parameter_name,
-                                      parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+                                      parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
         {
             _material[0]->set_image_sampler(&texture, parameter_name, parameter_stage, binding, usage);
         }
         
         inline void set_image_sampler(texture_2d& texture, const char* parameter_name,
-                                      parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+                                      parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
         {
             _material[0]->set_image_sampler(&texture, parameter_name, parameter_stage, binding, usage);
         }
@@ -145,7 +145,7 @@ namespace vk
         }
         
         inline void set_image_sampler(std::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
-                                      parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+                                      parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
         {
             for( int i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
             {

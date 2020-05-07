@@ -147,10 +147,10 @@ namespace vk
             return _image_layout;
         }
         
-        virtual image_layouts get_usage_layout( resource::usage_type usage)
+        virtual image_layouts get_usage_layout( vk::usage_type usage)
         {
             image::image_layouts layout = get_native_layout();
-            if(resource::usage_type::INPUT_ATTACHMENT == usage)
+            if(vk::usage_type::INPUT_ATTACHMENT == usage)
             {
                 layout = image::image_layouts::SHADER_READ_ONLY_OPTIMAL;
             }

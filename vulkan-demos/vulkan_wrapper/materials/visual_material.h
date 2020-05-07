@@ -91,7 +91,7 @@ namespace  vk
 
             buffer_info& mem = _sampler_buffers[stage][parameter_name];
             mem.binding = binding;
-            mem.usage_type = resource::usage_type::INPUT_ATTACHMENT;
+            mem.usage_type = vk::usage_type::INPUT_ATTACHMENT;
 
             _sampler_parameters[stage][parameter_name] = texture;
         }

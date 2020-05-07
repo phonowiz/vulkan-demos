@@ -216,7 +216,7 @@ namespace vk
                 
                 _input_references[_num_input_references].attachment = id;
                 _input_references[_num_input_references].layout =
-                            static_cast<VkImageLayout>((*_attachment_group)[id][0]->get_usage_layout(resource::usage_type::INPUT_ATTACHMENT));
+                            static_cast<VkImageLayout>((*_attachment_group)[id][0]->get_usage_layout(vk::usage_type::INPUT_ATTACHMENT));
                 
                 ++_num_input_references;
                 
@@ -227,7 +227,7 @@ namespace vk
             }
             
             inline void set_image_sampler(texture_3d& texture, const char* parameter_name,
-                                          parameter_stage parameter_stage, uint32_t binding,  resource::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding,  vk::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -236,7 +236,7 @@ namespace vk
             }
             
             inline void set_image_sampler(texture_2d& texture, const char* parameter_name,
-                                          parameter_stage parameter_stage,  uint32_t binding, resource::usage_type usage)
+                                          parameter_stage parameter_stage,  uint32_t binding, vk::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -244,7 +244,7 @@ namespace vk
                 }
             }
             inline void set_image_sampler(eastl::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
-                                          parameter_stage parameter_stage, uint32_t binding,  resource::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding,  vk::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < textures.size(); ++chain_id)
                 {
@@ -253,7 +253,7 @@ namespace vk
             }
             
             inline void set_image_sampler(eastl::array<render_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
-                                          parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < textures.size(); ++chain_id)
                 {
@@ -335,7 +335,7 @@ namespace vk
             }
             
             inline void set_image_sampler(resource_set<texture_3d>& textures, const char* parameter_name,
-                                          parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -344,7 +344,7 @@ namespace vk
             }
             
             inline void set_image_sampler(resource_set<texture_2d>& textures, const char* parameter_name,
-                                          parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -353,7 +353,7 @@ namespace vk
             }
             
             inline void set_image_sampler(resource_set<depth_texture>& textures, const char* parameter_name,
-                                          parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -776,7 +776,7 @@ namespace vk
                 depth_texture* t = static_cast<depth_texture*>( depths[swapchain_id]);
                 attachment_descriptions[attachment_id] =  t->get_depth_attachment();
                 depth_reference.attachment = attachment_id;
-                depth_reference.layout = static_cast<VkImageLayout>(depths[swapchain_id]->get_usage_layout(resource::usage_type::STORAGE_IMAGE));
+                depth_reference.layout = static_cast<VkImageLayout>(depths[swapchain_id]->get_usage_layout(vk::usage_type::STORAGE_IMAGE));
                 subpass[subpass_id].pDepthStencilAttachment = &depth_reference;
                 ++attachment_id;
             }

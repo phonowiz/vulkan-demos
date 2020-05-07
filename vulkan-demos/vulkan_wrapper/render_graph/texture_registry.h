@@ -84,7 +84,7 @@ namespace vk
         }
         
         
-        inline resource_set<depth_texture>& get_read_depth_texture_set( const char* name, node_type* node, vk::image::usage_type usage_type)
+        inline resource_set<depth_texture>& get_read_depth_texture_set( const char* name, node_type* node, vk::usage_type usage_type)
         {
             std::shared_ptr< resource_set<depth_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, usage_type);
             assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
@@ -93,7 +93,7 @@ namespace vk
         }
         
         
-        inline resource_set<render_texture>& get_read_render_texture_set( const char* name, node_type* node, vk::image::usage_type usage_type)
+        inline resource_set<render_texture>& get_read_render_texture_set( const char* name, node_type* node, vk::usage_type usage_type)
         {
             std::shared_ptr< resource_set<render_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, usage_type);
             assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
@@ -101,7 +101,7 @@ namespace vk
             return *tex;
         }
         
-        inline resource_set<texture_3d>& get_read_texture_3d_set( const char* name, node_type* node, vk::image::usage_type usage_type)
+        inline resource_set<texture_3d>& get_read_texture_3d_set( const char* name, node_type* node, vk::usage_type usage_type)
         {
             std::shared_ptr< resource_set<texture_3d>> tex =  get_read_texture<resource_set<texture_3d>>(name, node, usage_type);
             assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
@@ -119,7 +119,7 @@ namespace vk
             return *tex;
         }
         
-        inline resource_set<texture_2d>& get_write_texture_2d_set( const char* name, node_type* node, vk::image::usage_type usage_type )
+        inline resource_set<texture_2d>& get_write_texture_2d_set( const char* name, node_type* node, vk::usage_type usage_type )
         {
             resource_set<texture_2d>& result = get_write_texture<resource_set<texture_2d>>(name, node, usage_type);
             result.set_name(name);
@@ -127,7 +127,7 @@ namespace vk
             return get_write_texture<resource_set<texture_2d>>(name, node, usage_type);
         }
         
-        inline resource_set<depth_texture>& get_write_depth_texture_set( const char* name, node_type* node, vk::image::usage_type usage_type)
+        inline resource_set<depth_texture>& get_write_depth_texture_set( const char* name, node_type* node, vk::usage_type usage_type)
         {
             resource_set<depth_texture>& result = get_write_texture<resource_set<depth_texture>>(name, node, usage_type);
             result.set_name(name);
@@ -135,7 +135,7 @@ namespace vk
             return result;
         }
         
-        inline resource_set<render_texture>& get_write_render_texture_set( const char* name, node_type* node, vk::image::usage_type usage_type )
+        inline resource_set<render_texture>& get_write_render_texture_set( const char* name, node_type* node, vk::usage_type usage_type )
         {
             resource_set<render_texture>& result = get_write_texture<resource_set<render_texture>>(name, node, usage_type);
             result.set_name(name);
@@ -146,7 +146,7 @@ namespace vk
         // a usage parameter
         inline resource_set<texture_3d>& get_write_texture_3d_set( const char* name, node_type* node )
         {
-            resource_set<texture_3d>& result = get_write_texture<resource_set<texture_3d>>(name, node, vk::image::usage_type::STORAGE_IMAGE);
+            resource_set<texture_3d>& result = get_write_texture<resource_set<texture_3d>>(name, node, vk::usage_type::STORAGE_IMAGE);
             result.set_name(name);
             return result;
         }
@@ -159,7 +159,7 @@ namespace vk
             vk::texture_2d* result = nullptr;
             if( iter == _dependee_data_map.end())
             {
-                result = &(get_write_texture<texture_2d>(name, node, vk::image::usage_type::COMBINED_IMAGE_SAMPLER, dev, path));
+                result = &(get_write_texture<texture_2d>(name, node, vk::usage_type::COMBINED_IMAGE_SAMPLER, dev, path));
                 result->init();
             }
             else
@@ -192,7 +192,7 @@ namespace vk
         
         
         template<typename T>
-        void make_dependency(T& type, dependee_data& d, node_type* node, vk::image::usage_type usage_type)
+        void make_dependency(T& type, dependee_data& d, node_type* node, vk::usage_type usage_type)
         {
             dependant_data dependant = {};
             dependant.data = d;
@@ -201,7 +201,7 @@ namespace vk
         }
         
         template<typename T>
-        void make_dependency(resource_set<T>& type, dependee_data& d, node_type* node, vk::image::usage_type usage_type)
+        void make_dependency(resource_set<T>& type, dependee_data& d, node_type* node, vk::usage_type usage_type)
         {
             dependant_data dependant = {};
             dependant.data = d;
@@ -210,7 +210,7 @@ namespace vk
         }
         
         template <typename T>
-        inline std::shared_ptr<T> get_read_texture(const char* name, node_type* node, vk::image::usage_type usage_type)
+        inline std::shared_ptr<T> get_read_texture(const char* name, node_type* node, vk::usage_type usage_type)
         {
             typename dependee_data_map::iterator iter = _dependee_data_map.find(name);
             
@@ -239,7 +239,7 @@ namespace vk
 
         //template <typename T>
         template <typename T, typename ...ARGS>
-        inline T& get_write_texture( const char* name, node_type* node,  vk::image::usage_type usage_type, ARGS... args)
+        inline T& get_write_texture( const char* name, node_type* node,  vk::usage_type usage_type, ARGS... args)
         {
             typename dependee_data_map::iterator iter = _dependee_data_map.find(name);
             

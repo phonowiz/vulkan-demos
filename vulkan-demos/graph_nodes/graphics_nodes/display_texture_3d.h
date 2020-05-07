@@ -59,10 +59,10 @@ public:
         subpass_type& sub_p = pass.add_subpass(parent_type::_material_store, "display_3d_texture");
         
         vk::resource_set<vk::texture_3d>& tex = _tex_registry->get_read_texture_3d_set(_texture, this,
-                                                                vk::image::usage_type::COMBINED_IMAGE_SAMPLER);
+                                                                vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         sub_p.set_image_sampler(tex, "texture_3d", vk::parameter_stage::FRAGMENT, 2,
-                                       vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
+                                       vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         int binding = 0;
         sub_p.init_parameter("mvp", vk::parameter_stage::VERTEX,

@@ -102,10 +102,10 @@ public:
         vk::resource_set<vk::texture_3d>& normal_textures = _tex_registry->get_write_texture_3d_set("voxel_normals", this);
         
         voxelize_subpass.set_image_sampler(albedo_textures, "voxel_albedo_texture",
-                                           vk::parameter_stage::FRAGMENT, 1, vk::material_base::usage_type::STORAGE_IMAGE );
+                                           vk::parameter_stage::FRAGMENT, 1, vk::usage_type::STORAGE_IMAGE );
         
         voxelize_subpass.set_image_sampler(normal_textures, "voxel_normal_texture",
-                                           vk::parameter_stage::FRAGMENT, 4, vk::material_base::usage_type::STORAGE_IMAGE );
+                                           vk::parameter_stage::FRAGMENT, 4, vk::usage_type::STORAGE_IMAGE );
         
         voxelize_subpass.init_parameter("inverse_view_projection", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
         voxelize_subpass.init_parameter("project_to_voxel_screen", vk::parameter_stage::FRAGMENT, _proj_to_voxel_screen, 2);
@@ -129,7 +129,7 @@ public:
         //TODO: MAKE IT SO THAT WE CAN RE-USE THE SAME TEXTURE BETWEEN THE VOXELIZATION  NODES
         test_name.sprintf("vox_test<%f, %f, %f>", _cam_position.x, _cam_position.y, _cam_position.z );
         vk::resource_set<vk::render_texture>& target = _tex_registry->get_write_render_texture_set(test_name.c_str(),
-                                                                                                   this, vk::image::usage_type::INPUT_ATTACHMENT);
+                                                                                                   this, vk::usage_type::INPUT_ATTACHMENT);
         
         target.set_device(parent_type::_device);
         target.set_dimensions(float(VOXEL_CUBE_WIDTH), float(VOXEL_CUBE_HEIGHT));
