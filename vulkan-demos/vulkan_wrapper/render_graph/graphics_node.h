@@ -111,7 +111,7 @@ namespace vk {
                     {
                         //use the index to access the dynamic parameter memory for this object
                         subpass.get_pipeline(image_id).
-                            get_dynamic_parameters(vk::visual_material::parameter_stage::VERTEX, binding)[count][name] = mat;
+                        get_dynamic_parameters(parameter_stage::VERTEX, binding)[count][name] = mat;
                         
                         result = true;
                         break;
@@ -124,7 +124,7 @@ namespace vk {
         }
         
         void add_dynamic_param(const char* name, uint32_t subpass_id,
-                               vk::visual_material::parameter_stage stage, glm::mat4 mat, uint32_t binding)
+                               parameter_stage stage, glm::mat4 mat, uint32_t binding)
         {
             
             assert(_obj_vector.size() != 0 && "dynamic parameters cannot be created without adding objects to this node");
@@ -138,7 +138,7 @@ namespace vk {
                 }
             }
             subpass.init_dynamic_params(name,
-                                        vk::visual_material::parameter_stage::VERTEX, mat, count, binding);
+                                        parameter_stage::VERTEX, mat, count, binding);
 
         }
         

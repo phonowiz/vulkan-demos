@@ -102,23 +102,23 @@ public:
         vk::resource_set<vk::texture_3d>& normal_textures = _tex_registry->get_write_texture_3d_set("voxel_normals", this);
         
         voxelize_subpass.set_image_sampler(albedo_textures, "voxel_albedo_texture",
-                                           vk::visual_material::parameter_stage::FRAGMENT, 1, vk::material_base::usage_type::STORAGE_IMAGE );
+                                           vk::parameter_stage::FRAGMENT, 1, vk::material_base::usage_type::STORAGE_IMAGE );
         
         voxelize_subpass.set_image_sampler(normal_textures, "voxel_normal_texture",
-                                           vk::visual_material::parameter_stage::FRAGMENT, 4, vk::material_base::usage_type::STORAGE_IMAGE );
+                                           vk::parameter_stage::FRAGMENT, 4, vk::material_base::usage_type::STORAGE_IMAGE );
         
-        voxelize_subpass.init_parameter("inverse_view_projection", vk::visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
-        voxelize_subpass.init_parameter("project_to_voxel_screen", vk::visual_material::parameter_stage::FRAGMENT, _proj_to_voxel_screen, 2);
-        voxelize_subpass.init_parameter("voxel_coords", vk::visual_material::parameter_stage::FRAGMENT,
+        voxelize_subpass.init_parameter("inverse_view_projection", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
+        voxelize_subpass.init_parameter("project_to_voxel_screen", vk::parameter_stage::FRAGMENT, _proj_to_voxel_screen, 2);
+        voxelize_subpass.init_parameter("voxel_coords", vk::parameter_stage::FRAGMENT,
                                             glm::vec3(VOXEL_CUBE_WIDTH,VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH ), 2);
         
-        voxelize_subpass.init_parameter("view", vk::visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
-        voxelize_subpass.init_parameter("projection", vk::visual_material::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
-        voxelize_subpass.init_parameter("light_position", vk::visual_material::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
-        voxelize_subpass.init_parameter("eye_position", vk::visual_material::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
+        voxelize_subpass.init_parameter("view", vk::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
+        voxelize_subpass.init_parameter("projection", vk::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
+        voxelize_subpass.init_parameter("light_position", vk::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
+        voxelize_subpass.init_parameter("eye_position", vk::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
         
         
-        parent_type::add_dynamic_param("model", 0, vk::visual_material::parameter_stage::VERTEX, glm::mat4(1.0), 3);
+        parent_type::add_dynamic_param("model", 0, vk::parameter_stage::VERTEX, glm::mat4(1.0), 3);
         
         voxelize_subpass.set_cull_mode( render_pass_type::graphics_pipeline_type::cull_mode::NONE);
         
@@ -160,10 +160,10 @@ public:
         
         subpass_type& vox_subpass = pass.get_subpass(0);
         vk::shader_parameter::shader_params_group& voxelize_vertex_params =
-                vox_subpass.get_pipeline(image_id).get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+                vox_subpass.get_pipeline(image_id).get_uniform_parameters(vk::parameter_stage::VERTEX, 0);
         
         vk::shader_parameter::shader_params_group& voxelize_frag_params =
-                vox_subpass.get_pipeline(image_id).get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 2);
+                vox_subpass.get_pipeline(image_id).get_uniform_parameters(vk::parameter_stage::FRAGMENT, 2);
         
         
         _ortho_camera.position = _cam_position;

@@ -63,13 +63,13 @@ public:
         
         vk::texture_2d& ptr = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
         
-        sub_p.set_image_sampler(ptr, "tex", vk::material_base::parameter_stage::FRAGMENT, 1,
+        sub_p.set_image_sampler(ptr, "tex", vk::parameter_stage::FRAGMENT, 1,
                                        vk::visual_material::usage_type::COMBINED_IMAGE_SAMPLER);
         
         int binding = 0;
-        sub_p.init_parameter("width", vk::visual_material::parameter_stage::VERTEX,
+        sub_p.init_parameter("width", vk::parameter_stage::VERTEX,
                              _swapchain->get_vk_swap_extent().width, binding);
-        sub_p.init_parameter("height", vk::visual_material::parameter_stage::VERTEX,
+        sub_p.init_parameter("height", vk::parameter_stage::VERTEX,
                              _swapchain->get_vk_swap_extent().height, binding);
         
         sub_p.add_output_attachment("present");

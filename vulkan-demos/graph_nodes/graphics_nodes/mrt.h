@@ -139,24 +139,24 @@ public:
         
         int binding = 0;
         //note: parameters are initialized in the order found in the shader
-        mrt_subpass.init_parameter("view", vk::visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
-        mrt_subpass.init_parameter("projection", vk::visual_material::parameter_stage::VERTEX, glm::mat4(0), binding);
-        mrt_subpass.init_parameter("lightPosition", vk::visual_material::parameter_stage::VERTEX, glm::vec3(0), binding);
+        mrt_subpass.init_parameter("view", vk::parameter_stage::VERTEX, glm::mat4(0), binding);
+        mrt_subpass.init_parameter("projection", vk::parameter_stage::VERTEX, glm::mat4(0), binding);
+        mrt_subpass.init_parameter("lightPosition", vk::parameter_stage::VERTEX, glm::vec3(0), binding);
         
-        parent_type::add_dynamic_param("model", 0, vk::visual_material::parameter_stage::VERTEX, glm::mat4(1.0), 1);
+        parent_type::add_dynamic_param("model", 0, vk::parameter_stage::VERTEX, glm::mat4(1.0), 1);
         
         
         //COMPOSITE SUBPASS
-        composite.add_input_attachment( "normals", "normals", vk::visual_material::parameter_stage::FRAGMENT, 1 );
-        composite.add_input_attachment("albedos", "albedos", vk::visual_material::parameter_stage::FRAGMENT, 2);
-        composite.add_input_attachment("positions", "positions", vk::visual_material::parameter_stage::FRAGMENT, 3);
+        composite.add_input_attachment( "normals", "normals", vk::parameter_stage::FRAGMENT, 1 );
+        composite.add_input_attachment("albedos", "albedos", vk::parameter_stage::FRAGMENT, 2);
+        composite.add_input_attachment("positions", "positions", vk::parameter_stage::FRAGMENT, 3);
 
-        composite.add_input_attachment("depth", "depth", vk::visual_material::parameter_stage::FRAGMENT, 4);
+        composite.add_input_attachment("depth", "depth", vk::parameter_stage::FRAGMENT, 4);
         
         composite.add_output_attachment("present");
         
-        composite.init_parameter("width", vk::visual_material::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().width), 0);
-        composite.init_parameter("height", vk::visual_material::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().height), 0);
+        composite.init_parameter("width", vk::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().width), 0);
+        composite.init_parameter("height", vk::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().height), 0);
         
         vk::resource_set<vk::texture_3d>& voxel_normal_set = _tex_registry->get_read_texture_3d_set("voxel_normals", this, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
         vk::resource_set<vk::texture_3d>& voxel_albedo_set = _tex_registry->get_read_texture_3d_set("voxel_albedos", this, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
@@ -167,19 +167,19 @@ public:
                                                 float(_voxel_world_dimensions.y/voxelize<NUM_CHILDREN>::VOXEL_CUBE_HEIGHT),
                                                 float(_voxel_world_dimensions.z/voxelize<NUM_CHILDREN>::VOXEL_CUBE_DEPTH), 1.0f);
         
-        composite.init_parameter("world_cam_position", vk::visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
-        composite.init_parameter("world_light_position", vk::visual_material::parameter_stage::FRAGMENT, glm::vec3(0.0f), 5);
-        composite.init_parameter("light_color", vk::visual_material::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
-        composite.init_parameter("voxel_size_in_world_space", vk::visual_material::parameter_stage::FRAGMENT, world_scale_voxel, 5);
-        composite.init_parameter("mode", vk::visual_material::parameter_stage::FRAGMENT, int(0), 5);
-        composite.init_parameter("sampling_rays", vk::visual_material::parameter_stage::FRAGMENT, _sampling_rays.data(), _sampling_rays.size(), 5);
-        composite.init_parameter("vox_view_projection", vk::visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
-        composite.init_parameter("num_of_lods", vk::visual_material::parameter_stage::FRAGMENT, int(mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS), 5);
-        composite.init_parameter("eye_in_world_space", vk::visual_material::parameter_stage::FRAGMENT, glm::vec3(0), 5);
-        composite.init_parameter("eye_inverse_view_matrix", vk::visual_material::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
+        composite.init_parameter("world_cam_position", vk::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+        composite.init_parameter("world_light_position", vk::parameter_stage::FRAGMENT, glm::vec3(0.0f), 5);
+        composite.init_parameter("light_color", vk::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+        composite.init_parameter("voxel_size_in_world_space", vk::parameter_stage::FRAGMENT, world_scale_voxel, 5);
+        composite.init_parameter("mode", vk::parameter_stage::FRAGMENT, int(0), 5);
+        composite.init_parameter("sampling_rays", vk::parameter_stage::FRAGMENT, _sampling_rays.data(), _sampling_rays.size(), 5);
+        composite.init_parameter("vox_view_projection", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
+        composite.init_parameter("num_of_lods", vk::parameter_stage::FRAGMENT, int(mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS), 5);
+        composite.init_parameter("eye_in_world_space", vk::parameter_stage::FRAGMENT, glm::vec3(0), 5);
+        composite.init_parameter("eye_inverse_view_matrix", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
         
-        composite.set_image_sampler(voxel_normal_set, "voxel_normals", vk::visual_material::parameter_stage::FRAGMENT, 6, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
-        composite.set_image_sampler(voxel_albedo_set, "voxel_albedos", vk::visual_material::parameter_stage::FRAGMENT, 7, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        composite.set_image_sampler(voxel_normal_set, "voxel_normals", vk::parameter_stage::FRAGMENT, 6, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
+        composite.set_image_sampler(voxel_albedo_set, "voxel_albedos", vk::parameter_stage::FRAGMENT, 7, vk::material_base::usage_type::COMBINED_IMAGE_SAMPLER);
         
         static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS> albedo_lods;
         static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS> normal_lods;
@@ -195,8 +195,8 @@ public:
             vk::resource_set<vk::texture_3d>& normal3d = _tex_registry->get_read_texture_3d_set(normal_lods[i].c_str(), this, vk::image::usage_type::COMBINED_IMAGE_SAMPLER);
             vk::resource_set<vk::texture_3d>& albedo3d = _tex_registry->get_read_texture_3d_set(albedo_lods[i].c_str(), this, vk::image::usage_type::COMBINED_IMAGE_SAMPLER);
             
-            composite.set_image_sampler(albedo3d, albedo_lods[i].c_str(), vk::visual_material::parameter_stage::FRAGMENT, binding_index, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
-            composite.set_image_sampler(normal3d, normal_lods[i].c_str(), vk::visual_material::parameter_stage::FRAGMENT, binding_index + offset, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
+            composite.set_image_sampler(albedo3d, albedo_lods[i].c_str(), vk::parameter_stage::FRAGMENT, binding_index, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
+            composite.set_image_sampler(normal3d, normal_lods[i].c_str(), vk::parameter_stage::FRAGMENT, binding_index + offset, vk::resource::usage_type::COMBINED_IMAGE_SAMPLER);
             binding_index++;
         }
         
@@ -215,10 +215,10 @@ public:
         subpass_type& composite = pass.get_subpass(1);
         
         vk::shader_parameter::shader_params_group& vertex_params = mrt_pass.get_pipeline(image_id).
-                                                get_uniform_parameters(vk::visual_material::parameter_stage::VERTEX, 0);
+                                                get_uniform_parameters(vk::parameter_stage::VERTEX, 0);
         
         vk::shader_parameter::shader_params_group& display_fragment_params = composite.get_pipeline(image_id).
-                                                get_uniform_parameters(vk::visual_material::parameter_stage::FRAGMENT, 5) ;
+                                                get_uniform_parameters(vk::parameter_stage::FRAGMENT, 5) ;
         
         //TODO: THIS NEEDS TO MATCH THE VOXELIZER NODE DISTANCE...
         constexpr float distance = 8.f;

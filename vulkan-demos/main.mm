@@ -303,8 +303,6 @@ int main()
     
     mrt<4> mrt_node(&device, &swapchain);
     
-    
-    
     mrt_node.set_name("mrt");
     
     app.mrt_node = &mrt_node;
@@ -476,7 +474,6 @@ int main()
     vkDestroySurfaceKHR(device._instance, surface, nullptr);
     device.destroy();
     
-
     shutdown_glfw();
     return 0;
 }

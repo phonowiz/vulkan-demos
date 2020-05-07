@@ -82,70 +82,70 @@ namespace vk
         }
         
         inline void add_input_attachment( image* texture, const char* parameter_name,  uint32_t attachment_id,
-                                         visual_material::parameter_stage parameter_stage, uint32_t binding)
+                                         parameter_stage parameter_stage, uint32_t binding)
         {
             _material[0]->add_input_attachment(texture, parameter_name, attachment_id, parameter_stage, binding);
         }
         
         inline void set_image_sampler(texture_3d& texture, const char* parameter_name,
-                                      visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+                                      parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
         {
             _material[0]->set_image_sampler(&texture, parameter_name, parameter_stage, binding, usage);
         }
         
         inline void set_image_sampler(texture_2d& texture, const char* parameter_name,
-                                      visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+                                      parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
         {
             _material[0]->set_image_sampler(&texture, parameter_name, parameter_stage, binding, usage);
         }
         
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, float value, int binding)
+        inline void init_parameter(const char* parameter_name, parameter_stage stage, float value, int binding)
         {
             _material[0]->init_parameter(parameter_name, stage, value, binding);
         };
         
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, int32_t value, int binding)
+        inline void init_parameter(const char* parameter_name, parameter_stage stage, int32_t value, int binding)
         {
             _material[0]->init_parameter(parameter_name, stage, value, binding);
         };
         
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, uint32_t value, int binding)
+        inline void init_parameter(const char* parameter_name, parameter_stage stage, uint32_t value, int binding)
         {
             _material[0]->init_parameter(parameter_name, stage, value, binding);
         };
         
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec3 value, int binding)
+        inline void init_parameter(const char* parameter_name, parameter_stage stage, glm::vec3 value, int binding)
         {
             _material[0]->init_parameter(parameter_name, stage, value, binding);
         };
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec4 value, int binding)
+        inline void init_parameter(const char* parameter_name, parameter_stage stage, glm::vec4 value, int binding)
         {
             _material[0]->init_parameter(parameter_name, stage, value, binding);
             
         };
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::vec2 value, int binding)
+        inline void init_parameter(const char* parameter_name, parameter_stage stage, glm::vec2 value, int binding)
         {
             _material[0]->init_parameter(parameter_name, stage, value, binding);
         }
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::mat4 value, int binding)
+        inline void init_parameter(const char* parameter_name, parameter_stage stage, glm::mat4 value, int binding)
         {
             _material[0]->init_parameter(parameter_name, stage, value, binding);
         }
         
-        inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,
+        inline void init_parameter(const char* parameter_name, parameter_stage stage,
                                    glm::vec4* vecs, size_t num_vectors, int binding)
         {
             _material[0]->init_parameter(parameter_name, stage, vecs, num_vectors, binding);
         }
         
-        inline void init_dynamic_params(const char* parameter_name, visual_material::parameter_stage stage, glm::mat4& val, size_t num_objs, int binding)
+        inline void init_dynamic_params(const char* parameter_name, parameter_stage stage, glm::mat4& val, size_t num_objs, int binding)
         {
             for( int j = 0; j < num_objs; ++j)
                 _material[0]->get_dynamic_parameters(stage, binding)[j][parameter_name] = val;
         }
         
         inline void set_image_sampler(std::array<texture_3d, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
-                                      visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+                                      parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
         {
             for( int i = 0; i < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
             {
@@ -166,12 +166,12 @@ namespace vk
             _blend_attachments[blend_attachment_id].blendEnable = enable_blend ? VK_TRUE : VK_FALSE;
         }
         
-        inline shader_parameter::shader_params_group& get_uniform_parameters(material_base::parameter_stage stage, uint32_t binding)
+        inline shader_parameter::shader_params_group& get_uniform_parameters(vk::parameter_stage stage, uint32_t binding)
         {
             return _material[0]->get_uniform_parameters(stage, binding);
         }
         
-        inline visual_material::object_shader_params_group& get_dynamic_parameters(material_base::parameter_stage stage, uint32_t binding)
+        inline visual_material::object_shader_params_group& get_dynamic_parameters(vk::parameter_stage stage, uint32_t binding)
         {
             return _material[0]->get_dynamic_parameters(stage, binding);
         }

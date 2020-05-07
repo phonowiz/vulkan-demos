@@ -207,7 +207,7 @@ namespace vk
             }
             
             inline void add_input_attachment( const char* parameter_name, const char* attachment_name,
-                                             visual_material::parameter_stage parameter_stage, uint32_t binding)
+                                             parameter_stage parameter_stage, uint32_t binding)
             {
                 assert(_attachment_group != nullptr);
                 
@@ -227,7 +227,7 @@ namespace vk
             }
             
             inline void set_image_sampler(texture_3d& texture, const char* parameter_name,
-                                          visual_material::parameter_stage parameter_stage, uint32_t binding,  resource::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding,  resource::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -236,7 +236,7 @@ namespace vk
             }
             
             inline void set_image_sampler(texture_2d& texture, const char* parameter_name,
-                                          visual_material::parameter_stage parameter_stage,  uint32_t binding, resource::usage_type usage)
+                                          parameter_stage parameter_stage,  uint32_t binding, resource::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -244,7 +244,7 @@ namespace vk
                 }
             }
             inline void set_image_sampler(eastl::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
-                                          visual_material::parameter_stage parameter_stage, uint32_t binding,  resource::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding,  resource::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < textures.size(); ++chain_id)
                 {
@@ -253,7 +253,7 @@ namespace vk
             }
             
             inline void set_image_sampler(eastl::array<render_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
-                                          visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < textures.size(); ++chain_id)
                 {
@@ -261,7 +261,7 @@ namespace vk
                 }
             }
             
-            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  float value, int32_t binding)
+            inline void init_parameter(const char* parameter_name, parameter_stage stage,  float value, int32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -269,7 +269,7 @@ namespace vk
                 }
             };
             
-            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  int32_t value, int32_t binding)
+            inline void init_parameter(const char* parameter_name, parameter_stage stage,  int32_t value, int32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -277,7 +277,7 @@ namespace vk
                 }
             };
             
-            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  uint32_t value, int32_t binding)
+            inline void init_parameter(const char* parameter_name, parameter_stage stage,  uint32_t value, int32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -285,28 +285,28 @@ namespace vk
                 }
             };
             
-            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  glm::vec3 value, int32_t binding)
+            inline void init_parameter(const char* parameter_name, parameter_stage stage,  glm::vec3 value, int32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
                     _pipeline[chain_id].init_parameter(parameter_name, stage, value, binding);
                 }
             };
-            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  glm::vec4 value, int32_t binding)
+            inline void init_parameter(const char* parameter_name, parameter_stage stage,  glm::vec4 value, int32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
                     _pipeline[chain_id].init_parameter(parameter_name, stage, value, binding);
                 }
             };
-            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,  glm::vec2 value, int32_t binding)
+            inline void init_parameter(const char* parameter_name, parameter_stage stage,  glm::vec2 value, int32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
                     _pipeline[chain_id].init_parameter(parameter_name, stage, value, binding);
                 }
             }
-            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage, glm::mat4 value, int32_t binding)
+            inline void init_parameter(const char* parameter_name, parameter_stage stage, glm::mat4 value, int32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -314,7 +314,7 @@ namespace vk
                 }
             }
             
-            inline void init_parameter(const char* parameter_name, visual_material::parameter_stage stage,
+            inline void init_parameter(const char* parameter_name, parameter_stage stage,
                                        glm::vec4* vecs,  size_t num_vectors, int32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
@@ -323,7 +323,7 @@ namespace vk
                 }
             }
             
-            inline void init_dynamic_params(const char* parameter_name, visual_material::parameter_stage stage,
+            inline void init_dynamic_params(const char* parameter_name, parameter_stage stage,
                                             glm::mat4& val, size_t num_objs, int32_t binding)
             {
                 
@@ -335,7 +335,7 @@ namespace vk
             }
             
             inline void set_image_sampler(resource_set<texture_3d>& textures, const char* parameter_name,
-                                          visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -344,7 +344,7 @@ namespace vk
             }
             
             inline void set_image_sampler(resource_set<texture_2d>& textures, const char* parameter_name,
-                                          visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
@@ -353,7 +353,7 @@ namespace vk
             }
             
             inline void set_image_sampler(resource_set<depth_texture>& textures, const char* parameter_name,
-                                          visual_material::parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding, resource::usage_type usage)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {

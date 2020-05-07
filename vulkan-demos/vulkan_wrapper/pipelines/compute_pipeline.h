@@ -46,7 +46,7 @@ namespace vk
             for( int i = 0; i < textures.size(); ++i)
             {
                 //note: here we force STORAGE_IMAGE usage because the validation layers will throw errors if you use anything else
-                _material[i]->set_image_sampler(&textures[i], parameter_name, material_base::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
+                _material[i]->set_image_sampler(&textures[i], parameter_name, vk::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
             }
         }
         
@@ -55,7 +55,7 @@ namespace vk
             for( int i = 0; i < NUM_MATERIALS; ++i )
             {
                 //note: here we force STORAGE_IMAGE usage because the validation layers will throw errors if you use anything else
-                _material[i]->set_image_sampler(&textures, parameter_name, material_base::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
+                _material[i]->set_image_sampler(&textures, parameter_name, vk::parameter_stage::COMPUTE, binding, material_base::usage_type::STORAGE_IMAGE);
             }
         }
 

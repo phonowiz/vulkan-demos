@@ -42,6 +42,14 @@ namespace vk
      
      */
     
+    enum class parameter_stage
+    {
+        VERTEX =    VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT,
+        FRAGMENT =  VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT,
+        COMPUTE =   VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT,
+        NONE =      VkShaderStageFlagBits::VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM
+    };
+
     class material_base : public resource
     {
     public:
@@ -49,14 +57,6 @@ namespace vk
         material_base()
         {}
         material_base( device* device, const char* name ){ _device = device; _name = name; }
-        
-        enum class parameter_stage
-        {
-            VERTEX =    VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT,
-            FRAGMENT =  VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT,
-            COMPUTE =   VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT,
-            NONE =      VkShaderStageFlagBits::VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM
-        };
         
     public:
         void commit_parameters_to_gpu();
