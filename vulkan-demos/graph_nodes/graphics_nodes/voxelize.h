@@ -45,15 +45,13 @@ private:
     glm::mat4 _proj_to_voxel_screen = glm::mat4(1.0f);
     glm::vec3 _light_pos = glm::vec3(0.0f, .8f, 0.0f);
     
-    //vk::screen_plane _screen_plane;
-    
 public:
     
     using parent_type = vk::graphics_node<1, NUM_CHILDREN>;
     using render_pass_type = typename parent_type::render_pass_type;
     using subpass_type = typename parent_type::render_pass_type::subpass_s;
     using object_vector_type = typename parent_type::object_vector_type;
-    using image_ptr = std::shared_ptr<vk::image>;
+    using image_ptr = eastl::shared_ptr<vk::image>;
     using tex_registry_type = typename parent_type::tex_registry_type;
     using material_store_type = typename parent_type::material_store_type;
     using object_submask_type = typename parent_type::object_subpass_mask;
@@ -65,9 +63,7 @@ public:
     voxelize(vk::device* dev):
     parent_type(dev, static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT)),
     _ortho_camera(WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE)
-    //_screen_plane(dev)
     {
-        //_screen_plane.create();
     }
     
     void set_cam_params(glm::vec3 cam_pos, glm::vec3 up)
@@ -175,9 +171,6 @@ public:
         glm::mat4 ivp = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
         ivp = glm::inverse( ivp );
         voxelize_frag_params["inverse_view_projection"] = ivp;
-
-//        glm::mat4 project_to_voxel_screen = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
-//        voxelize_frag_params["project_to_voxel_screen"] = project_to_voxel_screen;
         
         voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
         voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
@@ -189,8 +182,6 @@ public:
             parent_type::set_dynamic_param("model", image_id, 0, _obj_vector[i],
                                            _obj_vector[i]->transform.get_transform_matrix(), 3 );
         }
-        
-        //vox_subpass.commit_parameters_to_gpu(image_id);
     }
     
     virtual void destroy() override

@@ -24,13 +24,17 @@
 
 namespace  vk
 {
+    class visual_material;
+
+    using visual_mat_shared_ptr = eastl::shared_ptr<visual_material>;
+
     class visual_material : public material_base
     {
     public:
         
-        visual_material( visual_material& original)
+        visual_material( visual_mat_shared_ptr& original)
         {
-            operator=(original);
+            operator=(*original);
         }
         visual_material(const char* name, shader_shared_ptr vertex_shader, shader_shared_ptr fragment_shader, device* device );
 
@@ -122,5 +126,5 @@ namespace  vk
         static constexpr char const* const _type = nullptr;
     };
     
-    using visual_mat_shared_ptr = std::shared_ptr<visual_material>;
+
 }

@@ -14,14 +14,17 @@
 
 namespace vk
 {
+    class compute_material;
+    using compute_mat_shared_ptr = eastl::shared_ptr<compute_material>;
+    
     class compute_material : public material_base
     {
     public:
         compute_material(){};
         
-        compute_material(compute_material& original)
+        compute_material(compute_mat_shared_ptr& original)
         {
-            operator=(original);
+            operator=(*original);
         }
         compute_material(const char* name, shader_shared_ptr compute_shader, device* device):
         material_base(device, name)
@@ -57,5 +60,5 @@ namespace vk
         shader_shared_ptr _compute_shader;
     };
 
-    using compute_mat_shared_ptr = std::shared_ptr<compute_material>;
+
 };

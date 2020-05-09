@@ -37,7 +37,6 @@ namespace vk
             {
                 _material[i] = store.GET_MAT<vk::compute_material>(name);
             }
-            
         }
         
         template<typename T>
@@ -100,10 +99,10 @@ namespace vk
         
     private:
         
-        std::array<VkPipeline, NUM_MATERIALS >       _pipeline {};
-        std::array<VkPipelineLayout, NUM_MATERIALS>  _pipeline_layout {};
+        eastl::array<VkPipeline, NUM_MATERIALS >       _pipeline {};
+        eastl::array<VkPipelineLayout, NUM_MATERIALS>  _pipeline_layout {};
         
-        std::array<compute_mat_shared_ptr, NUM_MATERIALS> _material = {};
+        eastl::array<compute_mat_shared_ptr, NUM_MATERIALS> _material = {};
 
         void create(uint32_t image_id);
     };

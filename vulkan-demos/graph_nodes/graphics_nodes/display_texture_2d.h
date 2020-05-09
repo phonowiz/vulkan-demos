@@ -26,7 +26,7 @@ public:
     using render_pass_type = typename parent_type::render_pass_type;
     using subpass_type = typename parent_type::render_pass_type::subpass_s;
     using object_vector_type = typename parent_type::object_vector_type;
-    using image_ptr = std::shared_ptr<vk::image>;
+    using image_ptr = eastl::shared_ptr<vk::image>;
     using tex_registry_type = typename parent_type::tex_registry_type;
     
     

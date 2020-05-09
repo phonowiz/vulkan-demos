@@ -8,8 +8,8 @@
 
 #include "device.h"
 
-#include <vector>
-#include <array>
+#include "EASTL/fixed_vector.h"
+#include "EASTL/array.h"
 #include <set>
 #include <string>
 #include <iostream>
@@ -18,6 +18,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include "device.h"
+#include "EAAssert/eaassert.h"
 
 #if __APPLE__ && DEBUG
 #include <MoltenVK/vk_mvk_moltenvk.h>
@@ -85,7 +86,7 @@ void device::create_logical_device( VkSurfaceKHR surface)
     pick_physical_device(surface);
     _queue_family_indices = find_queue_families(_physical_device, surface);
 
-    std::vector<VkDeviceQueueCreateInfo> queue_create_infos {};
+    eastl::fixed_vector<VkDeviceQueueCreateInfo,20, true> queue_create_infos {};
     std::set<uint32_t> unique_queue_families = {_queue_family_indices.graphics_family.value(), _queue_family_indices.present_family.value()};
 
     float queue_priority = 1.0f;
@@ -167,7 +168,7 @@ device::queue_family_indices device::find_queue_families( VkPhysicalDevice devic
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
     static const uint32_t MAX_QUEUE_FAMILIES = 200;
     assert(MAX_QUEUE_FAMILIES > queue_family_count);
-    std::array<VkQueueFamilyProperties, MAX_QUEUE_FAMILIES> queue_families;
+    eastl::array<VkQueueFamilyProperties, MAX_QUEUE_FAMILIES> queue_families;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
     
     int i = 0;
@@ -205,7 +206,7 @@ bool device::check_device_extension_support(VkPhysicalDevice device)
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
     
-    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+    eastl::fixed_vector<VkExtensionProperties, 20, true> availableExtensions(extensionCount);
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
     
     std::set<std::string> requiredExtensions(device_extensions.begin(), device_extensions.end());
@@ -297,7 +298,7 @@ void device::create_instance()
     app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     app_info.apiVersion = VK_API_VERSION_1_0;
     
-    const std::array<const char*, 1> validation_layers = {
+    const eastl::array<const char*, 1> validation_layers = {
 #if DEBUG || defined(_DEBUG)
         "VK_LAYER_KHRONOS_validation"
 #endif
@@ -307,7 +308,7 @@ void device::create_instance()
 
     auto glfw_extensions = glfwGetRequiredInstanceExtensions(&glfw_extensions_count);
     
-    std::array<const char*, 10> all_required_extensions {};
+    eastl::array<const char*, 10> all_required_extensions {};
     //all_required_extensions[0] = "VK_EXT_debug_report";
     
     assert(all_required_extensions.size() > (glfw_extensions_count + 1));
@@ -330,7 +331,7 @@ void device::create_instance()
     instanceInfo.ppEnabledExtensionNames = all_required_extensions.data();
     
     uint32_t instance_layer_count {};
-    std::array<VkLayerProperties, 200> layer_properties {};
+    eastl::array<VkLayerProperties, 200> layer_properties {};
     VkResult result = vkEnumerateInstanceLayerProperties(&instance_layer_count, nullptr);
     ASSERT_VULKAN(result);
     assert(instance_layer_count < layer_properties.size());
@@ -344,7 +345,7 @@ void device::create_instance()
     }
     
     uint32_t instance_extension_count = 0;
-    std::array<VkExtensionProperties, 100> vk_props = {};
+    eastl::array<VkExtensionProperties, 100> vk_props = {};
     vkEnumerateInstanceExtensionProperties(NULL, &instance_extension_count, NULL);
     vkEnumerateInstanceExtensionProperties(NULL, &instance_extension_count, vk_props.data());
     std::cout << std::endl;
@@ -435,7 +436,7 @@ bool device::is_format_supported( VkFormat format,
     
 }
 
-VkFormat device::find_support_format(const std::vector<VkFormat>& formats,
+VkFormat device::find_support_format(const eastl::fixed_vector<VkFormat, 20, true>& formats,
                                     VkImageTiling tiling, VkFormatFeatureFlags featureFlags)
 {
     for( VkFormat format : formats)
@@ -519,7 +520,7 @@ VkFormat device::find_depth_format()
 {
     //the order here matters as the "findsupportedformat" function returns the first one that is supported
     //here we have the 32 bits depth with 8 bits of stencil
-    std::vector<VkFormat> possibleFormats = {
+    eastl::fixed_vector<VkFormat, 20, true> possibleFormats = {
         VK_FORMAT_D32_SFLOAT,
         VK_FORMAT_D32_SFLOAT_S8_UINT,
         VK_FORMAT_D24_UNORM_S8_UINT
@@ -537,7 +538,7 @@ void device::pick_physical_device(VkSurfaceKHR surface)
     assert(deviceCount != 0);
     
     
-    std::vector<VkPhysicalDevice> devices(deviceCount);
+    eastl::fixed_vector<VkPhysicalDevice, 20, true> devices(deviceCount);
     vkEnumeratePhysicalDevices(_instance, &deviceCount, devices.data());
     
     for (const VkPhysicalDevice& device : devices)

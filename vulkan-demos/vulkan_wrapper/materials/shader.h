@@ -10,6 +10,7 @@
 
 #include "resource.h"
 
+#include "EASTL/shared_ptr.h"
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 #include "device.h"
@@ -60,7 +61,7 @@ namespace  vk
     
     };
     
-    using shader_shared_ptr = std::shared_ptr<shader>;
+    using shader_shared_ptr = eastl::shared_ptr<shader>;
 };
 
 

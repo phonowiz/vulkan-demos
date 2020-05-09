@@ -250,12 +250,12 @@ namespace  vk
             for(typename tex_registry_type::node_dependees::iterator b = begin ; b != end ; ++b)
             {
                 
-                std::shared_ptr<vk::object> res = std::static_pointer_cast<vk::object>((*b).data.resource);
+                eastl::shared_ptr<vk::object> res = eastl::static_pointer_cast<vk::object>((*b).data.resource);
                 
                 if(res->get_instance_type() == texture_2d::get_class_type() ||
                    res->get_instance_type() == texture_3d::get_class_type())
                 {
-                    std::shared_ptr<vk::image> p_image = std::static_pointer_cast<vk::image>(res);
+                    eastl::shared_ptr<vk::image> p_image = eastl::static_pointer_cast<vk::image>(res);
 
                     create_barrier(buffer, p_image.get(), b, image_id );
                 }
@@ -265,28 +265,28 @@ namespace  vk
                     
                     if(res->get_instance_type()  == resource_set<vk::texture_2d>::get_class_type())
                     {
-                        std::shared_ptr< resource_set<vk::texture_2d> > set = std::static_pointer_cast< resource_set<vk::texture_2d>>(res);
+                        eastl::shared_ptr< resource_set<vk::texture_2d> > set = eastl::static_pointer_cast< resource_set<vk::texture_2d>>(res);
                         vk::texture_2d* tex = &((*set)[image_id]);
                         
                         create_barrier(buffer, tex, b, image_id );
                     }
                     else if(res->get_instance_type()  == resource_set<vk::texture_3d>::get_class_type())
                     {
-                        std::shared_ptr< resource_set<vk::texture_3d> > set = std::static_pointer_cast< resource_set<vk::texture_3d>>(res);
+                        eastl::shared_ptr< resource_set<vk::texture_3d> > set = eastl::static_pointer_cast< resource_set<vk::texture_3d>>(res);
                         vk::image* tex = &((*set)[image_id]);
                         
                         create_barrier(buffer, tex, b, image_id );
                     }
                     else if(res->get_instance_type()  == resource_set<vk::depth_texture>::get_class_type())
                     {
-                        std::shared_ptr< resource_set<vk::texture_3d> > set = std::static_pointer_cast< resource_set<vk::texture_3d>>(res);
+                        eastl::shared_ptr< resource_set<vk::texture_3d> > set = eastl::static_pointer_cast< resource_set<vk::texture_3d>>(res);
                         vk::image* tex = &((*set)[image_id]);
                         
                         create_barrier(buffer, tex, b, image_id );
                     }
                     else if(res->get_instance_type()  == resource_set<vk::render_texture>::get_class_type())
                     {
-                        std::shared_ptr< resource_set<vk::render_texture> > set = std::static_pointer_cast< resource_set<vk::render_texture>>(res);
+                        eastl::shared_ptr< resource_set<vk::render_texture> > set = eastl::static_pointer_cast< resource_set<vk::render_texture>>(res);
                         vk::image* tex = &((*set)[image_id]);
                         
                         create_barrier(buffer, tex, b, image_id );

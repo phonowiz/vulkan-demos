@@ -14,7 +14,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include <vector>
+#include "EASTL/fixed_vector.h"
 
 namespace vk
 {
@@ -39,10 +39,6 @@ namespace vk
         virtual char const * const * get_instance_type() override { return (&_image_type); };
         static char const * const * get_class_type(){ return (&_image_type); }
         
-    private:
-
-        VkSurfaceFormatKHR choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& available_formats);
-        VkPresentModeKHR   choose_swap_present_mode(const std::vector<VkPresentModeKHR>& available_present_modes);
     private:
         
         glfw_swapchain* _swapchain = nullptr;

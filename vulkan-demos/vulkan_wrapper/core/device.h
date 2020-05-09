@@ -9,8 +9,8 @@
 
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
-#include <optional>
-#include <vector>
+#include "EASTL/optional.h"
+#include "EASTL/fixed_vector.h"
 #include "object.h"
 
 
@@ -29,9 +29,9 @@ namespace vk {
     public:
         
         struct queue_family_indices {
-            std::optional<uint32_t> graphics_family;
-            std::optional<uint32_t> present_family;
-            std::optional<uint32_t> compute_family;
+            eastl::optional<uint32_t> graphics_family;
+            eastl::optional<uint32_t> present_family;
+            eastl::optional<uint32_t> compute_family;
             
             bool is_complete() {
                 return graphics_family.has_value() && present_family.has_value() && compute_family.has_value();
@@ -40,8 +40,8 @@ namespace vk {
         
         struct swapchain_support_details {
             VkSurfaceCapabilitiesKHR capabilities;
-            std::vector<VkSurfaceFormatKHR> formats;
-            std::vector<VkPresentModeKHR> presentModes;
+            eastl::fixed_vector<VkSurfaceFormatKHR, 20, true> formats;
+            eastl::fixed_vector<VkPresentModeKHR, 20, true> presentModes;
         };
         
         void create_logical_device(VkSurfaceKHR surface);
@@ -54,7 +54,7 @@ namespace vk {
         const bool enable_validation_layers = false;
 #endif
         
-        const std::vector<const char*> device_extensions = {
+        const eastl::fixed_vector<const char*, 20, true> device_extensions = {
             VK_KHR_SWAPCHAIN_EXTENSION_NAME
         };
         
@@ -68,7 +68,7 @@ namespace vk {
         VkFormat find_depth_format();
         bool is_device_suitable( VkPhysicalDevice device, VkSurfaceKHR surface);
         
-        VkFormat find_support_format( const std::vector<VkFormat>& formats,
+        VkFormat find_support_format( const eastl::fixed_vector<VkFormat, 20, true>& formats,
                                      VkImageTiling tiling, VkFormatFeatureFlags featureFlags);
         
         bool is_format_supported( VkFormat format,

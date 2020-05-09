@@ -54,8 +54,8 @@ namespace vk
         
         GLFWwindow*   _window = nullptr;
 
-        VkSurfaceFormatKHR  get_vk_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-        VkPresentModeKHR    get_vk_swap_present_mode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+        VkSurfaceFormatKHR  get_vk_swap_surface_format(const eastl::fixed_vector<VkSurfaceFormatKHR, 20, true>& availableFormats);
+        VkPresentModeKHR    get_vk_swap_present_mode(const eastl::fixed_vector<VkPresentModeKHR, 20, true>& availablePresentModes);
         VkExtent2D          get_vk_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow& window);
         
         VkExtent2D          get_vk_swap_extent();

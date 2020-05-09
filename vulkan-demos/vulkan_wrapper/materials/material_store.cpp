@@ -8,14 +8,14 @@
 
 #include "material_store.h"
 #include "device.h"
-#include <unordered_map>
-
+#include "EASTL/unordered_map.h"
+#include "EASTL/fixed_string.h"
 
 using namespace vk;
 
 
-static std::unordered_map<const char*,  shader_shared_ptr> shader_database;
-static std::unordered_map<const char*,  mat_shared_ptr > material_database;
+static eastl::unordered_map<const char*,  shader_shared_ptr> shader_database;
+static eastl::unordered_map<const char*,  mat_shared_ptr > material_database;
 
 material_store::material_store()
 {}
@@ -72,6 +72,7 @@ void material_store::create(device* device)
 
     mat_shared_ptr downsize = CREATE_MAT<compute_material>("downsize", avg_texture_comp, device);
     add_material(downsize);
+
 }
 
 void material_store::add_material( mat_shared_ptr material)
@@ -86,7 +87,7 @@ shader_shared_ptr material_store::add_shader(const char *shaderPath, shader::sha
     shader_shared_ptr result = nullptr;
     if(shader_database.count(shaderPath) == 0)
     {
-        result = std::make_shared<shader>(_device, shaderPath, shaderType);
+        result = eastl::make_shared<shader>(_device, shaderPath, shaderType);
         shader_database[shaderPath] = result;
     }
     else
@@ -97,19 +98,19 @@ shader_shared_ptr material_store::add_shader(const char *shaderPath, shader::sha
     return result;
 }
 
-mat_shared_ptr material_store::get_material(const char* name) const
+mat_shared_ptr material_store::get_material(const char* name)
 {
     assert(material_database.count(name) != 0);
     mat_shared_ptr tmp = material_database[name];
-    if(material_database[name]->get_in_use())
+    if(tmp->get_in_use())
     {
-       if( material_database[name]->get_instance_type() == visual_material::get_material_type())
+       if( material_database[name]->get_instance_type()  == visual_material::get_material_type())
        {
-           tmp = CREATE_MAT<visual_material>( static_cast<visual_material&> (*tmp) );
+           tmp = CREATE_MAT<visual_material>( eastl::static_shared_pointer_cast<visual_material>(tmp) );
        }
        else
        {
-           tmp = CREATE_MAT<compute_material>( static_cast<compute_material&> (*tmp) );
+           tmp = CREATE_MAT<compute_material>( eastl::static_shared_pointer_cast<compute_material>(tmp) );
        }
     }
     tmp->set_in_use();
@@ -124,12 +125,12 @@ shader_shared_ptr const   material_store::find_shader_using_path(const char* pat
 
 void material_store::destroy()
 {
-    for (std::pair<const char* , shader_shared_ptr> pair : shader_database)
+    for (eastl::pair<const char* , shader_shared_ptr> pair : shader_database)
     {
         pair.second->destroy();
     }
     
-    for (std::pair<const char* , mat_shared_ptr> pair : material_database)
+    for (eastl::pair<const char* , mat_shared_ptr> pair : material_database)
     {
         pair.second->destroy();
     }

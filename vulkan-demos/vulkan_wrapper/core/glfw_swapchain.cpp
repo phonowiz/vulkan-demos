@@ -41,7 +41,7 @@ glfw_swapchain::glfw_swapchain(device* device, GLFWwindow* window, VkSurfaceKHR 
 
     
 }
-VkSurfaceFormatKHR glfw_swapchain::get_vk_swap_surface_format(const std::vector<VkSurfaceFormatKHR>& available_formats)
+VkSurfaceFormatKHR glfw_swapchain::get_vk_swap_surface_format(const eastl::fixed_vector<VkSurfaceFormatKHR, 20, true>& available_formats)
 {
     if (available_formats.size() == 1 && available_formats[0].format == VK_FORMAT_UNDEFINED) {
         return{VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
@@ -56,7 +56,7 @@ VkSurfaceFormatKHR glfw_swapchain::get_vk_swap_surface_format(const std::vector<
     return available_formats[0];
 }
 
-VkPresentModeKHR glfw_swapchain::get_vk_swap_present_mode(const std::vector<VkPresentModeKHR>& available_present_modes)
+VkPresentModeKHR glfw_swapchain::get_vk_swap_present_mode(const eastl::fixed_vector<VkPresentModeKHR, 20, true>& available_present_modes)
 {
     VkPresentModeKHR best_mode = VK_PRESENT_MODE_FIFO_KHR;
 

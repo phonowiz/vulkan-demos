@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
+#include "EASTL/string_view.h"
+#include "EASTL/fixed_vector.h"
 #include <algorithm>
 
 //this container gives us the ability to keep the insertion order of the keys as they are entered
@@ -24,14 +24,14 @@ private:
         comparitor(_key const& s) : _k(s)
         {}
         
-        bool operator () ( std::pair< _key, _value > const & p )
+        bool operator () ( eastl::pair< _key, _value > const & p )
         {
             return p.first == _k;
         }
         
         _key _k;
     };
-    typedef std::vector< std::pair< _key, _value>> _vector;
+    typedef eastl::fixed_vector< eastl::pair< _key, _value>, 20, true> _vector;
     _vector _vec;
     bool _frozen = false;
     
@@ -62,7 +62,7 @@ public:
             return *this;
         }
         
-        std::pair< _key, _value>& operator*() const
+        eastl::pair< _key, _value>& operator*() const
         {
             return vec_.at(pointer_);
         }
@@ -103,11 +103,11 @@ public:
     template<const char*, class _val>
     _value & operator[]( const char* i)
     {
-        std::string_view key(i);
+        eastl::string_view key(i);
         
         for( auto& element : _vec)
         {
-            std::string_view  first (element.first);
+            eastl::string_view  first (element.first);
             if( key.compare(first) == 0)
             {
                 return element.second;
@@ -115,7 +115,7 @@ public:
         }
         assert(!_frozen && "you are looking for key that doesn't exist lock has happened");
         _value val;
-        std::pair<_key, _value> p =  std::make_pair(i, val);
+        eastl::pair<_key, _value> p =  std::make_pair(i, val);
         _vec.push_back(p);
         return _vec.back().second;
     }
@@ -141,7 +141,7 @@ public:
         {
             assert(!_frozen && "you are looking for key that doesn't exist lock has happened");
             _value val;
-            std::pair<_key, _value> p =  std::make_pair(i, val);
+            eastl::pair<_key, _value> p =  eastl::make_pair(i, val);
             _vec.push_back(p);
             return _vec.back().second;
         }

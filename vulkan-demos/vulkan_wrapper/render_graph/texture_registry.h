@@ -44,8 +44,8 @@ namespace vk
         texture_registry & operator=(texture_registry&) = delete;
         texture_registry(texture_registry&) = delete;
         
-        using image_ptr = std::shared_ptr<image>;
-        using resource_ptr = std::shared_ptr<object>;
+        using image_ptr = eastl::shared_ptr<image>;
+        using resource_ptr = eastl::shared_ptr<object>;
         
         struct dependee_data
         {
@@ -86,7 +86,7 @@ namespace vk
         
         inline resource_set<depth_texture>& get_read_depth_texture_set( const char* name, node_type* node, vk::usage_type usage_type)
         {
-            std::shared_ptr< resource_set<depth_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, usage_type);
+            eastl::shared_ptr< resource_set<depth_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, usage_type);
             assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
             
             return *tex;
@@ -95,7 +95,7 @@ namespace vk
         
         inline resource_set<render_texture>& get_read_render_texture_set( const char* name, node_type* node, vk::usage_type usage_type)
         {
-            std::shared_ptr< resource_set<render_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, usage_type);
+            eastl::shared_ptr< resource_set<render_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, usage_type);
             assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
             
             return *tex;
@@ -103,7 +103,7 @@ namespace vk
         
         inline resource_set<texture_3d>& get_read_texture_3d_set( const char* name, node_type* node, vk::usage_type usage_type)
         {
-            std::shared_ptr< resource_set<texture_3d>> tex =  get_read_texture<resource_set<texture_3d>>(name, node, usage_type);
+            eastl::shared_ptr< resource_set<texture_3d>> tex =  get_read_texture<resource_set<texture_3d>>(name, node, usage_type);
             assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
             
             return *tex;
@@ -112,7 +112,7 @@ namespace vk
         inline resource_set<texture_2d>& get_read_texture_2d_set( const char* name, node_type* node, vk::image::image_layouts expected_layout)
         {
             
-            std::shared_ptr< resource_set<texture_2d>> tex =  get_read_texture<resource_set<texture_2d>>(name, node, expected_layout);
+            eastl::shared_ptr< resource_set<texture_2d>> tex =  get_read_texture<resource_set<texture_2d>>(name, node, expected_layout);
             
             assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
             
@@ -163,7 +163,7 @@ namespace vk
                 result->init();
             }
             else
-                result = &(*(std::static_pointer_cast<texture_2d>(iter->second.resource)));
+                result = &(*(eastl::static_pointer_cast<texture_2d>(iter->second.resource)));
             
             return *result;
         }
@@ -210,16 +210,16 @@ namespace vk
         }
         
         template <typename T>
-        inline std::shared_ptr<T> get_read_texture(const char* name, node_type* node, vk::usage_type usage_type)
+        inline eastl::shared_ptr<T> get_read_texture(const char* name, node_type* node, vk::usage_type usage_type)
         {
             typename dependee_data_map::iterator iter = _dependee_data_map.find(name);
             
-            std::shared_ptr<T> result = nullptr;
+            eastl::shared_ptr<T> result = nullptr;
             if( iter != _dependee_data_map.end())
             {
                 dependee_data& d = iter->second;
                 
-                result = std::static_pointer_cast<T>(d.resource);
+                result = eastl::static_pointer_cast<T>(d.resource);
                 
                 //TODO: add the name of the node here using EAASSERT
                 assert( result != nullptr && "The asset this node depends on was not created, check the node which creates this asset");
@@ -243,7 +243,7 @@ namespace vk
         {
             typename dependee_data_map::iterator iter = _dependee_data_map.find(name);
             
-            std::shared_ptr<T> ptr = nullptr;
+            eastl::shared_ptr<T> ptr = nullptr;
             if(iter == _dependee_data_map.end())
             {
 //                eastl::fixed_string<char, 100> msg {};
@@ -254,7 +254,7 @@ namespace vk
                 
                 //TODO: do we need expected layout
                 dependee_data info {};
-                info.resource = std::static_pointer_cast<vk::object>(ptr);
+                info.resource = eastl::static_pointer_cast<vk::object>(ptr);
                 info.node = node;
                 info.consumed = false;
 
@@ -264,7 +264,7 @@ namespace vk
             }
             else
             {
-                ptr = std::static_pointer_cast<T>(iter->second.resource);
+                ptr = eastl::static_pointer_cast<T>(iter->second.resource);
                 
                 dependee_data& d = iter->second;
                 
@@ -277,9 +277,9 @@ namespace vk
         }
         
         template <typename T, typename ...ARGS>
-        inline static std::shared_ptr<T> GREATE_TEXTUE( ARGS... args)
+        inline static eastl::shared_ptr<T> GREATE_TEXTUE( ARGS... args)
         {
-            return  std::make_shared<T> (args...);
+            return  eastl::make_shared<T> (args...);
         }
         
     private:

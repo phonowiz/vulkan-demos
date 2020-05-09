@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "EAAssert/eaassert.h"
 
 namespace vk
 {
@@ -18,7 +19,7 @@ namespace vk
         
         object(){};
         
-        virtual  char const * const * get_instance_type(){ assert(0); return nullptr; };
+        virtual  char const * const * get_instance_type(){ EA_FAIL_MSG("this instance has no defined type"); return nullptr; };
         
         virtual void destroy() = 0;
         virtual ~object(){}

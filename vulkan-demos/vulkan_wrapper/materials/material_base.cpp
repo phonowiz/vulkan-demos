@@ -13,7 +13,7 @@ using namespace vk;
 
 void material_base::deallocate_parameters()
 {
-    for (std::pair<parameter_stage , dynamic_buffer_info >& pair : _uniform_dynamic_buffers)
+    for (eastl::pair<parameter_stage , dynamic_buffer_info >& pair : _uniform_dynamic_buffers)
     {
         vkFreeMemory(_device->_logical_device, pair.second.device_memory, nullptr);
         vkDestroyBuffer(_device->_logical_device, pair.second.uniform_buffer, nullptr);
@@ -22,7 +22,7 @@ void material_base::deallocate_parameters()
         pair.second.device_memory = VK_NULL_HANDLE;
     }
     
-    for (std::pair<parameter_stage , resource::buffer_info >& pair : _uniform_buffers)
+    for (eastl::pair<parameter_stage , resource::buffer_info >& pair : _uniform_buffers)
     {
         vkFreeMemory(_device->_logical_device, pair.second.device_memory, nullptr);
         vkDestroyBuffer(_device->_logical_device, pair.second.uniform_buffer, nullptr);
@@ -48,16 +48,16 @@ void material_base::create_descriptor_sets()
     
     VkResult result = vkAllocateDescriptorSets(_device->_logical_device, &descriptor_set_allocate_info, &_descriptor_set);
     ASSERT_VULKAN(result);
-    std::array<VkWriteDescriptorSet,BINDING_MAX> write_descriptor_sets;
+    eastl::array<VkWriteDescriptorSet,BINDING_MAX> write_descriptor_sets;
     
-    std::array<VkDescriptorBufferInfo, BINDING_MAX> descriptor_buffer_infos;
-    std::array<VkDescriptorImageInfo, BINDING_MAX>  descriptor_image_infos;
+    eastl::array<VkDescriptorBufferInfo, BINDING_MAX> descriptor_buffer_infos;
+    eastl::array<VkDescriptorImageInfo, BINDING_MAX>  descriptor_image_infos;
     
     int count = 0;
     
-    for(std::pair<parameter_stage, sampler_parameter >& pair : _sampler_parameters)
+    for(eastl::pair<parameter_stage, sampler_parameter >& pair : _sampler_parameters)
     {
-        for( std::pair<const char*, shader_parameter>& pair2 : pair.second)
+        for( eastl::pair<const char*, shader_parameter>& pair2 : pair.second)
         {
             assert( pair2.second.get_image()->get_image_view() != VK_NULL_HANDLE && "this image has not been initialized");
             descriptor_image_infos[count].sampler = pair2.second.get_image()->get_sampler();
@@ -87,7 +87,7 @@ void material_base::create_descriptor_sets()
         }
     }
     
-    for (std::pair<parameter_stage , resource::buffer_info >& pair : _uniform_buffers)
+    for (eastl::pair<parameter_stage , resource::buffer_info >& pair : _uniform_buffers)
     {
         assert(usage_type::INVALID != pair.second.usage_type);
         assert(usage_type::UNIFORM_BUFFER == pair.second.usage_type);
@@ -112,7 +112,7 @@ void material_base::create_descriptor_sets()
         assert( count < BINDING_MAX);
     }
     
-    for (std::pair<parameter_stage , material_base::dynamic_buffer_info >& pair : _uniform_dynamic_buffers)
+    for (eastl::pair<parameter_stage , material_base::dynamic_buffer_info >& pair : _uniform_dynamic_buffers)
     {
         assert(usage_type::INVALID != pair.second.usage_type);
         assert(usage_type::DYNAMIC_UNIFORM_BUFFER == pair.second.usage_type);
@@ -142,13 +142,13 @@ void material_base::create_descriptor_sets()
 
 void material_base::create_descriptor_pool()
 {
-    std::array<VkDescriptorPoolSize, BINDING_MAX> descriptor_pool_sizes;
+    eastl::array<VkDescriptorPoolSize, BINDING_MAX> descriptor_pool_sizes;
     
     int count = 0;
     _samplers_added_on_init = 0;
-    for(std::pair<parameter_stage, buffer_parameter >& pair : _sampler_buffers)
+    for(eastl::pair<parameter_stage, buffer_parameter >& pair : _sampler_buffers)
     {
-        for(std::pair<const char*, buffer_info>& pair2: pair.second)
+        for(eastl::pair<const char*, buffer_info>& pair2: pair.second)
         {
             descriptor_pool_sizes[count].type = static_cast<VkDescriptorType>(pair2.second.usage_type);
             descriptor_pool_sizes[count].descriptorCount = 1;
@@ -158,7 +158,7 @@ void material_base::create_descriptor_pool()
         }
     }
     
-    for (std::pair<parameter_stage , resource::buffer_info >& pair : _uniform_buffers)
+    for (eastl::pair<parameter_stage , resource::buffer_info >& pair : _uniform_buffers)
     {
         descriptor_pool_sizes[count].type = static_cast<VkDescriptorType>(pair.second.usage_type);
         descriptor_pool_sizes[count].descriptorCount = 1;
@@ -167,7 +167,7 @@ void material_base::create_descriptor_pool()
         assert(count < BINDING_MAX);
     }
     
-    for( std::pair<parameter_stage, dynamic_buffer_info >& pair : _uniform_dynamic_buffers)
+    for( eastl::pair<parameter_stage, dynamic_buffer_info >& pair : _uniform_dynamic_buffers)
     {
         descriptor_pool_sizes[count].type = static_cast<VkDescriptorType>(pair.second.usage_type);
         descriptor_pool_sizes[count].descriptorCount = 1;
@@ -196,9 +196,9 @@ void material_base::create_descriptor_set_layout()
     
     //note: always go through the sampler buffers first, then the uniform buffers because
     //the descriptor bindings will be set up this way.
-    for (std::pair<parameter_stage , buffer_parameter > &pair : _sampler_buffers)
+    for (eastl::pair<parameter_stage , buffer_parameter > &pair : _sampler_buffers)
     {
-        for(std::pair<const char*, buffer_info>& pair2 : pair.second)
+        for(eastl::pair<const char*, buffer_info>& pair2 : pair.second)
         {
             _descriptor_set_layout_bindings[count].binding = pair2.second.binding;
             _descriptor_set_layout_bindings[count].descriptorType = static_cast<VkDescriptorType>(pair2.second.usage_type);
@@ -211,7 +211,7 @@ void material_base::create_descriptor_set_layout()
         }
     }
     
-    for (std::pair<parameter_stage , resource::buffer_info > &pair : _uniform_buffers)
+    for (eastl::pair<parameter_stage , resource::buffer_info > &pair : _uniform_buffers)
     {
         _descriptor_set_layout_bindings[count].binding = pair.second.binding;
         _descriptor_set_layout_bindings[count].descriptorType = static_cast<VkDescriptorType>(pair.second.usage_type);
@@ -222,7 +222,7 @@ void material_base::create_descriptor_set_layout()
         assert(BINDING_MAX > count);
     }
     
-    for( std::pair<parameter_stage, dynamic_buffer_info > &pair : _uniform_dynamic_buffers )
+    for( eastl::pair<parameter_stage, dynamic_buffer_info > &pair : _uniform_dynamic_buffers )
     {
         _descriptor_set_layout_bindings[count].binding = pair.second.binding;
         _descriptor_set_layout_bindings[count].descriptorType = static_cast<VkDescriptorType>(pair.second.usage_type);
@@ -252,14 +252,14 @@ void material_base::print_uniform_argument_names()
 {
     
     std::cout << "printing arguments for material " << this->_name << std::endl;
-    for (std::pair<parameter_stage , buffer_info > &pair : _uniform_buffers)
+    for (eastl::pair<parameter_stage , buffer_info > &pair : _uniform_buffers)
     {
 
         shader_parameter::shader_params_group& group = _uniform_parameters[pair.first];
         buffer_info& mem = _uniform_buffers[pair.first];
         std::cout << " uniform buffer at binding " << mem.binding << std::endl;
         
-        for (std::pair<const char*, shader_parameter >& pair : group)
+        for (eastl::pair<const char*, shader_parameter >& pair : group)
         {
             std::string_view name = pair.first;
             std::cout << name <<  std::endl;
@@ -285,11 +285,11 @@ void material_base::init_shader_parameters()
     assert(_uniform_parameters.size() != 0 || _uniform_dynamic_buffers.size() != 0 ||  _sampler_parameters.size() != 0 );
     _uniform_parameters_added_on_init = 0;
     //note: textures don't need to be initialized here because the texture classes take care of that
-    for (std::pair<parameter_stage , buffer_info > &pair : _uniform_buffers)
+    for (eastl::pair<parameter_stage , buffer_info > &pair : _uniform_buffers)
     {
         buffer_info& mem = _uniform_buffers[pair.first];
         shader_parameter::shader_params_group& group = _uniform_parameters[pair.first];
-        for (std::pair<const char* , shader_parameter >& pair : group)
+        for (eastl::pair<const char* , shader_parameter >& pair : group)
         {
 //            std::string_view name = pair.first;
 //            std::cout << name << std::endl;
@@ -311,14 +311,14 @@ void material_base::init_shader_parameters()
     }
 
     //update dynamic parameters
-    for (std::pair<parameter_stage , dynamic_buffer_info >& pair : _uniform_dynamic_buffers)
+    for (eastl::pair<parameter_stage , dynamic_buffer_info >& pair : _uniform_dynamic_buffers)
     {
         dynamic_buffer_info& mem = _uniform_dynamic_buffers[pair.first];
         object_shader_params_group &obj_group = _uniform_dynamic_parameters[pair.first];
         
         total_size = 0;
         shader_parameter::shader_params_group& group = obj_group[0];
-        for (std::pair<const char* , shader_parameter >& pair : group)
+        for (eastl::pair<const char* , shader_parameter >& pair : group)
         {
             shader_parameter setting = pair.second;
             total_size += setting.get_max_std140_aligned_size_in_bytes();
@@ -377,7 +377,7 @@ void material_base::commit_dynamic_parameters_to_gpu()
     //todo: we should implement this so that only those objects that have updated get updated, not the whole list of them
     
     assert(_uniform_dynamic_parameters.size() == 0 || _uniform_dynamic_parameters.size() == 1 && "only support 1 dynamic uniform buffer");
-    for(std::pair<parameter_stage, object_shader_params_group>& pair : _uniform_dynamic_parameters)
+    for(eastl::pair<parameter_stage, object_shader_params_group>& pair : _uniform_dynamic_parameters)
     {
         uint32_t uniform_parameters_count = 0;
         uint32_t prev_obj_parameters_count = 0;
@@ -392,13 +392,13 @@ void material_base::commit_dynamic_parameters_to_gpu()
         size_t mem_size = (mem.size);
     
         //for each object id...
-        for( std::pair<uint32_t, shader_parameter::shader_params_group>& pair2 : pair.second)
+        for( eastl::pair<uint32_t, shader_parameter::shader_params_group>& pair2 : pair.second)
         {
             shader_parameter::shader_params_group& group = pair2.second;
             data = static_cast<void*>(start);
             //important note: this code assumes that in the shader, the parameters are listed in the same order as they
             //appear in the group
-            for (std::pair<const char* , shader_parameter >& pair : group)
+            for (eastl::pair<const char* , shader_parameter >& pair : group)
             {
                 data = pair.second.write_to_buffer(data, mem_size);
                 uniform_parameters_count++;
@@ -431,7 +431,7 @@ void material_base::commit_parameters_to_gpu( )
         init_shader_parameters();
     
     uint32_t uniform_parameters_count = 0;
-    for (std::pair<parameter_stage , shader_parameter::shader_params_group >& pair : _uniform_parameters)
+    for (eastl::pair<parameter_stage , shader_parameter::shader_params_group >& pair : _uniform_parameters)
     {
         buffer_info& mem = _uniform_buffers[pair.first];
         shader_parameter::shader_params_group& group = _uniform_parameters[pair.first];
@@ -445,7 +445,7 @@ void material_base::commit_parameters_to_gpu( )
                 
                 //important note: this code assumes that in the shader, the parameters are listed in the same order as they
                 //appear in the group
-                for (std::pair<const char* , shader_parameter >& pair : group)
+                for (eastl::pair<const char* , shader_parameter >& pair : group)
                 {
                     data = pair.second.write_to_buffer(data, mem_size);
                     uniform_parameters_count++;
@@ -471,24 +471,8 @@ material_base& material_base::operator=( const material_base& right)
 {
     if( this != &right)
     {
-        //_descriptor_set_layout = right._descriptor_set_layout;
-        //_descriptor_pool = right._descriptor_pool;
-        //_descriptor_set = right._descriptor_set;
-        
-        //_uniform_buffers = right._uniform_buffers;
-        //_uniform_parameters = right._uniform_parameters;
-        //_uniform_dynamic_buffers = right._uniform_dynamic_buffers;
-        //_uniform_dynamic_parameters = right._uniform_dynamic_parameters;
-        //_sampler_buffers = right._sampler_buffers;
-        //_sampler_parameters = right._sampler_parameters;
-        
-        //_descriptor_set_layout_bindings = right._descriptor_set_layout_bindings;
-        //_pipeline_shader_stages = right._pipeline_shader_stages;
         _device = right._device;
         _initialized = false;
-        //_uniform_parameters_added_on_init = right._uniform_parameters_added_on_init;
-        //_uniform_dynamic_parameters_added_on_init = right._uniform_dynamic_parameters_added_on_init;
-        //_samplers_added_on_init = right._samplers_added_on_init;
         
         for(int i = 0; i < _pipeline_shader_stages.size(); ++i)
         {

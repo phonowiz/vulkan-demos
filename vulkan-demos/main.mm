@@ -225,8 +225,10 @@ int main()
     
     glfwCreateWindowSurface(device._instance, window, nullptr, &surface);
     device.create_logical_device(surface);
-    
     vk::material_store material_store;
+    material_store.create(&device);
+    
+
     vk::glfw_swapchain swapchain(&device, window, surface);
     
 
@@ -238,7 +240,7 @@ int main()
 
     app.swapchain = &swapchain;
 
-    material_store.create(&device);
+
     
     
     vk::obj_shape model(&device, "dragon.obj");

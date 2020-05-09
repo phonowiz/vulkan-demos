@@ -12,8 +12,9 @@
 #include "shader_parameter.h"
 #include "ordered_map.h"
 #include "depth_texture.h"
-#include <array>
-#include <vector>
+
+#include "EASTL/array.h"
+#include "EASTL/shared_ptr.h"
 #include <assert.h>
 
 namespace vk
@@ -90,7 +91,7 @@ namespace vk
             uint32_t bytes = 0;
             //todo: we only support one uniform dynamic buffer per material, but I think that's all we need....
             assert(_uniform_dynamic_parameters.size() == 0 || _uniform_dynamic_parameters.size() == 1);
-            for(std::pair<parameter_stage, object_shader_params_group> pair : _uniform_dynamic_parameters)
+            for(eastl::pair<parameter_stage, object_shader_params_group> pair : _uniform_dynamic_parameters)
             {
                 dynamic_buffer_info& mem = _uniform_dynamic_buffers[pair.first];
                 bytes = static_cast<uint32_t>(mem.size / pair.second.size() );
@@ -149,10 +150,10 @@ namespace vk
         
         typedef ordered_map< const char*, shader_parameter>                      sampler_parameter;
         ordered_map<parameter_stage, sampler_parameter>                          _sampler_parameters;
-        std::array<VkDescriptorSetLayoutBinding, BINDING_MAX>                    _descriptor_set_layout_bindings;
+        eastl::array<VkDescriptorSetLayoutBinding, BINDING_MAX>                    _descriptor_set_layout_bindings;
         
         static const size_t MAX_SHADER_STAGES = 2;
-        std::array<VkPipelineShaderStageCreateInfo, MAX_SHADER_STAGES>           _pipeline_shader_stages;
+        eastl::array<VkPipelineShaderStageCreateInfo, MAX_SHADER_STAGES>           _pipeline_shader_stages;
         
         bool _initialized = false;
         device* _device = nullptr;
@@ -163,5 +164,5 @@ namespace vk
         bool _in_use = false;
     };
     
-    using mat_shared_ptr = std::shared_ptr<material_base>;
+    using mat_shared_ptr = eastl::shared_ptr<material_base>;
 }
