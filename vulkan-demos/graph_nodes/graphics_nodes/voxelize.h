@@ -143,6 +143,17 @@ public:
         }
     }
     
+    virtual bool record_node_commands(vk::command_recorder& buffer, uint32_t image_id) override
+    {
+        parent_type::_node_render_pass.commit_parameters_to_gpu(image_id);
+        //we are drawing three instances of the same meshes, this is so that we can capture all these instances
+        //from different camera perspectives
+        static constexpr uint32_t instance_count = 3;
+        parent_type::_node_render_pass.record_draw_commands(buffer.get_raw_graphics_command(image_id), image_id, 3);
+        
+        return true;
+    }
+    
     virtual void update_node(vk::camera& camera, uint32_t image_id) override
     {
 

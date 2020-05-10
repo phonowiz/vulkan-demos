@@ -39,13 +39,9 @@ namespace vk {
         
         virtual bool record_node_commands(command_recorder& buffer, uint32_t image_id) override
         {
-            if(node_type::_active)
-            {
-                //_node_render_pass.set_clear_attachments_colors(glm::vec4(0.f));
-                //_node_render_pass.set_clear_depth(glm::vec2(1.0f, 0.0f));
-                _node_render_pass.commit_parameters_to_gpu(image_id);
-                _node_render_pass.record_draw_commands(buffer.get_raw_graphics_command(image_id), image_id);
-            }
+            _node_render_pass.commit_parameters_to_gpu(image_id);
+            static constexpr uint32_t instance_count = 1;
+            _node_render_pass.record_draw_commands(buffer.get_raw_graphics_command(image_id), image_id, instance_count);
             
             return true;
         }
@@ -97,7 +93,7 @@ namespace vk {
             typename render_pass_type::subpass_s& subpass = _node_render_pass.get_subpass(subpass_id);
             
             //TODO: This is slow. This will not be a factor in the near futre since we don't have that many
-            //objects.  Possible solution?: east::fixed_map.
+            //objects.  Possible solution?: eastl::fixed_map.
             
             int32_t count = 0;
             int i = 0;

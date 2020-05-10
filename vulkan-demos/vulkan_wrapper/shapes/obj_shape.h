@@ -57,10 +57,10 @@ namespace vk {
             _meshes[mesh_id]->bind_verteces(buffer);
         }
         
-        inline void draw_indexed(VkCommandBuffer& buffer, uint32_t mesh_id)
+        inline void draw_indexed(VkCommandBuffer& buffer, uint32_t mesh_id, uint32_t instance_count)
         {
             assert(_meshes.size() > mesh_id);
-            _meshes[mesh_id]->draw_indexed(buffer);
+            _meshes[mesh_id]->draw_indexed(buffer, instance_count);
         }
         
         inline void draw(VkCommandBuffer& buffer, uint32_t mesh_id)

@@ -240,9 +240,6 @@ int main()
 
     app.swapchain = &swapchain;
 
-
-    
-    
     vk::obj_shape model(&device, "dragon.obj");
     vk::obj_shape cube(&device, "cube.obj");
     vk::cornell_box cornell_box(&device);

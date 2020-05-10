@@ -70,9 +70,9 @@ namespace vk
             vkCmdBindIndexBuffer(command_buffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
         }
         
-        inline void draw_indexed(VkCommandBuffer command_buffer)
+        inline void draw_indexed(VkCommandBuffer command_buffer, uint32_t instance_count)
         {
-            vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(get_indices().size()), 1, 0, 0, 0);
+            vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(get_indices().size()), instance_count, 0, 0, 0);
         }
         inline void draw(VkCommandBuffer command_buffer)
         {

@@ -517,7 +517,7 @@ namespace vk
         
         void init(uint32_t swapchain_id);
         
-        void record_draw_commands(VkCommandBuffer& buffer, uint32_t swapchain_id);
+        void record_draw_commands(VkCommandBuffer& buffer, uint32_t swapchain_id, uint32_t instance_count);
         
         inline VkRenderPass& get_vk_render_pass(uint32_t i)
         {
@@ -645,7 +645,7 @@ namespace vk
     };
 
     template<uint32_t NUM_ATTACHMENTS>
-    void render_pass< NUM_ATTACHMENTS>::record_draw_commands(VkCommandBuffer& buffer, uint32_t swapchain_id)
+    void render_pass< NUM_ATTACHMENTS>::record_draw_commands(VkCommandBuffer& buffer, uint32_t swapchain_id, uint32_t instance_count)
     {
         assert(_num_objects != 0 && "you must have objects to render in a subpass");
         begin_render_pass(buffer, swapchain_id);
@@ -662,7 +662,7 @@ namespace vk
                     for( uint32_t mesh_id = 0; mesh_id < _shapes[obj_id]->get_num_meshes(); ++mesh_id)
                     {
                         _shapes[obj_id]->bind_verteces(buffer, mesh_id);
-                        _shapes[obj_id]->draw_indexed(buffer, mesh_id );
+                        _shapes[obj_id]->draw_indexed(buffer, mesh_id, instance_count);
                     }
                     ++drawn_obj;
                 }

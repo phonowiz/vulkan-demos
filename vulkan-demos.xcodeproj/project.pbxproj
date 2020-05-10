@@ -18,6 +18,7 @@
 		B90583C22442A21B00366F8E /* numeric_limits.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B90583B92442A21B00366F8E /* numeric_limits.cpp */; };
 		B90583C32442A21B00366F8E /* assert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B90583BA2442A21B00366F8E /* assert.cpp */; };
 		B90583C42442A21B00366F8E /* string.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B90583BB2442A21B00366F8E /* string.cpp */; };
+		B909C3062466663F00D2BF11 /* vsm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B909C3052466663F00D2BF11 /* vsm.cpp */; };
 		B92627DF219B476200D1358A /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627DE219B476200D1358A /* CoreGraphics.framework */; };
 		B92627E0219B477400D1358A /* CoreGraphics.framework in Resources */ = {isa = PBXBuildFile; fileRef = B92627DE219B476200D1358A /* CoreGraphics.framework */; };
 		B92627E2219B47CB00D1358A /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627E1219B47CA00D1358A /* CoreVideo.framework */; };
@@ -121,6 +122,7 @@
 		B90583BA2442A21B00366F8E /* assert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = assert.cpp; path = "vulkan-demos/eastl-3.16.05/source/assert.cpp"; sourceTree = SOURCE_ROOT; };
 		B90583BB2442A21B00366F8E /* string.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = string.cpp; path = "vulkan-demos/eastl-3.16.05/source/string.cpp"; sourceTree = SOURCE_ROOT; };
 		B90583C62442BEF600366F8E /* new_operators.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = new_operators.h; sourceTree = "<group>"; };
+		B909C3052466663F00D2BF11 /* vsm.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = vsm.cpp; sourceTree = "<group>"; };
 		B92354E3246133A800BEC4F3 /* render_pass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = render_pass.h; sourceTree = "<group>"; };
 		B92627DE219B476200D1358A /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		B92627E1219B47CA00D1358A /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
@@ -589,6 +591,7 @@
 				B9BD3143244D23CD0093A826 /* display_texture_3d.h */,
 				B94247FE244AC8D90080BD66 /* mrt.h */,
 				B9D4644D2448466E0011D358 /* voxelize.h */,
+				B909C3052466663F00D2BF11 /* vsm.cpp */,
 			);
 			path = graphics_nodes;
 			sourceTree = "<group>";
@@ -707,6 +710,7 @@
 				B93FDCE32303709B000AECBE /* display_plane.cpp in Sources */,
 				B978316222E541B000E5DE71 /* camera.cpp in Sources */,
 				B90583C22442A21B00366F8E /* numeric_limits.cpp in Sources */,
+				B909C3062466663F00D2BF11 /* vsm.cpp in Sources */,
 				B949E6DB2449812E003E5AD4 /* eathread_pthread_stack_info.cpp in Sources */,
 				B949E669244979A2003E5AD4 /* EAGlobal.cpp in Sources */,
 				B949E65C244979A2003E5AD4 /* EASprintfCore.cpp in Sources */,
