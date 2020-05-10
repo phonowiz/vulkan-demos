@@ -10,6 +10,7 @@
 
 #include "EASTL/string_view.h"
 #include "EASTL/fixed_vector.h"
+#include "EAassert/eaassert.h"
 #include <algorithm>
 
 //this container gives us the ability to keep the insertion order of the keys as they are entered
@@ -113,7 +114,7 @@ public:
                 return element.second;
             }
         }
-        assert(!_frozen && "you are looking for key that doesn't exist lock has happened");
+        EA_ASSERT_FORMATTED(!_frozen, ("you are looking for key %s that doesn't exist, did you forget to initialize it?", i));
         _value val;
         eastl::pair<_key, _value> p =  std::make_pair(i, val);
         _vec.push_back(p);
@@ -139,7 +140,7 @@ public:
         
         if( p == end())
         {
-            assert(!_frozen && "you are looking for key that doesn't exist lock has happened");
+            EA_ASSERT_MSG(!_frozen,"you are looking for key that doesn't exist, did you forget to initialize this key?");
             _value val;
             eastl::pair<_key, _value> p =  eastl::make_pair(i, val);
             _vec.push_back(p);

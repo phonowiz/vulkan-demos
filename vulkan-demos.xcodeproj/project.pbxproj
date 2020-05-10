@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B9005AFE2467BD0D00C1E03D /* eaassert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9005AFD2467BD0D00C1E03D /* eaassert.cpp */; };
 		B90184B523F1429200A1ADFF /* libVkLayer_api_dump.dylib in Resources */ = {isa = PBXBuildFile; fileRef = B90184B223F1427800A1ADFF /* libVkLayer_api_dump.dylib */; };
 		B90184B623F1429200A1ADFF /* libVkLayer_khronos_validation.dylib in Resources */ = {isa = PBXBuildFile; fileRef = B90184B123F1427800A1ADFF /* libVkLayer_khronos_validation.dylib */; };
 		B90583BC2442A21B00366F8E /* intrusive_list.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B90583B32442A21B00366F8E /* intrusive_list.cpp */; };
@@ -110,6 +111,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B9005AFD2467BD0D00C1E03D /* eaassert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = eaassert.cpp; path = "vulkan-demos/eastl-3.16.05/test/packages/EAAssert/source/eaassert.cpp"; sourceTree = SOURCE_ROOT; };
 		B90184B123F1427800A1ADFF /* libVkLayer_khronos_validation.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libVkLayer_khronos_validation.dylib; path = "vulkan-demos/vulkan-loader-1.2.131/macOS/lib/libVkLayer_khronos_validation.dylib"; sourceTree = "<group>"; };
 		B90184B223F1427800A1ADFF /* libVkLayer_api_dump.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libVkLayer_api_dump.dylib; path = "vulkan-demos/vulkan-loader-1.2.131/macOS/lib/libVkLayer_api_dump.dylib"; sourceTree = "<group>"; };
 		B90583B32442A21B00366F8E /* intrusive_list.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = intrusive_list.cpp; path = "vulkan-demos/eastl-3.16.05/source/intrusive_list.cpp"; sourceTree = SOURCE_ROOT; };
@@ -277,6 +279,7 @@
 		B90583B22442A1F900366F8E /* eastl-3.16.05 */ = {
 			isa = PBXGroup;
 			children = (
+				B9005AFD2467BD0D00C1E03D /* eaassert.cpp */,
 				B949E66D24497B57003E5AD4 /* eathread */,
 				B949E6432449796F003E5AD4 /* eastdc */,
 				B90583B62442A21B00366F8E /* allocator_eastl.cpp */,
@@ -737,6 +740,7 @@
 				B949E659244979A2003E5AD4 /* EAMemory.cpp in Sources */,
 				B9384E75220171E500565024 /* main.mm in Sources */,
 				B949E65D244979A2003E5AD4 /* EARandom.cpp in Sources */,
+				B9005AFE2467BD0D00C1E03D /* eaassert.cpp in Sources */,
 				B93FDCE723037359000AECBE /* shader.cpp in Sources */,
 				B93FDCBE23036EB0000AECBE /* compute_material.cpp in Sources */,
 				B949E660244979A2003E5AD4 /* EAString.cpp in Sources */,
@@ -911,6 +915,7 @@
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
+					EA_ASSERT_ENABLED,
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = (
