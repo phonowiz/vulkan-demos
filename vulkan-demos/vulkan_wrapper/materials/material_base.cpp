@@ -40,104 +40,109 @@ void material_base::create_descriptor_sets()
 {
     VkDescriptorSetAllocateInfo descriptor_set_allocate_info = {};
     
-    descriptor_set_allocate_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    descriptor_set_allocate_info.pNext = nullptr;
-    descriptor_set_allocate_info.descriptorPool = _descriptor_pool;
-    descriptor_set_allocate_info.descriptorSetCount = 1;
-    descriptor_set_allocate_info.pSetLayouts = &_descriptor_set_layout;
     
-    VkResult result = vkAllocateDescriptorSets(_device->_logical_device, &descriptor_set_allocate_info, &_descriptor_set);
-    ASSERT_VULKAN(result);
-    eastl::array<VkWriteDescriptorSet,BINDING_MAX> write_descriptor_sets;
-    
-    eastl::array<VkDescriptorBufferInfo, BINDING_MAX> descriptor_buffer_infos;
-    eastl::array<VkDescriptorImageInfo, BINDING_MAX>  descriptor_image_infos;
-    
-    int count = 0;
-    
-    for(eastl::pair<parameter_stage, sampler_parameter >& pair : _sampler_parameters)
+    if(_descriptor_pool != VK_NULL_HANDLE)
     {
-        for( eastl::pair<const char*, shader_parameter>& pair2 : pair.second)
-        {
-            assert( pair2.second.get_image()->get_image_view() != VK_NULL_HANDLE && "this image has not been initialized");
-            descriptor_image_infos[count].sampler = pair2.second.get_image()->get_sampler();
-            descriptor_image_infos[count].imageView = pair2.second.get_image()->get_image_view();
-            
-            parameter_stage stage = pair.first;
-            const char* name = pair2.first;
-  
-            descriptor_image_infos[count].imageLayout = static_cast<VkImageLayout>(pair2.second.get_image()->get_usage_layout(_sampler_buffers[stage][name].usage_type));
-            
-            write_descriptor_sets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            write_descriptor_sets[count].pNext = nullptr;
-            write_descriptor_sets[count].dstSet = _descriptor_set;
-            
-            write_descriptor_sets[count].dstBinding = _descriptor_set_layout_bindings[count].binding;
-            write_descriptor_sets[count].dstArrayElement = 0;
-            write_descriptor_sets[count].descriptorCount = 1;
+        descriptor_set_allocate_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        descriptor_set_allocate_info.pNext = nullptr;
+        descriptor_set_allocate_info.descriptorPool = _descriptor_pool;
+        descriptor_set_allocate_info.descriptorSetCount = 1;
+        descriptor_set_allocate_info.pSetLayouts = &_descriptor_set_layout;
 
-            write_descriptor_sets[count].descriptorType = static_cast<VkDescriptorType>(_sampler_buffers[stage][name].usage_type);
-            write_descriptor_sets[count].pImageInfo = &descriptor_image_infos[count];
-            write_descriptor_sets[count].pBufferInfo = nullptr;
-            write_descriptor_sets[count].pTexelBufferView = nullptr;
-            
-            ++count;
-            
-            assert( count < BINDING_MAX);
+        VkResult result = vkAllocateDescriptorSets(_device->_logical_device, &descriptor_set_allocate_info, &_descriptor_set);
+        ASSERT_VULKAN(result);
+        eastl::array<VkWriteDescriptorSet,BINDING_MAX> write_descriptor_sets;
+
+        eastl::array<VkDescriptorBufferInfo, BINDING_MAX> descriptor_buffer_infos;
+        eastl::array<VkDescriptorImageInfo, BINDING_MAX>  descriptor_image_infos;
+
+        int count = 0;
+
+        for(eastl::pair<parameter_stage, sampler_parameter >& pair : _sampler_parameters)
+        {
+          for( eastl::pair<const char*, shader_parameter>& pair2 : pair.second)
+          {
+              assert( pair2.second.get_image()->get_image_view() != VK_NULL_HANDLE && "this image has not been initialized");
+              descriptor_image_infos[count].sampler = pair2.second.get_image()->get_sampler();
+              descriptor_image_infos[count].imageView = pair2.second.get_image()->get_image_view();
+              
+              parameter_stage stage = pair.first;
+              const char* name = pair2.first;
+
+              descriptor_image_infos[count].imageLayout = static_cast<VkImageLayout>(pair2.second.get_image()->get_usage_layout(_sampler_buffers[stage][name].usage_type));
+              
+              write_descriptor_sets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+              write_descriptor_sets[count].pNext = nullptr;
+              write_descriptor_sets[count].dstSet = _descriptor_set;
+              
+              write_descriptor_sets[count].dstBinding = _descriptor_set_layout_bindings[count].binding;
+              write_descriptor_sets[count].dstArrayElement = 0;
+              write_descriptor_sets[count].descriptorCount = 1;
+
+              write_descriptor_sets[count].descriptorType = static_cast<VkDescriptorType>(_sampler_buffers[stage][name].usage_type);
+              write_descriptor_sets[count].pImageInfo = &descriptor_image_infos[count];
+              write_descriptor_sets[count].pBufferInfo = nullptr;
+              write_descriptor_sets[count].pTexelBufferView = nullptr;
+              
+              ++count;
+              
+              assert( count < BINDING_MAX);
+          }
         }
+
+        for (eastl::pair<parameter_stage , resource::buffer_info >& pair : _uniform_buffers)
+        {
+          assert(usage_type::INVALID != pair.second.usage_type);
+          assert(usage_type::UNIFORM_BUFFER == pair.second.usage_type);
+          
+          descriptor_buffer_infos[count].buffer = pair.second.uniform_buffer;
+          descriptor_buffer_infos[count].offset = 0;
+          descriptor_buffer_infos[count].range = pair.second.size;
+          
+          write_descriptor_sets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+          write_descriptor_sets[count].pNext = nullptr;
+          write_descriptor_sets[count].dstSet = _descriptor_set;
+          
+          write_descriptor_sets[count].dstBinding = _descriptor_set_layout_bindings[count].binding;
+          write_descriptor_sets[count].dstArrayElement = 0;
+          write_descriptor_sets[count].descriptorCount = 1;
+          write_descriptor_sets[count].descriptorType = static_cast<VkDescriptorType>(pair.second.usage_type);
+          write_descriptor_sets[count].pImageInfo = nullptr;
+          write_descriptor_sets[count].pBufferInfo = &descriptor_buffer_infos[count];
+          write_descriptor_sets[count].pTexelBufferView = nullptr;
+          
+          ++count;
+          assert( count < BINDING_MAX);
+        }
+
+        for (eastl::pair<parameter_stage , material_base::dynamic_buffer_info >& pair : _uniform_dynamic_buffers)
+        {
+          assert(usage_type::INVALID != pair.second.usage_type);
+          assert(usage_type::DYNAMIC_UNIFORM_BUFFER == pair.second.usage_type);
+          
+          descriptor_buffer_infos[count].buffer = pair.second.uniform_buffer;
+          descriptor_buffer_infos[count].offset = 0;
+          descriptor_buffer_infos[count].range = pair.second.parameters_size;
+          
+          write_descriptor_sets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+          write_descriptor_sets[count].pNext = nullptr;
+          write_descriptor_sets[count].dstSet = _descriptor_set;
+          
+          write_descriptor_sets[count].dstBinding = _descriptor_set_layout_bindings[count].binding;
+          write_descriptor_sets[count].dstArrayElement = 0;
+          write_descriptor_sets[count].descriptorCount = 1;
+          write_descriptor_sets[count].descriptorType = static_cast<VkDescriptorType>(pair.second.usage_type);
+          write_descriptor_sets[count].pImageInfo = nullptr;
+          write_descriptor_sets[count].pBufferInfo = &descriptor_buffer_infos[count];
+          write_descriptor_sets[count].pTexelBufferView = nullptr;
+          
+          ++count;
+          assert( count < BINDING_MAX);
+        }
+
+        vkUpdateDescriptorSets(_device->_logical_device, count, write_descriptor_sets.data(), 0, nullptr);
     }
-    
-    for (eastl::pair<parameter_stage , resource::buffer_info >& pair : _uniform_buffers)
-    {
-        assert(usage_type::INVALID != pair.second.usage_type);
-        assert(usage_type::UNIFORM_BUFFER == pair.second.usage_type);
-        
-        descriptor_buffer_infos[count].buffer = pair.second.uniform_buffer;
-        descriptor_buffer_infos[count].offset = 0;
-        descriptor_buffer_infos[count].range = pair.second.size;
-        
-        write_descriptor_sets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        write_descriptor_sets[count].pNext = nullptr;
-        write_descriptor_sets[count].dstSet = _descriptor_set;
-        
-        write_descriptor_sets[count].dstBinding = _descriptor_set_layout_bindings[count].binding;
-        write_descriptor_sets[count].dstArrayElement = 0;
-        write_descriptor_sets[count].descriptorCount = 1;
-        write_descriptor_sets[count].descriptorType = static_cast<VkDescriptorType>(pair.second.usage_type);
-        write_descriptor_sets[count].pImageInfo = nullptr;
-        write_descriptor_sets[count].pBufferInfo = &descriptor_buffer_infos[count];
-        write_descriptor_sets[count].pTexelBufferView = nullptr;
-        
-        ++count;
-        assert( count < BINDING_MAX);
-    }
-    
-    for (eastl::pair<parameter_stage , material_base::dynamic_buffer_info >& pair : _uniform_dynamic_buffers)
-    {
-        assert(usage_type::INVALID != pair.second.usage_type);
-        assert(usage_type::DYNAMIC_UNIFORM_BUFFER == pair.second.usage_type);
-        
-        descriptor_buffer_infos[count].buffer = pair.second.uniform_buffer;
-        descriptor_buffer_infos[count].offset = 0;
-        descriptor_buffer_infos[count].range = pair.second.parameters_size;
-        
-        write_descriptor_sets[count].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        write_descriptor_sets[count].pNext = nullptr;
-        write_descriptor_sets[count].dstSet = _descriptor_set;
-        
-        write_descriptor_sets[count].dstBinding = _descriptor_set_layout_bindings[count].binding;
-        write_descriptor_sets[count].dstArrayElement = 0;
-        write_descriptor_sets[count].descriptorCount = 1;
-        write_descriptor_sets[count].descriptorType = static_cast<VkDescriptorType>(pair.second.usage_type);
-        write_descriptor_sets[count].pImageInfo = nullptr;
-        write_descriptor_sets[count].pBufferInfo = &descriptor_buffer_infos[count];
-        write_descriptor_sets[count].pTexelBufferView = nullptr;
-        
-        ++count;
-        assert( count < BINDING_MAX);
-    }
-    
-    vkUpdateDescriptorSets(_device->_logical_device, count, write_descriptor_sets.data(), 0, nullptr);
+
 }
 
 void material_base::create_descriptor_pool()
@@ -174,19 +179,21 @@ void material_base::create_descriptor_pool()
         ++count;
     }
     
-    assert(count != 0 && "shaders need some sort of input (samplers/uniform buffers)");
-    VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = {};
-    
-    descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    descriptorPoolCreateInfo.pNext = nullptr;
-    descriptorPoolCreateInfo.flags = 0;
-    descriptorPoolCreateInfo.maxSets = 1;
-    descriptorPoolCreateInfo.poolSizeCount = static_cast<uint32_t>(count);
-    descriptorPoolCreateInfo.pPoolSizes = descriptor_pool_sizes.data();
-    
-    VkResult result = vkCreateDescriptorPool(_device->_logical_device, &descriptorPoolCreateInfo, nullptr, &_descriptor_pool);
-    ASSERT_VULKAN(result);
-    
+    //assert(count != 0 && "shaders need some sort of input (samplers/uniform buffers)");
+    if(count != 0)
+    {
+        VkDescriptorPoolCreateInfo descriptorPoolCreateInfo = {};
+        
+        descriptorPoolCreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        descriptorPoolCreateInfo.pNext = nullptr;
+        descriptorPoolCreateInfo.flags = 0;
+        descriptorPoolCreateInfo.maxSets = 1;
+        descriptorPoolCreateInfo.poolSizeCount = static_cast<uint32_t>(count);
+        descriptorPoolCreateInfo.pPoolSizes = descriptor_pool_sizes.data();
+        
+        VkResult result = vkCreateDescriptorPool(_device->_logical_device, &descriptorPoolCreateInfo, nullptr, &_descriptor_pool);
+        ASSERT_VULKAN(result);
+    }
 }
 
 
@@ -282,7 +289,8 @@ void material_base::destroy()
 void material_base::init_shader_parameters()
 {
     size_t total_size = 0;
-    assert(_uniform_parameters.size() != 0 || _uniform_dynamic_buffers.size() != 0 ||  _sampler_parameters.size() != 0 );
+    EA_ASSERT_FORMATTED((_uniform_parameters.size() != 0 || _uniform_dynamic_buffers.size() != 0 ||  _sampler_parameters.size() != 0),
+                  ("No inputs (uniform params, uniform dynamic params, samplers) where created for material %s", _name));
     _uniform_parameters_added_on_init = 0;
     //note: textures don't need to be initialized here because the texture classes take care of that
     for (eastl::pair<parameter_stage , buffer_info > &pair : _uniform_buffers)

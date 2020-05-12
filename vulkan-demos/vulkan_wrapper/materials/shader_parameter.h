@@ -432,7 +432,7 @@ namespace vk
             }
             else
             {
-                assert(0 && "image type not recognized");
+                EA_FAIL_MSG("image type not recognized");
             }
             
             return *this;

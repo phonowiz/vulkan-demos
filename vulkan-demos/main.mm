@@ -40,6 +40,7 @@
 
 #include "graph_nodes/graphics_nodes/display_texture_2d.h"
 #include "graph_nodes/graphics_nodes/display_texture_3d.h"
+#include "graph_nodes/graphics_nodes/vsm.cpp"
 
 #include "graph_nodes/compute_nodes/mip_map_3d_texture.hpp"
 #include "graph_nodes/graphics_nodes/voxelize.h"
@@ -280,11 +281,8 @@ int main()
     app.shapes.push_back(&model);
 
     
-    display_texture_2d<1> debug_node(&device, &swapchain, swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height);
+    display_texture_2d<1> debug_node(&device, &swapchain, swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height, "mario.png");
 
-    debug_node.show_texture("mario.png");
-    
-    
     graph.add_child(debug_node);
     
     app.graph = &graph;
@@ -301,6 +299,19 @@ int main()
     vk::graph<4> voxel_cone_tracing(&device, material_store, swapchain);
     
     mrt<4> mrt_node(&device, &swapchain);
+    
+    
+    vk::orthographic_camera directional_light_cam(5.0f, 5.0f, 10.0f);
+    directional_light_cam.up = glm::vec3(0.0,  1.0f, 0.0f);
+    directional_light_cam.position = glm::vec3(0.0f, .8f, -5.0f);
+    directional_light_cam.forward = -directional_light_cam.position;
+    directional_light_cam.update_view_matrix();
+    
+    vsm<4> vsm_node(&device, swapchain.get_vk_swap_extent().width,
+                    swapchain.get_vk_swap_extent().height, directional_light_cam);
+    
+    vsm_node.set_camera(directional_light_cam);
+    vsm_node.set_name("vsm node");
     
     mrt_node.set_name("mrt");
     
@@ -339,6 +350,7 @@ int main()
     for( int i = 0; i < app.shapes.size(); ++i)
     {
         mrt_node.add_object(*(app.shapes[i]));
+        vsm_node.add_object(*(app.shapes[i]));
     }
 
     
@@ -445,7 +457,14 @@ int main()
     
     debug_node_3d.add_child( three_d_mip_maps[three_d_mip_maps.size()-1]);
     
-    mrt_node.add_child(debug_node_3d);
+    
+    display_texture_2d<4> vsm_debug(&device, &swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "vsm");
+    vsm_debug.set_active(true);
+    vsm_debug.set_name("vsm_debug");
+    vsm_node.add_child(debug_node_3d);
+    vsm_debug.add_child(vsm_node);
+    
+    mrt_node.add_child(vsm_debug);
     
     //attach the mrt node to the graph
     voxel_cone_tracing.add_child(mrt_node);
@@ -454,7 +473,7 @@ int main()
     app.debug_node_3d = &debug_node_3d;
     
     app.voxel_graph->init();
-    app.graph->init();
+    //app.graph->init();
     
     //game_loop_ortho();
     game_loop();
@@ -462,7 +481,7 @@ int main()
     device.wait_for_all_operations_to_finish();
 
     app.voxel_graph->destroy_all();
-    app.graph->destroy_all();
+    //app.graph->destroy_all();
     
     material_store.destroy();
     model.destroy();

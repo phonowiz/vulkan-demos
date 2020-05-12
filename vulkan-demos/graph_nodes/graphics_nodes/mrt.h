@@ -101,15 +101,6 @@ public:
         mrt_attachment_group.add_attachment(_swapchain->present_textures, glm::vec4(0.0f), false, false);
         mrt_attachment_group.add_attachment(depth, glm::vec2(1.0f, 0.0f), false, false);
         
-        enum
-        {
-            NORMALS_ATTACHMENT_ID,
-            ALBEDOS_ATTACHMENT_ID,
-            POSITIONS_ATTACHMENT_ID,
-            PRESENT_ATTACHMENT_ID,
-            DEPTH_ATTACHMENT_ID
-        };
-        
         glm::vec2 dims = parent_type::_node_render_pass.get_dimensions();
         
         normals.set_format(vk::image::formats::R8G8_SIGNED_NORMALIZED);

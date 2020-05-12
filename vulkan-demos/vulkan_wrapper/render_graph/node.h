@@ -37,7 +37,6 @@ namespace  vk
             _device = device;
         }
         
-        
         static constexpr size_t MAX_COMMANDS = 20;
         
         inline void set_device(device* device)
@@ -190,6 +189,38 @@ namespace  vk
         
         virtual void create_gpu_resources() = 0;
         
+        
+        VkAccessFlagBits get_dst_access_maks(VkPipelineStageFlags flag)
+        {
+            VkAccessFlagBits result {};
+            if( flag & VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT)
+            {
+                result = static_cast<VkAccessFlagBits>(result | VK_ACCESS_SHADER_READ_BIT);
+            }
+            if( flag & VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT)
+            {
+                result = static_cast<VkAccessFlagBits>(result | VK_ACCESS_SHADER_READ_BIT);
+            }
+            
+            EA_ASSERT_MSG(result != 0, "Unrecognized stage flag to determine src access mask");
+            return result;
+        }
+        
+        VkAccessFlagBits get_src_access_mask(VkPipelineStageFlags flag)
+        {
+            VkAccessFlagBits result {};
+            if( flag & VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT)
+            {
+                result = static_cast<VkAccessFlagBits>(result | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT);
+            }
+            if( flag & VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT)
+            {
+                result = static_cast<VkAccessFlagBits>(result | VK_ACCESS_SHADER_WRITE_BIT);
+            }
+            
+            EA_ASSERT_MSG(result != 0, "Unrecognized stage flag to determine src access mask");
+            return result;
+        }
         void create_barrier(command_recorder& buffer, vk::image* p_image, typename tex_registry_type::node_dependees::iterator& b, uint32_t image_id)
         {
             node_type* dependee_node = (*b).data.node;
@@ -197,13 +228,18 @@ namespace  vk
             assert( _device->_queue_family_indices.graphics_family.value() ==
                    _device->_queue_family_indices.compute_family.value() && "If this assert fails, we will need to transfer dependent "
                                                                             "resources from compute to graphics queues and vice versa");
+            
+            
+            VkPipelineStageFlagBits producer = dependee_node->get_producer_stage();
+            VkPipelineStageFlagBits consumer = this->get_consumer_stage();
+            
             VkImageMemoryBarrier barrier {};
             
             barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
             barrier.pNext = nullptr;
-            //TODO: this could potentially be set when connections are formed between nodes
-            barrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-            barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+            barrier.srcAccessMask = get_src_access_mask(producer);
+            barrier.dstAccessMask = get_dst_access_maks(consumer);
 
             barrier.oldLayout = static_cast<VkImageLayout>(p_image->get_native_layout());;
             barrier.newLayout = static_cast<VkImageLayout>((*b).layout);
@@ -215,12 +251,11 @@ namespace  vk
 
             constexpr uint32_t VK_FLAGS_NONE = 0;
             
-//            eastl::fixed_string<char, 100> msg {};
-//            msg.sprintf("creating dependency between %s and %s", this->get_name(), dependee_node->get_name());
-//            this->debug_print(msg.c_str());
+            eastl::fixed_string<char, 100> msg {};
+            msg.sprintf("creating dependency between %s and %s", this->get_name(), dependee_node->get_name());
+            this->debug_print(msg.c_str());
             
-            VkPipelineStageFlagBits producer = dependee_node->get_producer_stage();
-            VkPipelineStageFlagBits consumer = this->get_consumer_stage();
+            
             vkCmdPipelineBarrier(
                                  buffer.get_raw_graphics_command(image_id),
                                  producer,

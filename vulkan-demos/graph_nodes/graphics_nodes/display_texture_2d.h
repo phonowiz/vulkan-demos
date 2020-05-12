@@ -30,11 +30,12 @@ public:
     using tex_registry_type = typename parent_type::tex_registry_type;
     
     
-    display_texture_2d(vk::device* dev, vk::glfw_swapchain* swapchain, uint32_t width,uint32_t height):
+    display_texture_2d(vk::device* dev, vk::glfw_swapchain* swapchain, uint32_t width,uint32_t height, const char* text):
     parent_type(dev, width, height),
     _screen_plane(dev)
     {
         _swapchain = swapchain;
+        _texture = text;
     }
     
     
@@ -61,9 +62,11 @@ public:
         _screen_plane.create();
         subpass_type& sub_p = pass.add_subpass(parent_type::_material_store, _shader);
         
-        vk::texture_2d& ptr = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
+        //vk::texture_2d& ptr = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
+        vk::resource_set<vk::render_texture>& rsrc = _tex_registry->get_read_render_texture_set(_texture, this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
-        sub_p.set_image_sampler(ptr, "tex", vk::parameter_stage::FRAGMENT, 1,
+        
+        sub_p.set_image_sampler(rsrc, "tex", vk::parameter_stage::FRAGMENT, 1,
                                        vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         int binding = 0;

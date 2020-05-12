@@ -47,7 +47,7 @@ texture_2d::texture_2d(device* device,const char* path)
     load();
 }
 
-void texture_2d::load( )
+void texture_2d::load()
 {
     assert(_loaded !=true);
     int w = 0;
@@ -190,13 +190,10 @@ void texture_2d::destroy()
     }
 }
 
-//the following code is based off of: https://vulkan-tutorial.com/Generating_Mipmaps
-void texture_2d::generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQueue queue,
-                             int32_t width, int32_t height, int32_t depth)
+
+void texture_2d::generate_mipmaps(VkImage image, VkCommandBuffer& command_buffer,
+                                   uint32_t width,  uint32_t height, uint32_t depth)
 {
-    VkCommandBuffer command_buffer =
-        _device->start_single_time_command_buffer(command_pool);
-    
     VkImageMemoryBarrier barrier = {};
     barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.image = image;
@@ -287,6 +284,15 @@ void texture_2d::generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQ
                              1, &barrier);
 
     }
+}
+//the following code is based off of: https://vulkan-tutorial.com/Generating_Mipmaps
+void texture_2d::generate_mipmaps(VkImage image, VkCommandPool command_pool, VkQueue queue,
+                             int32_t width, int32_t height, int32_t depth)
+{
+    VkCommandBuffer command_buffer =
+        _device->start_single_time_command_buffer(command_pool);
+    
+    generate_mipmaps(image, command_buffer, width, height, depth);
     
     _device->end_single_time_command_buffer(queue, command_pool, command_buffer);
     

@@ -48,6 +48,8 @@ namespace vk
             return _name;
         }
         
+        
+        
         virtual char const * const * get_instance_type() override
         {
             //note: the need for need arises because resource_set<image> does not return the right type,
@@ -99,6 +101,14 @@ namespace vk
             for( int i = 0; i < elements.size(); ++i)
             {
                 elements[i].init();
+            }
+        }
+        
+        inline void set_native_layout( image::image_layouts l)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i].set_native_layout(l);
             }
         }
         
@@ -205,6 +215,14 @@ namespace vk
             return nullptr;
             
         };
+        
+        inline void set_native_layout( image::image_layouts l)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i]->set_native_layout(l);
+            }
+        }
         
         void init()
         {

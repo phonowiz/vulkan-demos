@@ -176,7 +176,7 @@ namespace vk
                     }
                 }
 
-                assert(found && "Attachment name not found.  Your resource set must be added to attachment group before calling this function");
+                EA_ASSERT_FORMATTED(found, ("Attachment %s not found.  Your resource set must be added to attachment group before calling this function", name));
             }
             
             inline void add_output_attachment( const char* name, write_channels wc, bool enable_blend)
@@ -203,7 +203,7 @@ namespace vk
                     }
                 }
 
-                assert(found && "Attachment name not found.  Your resource set must be added to attachment group before calling this function");
+                EA_ASSERT_FORMATTED(found, ("Attachment %s not found.  Your resource set must be added to attachment group before calling this function", name));
             }
             
             inline void add_input_attachment( const char* parameter_name, const char* attachment_name,
@@ -241,23 +241,6 @@ namespace vk
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
                     _pipeline[chain_id].set_image_sampler(texture, parameter_name, parameter_stage, binding, usage);
-                }
-            }
-            inline void set_image_sampler(eastl::array<depth_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
-                                          parameter_stage parameter_stage, uint32_t binding,  vk::usage_type usage)
-            {
-                for( int chain_id = 0; chain_id < textures.size(); ++chain_id)
-                {
-                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, usage) ;
-                }
-            }
-            
-            inline void set_image_sampler(eastl::array<render_texture, glfw_swapchain::NUM_SWAPCHAIN_IMAGES>& textures, const char* parameter_name,
-                                          parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
-            {
-                for( int chain_id = 0; chain_id < textures.size(); ++chain_id)
-                {
-                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, usage) ;
                 }
             }
             
@@ -351,6 +334,16 @@ namespace vk
                     _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, usage) ;
                 }
             }
+            
+            inline void set_image_sampler(resource_set<render_texture>& textures, const char* parameter_name,
+                                          parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
+            {
+                for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
+                {
+                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, usage) ;
+                }
+            }
+            
             
             inline void set_image_sampler(resource_set<depth_texture>& textures, const char* parameter_name,
                                           parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)

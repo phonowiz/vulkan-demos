@@ -87,7 +87,7 @@ namespace vk
         inline resource_set<depth_texture>& get_read_depth_texture_set( const char* name, node_type* node, vk::usage_type usage_type)
         {
             eastl::shared_ptr< resource_set<depth_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, usage_type);
-            assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
+            EA_ASSERT_FORMATTED(tex != nullptr, (" Invalid graph, texture %s which this node depends on has not been found", name));
             
             return *tex;
         }
@@ -96,7 +96,7 @@ namespace vk
         inline resource_set<render_texture>& get_read_render_texture_set( const char* name, node_type* node, vk::usage_type usage_type)
         {
             eastl::shared_ptr< resource_set<render_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, usage_type);
-            assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
+            EA_ASSERT_FORMATTED(tex != nullptr, (" Invalid graph, texture %s which this node depends on has not been found", name));
             
             return *tex;
         }
@@ -104,17 +104,15 @@ namespace vk
         inline resource_set<texture_3d>& get_read_texture_3d_set( const char* name, node_type* node, vk::usage_type usage_type)
         {
             eastl::shared_ptr< resource_set<texture_3d>> tex =  get_read_texture<resource_set<texture_3d>>(name, node, usage_type);
-            assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
+            EA_ASSERT_FORMATTED(tex != nullptr, (" Invalid graph, texture %s which this node depends on has not been found", name));
             
             return *tex;
         }
         
         inline resource_set<texture_2d>& get_read_texture_2d_set( const char* name, node_type* node, vk::image::image_layouts expected_layout)
         {
-            
             eastl::shared_ptr< resource_set<texture_2d>> tex =  get_read_texture<resource_set<texture_2d>>(name, node, expected_layout);
-            
-            assert(tex != nullptr && " Invalid graph, the texture you depend on is not found");
+            EA_ASSERT_FORMATTED(tex != nullptr, (" Invalid graph, texture %s which this node depends on has not been found", name));
             
             return *tex;
         }
@@ -163,7 +161,11 @@ namespace vk
                 result->init();
             }
             else
+            {
+                EA_ASSERT_FORMATTED(iter->second.resource->get_instance_type() == texture_2d::get_class_type(),
+                                    ("resource %s is not of type texture 2D, did you mean to call one of the functions in the get_read_texture* family", name));
                 result = &(*(eastl::static_pointer_cast<texture_2d>(iter->second.resource)));
+            }
             
             return *result;
         }

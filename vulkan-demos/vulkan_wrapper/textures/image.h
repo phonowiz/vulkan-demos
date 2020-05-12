@@ -137,6 +137,11 @@ namespace vk
             _format = f;
         }
         
+        inline void set_native_layout( image_layouts l)
+        {
+            _image_layout = l;
+        }
+        
         inline void set_image_layout( image_layouts layout)
         {
             _image_layout = layout;
