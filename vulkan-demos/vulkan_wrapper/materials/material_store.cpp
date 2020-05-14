@@ -50,6 +50,12 @@ void material_store::create(device* device)
     shader_shared_ptr clear_3d_texture_comp =  add_shader("compute/clear_3d_texture.comp", shader::shader_type::COMPUTE);
     shader_shared_ptr avg_texture_comp = add_shader("compute/downsize.comp", shader::shader_type::COMPUTE);
     
+    shader_shared_ptr gauss_blur_vert = add_shader("graphics/gaussblur.vert", shader::shader_type::VERTEX);
+    shader_shared_ptr gauss_blur_frag = add_shader("graphics/gaussblur.frag", shader::shader_type::FRAGMENT);
+    
+    mat_shared_ptr gaussblur_mat = CREATE_MAT<visual_material>("gaussblur", gauss_blur_vert, gauss_blur_frag, device);
+    add_material(gaussblur_mat);
+    
     mat_shared_ptr vsm_mat = CREATE_MAT<visual_material>("vsm", vsm_vert, vsm_frag, device);
     add_material(vsm_mat);
 
