@@ -16,9 +16,8 @@ using namespace vk;
 render_texture::render_texture(device* device, uint32_t width, uint32_t height):
 texture_2d(device, width, height)
 {
-    _usage = render_texture::usage::COLOR_TARGET_AND_SHADER_INPUT;
+    //_usage = usage::COLOR_TARGET_AND_SHADER_INPUT | usage::TRANSFER_SRC_AND_DST;
 }
-
 
 void render_texture::create(uint32_t width, uint32_t height)
 {
@@ -26,7 +25,7 @@ void render_texture::create(uint32_t width, uint32_t height)
     create_image(
                  static_cast<VkFormat>(_format),
                  VK_IMAGE_TILING_OPTIMAL,
-                 static_cast<VkImageUsageFlagBits>(_usage),
+                 VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
     
 

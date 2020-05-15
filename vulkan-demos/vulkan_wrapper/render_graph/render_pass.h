@@ -130,7 +130,7 @@ namespace vk
             }
             inline void init()
             {
-                assert((_num_input_references != 0 ||  _num_color_references != 0 ) && "subpassses must have at least one input or out attachment");
+                EA_ASSERT_MSG((_num_input_references != 0 ||  _num_color_references != 0 ),"subpassses must have at least one input or out attachment");
                 _subpass_description.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
                 _subpass_description.pColorAttachments = _color_references.data();
                 _subpass_description.colorAttachmentCount = _num_color_references;
@@ -203,7 +203,7 @@ namespace vk
                     }
                 }
 
-                EA_ASSERT_FORMATTED(found, ("Attachment %s not found.  Your resource set must be added to attachment group before calling this function", name));
+                EA_ASSERT_FORMATTED(found, ("Attachment %s not found.  Your resource set must be added to attachment group before calling \"add_output_attachment\" function", name));
             }
             
             inline void add_input_attachment( const char* parameter_name, const char* attachment_name,
@@ -690,10 +690,10 @@ namespace vk
     template < uint32_t NUM_ATTACHMENTS>
     void render_pass< NUM_ATTACHMENTS>::init(uint32_t swapchain_id)
     {
-        assert(_attachment_group.size() <= MAX_NUMBER_OF_ATTACHMENTS);
-        assert(_attachment_group.size() != 0);
-        assert(_dimensions.x != 0 && _dimensions.y !=0 );
-        assert(_device != nullptr);
+        EA_ASSERT_MSG(_attachment_group.size() <= MAX_NUMBER_OF_ATTACHMENTS, "maximum number of attachments has been exceeded");
+        EA_ASSERT_MSG(_attachment_group.size() != 0, "attachment group size cannot be 0.  You need to add resource_sets to attachment groups");
+        EA_ASSERT_MSG(_dimensions.x != 0 && _dimensions.y !=0, "attachment dimensions cannot be zero" );
+        EA_ASSERT(_device != nullptr);
         
         _attachment_group.init(swapchain_id);
 
@@ -704,16 +704,16 @@ namespace vk
         //here is article about subpasses and input attachments and how they are all tied togethere
         //https://www.saschawillems.de/blog/2018/07/19/vulkan-input-attachments-and-sub-passes/
         uint32_t attachment_id = 0;
-        assert(_attachment_group[attachment_id].size() == glfw_swapchain::NUM_SWAPCHAIN_IMAGES);
+        EA_ASSERT(_attachment_group[attachment_id].size() == glfw_swapchain::NUM_SWAPCHAIN_IMAGES);
         
         for(int i =0 ; i < _attachment_group.size(); ++i)
         {
             
-            assert(_attachment_group.size() != 0);
-            assert(_attachment_group[i][swapchain_id]->is_initialized() && "call init on all your attachment group textures");
+            EA_ASSERT_MSG(_attachment_group.size() != 0, "you need at least one attachment in render pass");
+            EA_ASSERT_MSG(_attachment_group[i][swapchain_id]->is_initialized(), "call init on all your attachment group textures");
             _attachment_group[i][swapchain_id]->set_device(_device);
-            assert(_dimensions.x == _attachment_group[i][swapchain_id]->get_width());
-            assert(_dimensions.y == _attachment_group[i][swapchain_id]->get_height());
+            EA_ASSERT_MSG(_dimensions.x == _attachment_group[i][swapchain_id]->get_width(), "attachments must have the same width ");
+            EA_ASSERT_MSG(_dimensions.y == _attachment_group[i][swapchain_id]->get_height(), "attachments must have the same height");
             
             //depth will be dealt with later in this function...
             if(_attachment_group[i][0]->get_instance_type() == depth_texture::get_class_type())
@@ -734,11 +734,11 @@ namespace vk
             
         }
         
-        assert(attachment_id != 0);
+        EA_ASSERT(attachment_id != 0);
         
         eastl::array<VkSubpassDescription, MAX_SUBPASSES> subpass {};
         
-        assert(_subpasses[0].is_active() && "You need at least one subpass for rendering to occur");
+        EA_ASSERT_MSG(_subpasses[0].is_active(),"You need at least one subpass for rendering to occur");
         int subpass_id = 0;
         
         eastl::array<VkSubpassDependency,MAX_SUBPASSES> dependencies {};

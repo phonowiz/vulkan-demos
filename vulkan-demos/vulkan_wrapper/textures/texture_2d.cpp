@@ -54,7 +54,7 @@ void texture_2d::load()
     int h = 0;
     int c = 0;
     
-    //todo: any way to detecct what the pixel format is? stbi_load might always
+    //TODO: any way to detecct what the pixel format is? stbi_load might always
     //use this format, but am not sure.
     _format = formats::R8G8B8A8_UNSIGNED_NORMALIZED;
     _image_layout = image_layouts::PREINITIALIZED;

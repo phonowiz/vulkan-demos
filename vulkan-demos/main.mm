@@ -41,6 +41,7 @@
 #include "graph_nodes/graphics_nodes/display_texture_2d.h"
 #include "graph_nodes/graphics_nodes/display_texture_3d.h"
 #include "graph_nodes/graphics_nodes/vsm.cpp"
+#include "graph_nodes/graphics_nodes/gaussian_blur.cpp"
 
 #include "graph_nodes/compute_nodes/mip_map_3d_texture.hpp"
 #include "graph_nodes/graphics_nodes/voxelize.h"
@@ -459,15 +460,22 @@ int main()
     
     
     display_texture_2d<4> vsm_debug(&device, &swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "vsm");
-    vsm_debug.set_active(true);
+    vsm_debug.set_active(false);
     vsm_debug.set_name("vsm_debug");
+    
     vsm_node.add_child(debug_node_3d);
     vsm_debug.add_child(vsm_node);
     
-    mrt_node.add_child(vsm_debug);
+    //mrt_node.add_child(vsm_debug);
     
+    display_texture_2d<4> gsm_debug(&device, &swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "gaussblur");
+    gaussian_blur<4> gsb(&device,  dims.x, dims.y, "vsm");
+    
+    gsb.add_child(vsm_debug);
+    gsm_debug.add_child(gsb);
+    gsm_debug.set_active(true);
     //attach the mrt node to the graph
-    voxel_cone_tracing.add_child(mrt_node);
+    voxel_cone_tracing.add_child(gsm_debug);
 
     app.voxel_graph = &voxel_cone_tracing;
     app.debug_node_3d = &debug_node_3d;

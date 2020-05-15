@@ -37,6 +37,14 @@ namespace vk
         resource_set(resource_set&) = delete;
         
         
+        void set_enable_mipmapping(bool b)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i].set_enable_mipmapping(b);
+            }
+        }
+        
         void set_name(const char* name)
         {
             _name.clear();
@@ -229,6 +237,14 @@ namespace vk
             for( int i = 0; i < elements.size(); ++i)
             {
                 elements[i]->init();
+            }
+        }
+        
+        void set_enable_mipmapping(bool b)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i]->set_enable_mipmapping(b);
             }
         }
         void set_dimensions( uint32_t width, uint32_t height, uint32_t depth = 1)

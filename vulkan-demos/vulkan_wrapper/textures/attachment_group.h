@@ -168,6 +168,7 @@ namespace vk
             {
                 _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
                 _attachments[num_attachments][i]->set_device(_device);
+                _attachments[num_attachments][i]->set_dimensions(_dimensions.x, _dimensions.y);
             }
             ++num_attachments;
         }

@@ -64,16 +64,16 @@ public:
         _light_cam = &cam;
     }
     
-    virtual bool record_node_commands(vk::command_recorder& buffer, uint32_t image_id)
-    {
-        parent_type::record_node_commands(buffer, image_id);
-        
-        EA_ASSERT(_vsm );
-        
-        //(*_vsm)[image_id].refresh_mipmaps(buffer.get_raw_graphics_command(image_id));
-        
-        return true;
-    }
+//    virtual bool record_node_commands(vk::command_recorder& buffer, uint32_t image_id)
+//    {
+//        parent_type::record_node_commands(buffer, image_id);
+//        
+//        EA_ASSERT(_vsm );
+//        
+//        //(*_vsm)[image_id].refresh_mipmaps(buffer.get_raw_graphics_command(image_id));
+//        
+//        return true;
+//    }
     
     
     virtual void init_node() override
@@ -105,7 +105,7 @@ public:
         vsm.set_filter(vk::image::filter::LINEAR);
         
         vsm.init();
-        
+        //TODO: needs to be figured out by the graph, remove once implemented
         vsm.set_native_layout(vk::image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
         
         cam_depth_subpass.add_output_attachment("vsm", render_pass_type::write_channels::RG, false);

@@ -17,14 +17,16 @@ namespace vk
     {
     public:
         
-        enum class usage
-        {
-            COLOR_TARGET = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
-            COLOR_TARGET_AND_SHADER_INPUT = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT
-        };
+//        enum class usage
+//        {
+//            COLOR_TARGET = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT,
+//            COLOR_TARGET_AND_SHADER_INPUT = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+//            TRANSFER_SRC_AND_DST = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT
+//        };
         
-        render_texture(){ _usage = render_texture::usage::COLOR_TARGET_AND_SHADER_INPUT;};
+        render_texture(){ /*_usage = render_texture::usage::COLOR_TARGET_AND_SHADER_INPUT;*/};
         render_texture(device* device, uint32_t width, uint32_t height);
+        
         
         virtual char const * const * get_instance_type() override { return (&_image_type); };
         static char const * const *  get_class_type(){ return (&_image_type); }
@@ -34,6 +36,6 @@ namespace vk
     private:
         
         static constexpr char const * _image_type = nullptr;
-        render_texture::usage _usage = usage::COLOR_TARGET;
+        //render_texture::usage _usage = usage::COLOR_TARGET;
     };
 }
