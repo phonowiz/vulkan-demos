@@ -234,7 +234,7 @@ int main()
     vk::glfw_swapchain swapchain(&device, window, surface);
     
 
-    vk::graph<1> graph(&device, material_store, swapchain);
+    //vk::graph<1> graph(&device, material_store, swapchain);
     
     app.device = &device;
     
@@ -282,11 +282,11 @@ int main()
     app.shapes.push_back(&model);
 
     
-    display_texture_2d<1> debug_node(&device, &swapchain, swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height, "mario.png");
-
-    graph.add_child(debug_node);
-    
-    app.graph = &graph;
+//    display_texture_2d<1> debug_node(&device, &swapchain, swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height, "mario.png");
+//
+//    graph.add_child(debug_node);
+//
+//    app.graph = &graph;
     
     first_person_controller user_controler( app.perspective_camera, window);
     first_person_controller  texture_3d_view_controller(app.three_d_texture_camera, window);
@@ -477,14 +477,16 @@ int main()
     gsb_horizontal.add_child(gsb_vertical);
 
     gsm_debug.add_child(gsb_horizontal);
-    gsm_debug.set_active(true);
+    gsm_debug.set_active(false);
     //attach the mrt node to the graph
-    voxel_cone_tracing.add_child(gsm_debug);
+    //voxel_cone_tracing.add_child(gsm_debug);
 
-    //voxel_cone_tracing.add_child(mrt_node);
+    mrt_node.add_child(gsm_debug);
+    
+    voxel_cone_tracing.add_child(mrt_node);
     app.voxel_graph = &voxel_cone_tracing;
     app.debug_node_3d = &debug_node_3d;
-    
+
     app.voxel_graph->init();
     //app.graph->init();
     

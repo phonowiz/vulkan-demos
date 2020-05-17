@@ -91,6 +91,11 @@ public:
         
     }
     
+    virtual void destroy() override
+    {
+        parent_type::destroy();
+        _screen_plane.destroy();
+    }
     virtual void update_node(vk::camera&, uint32_t)
     {
         
