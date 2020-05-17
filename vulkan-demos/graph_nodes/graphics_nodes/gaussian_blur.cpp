@@ -19,10 +19,18 @@ class gaussian_blur : public vk::graphics_node<1, NUM_CHILDREN>
     
 private:
     
-    eastl::fixed_string<char, 20> _texture;
+    eastl::fixed_string<char, 20> _input_texture;
+    eastl::fixed_string<char, 20> _output_texture;
     vk::screen_plane _screen_plane;
     
 public:
+    
+    enum class DIRECTION
+    {
+        VERTICAL = 0,
+        HORIZONTAL
+    };
+    
     
     using parent_type = vk::graphics_node<1, NUM_CHILDREN>;
     using render_pass_type = typename parent_type::render_pass_type;
@@ -33,18 +41,19 @@ public:
     using material_store_type = typename parent_type::material_store_type;
     using object_submask_type = typename parent_type::object_subpass_mask;
     
-    gaussian_blur(vk::device* dev, float width, float height,
-                  const char* tex):
+    gaussian_blur(vk::device* dev, float width, float height, DIRECTION dir,
+                  const char* input_tex, const char* output_tex):
     parent_type(dev, width, height),
     _screen_plane(dev)
     {
-        _texture = tex;
+        _input_texture = input_tex;
+        _output_texture = output_tex;
     }
     
-    void set_texture( eastl::fixed_string<char, 20>& name)
-    {
-        _texture = name;
-    }
+//    void set_texture( eastl::fixed_string<char, 20>& name)
+//    {
+//        _input_texture = name;
+//    }
     
     virtual void init_node() override
     {
@@ -55,7 +64,7 @@ public:
         object_submask_type& _obj_masks = parent_type::_obj_subpass_mask;
         object_vector_type& _obj_vector = parent_type::_obj_vector;
         
-        EA_ASSERT_MSG(!_texture.empty(), "texture to be blurred has not been set");
+        EA_ASSERT_MSG(!_input_texture.empty(), "texture to be blurred has not been set");
         
         _screen_plane.create();
         
@@ -74,7 +83,7 @@ public:
         sub_p.init_parameter("blurStrength", vk::parameter_stage::FRAGMENT, 1.5f, 1);
         sub_p.init_parameter("blurDirection", vk::parameter_stage::FRAGMENT, int(1), 1 );
         
-        vk::resource_set<vk::render_texture>& target = _tex_registry->get_read_render_texture_set(_texture.c_str(), this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        vk::resource_set<vk::render_texture>& target = _tex_registry->get_read_render_texture_set(_input_texture.c_str(), this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         sub_p.set_image_sampler( target, "samplerColor", vk::parameter_stage::FRAGMENT, 0, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         sub_p.add_output_attachment("gaussblur", render_pass_type::write_channels::RGBA, true);
@@ -88,4 +97,6 @@ public:
         
     }
     
+private:
+    DIRECTION _dir = DIRECTION::VERTICAL;
 };

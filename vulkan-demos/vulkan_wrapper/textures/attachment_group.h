@@ -159,9 +159,9 @@ namespace vk
         template< typename R>
         inline void add_attachment(resource_set<R>& textures_set)
         {
-            assert(textures_set.get_instance_type() != resource_set<texture_2d>::get_class_type() && "texture 2d's are pre initialized since they are loaded from hard drive, "
+            EA_ASSERT_MSG(textures_set.get_instance_type() != resource_set<texture_2d>::get_class_type(), "texture 2d's are pre initialized since they are loaded from hard drive, "
                    "did you mean to use a render_texture instead?");
-            assert(num_attachments < NUM_ATTACHMENTS );
+            EA_ASSERT_MSG(num_attachments < NUM_ATTACHMENTS, "Not all attachments have been added" );
             
             _attachments[num_attachments].set_name( textures_set.get_name().c_str());
             for( int i = 0; i < textures_set.size(); ++i)

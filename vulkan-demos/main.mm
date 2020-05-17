@@ -469,10 +469,11 @@ int main()
     //mrt_node.add_child(vsm_debug);
     
     display_texture_2d<4> gsm_debug(&device, &swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "gaussblur");
-    gaussian_blur<4> gsb(&device,  dims.x, dims.y, "vsm");
+    gaussian_blur<4> gsb_vertical(&device,  dims.x, dims.y, gaussian_blur<4>::DIRECTION::VERTICAL, "vsm", "gauss_vertical");
+    //gaussian_blur<4> g
     
-    gsb.add_child(vsm_debug);
-    gsm_debug.add_child(gsb);
+    gsb_vertical.add_child(vsm_debug);
+    gsm_debug.add_child(gsb_vertical);
     gsm_debug.set_active(true);
     //attach the mrt node to the graph
     voxel_cone_tracing.add_child(gsm_debug);

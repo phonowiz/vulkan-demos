@@ -131,7 +131,7 @@ mat_shared_ptr material_store::get_material(const char* name)
 
 shader_shared_ptr const   material_store::find_shader_using_path(const char* path)const
 {
-    assert(shader_database.count(path) != 0);
+    EA_ASSERT_FORMATTED(shader_database.count(path) != 0, ("Shader not found on path: %s", path));
     return shader_database[path];
 }
 
