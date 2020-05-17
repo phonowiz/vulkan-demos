@@ -17,6 +17,7 @@
 #include "glfw_present_texture.h"
 #include "render_texture.h"
 #include "depth_texture.h"
+#include "EASTL/fixed_string.h"
 
 #include <map>
 #include "ordered_map.h"
@@ -25,6 +26,8 @@
 
 namespace vk
 {
+    using string_key_type = eastl::fixed_string<char, 30>;
+
     class shader_parameter
     {
         
@@ -92,8 +95,8 @@ namespace vk
         inline Type get_type(){return type;}
         inline setting_value* get_stored_value_memory(){ return &value; }
         
-        using shader_params_group = ordered_map<const char* ,shader_parameter>;
-        using KeyValue = std::pair<const char*, shader_parameter> ;
+        using shader_params_group = ordered_map< string_key_type ,shader_parameter>;
+        using KeyValue = std::pair<string_key_type, shader_parameter> ;
         
         shader_parameter():value(),type(Type::NONE)
         {}

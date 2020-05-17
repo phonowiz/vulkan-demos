@@ -266,10 +266,10 @@ void material_base::print_uniform_argument_names()
         buffer_info& mem = _uniform_buffers[pair.first];
         std::cout << " uniform buffer at binding " << mem.binding << std::endl;
         
-        for (eastl::pair<const char*, shader_parameter >& pair : group)
+        for (eastl::pair<string_key_type, shader_parameter >& pair : group)
         {
-            std::string_view name = pair.first;
-            std::cout << name <<  std::endl;
+            string_key_type name = pair.first;
+            std::cout << name.c_str() <<  std::endl;
 
         }
     }
@@ -297,7 +297,7 @@ void material_base::init_shader_parameters()
     {
         buffer_info& mem = _uniform_buffers[pair.first];
         shader_parameter::shader_params_group& group = _uniform_parameters[pair.first];
-        for (eastl::pair<const char* , shader_parameter >& pair : group)
+        for (eastl::pair<string_key_type , shader_parameter >& pair : group)
         {
 //            std::string_view name = pair.first;
 //            std::cout << name << std::endl;
@@ -326,7 +326,7 @@ void material_base::init_shader_parameters()
         
         total_size = 0;
         shader_parameter::shader_params_group& group = obj_group[0];
-        for (eastl::pair<const char* , shader_parameter >& pair : group)
+        for (eastl::pair<string_key_type, shader_parameter >& pair : group)
         {
             shader_parameter setting = pair.second;
             total_size += setting.get_max_std140_aligned_size_in_bytes();
@@ -406,7 +406,7 @@ void material_base::commit_dynamic_parameters_to_gpu()
             data = static_cast<void*>(start);
             //important note: this code assumes that in the shader, the parameters are listed in the same order as they
             //appear in the group
-            for (eastl::pair<const char* , shader_parameter >& pair : group)
+            for (eastl::pair<string_key_type , shader_parameter >& pair : group)
             {
                 data = pair.second.write_to_buffer(data, mem_size);
                 uniform_parameters_count++;
@@ -453,7 +453,7 @@ void material_base::commit_parameters_to_gpu( )
                 
                 //important note: this code assumes that in the shader, the parameters are listed in the same order as they
                 //appear in the group
-                for (eastl::pair<const char* , shader_parameter >& pair : group)
+                for (eastl::pair<string_key_type , shader_parameter >& pair : group)
                 {
                     data = pair.second.write_to_buffer(data, mem_size);
                     uniform_parameters_count++;
