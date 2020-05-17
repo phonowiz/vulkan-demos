@@ -46,8 +46,14 @@ public:
     parent_type(dev, width, height),
     _screen_plane(dev)
     {
+        _dir = dir;
         _input_texture = input_tex;
         _output_texture = output_tex;
+        parent_type::_name = "gauss_horizontal";
+        if( _dir == DIRECTION::VERTICAL)
+        {
+            parent_type::_name = "gauss_vertical";
+        }
     }
     
 //    void set_texture( eastl::fixed_string<char, 20>& name)
@@ -70,7 +76,7 @@ public:
         
         vk::attachment_group<1>& attach_group = pass.get_attachment_group();
         
-        vk::resource_set<vk::render_texture>& gaussblur_tex = _tex_registry->get_write_render_texture_set("gaussblur", this, vk::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::render_texture>& gaussblur_tex = _tex_registry->get_write_render_texture_set(_output_texture.c_str(), this, vk::usage_type::INPUT_ATTACHMENT);
         attach_group.add_attachment(gaussblur_tex, glm::vec4(0.0f));
         
         gaussblur_tex.init();
@@ -81,12 +87,12 @@ public:
         
         sub_p.init_parameter("blurScale", vk::parameter_stage::FRAGMENT, 1.0f, 1);
         sub_p.init_parameter("blurStrength", vk::parameter_stage::FRAGMENT, 1.5f, 1);
-        sub_p.init_parameter("blurDirection", vk::parameter_stage::FRAGMENT, int(1), 1 );
+        sub_p.init_parameter("blurDirection", vk::parameter_stage::FRAGMENT, int(_dir), 1 );
         
         vk::resource_set<vk::render_texture>& target = _tex_registry->get_read_render_texture_set(_input_texture.c_str(), this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         sub_p.set_image_sampler( target, "samplerColor", vk::parameter_stage::FRAGMENT, 0, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-        sub_p.add_output_attachment("gaussblur", render_pass_type::write_channels::RGBA, true);
+        sub_p.add_output_attachment(_output_texture.c_str(), render_pass_type::write_channels::RGBA, true);
         
         pass.add_object(_screen_plane);
         

@@ -36,6 +36,7 @@ public:
     {
         _swapchain = swapchain;
         _texture = text;
+        parent_type::_name = "display_texture_2d";
     }
     
     

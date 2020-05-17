@@ -64,7 +64,7 @@ namespace vk
         
         using node_dependees_map = eastl::map<vk::object*,node_dependees>;
         
-        using dependee_data_map = eastl::map< eastl::fixed_string<char, 100>, dependee_data> ;
+        using dependee_data_map = eastl::map< string_key_type, dependee_data> ;
         
         
         texture_registry(){}
@@ -267,9 +267,7 @@ namespace vk
             else
             {
                 ptr = eastl::static_pointer_cast<T>(iter->second.resource);
-                
                 dependee_data& d = iter->second;
-                
                 make_dependency(*ptr, d, node, usage_type);
                 
                 iter->second.consumed = false;
