@@ -223,8 +223,7 @@ namespace vk
                 
                 result = eastl::static_pointer_cast<T>(d.resource);
                 
-                //TODO: add the name of the node here using EAASSERT
-                assert( result != nullptr && "The asset this node depends on was not created, check the node which creates this asset");
+                EA_ASSERT_MSG( result != nullptr, "The asset this node depends on was not created, check the node which creates this asset");
                 
                 //eastl::fixed_string<char, 100> msg {};
                 //msg.sprintf("accessing resource: %s", name);

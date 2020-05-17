@@ -105,8 +105,6 @@ public:
         vsm.set_filter(vk::image::filter::LINEAR);
         
         vsm.init();
-        //TODO: needs to be figured out by the graph, remove once implemented
-        vsm.set_native_layout(vk::image::image_layouts::SHADER_READ_ONLY_OPTIMAL);
         
         cam_depth_subpass.add_output_attachment("vsm", render_pass_type::write_channels::RG, false);
         
