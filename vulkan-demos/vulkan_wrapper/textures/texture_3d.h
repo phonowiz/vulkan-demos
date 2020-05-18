@@ -24,10 +24,18 @@ namespace vk {
             _width = width;
             _height = height;
             _depth = depth;
+            
+            _original_layout = image_layouts::GENERAL;
         }
 
-        texture_3d():image(){};
-        texture_3d(device* dev): image(dev){};
+        texture_3d():image()
+        {
+            _original_layout = image_layouts::GENERAL;
+        };
+        texture_3d(device* dev): image(dev)
+        {
+            _original_layout = image_layouts::GENERAL;
+        };
         
         virtual char const * const * get_instance_type() override { return (& _image_type); }
         static char  const * const * get_class_type(){ return (& _image_type); }

@@ -18,6 +18,8 @@ namespace vk
     {
     public:
         
+        enum class image_layouts;
+        
         image(){}
         image( device* device){ _device = device; }
         void create_image( VkFormat format, VkImageTiling tiling,
@@ -60,6 +62,13 @@ namespace vk
             _width = width;
             _height = height;
             _depth = depth;
+        }
+        
+        inline void change_layout( image::image_layouts new_layout)
+        {
+            change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
+                                      static_cast<VkImageLayout>(_image_layout),
+                                      static_cast<VkImageLayout>(new_layout));
         }
         
         inline uint32_t get_width()
@@ -147,6 +156,18 @@ namespace vk
             _image_layout = layout;
         }
         
+        virtual void reset_image_layout()
+        {
+            if(_original_layout != _image_layout)
+                change_layout( _original_layout);
+            
+        }
+        
+        inline image_layouts get_original_layout()
+        {
+            return _original_layout;
+        }
+        
         image_layouts get_native_layout()
         {
             return _image_layout;
@@ -191,6 +212,7 @@ namespace vk
         formats _format = formats::R8G8B8A8_SIGNED_NORMALIZED;
         filter  _filter = filter::LINEAR;
         image_layouts _image_layout = image_layouts::UNDEFINED;
+        image_layouts _original_layout = image_layouts::UNDEFINED;
         
     public:
         inline image::filter get_filter()

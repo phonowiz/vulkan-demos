@@ -52,6 +52,7 @@ void texture_3d::init()
                          1, &barrier);
 
     _image_layout = image_layouts::GENERAL;
+    _original_layout = _image_layout;
 
     _device->
         end_single_time_command_buffer(_device->_graphics_queue, _device->_graphics_command_pool, command_buffer);

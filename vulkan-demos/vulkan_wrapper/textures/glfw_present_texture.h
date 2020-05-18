@@ -23,8 +23,16 @@ namespace vk
     class glfw_present_texture : public image
     {
     public:
-        glfw_present_texture(){}
-        inline void set_swapchain(glfw_swapchain* chain){ _swapchain = chain; }
+        glfw_present_texture()
+        {
+            _original_layout = image_layouts::PRESENT_KHR;
+        }
+        inline void set_swapchain(glfw_swapchain* chain)
+        {
+            _swapchain = chain;
+            _original_layout = image_layouts::PRESENT_KHR;
+        }
+        
         inline void set_swapchain_image_index (int32_t i){ _swapchain_image_index = i; }
         inline void set_window( GLFWwindow* window) { _window = window; }
         virtual void init() override;

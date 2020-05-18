@@ -143,9 +143,18 @@ void image::change_image_layout(VkCommandPool command_pool, VkQueue queue, VkIma
         source_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
         destination_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     }
+    else if( old_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL &&
+            new_layout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
+    {
+        image_memory_barrier.srcAccessMask = 0;
+        image_memory_barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        
+        source_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT ;
+        destination_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+    }
     else
     {
-        assert(0 && "transition not yet supported");
+        EA_FAIL_MSG("transition not yet supported");
     }
     image_memory_barrier.oldLayout = old_layout;
     image_memory_barrier.newLayout = new_layout;

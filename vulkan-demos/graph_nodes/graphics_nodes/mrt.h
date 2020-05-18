@@ -104,17 +104,14 @@ public:
         glm::vec2 dims = parent_type::_node_render_pass.get_dimensions();
         
         normals.set_format(vk::image::formats::R8G8_SIGNED_NORMALIZED);
-        normals.set_dimensions(dims.x, dims.y);
         normals.set_filter(vk::image::filter::NEAREST);
         
         albedos.set_dimensions(dims.x, dims.y);
         albedos.set_filter(vk::image::filter::NEAREST);
         
-        positions.set_dimensions(dims.x, dims.y);
         positions.set_filter(vk::image::filter::NEAREST);
         
         depth.set_format(vk::image::formats::DEPTH_32_FLOAT);
-        depth.set_dimensions(dims.x, dims.y);
         depth.set_filter(vk::image::filter::NEAREST);
         
         normals.init();
@@ -152,6 +149,8 @@ public:
         vk::resource_set<vk::texture_3d>& voxel_normal_set = _tex_registry->get_read_texture_3d_set("voxel_normals", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         vk::resource_set<vk::texture_3d>& voxel_albedo_set = _tex_registry->get_read_texture_3d_set("voxel_albedos", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
+        
+        vk::resource_set<vk::render_texture>& vsm_set = _tex_registry->get_read_render_texture_set("blur_final", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         
         glm::vec4 world_scale_voxel = glm::vec4(float(_voxel_world_dimensions.x/voxelize<NUM_CHILDREN>::VOXEL_CUBE_WIDTH),

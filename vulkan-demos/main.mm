@@ -123,8 +123,8 @@ void game_loop()
     while (!glfwWindowShouldClose(window) && !app.quit)
     {
         glfwPollEvents();
-        app.user_controller->update();
-        app.texture_3d_view_controller->update();
+        //app.user_controller->update();
+        //app.texture_3d_view_controller->update();
 
         app.voxel_graph->update(*app.perspective_camera, next_swap);
         app.voxel_graph->record(next_swap);

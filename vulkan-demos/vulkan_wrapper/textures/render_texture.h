@@ -17,7 +17,10 @@ namespace vk
     {
     public:
         
-        render_texture(){ };
+        render_texture()
+        {
+            _original_layout = vk::image::image_layouts::COLOR_ATTACHMENT_OPTIMAL;
+        };
         render_texture(device* device, uint32_t width, uint32_t height);
         
         
@@ -34,6 +37,14 @@ namespace vk
             }
             
             return layout;
+        }
+        
+        virtual void reset_image_layout() override
+        {
+            //this texture relies on render passes to reset the layout...
+            //unlike other textures that do it themselves
+            _image_layout = _original_layout;
+            
         }
         
         virtual void create( uint32_t width, uint32_t height) override;

@@ -143,6 +143,16 @@ namespace vk
             }
         }
         
+        inline void reset_image_layout()
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                if(elements[i].is_initialized())
+                    elements[i].reset_image_layout();
+            }
+        }
+        
+        
         eastl_size_t size(){ return elements.size(); }
         
         virtual void destroy() override
@@ -279,6 +289,13 @@ namespace vk
             }
         }
         
+        inline void reset_image_layout()
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i]->reset_image_layout();
+            }
+        }
         
         virtual void destroy() override
         {

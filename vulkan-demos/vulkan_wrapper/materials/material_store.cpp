@@ -112,7 +112,7 @@ shader_shared_ptr material_store::add_shader(const char *shaderPath, shader::sha
 
 mat_shared_ptr material_store::get_material(const char* name)
 {
-    EA_ASSERT_FORMATTED(material_database.count(name) != 0, ("material %s was not found, check spelling."));
+    EA_ASSERT_FORMATTED(material_database.count(name) != 0, ("material %s was not found, check spelling.", name));
     mat_shared_ptr tmp = material_database[name];
     if(tmp->get_in_use())
     {

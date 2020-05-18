@@ -176,7 +176,7 @@ namespace  vk
         
         virtual void validate( uint32_t i, vk::device* device )
         {
-            assert(!_visited && "we have a cyclic dependency, revise your graph");
+            EA_ASSERT_MSG(!_visited, "we have a cyclic dependency, revise your graph");
             _visited = true;
             _device = device;
             _level = i;
@@ -225,45 +225,51 @@ namespace  vk
         {
             node_type* dependee_node = (*b).data.node;
             
-            assert( _device->_queue_family_indices.graphics_family.value() ==
-                   _device->_queue_family_indices.compute_family.value() && "If this assert fails, we will need to transfer dependent "
+            EA_ASSERT_MSG( _device->_queue_family_indices.graphics_family.value() ==
+                   _device->_queue_family_indices.compute_family.value(), "If this assert fails, we will need to transfer dependent "
                                                                             "resources from compute to graphics queues and vice versa");
             
             
-            VkPipelineStageFlagBits producer = dependee_node->get_producer_stage();
-            VkPipelineStageFlagBits consumer = this->get_consumer_stage();
-            
-            VkImageMemoryBarrier barrier {};
-            
-            barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-            barrier.pNext = nullptr;
+            if( p_image->get_native_layout() != ((*b).layout))
+            {
+                VkPipelineStageFlagBits producer = dependee_node->get_producer_stage();
+                VkPipelineStageFlagBits consumer = this->get_consumer_stage();
+                
+                VkImageMemoryBarrier barrier {};
+                
+                barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                barrier.pNext = nullptr;
 
-            barrier.srcAccessMask = get_src_access_mask(producer);
-            barrier.dstAccessMask = get_dst_access_maks(consumer);
+                barrier.srcAccessMask = get_src_access_mask(producer);
+                barrier.dstAccessMask = get_dst_access_maks(consumer);
 
-            barrier.oldLayout = static_cast<VkImageLayout>(p_image->get_native_layout());;
-            barrier.newLayout = static_cast<VkImageLayout>((*b).layout);
-            barrier.image = p_image->get_image();
-            barrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-            //we are not transferring ownership
-            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                barrier.oldLayout = static_cast<VkImageLayout>(p_image->get_native_layout());;
+                barrier.newLayout = static_cast<VkImageLayout>((*b).layout);
+                
+                barrier.image = p_image->get_image();
+                barrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+                //we are not transferring ownership
+                barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+                barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-            constexpr uint32_t VK_FLAGS_NONE = 0;
-            
-            eastl::fixed_string<char, 100> msg {};
-            msg.sprintf("creating dependency between %s and %s", this->get_name(), dependee_node->get_name());
-            this->debug_print(msg.c_str());
-            
-            
-            vkCmdPipelineBarrier(
-                                 buffer.get_raw_graphics_command(image_id),
-                                 producer,
-                                 consumer,
-                                 VK_FLAGS_NONE,
-                                 0, nullptr,
-                                 0, nullptr,
-                                 1, &barrier);
+                eastl::fixed_string<char, 100> msg {};
+                constexpr uint32_t VK_FLAGS_NONE = 0;
+                
+                msg.sprintf("creating dependency between %s and %s", this->get_name(), dependee_node->get_name());
+                this->debug_print(msg.c_str());
+                
+                
+                vkCmdPipelineBarrier(
+                                     buffer.get_raw_graphics_command(image_id),
+                                     producer,
+                                     consumer,
+                                     VK_FLAGS_NONE,
+                                     0, nullptr,
+                                     0, nullptr,
+                                     1, &barrier);
+            }
+
+            p_image->set_native_layout((*b).layout);
             
         }
         void record_barriers(command_recorder& buffer,  uint32_t image_id)
@@ -302,7 +308,6 @@ namespace  vk
                     {
                         eastl::shared_ptr< resource_set<vk::texture_2d> > set = eastl::static_pointer_cast< resource_set<vk::texture_2d>>(res);
                         vk::texture_2d* tex = &((*set)[image_id]);
-                        
                         create_barrier(buffer, tex, b, image_id );
                     }
                     else if(res->get_instance_type()  == resource_set<vk::texture_3d>::get_class_type())
@@ -328,9 +333,8 @@ namespace  vk
                     }
                     else
                     {
-                        assert(0 && "unrecognized resource_set");
+                        EA_FAIL_MSG("unrecognized resource_set");
                     }
-                    
                 }
             }
         }

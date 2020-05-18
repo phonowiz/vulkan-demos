@@ -29,11 +29,12 @@ namespace vk
         graph(device* dev, material_store& mat_store, glfw_swapchain& swapchain):
         node_type::node_type(dev),
         _commands(dev, swapchain),
-        _material_store(mat_store)
+        _material_store(mat_store),
+        _texture_registry(dev)
         {
             node_type::_device = dev;
             node<NUM_CHILDREN>::_name = "root";
-            node_type::set_stores(_texture_store, _material_store);
+            node_type::set_stores(_texture_registry, _material_store);
         }
         
         
@@ -51,7 +52,7 @@ namespace vk
             for( eastl_size_t i = 0; i < node_type::_children.size(); ++i)
             {
                 node_type::_children[i]->set_device(node_type::_device);
-                node_type::_children[i]->set_stores(_texture_store, _material_store);
+                node_type::_children[i]->set_stores(_texture_registry, _material_store);
                 node_type::_children[i]->init();
             }
             
@@ -59,8 +60,11 @@ namespace vk
 
         }
         
+        
         inline void record(uint32_t image_id)
         {
+            _texture_registry.reset_render_textures();
+            
             _commands.reset(image_id);
             _commands.begin_command_recording(image_id);
             record(_commands, image_id);
@@ -84,7 +88,7 @@ namespace vk
         void destroy() override
         {
             _commands.destroy();
-            _texture_store.destroy();
+            _texture_registry.destroy();
         }
         
     protected:
@@ -114,7 +118,7 @@ namespace vk
         }
     private:
         
-        texture_registry<NUM_CHILDREN> _texture_store;
+        texture_registry<NUM_CHILDREN> _texture_registry;
         command_recorder _commands;
         material_store& _material_store;
         

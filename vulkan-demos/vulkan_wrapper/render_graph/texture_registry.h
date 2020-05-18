@@ -67,7 +67,7 @@ namespace vk
         using dependee_data_map = eastl::map< string_key_type, dependee_data> ;
         
         
-        texture_registry(){}
+        texture_registry(vk::device* dev ){ _device = dev; }
         
         inline node_dependees& get_dependees( node_type* dependant_node)
         {
@@ -190,6 +190,36 @@ namespace vk
         }
         
         
+        void reset_render_textures()
+        {
+            typename dependee_data_map::iterator iter = _dependee_data_map.begin();
+
+            while( iter != _dependee_data_map.end())
+            {
+                dependee_data& d = iter->second;
+
+                eastl::shared_ptr<vk::object> res = eastl::static_pointer_cast<vk::object>(d.resource);
+
+//              note: right now I don't see a need to reset textures other thanr render_textures, which are special in that they are rendered to
+//              and as a result the render passes put them in a layout which might be different than the one they ended up with at the end of the last
+//              execution of commands in the render graph.  In this code base, render pass attachments always put attachments in the render texture's
+//              original image_layout stored in vk::image::_original_layout variable.
+
+//              We need to reset these textures here again because next time render passes run,they will put them in their orginal layout
+
+
+                if(res->get_instance_type()  == resource_set<vk::render_texture>::get_class_type() ||
+                   res->get_instance_type() == resource_set<vk::render_texture*>::get_class_type())
+                {
+                    eastl::shared_ptr< resource_set<vk::render_texture> > set = eastl::static_pointer_cast< resource_set<vk::render_texture>>(res);
+
+                    set->reset_image_layout();
+                }
+
+                ++iter;
+            }
+        }
+        
     private:
         
         
@@ -252,8 +282,8 @@ namespace vk
 //                node->debug_print( msg.c_str());
                 
                 ptr = GREATE_TEXTUE<T>(args...);
+                ptr->set_device(_device);
                 
-                //TODO: do we need expected layout
                 dependee_data info {};
                 info.resource = eastl::static_pointer_cast<vk::object>(ptr);
                 info.node = node;
@@ -282,7 +312,7 @@ namespace vk
         }
         
     private:
-        
+        vk::device* _device = nullptr;
         node_dependees_map _node_dependees_map;
         dependee_data_map   _dependee_data_map;
     };

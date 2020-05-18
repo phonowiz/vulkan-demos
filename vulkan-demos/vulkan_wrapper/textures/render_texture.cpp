@@ -16,7 +16,7 @@ using namespace vk;
 render_texture::render_texture(device* device, uint32_t width, uint32_t height):
 texture_2d(device, width, height)
 {
-    //_usage = usage::COLOR_TARGET_AND_SHADER_INPUT | usage::TRANSFER_SRC_AND_DST;
+    _original_layout = vk::image::image_layouts::COLOR_ATTACHMENT_OPTIMAL;
 }
 
 void render_texture::create(uint32_t width, uint32_t height)
@@ -32,6 +32,7 @@ void render_texture::create(uint32_t width, uint32_t height)
     create_image_view(_image, static_cast<VkFormat>(_format), _image_view);
     
     _image_layout = image_layouts::COLOR_ATTACHMENT_OPTIMAL;
+    _original_layout = _image_layout;
     _initialized = true;
 }
 

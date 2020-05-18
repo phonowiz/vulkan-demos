@@ -53,6 +53,9 @@ layout(binding = 15) uniform sampler3D voxel_normals3;
 layout(binding = 16) uniform sampler3D voxel_normals4;
 layout(binding = 17) uniform sampler3D voxel_normals5;
 
+//variance shadow map
+layout(binding = 18) uniform sampler2D vsm;
+
 
 
 //note: these are tied to enum class in deferred_renderer class, if these change, make sure
@@ -410,6 +413,28 @@ vec3 decode (vec2 enc)
     n.xy = fenc*g;
     n.z = 1-f/2;
     return n;
+}
+
+
+////variance shadow maps, based off of
+////http://developer.download.nvidia.com/SDK/10/direct3d/Source/VarianceShadowMapping/Doc/VarianceShadowMapping.pdf
+////and
+////http://www.punkuser.net/vsm/vsm_paper.pdf
+//
+vec2 vsm_filter( vec2 moments, float fragDepth )
+{
+    vec2 lit = vec2(0.0f);
+    float E_x2 = moments.y;
+    float Ex_2 = moments.x * moments.x;
+    float variance = E_x2 - Ex_2;
+    float mD = moments.x - fragDepth;
+    float mD_2 = mD * mD;
+    float p = variance / (variance + mD_2);
+ 
+    float result = fragDepth <= moments.x ? 1 : 0;
+    lit.x = max( p, result );
+
+    return lit; //lit.x == VSM calculation
 }
 
 void main()
