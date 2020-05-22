@@ -41,6 +41,8 @@ namespace vk
         inline float get_far() const {return _far;}
         inline float get_focal_length() const {return _focal_length;}
         
+        camera(){}
+        
     protected:
         
         bool _projection_matrix_has_changed = true;

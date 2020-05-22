@@ -26,6 +26,15 @@ class voxelize : public vk::graphics_node<1, NUM_CHILDREN>
 {
     
 public:
+    
+    //if changing these values, make sure the voxelize.vert shader
+    //reflects your change as well.
+    enum class light_type
+    {
+        DIRECTIONAL_LIGHT = 0,
+        POINT_LIGHT = 1
+    };
+    
     static constexpr uint32_t VOXEL_CUBE_WIDTH = 256u;
     static constexpr uint32_t VOXEL_CUBE_HEIGHT = 256u;
     static constexpr uint32_t VOXEL_CUBE_DEPTH  =  256u ;
@@ -42,8 +51,12 @@ private:
     glm::vec3 _cam_position {};
     glm::vec3 _up_vector{};
     
+    vk::camera _key_light_cam;
+    
     glm::mat4 _proj_to_voxel_screen = glm::mat4(1.0f);
+    
     glm::vec3 _light_pos = glm::vec3(0.0f, .8f, 0.0f);
+    light_type _light_type = light_type::DIRECTIONAL_LIGHT;
     
 public:
     
@@ -56,14 +69,15 @@ public:
     using material_store_type = typename parent_type::material_store_type;
     using object_submask_type = typename parent_type::object_subpass_mask;
     
-    voxelize():
+    voxelize( ):
     _ortho_camera(WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE)
     {}
     
-    voxelize(vk::device* dev):
+    voxelize(vk::device* dev, vk::camera& key_light_cam):
     parent_type(dev, static_cast<float>(VOXEL_CUBE_WIDTH), static_cast<float>(VOXEL_CUBE_HEIGHT)),
     _ortho_camera(WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE, WORLD_VOXEL_SIZE)
     {
+        _key_light_cam = key_light_cam;
     }
     
     void set_cam_params(glm::vec3 cam_pos, glm::vec3 up)
@@ -76,10 +90,11 @@ public:
     {
         _proj_to_voxel_screen = mat;
     }
-    
-    void set_light_pos(glm::vec3 v)
+  
+    void set_key_light_cam(vk::camera& key_light_cam, light_type type)
     {
-        _light_pos = v;
+        _light_type = type;
+        _key_light_cam = key_light_cam;
     }
     
     virtual void init_node() override
@@ -112,7 +127,8 @@ public:
         voxelize_subpass.init_parameter("projection", vk::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
         voxelize_subpass.init_parameter("light_position", vk::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
         voxelize_subpass.init_parameter("eye_position", vk::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
-        
+        voxelize_subpass.init_parameter("light_type", vk::parameter_stage::VERTEX, int(_light_type), 0);
+
         
         parent_type::add_dynamic_param("model", 0, vk::parameter_stage::VERTEX, glm::mat4(1.0), 3);
         
@@ -174,7 +190,7 @@ public:
         
         voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
         voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
-        voxelize_vertex_params["light_position"] = _light_pos;
+        voxelize_vertex_params["light_position"] = _key_light_cam.position;
         voxelize_vertex_params["eye_position"] = camera.position;
     
         for( int i = 0; i < _obj_vector.size(); ++i)

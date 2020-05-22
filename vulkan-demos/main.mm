@@ -123,8 +123,8 @@ void game_loop()
     while (!glfwWindowShouldClose(window) && !app.quit)
     {
         glfwPollEvents();
-        //app.user_controller->update();
-        //app.texture_3d_view_controller->update();
+        app.user_controller->update();
+        app.texture_3d_view_controller->update();
 
         app.voxel_graph->update(*app.perspective_camera, next_swap);
         app.voxel_graph->record(next_swap);
@@ -299,14 +299,13 @@ int main()
     
     vk::graph<4> voxel_cone_tracing(&device, material_store, swapchain);
     
-    mrt<4> mrt_node(&device, &swapchain);
-    
-    
     vk::orthographic_camera directional_light_cam(5.0f, 5.0f, 10.0f);
     directional_light_cam.up = glm::vec3(0.0,  1.0f, 0.0f);
-    directional_light_cam.position = glm::vec3(0.0f, .8f, -5.0f);
+    directional_light_cam.position = glm::vec3(1.0f, 1.8f, -5.0f);
     directional_light_cam.forward = -directional_light_cam.position;
     directional_light_cam.update_view_matrix();
+    
+    mrt<4> mrt_node(&device, &swapchain, directional_light_cam, mrt<4>::light_type::DIRECTIONAL_LIGHT);
     
     vsm<4> vsm_node(&device, swapchain.get_vk_swap_extent().width,
                     swapchain.get_vk_swap_extent().height, directional_light_cam);
@@ -340,7 +339,9 @@ int main()
         voxelizers[i].set_cam_params(cam_positions[i], up_vectors[i]);
         voxelizers[i].set_name(names[i]);
         voxelizers[i].set_dimensions(voxelize<4>::VOXEL_CUBE_WIDTH, voxelize<4>::VOXEL_CUBE_HEIGHT);
-        
+        //vector towards light
+        //voxelizers[i].set_light_dir(glm::vec3(0.0f, .0f, -1.f));
+        voxelizers[i].set_key_light_cam(directional_light_cam, voxelize<4>::light_type::DIRECTIONAL_LIGHT);
         //TODO: LET'S CREATE A MESH NODE, ATTACH THESE TO VOXELIZERS
         for(int j = 0; j < app.shapes.size(); ++j)
         {
@@ -452,7 +453,7 @@ int main()
     display_texture_3d<4> debug_node_3d(&device,&swapchain, dims, "voxel_albedos2" );
 
     debug_node_3d.set_name("3d-texture-render");
-    debug_node_3d.set_active(false);
+    debug_node_3d.set_active(true);
     
     debug_node_3d.set_3D_texture_cam(three_d_texture_cam);
     

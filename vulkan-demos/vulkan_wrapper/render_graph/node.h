@@ -255,8 +255,8 @@ namespace  vk
                 eastl::fixed_string<char, 100> msg {};
                 constexpr uint32_t VK_FLAGS_NONE = 0;
                 
-                msg.sprintf("creating dependency between %s and %s", this->get_name(), dependee_node->get_name());
-                this->debug_print(msg.c_str());
+//                msg.sprintf("creating dependency between %s and %s", this->get_name(), dependee_node->get_name());
+//                this->debug_print(msg.c_str());
                 
                 
                 vkCmdPipelineBarrier(

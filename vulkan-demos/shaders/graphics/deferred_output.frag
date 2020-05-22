@@ -14,11 +14,16 @@ layout(location = 1) in vec2 frag_uv_coord;
 layout(location = 0) out vec4 out_color;
 
 //binding 0 is used in vertex shader
-layout(input_attachment_index = 0, binding = 1 ) uniform subpassInput normals;//albedo;
+layout(input_attachment_index = 0, binding = 1 ) uniform subpassInput normals;
 layout(input_attachment_index = 1, binding = 2 ) uniform subpassInput albedo;
 layout(input_attachment_index = 2, binding = 3 ) uniform subpassInput world_positions;
 //the 3rd input attachment are the present textures...
 layout(input_attachment_index = 4, binding = 4 ) uniform subpassInput depth;
+
+
+
+#define DIRECTIONAL_LIGHT  0
+#define POINT_LIGHT  1
 
 layout(binding = 5, std140) uniform _rendering_state
 {
@@ -32,6 +37,8 @@ layout(binding = 5, std140) uniform _rendering_state
     int  num_of_lods;
     vec3 eye_in_world_space;
     mat4 eye_inverse_view_matrix;
+    mat4 light_cam_proj_matrix;
+    int  light_type;
     
 }rendering_state;
 
@@ -384,7 +391,12 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position)
     {
         if(world_position != vec3(0.0f))
         {
-            vec3 l = rendering_state.world_light_position.xyz - world_position;
+            //for directional lights, the position is the light direction
+            vec3 l = rendering_state.world_light_position.xyz;
+            
+            if(rendering_state.light_type == POINT_LIGHT)
+                l = rendering_state.world_light_position.xyz - world_position;
+            
             l = normalize(l);
             vec3 h = normalize( v + l);
             float ndoth = clamp( dot(n, h), 0.0f, 1.0f);
@@ -431,12 +443,31 @@ vec2 vsm_filter( vec2 moments, float fragDepth )
     float mD_2 = mD * mD;
     float p = variance / (variance + mD_2);
  
-    float result = fragDepth <= moments.x ? 1 : 0;
+    float result = float(fragDepth <= moments.x);// ? 1 : 0;
     lit.x = max( p, result );
 
     return lit; //lit.x == VSM calculation
 }
 
+float shadow_factor(vec3 world_position)
+{
+    vec4 texture_space = rendering_state.light_cam_proj_matrix * vec4(world_position, 1.0f);
+    
+    //to NDC
+    texture_space /= texture_space.w;
+    //to 3D texture space, remember that z is already between [0,1] in vulkan
+    texture_space.xy += 1.0f;
+    texture_space.xy *= .5f;
+    //also remember that in vulkan, y is flipped
+    texture_space.xy = 1.0f - texture_space.xy;
+    
+    vec2 moments = texture(voxel_albedos, texture_space.xyz).xy;
+    
+    float depth_val = subpassLoad(depth).x;
+    
+    return vsm_filter(moments, depth_val).x;
+    
+}
 void main()
 {
     //note: in a real scenario, you don't want all these branches around, this is purely for
@@ -501,6 +532,7 @@ void main()
                 //full ambient light plus direct light
                 direct.xyz += ambience.xyz;
                 direct.xyz *= (1.0f - ambience.a);
+                direct.xyz *= shadow_factor(world_position);
                 out_color.xyz = direct.xyz;
                 out_color.a = 1.0f;
             }

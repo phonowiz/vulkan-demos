@@ -18,8 +18,16 @@
 template<uint32_t NUM_CHILDREN>
 class mrt: public vk::graphics_node<5, NUM_CHILDREN>
 {
+    
+public:
+    
+    using light_type = typename voxelize<NUM_CHILDREN>::light_type;
+
 private:
     vk::orthographic_camera _ortho_camera;
+    
+    light_type _light_type = light_type::DIRECTIONAL_LIGHT;
+    vk::camera _light_cam;
     
 public:
     
@@ -44,21 +52,18 @@ public:
     using material_store_type = typename parent_type::material_store_type;
     using object_submask_type = typename parent_type::object_subpass_mask;
     
-    mrt(vk::device* dev, vk::glfw_swapchain* swapchain):
+    mrt(vk::device* dev, vk::glfw_swapchain* swapchain, vk::camera& key_light_cam, light_type light_type):
     parent_type(dev, swapchain->get_vk_swap_extent().width, swapchain->get_vk_swap_extent().height),
     _ortho_camera(_voxel_world_dimensions.x, _voxel_world_dimensions.y, _voxel_world_dimensions.z),
     _screen_plane(dev)
     {
         _swapchain= swapchain;
         _screen_plane.create();
+        
+        _light_cam = key_light_cam;
+        _light_type = light_type;
     }
-    
-    
-    void set_light_pos(glm::vec3 v)
-    {
-        _light_pos = v;
-    }
-    
+
     virtual void init_node() override
     {
         render_pass_type &pass = parent_type::_node_render_pass;
@@ -77,7 +82,7 @@ public:
         pass.add_object(_screen_plane);
         pass.skip_subpass(_screen_plane, 0);
         
-        assert(_obj_vector.size() != 0);
+        EA_ASSERT_MSG(_obj_vector.size() != 0, "there are no objects to be rendered in the MRT node");
         for(int i = 0; i < _obj_vector.size(); ++i)
         {
             pass.add_object(*_obj_vector[i]);
@@ -167,6 +172,8 @@ public:
         composite.init_parameter("num_of_lods", vk::parameter_stage::FRAGMENT, int(mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS), 5);
         composite.init_parameter("eye_in_world_space", vk::parameter_stage::FRAGMENT, glm::vec3(0), 5);
         composite.init_parameter("eye_inverse_view_matrix", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
+        composite.init_parameter("light_cam_proj_matrix", vk::parameter_stage::FRAGMENT, _light_cam.get_projection_matrix(), 5);
+        composite.init_parameter("light_type", vk::parameter_stage::FRAGMENT, int(_light_type), 5);
         
         composite.set_image_sampler(voxel_normal_set, "voxel_normals", vk::parameter_stage::FRAGMENT, 6, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         composite.set_image_sampler(voxel_albedo_set, "voxel_albedos", vk::parameter_stage::FRAGMENT, 7, vk::usage_type::COMBINED_IMAGE_SAMPLER);
@@ -189,6 +196,8 @@ public:
             composite.set_image_sampler(normal3d, normal_lods[i].c_str(), vk::parameter_stage::FRAGMENT, binding_index + offset, vk::usage_type::COMBINED_IMAGE_SAMPLER);
             binding_index++;
         }
+        
+        composite.set_image_sampler(vsm_set, "vsm", vk::parameter_stage::FRAGMENT, binding_index + offset, vk::usage_type::COMBINED_IMAGE_SAMPLER );
         
     }
     

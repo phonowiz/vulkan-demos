@@ -21,6 +21,10 @@ layout(location = 1) out vec3 out_normal;
 layout(location = 2) out vec3 out_light_vec;
 layout(location = 3) out vec3 out_view_vec;
 
+
+#define DIRECTIONAL_LIGHT  0
+#define POINT_LIGHT  1
+
 //this is bound using the descriptor set, at binding 0 on the vertex side
 layout(binding = 0, std140) uniform UBO
 {
@@ -28,6 +32,7 @@ layout(binding = 0, std140) uniform UBO
     mat4 projection;
     vec3 light_position;
     vec3 eye_position;
+    int  light_type;
 
 } ubo;
 
@@ -42,7 +47,12 @@ void main()
     
     vec4 world_pos = d_ubo.model * vec4(pos,1.f);
     
-    vec3 wrold_space_light_vec = ubo.light_position.xyz - world_pos.xyz;
+    //position is the direction in directional lights
+    vec3 wrold_space_light_vec = normalize(ubo.light_position);
+    if(ubo.light_type == POINT_LIGHT)
+    {
+        wrold_space_light_vec = ubo.light_position.xyz - world_pos.xyz;
+    }
     vec3 world_space_view_vec = ubo.eye_position.xyz - world_pos.xyz;
     
     vertex_color = color;
