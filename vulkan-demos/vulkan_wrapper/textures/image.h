@@ -42,6 +42,16 @@ namespace vk
             return _image;
         }
         
+        inline uint32_t get_layer_count()
+        {
+            return _depth;
+        }
+        
+        inline uint32_t get_mip_map_levels()
+        {
+            return _mip_levels;
+        }
+        
         inline VkImageView get_image_view()
         {
             return _image_view;
@@ -99,6 +109,7 @@ namespace vk
         enum class formats
         {
             R8G8B8A8_UNSIGNED_NORMALIZED = VK_FORMAT_R8G8B8A8_UNORM,
+            R32G32_SIGNED_FLOAT = VK_FORMAT_R32G32_SFLOAT,
             R32G32B32A32_SIGNED_FLOAT = VK_FORMAT_R32G32B32A32_SFLOAT,
             R16G16B16A16_UNSIGNED_NORMALIZED = VK_FORMAT_R16G16B16A16_UNORM,
             R8G8B8A8_SIGNED_NORMALIZED = VK_FORMAT_R8G8B8A8_SNORM,
@@ -132,6 +143,11 @@ namespace vk
         inline formats get_format()
         {
             return _format;
+        }
+        
+        inline VkImageAspectFlags get_aspect_flag()
+        {
+            return _aspect_flag;
         }
         
         virtual void set_format(formats f)

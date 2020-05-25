@@ -22,7 +22,7 @@ void depth_texture::create(uint32_t width, uint32_t height)
     //TODO: look into using function is_stencil_format
     _aspect_flag = static_cast< image::formats>(VK_FORMAT_D32_SFLOAT) != _format ?  (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) : VK_IMAGE_ASPECT_DEPTH_BIT;
 
-
+    
     VkImageUsageFlagBits usage_flags = _write_to_texture ? static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT  | VK_IMAGE_USAGE_SAMPLED_BIT) :
                             static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
     
@@ -32,7 +32,8 @@ void depth_texture::create(uint32_t width, uint32_t height)
     
     create_image_view( _image, depth_format, _image_view);
     
-    _image_layout = image_layouts::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    _image_layout = image_layouts::UNDEFINED;
+    _original_layout = image_layouts::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     
     _created = true;
     _initialized = true;
@@ -68,11 +69,13 @@ void depth_texture::init()
 }
 void depth_texture::set_format(vk::image::formats f)
 {
-    assert(f == formats::DEPTH_32_FLOAT || f == formats::DEPTH_32_STENCIL_8 ||
-           f == formats::DEPTH_24_STENCIL_8 );
+    EA_ASSERT_MSG(f == formats::DEPTH_32_FLOAT || f == formats::DEPTH_32_STENCIL_8 ||
+           f == formats::DEPTH_24_STENCIL_8, "invalid depth format" );
     
     set_channels(1);
-    _aspect_flag = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+    _aspect_flag = VK_IMAGE_ASPECT_DEPTH_BIT;
+    if(formats::DEPTH_32_FLOAT != f)
+     _aspect_flag = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 }
 
 void depth_texture::destroy()
@@ -103,7 +106,7 @@ VkAttachmentDescription depth_texture::get_depth_attachment()
     depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    depth_attachment.finalLayout = static_cast<VkImageLayout>(_image_layout);
+    depth_attachment.finalLayout = static_cast<VkImageLayout>(_original_layout);
     
     return depth_attachment;
 }

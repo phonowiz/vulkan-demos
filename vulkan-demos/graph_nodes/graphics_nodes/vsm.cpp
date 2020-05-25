@@ -15,7 +15,7 @@
 
 //variance shadow maps
 template< uint32_t NUM_CHILDREN>
-class vsm : public vk::graphics_node<1, NUM_CHILDREN>
+class vsm : public vk::graphics_node<2, NUM_CHILDREN>
 {
 public:
     static constexpr uint32_t VOXEL_CUBE_WIDTH = 256u;
@@ -43,7 +43,7 @@ private:
     
 public:
     
-    using parent_type = vk::graphics_node<1, NUM_CHILDREN>;
+    using parent_type = vk::graphics_node<2, NUM_CHILDREN>;
     using render_pass_type = typename parent_type::render_pass_type;
     using subpass_type = typename parent_type::render_pass_type::subpass_s;
     using object_vector_type = typename parent_type::object_vector_type;
@@ -59,23 +59,6 @@ public:
         _light_cam = &cam;
     }
     
-    void set_camera(vk::camera& cam)
-    {
-        _light_cam = &cam;
-    }
-    
-//    virtual bool record_node_commands(vk::command_recorder& buffer, uint32_t image_id)
-//    {
-//        parent_type::record_node_commands(buffer, image_id);
-//        
-//        EA_ASSERT(_vsm );
-//        
-//        //(*_vsm)[image_id].refresh_mipmaps(buffer.get_raw_graphics_command(image_id));
-//        
-//        return true;
-//    }
-    
-    
     virtual void init_node() override
     {
         render_pass_type &pass = parent_type::_node_render_pass;
@@ -90,23 +73,34 @@ public:
         
         
         subpass_type& cam_depth_subpass = pass.add_subpass(_mat_store, "vsm");
-        
+         
         vk::resource_set<vk::render_texture>& vsm =  _tex_registry->get_write_render_texture_set("vsm", this, vk::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::depth_texture>& vsm_depth = _tex_registry->get_write_depth_texture_set("vsm_depth", this, vk::usage_type::INPUT_ATTACHMENT);
         
+        
+        for( int i = 0; i < vsm_depth.size(); ++i)
+        {
+            vsm_depth[i].set_write_to_texture(true);
+        }
         _vsm = &vsm;
-        vk::attachment_group<1>& vsm_attachment_grp = pass.get_attachment_group();
+        vk::attachment_group<2>& vsm_attachment_grp = pass.get_attachment_group();
         
         vsm_attachment_grp.add_attachment(vsm, glm::vec4(0.0f));
+        vsm_attachment_grp.add_attachment(vsm_depth, glm::vec2(1.0f, 0.0f));
         
         vsm.set_format(vk::image::formats::R8G8_SIGNED_NORMALIZED);
         
         glm::vec2 dims = parent_type::_node_render_pass.get_dimensions();
         vsm.set_dimensions(dims.x, dims.y);
-        vsm.set_filter(vk::image::filter::LINEAR);
-        
+        vsm.set_filter(vk::image::filter::NEAREST);
+        vsm.set_format(vk::image::formats::R32G32_SIGNED_FLOAT);
         vsm.init();
+        vsm_depth.init();
         
-        cam_depth_subpass.add_output_attachment("vsm", render_pass_type::write_channels::RG, false);
+        cam_depth_subpass.add_output_attachment("vsm", render_pass_type::write_channels::RGBA, true);
+        cam_depth_subpass.add_output_attachment("vsm_depth", render_pass_type::write_channels::R, true);
+        
+        cam_depth_subpass.set_cull_mode(vk::graphics_pipeline<2>::cull_mode::NONE );
         
         cam_depth_subpass.init_parameter("view", vk::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
         cam_depth_subpass.init_parameter("projection", vk::parameter_stage::VERTEX, glm::mat4(1.0f), 0);

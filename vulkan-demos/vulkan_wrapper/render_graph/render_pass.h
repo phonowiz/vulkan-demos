@@ -693,7 +693,7 @@ namespace vk
         EA_ASSERT_MSG(_attachment_group.size() <= MAX_NUMBER_OF_ATTACHMENTS, "maximum number of attachments has been exceeded");
         EA_ASSERT_MSG(_attachment_group.size() != 0, "attachment group size cannot be 0.  You need to add resource_sets to attachment groups");
         EA_ASSERT_MSG(_dimensions.x != 0 && _dimensions.y !=0, "attachment dimensions cannot be zero" );
-        EA_ASSERT(_device != nullptr);
+        EA_ASSERT_MSG(_device != nullptr, "vk::device has not been assigned to this render pass");
         
         _attachment_group.init(swapchain_id);
 

@@ -83,10 +83,9 @@ namespace vk
             return _node_dependees_map[static_cast<vk::object*>(dependant_node)];
         }
         
-        
         inline resource_set<depth_texture>& get_read_depth_texture_set( const char* name, node_type* node, vk::usage_type usage_type)
         {
-            eastl::shared_ptr< resource_set<depth_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, usage_type);
+            eastl::shared_ptr< resource_set<depth_texture>> tex =  get_read_texture<resource_set<depth_texture>>(name, node, usage_type);
             EA_ASSERT_FORMATTED(tex != nullptr, (" Invalid graph, texture %s which this node depends on has not been found", name));
             
             return *tex;
@@ -215,6 +214,14 @@ namespace vk
 
                     set->reset_image_layout();
                 }
+                
+                if(res->get_instance_type()  == resource_set<vk::depth_texture>::get_class_type() ||
+                   res->get_instance_type() == resource_set<vk::depth_texture*>::get_class_type())
+                {
+                    eastl::shared_ptr< resource_set<vk::depth_texture> > set = eastl::static_pointer_cast< resource_set<vk::depth_texture>>(res);
+
+                    set->reset_image_layout();
+                }
 
                 ++iter;
             }
@@ -260,7 +267,6 @@ namespace vk
                 //node->debug_print(msg.c_str());
                 
                 d.consumed = true;
-                
                 make_dependency(*result, d, node, usage_type);
                 
             }
@@ -290,8 +296,6 @@ namespace vk
                 info.consumed = false;
 
                 _dependee_data_map[name] = info;
-                
-                assert(_dependee_data_map.find(name) != _dependee_data_map.end());
             }
             else
             {

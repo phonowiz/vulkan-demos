@@ -243,11 +243,18 @@ namespace  vk
                 barrier.srcAccessMask = get_src_access_mask(producer);
                 barrier.dstAccessMask = get_dst_access_maks(consumer);
 
-                barrier.oldLayout = static_cast<VkImageLayout>(p_image->get_native_layout());;
+                barrier.oldLayout = static_cast<VkImageLayout>(p_image->get_original_layout());
                 barrier.newLayout = static_cast<VkImageLayout>((*b).layout);
                 
                 barrier.image = p_image->get_image();
+                
                 barrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
+                
+                if(p_image->get_instance_type() == vk::depth_texture::get_class_type())
+                {
+                    barrier.subresourceRange = { p_image->get_aspect_flag() , 0, 1, 0, 1 };
+                }
+                
                 //we are not transferring ownership
                 barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
                 barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -319,7 +326,7 @@ namespace  vk
                     }
                     else if(res->get_instance_type()  == resource_set<vk::depth_texture>::get_class_type())
                     {
-                        eastl::shared_ptr< resource_set<vk::texture_3d> > set = eastl::static_pointer_cast< resource_set<vk::texture_3d>>(res);
+                        eastl::shared_ptr< resource_set<vk::depth_texture> > set = eastl::static_pointer_cast< resource_set<vk::depth_texture>>(res);
                         vk::image* tex = &((*set)[image_id]);
                         
                         create_barrier(buffer, tex, b, image_id );

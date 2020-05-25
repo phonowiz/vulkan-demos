@@ -30,10 +30,20 @@ namespace vk {
         virtual void create_sampler() override;
         virtual void set_format( formats f) override;
         virtual void set_write_to_texture(bool write){ _write_to_texture = write; };
+        bool get_write_to_texture(){ return _write_to_texture; }
         
         
         static  char const * const *  get_class_type(){ return (&_image_type); }
         virtual char const * const *  get_instance_type() override { return (&_image_type); };
+        
+        
+        virtual void reset_image_layout() override
+        {
+            //this texture relies on render passes to reset the layout...
+            //unlike other textures that do it themselves
+            _image_layout = _original_layout;
+            
+        }
         
         virtual image_layouts get_usage_layout( vk::usage_type usage) override
         {
@@ -42,6 +52,10 @@ namespace vk {
             if(usage == vk::usage_type::INPUT_ATTACHMENT)
             {
                 layout = image::image_layouts::DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+            }
+            if(usage == vk::usage_type::COMBINED_IMAGE_SAMPLER)
+            {
+                layout = image::image_layouts::SHADER_READ_ONLY_OPTIMAL;
             }
             if(usage == vk::usage_type::STORAGE_IMAGE)
             {

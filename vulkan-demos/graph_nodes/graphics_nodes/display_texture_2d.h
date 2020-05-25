@@ -30,10 +30,11 @@ public:
     using tex_registry_type = typename parent_type::tex_registry_type;
     
     
-    display_texture_2d(vk::device* dev, vk::glfw_swapchain* swapchain, uint32_t width,uint32_t height, const char* text):
+    display_texture_2d(vk::device* dev, vk::glfw_swapchain* swapchain, uint32_t width,uint32_t height, const char* text, char const * const * texture_type = vk::render_texture::get_class_type() ):
     parent_type(dev, width, height),
     _screen_plane(dev)
     {
+        _texture_type = texture_type;
         _swapchain = swapchain;
         _texture = text;
         parent_type::_name = "display_texture_2d";
@@ -63,12 +64,31 @@ public:
         _screen_plane.create();
         subpass_type& sub_p = pass.add_subpass(parent_type::_material_store, _shader);
         
-        //vk::texture_2d& ptr = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
-        vk::resource_set<vk::render_texture>& rsrc = _tex_registry->get_read_render_texture_set(_texture, this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        if(_texture_type == vk::render_texture::get_class_type())
+        {
+            vk::resource_set<vk::render_texture>& rsrc = _tex_registry->get_read_render_texture_set(_texture, this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            sub_p.set_image_sampler(rsrc, "tex", vk::parameter_stage::FRAGMENT, 1,
+                                           vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        }
+        else if(_texture_type == vk::depth_texture::get_class_type())
+        {
+            vk::resource_set<vk::depth_texture>& rsrc = _tex_registry->get_read_depth_texture_set(_texture, this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            sub_p.set_image_sampler(rsrc, "tex", vk::parameter_stage::FRAGMENT, 1,
+            vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        }
+        else if(vk::texture_2d::get_class_type() == _texture_type)
+        {
+            vk::texture_2d& rsrc = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
+            sub_p.set_image_sampler(rsrc, "tex", vk::parameter_stage::FRAGMENT, 1,
+                                            vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        }
+        else
+        {
+            EA_FAIL_MSG("unrecognized texture");
+        }
+        //vk::resource_set<vk::render_texture>& rsrc = _tex_registry->get_read_render_texture_set(_texture, this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        //vk::resource_set<vk::image>& rsrc = _tex_registry->get_read_image_texture_set(_texture, this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
-        
-        sub_p.set_image_sampler(rsrc, "tex", vk::parameter_stage::FRAGMENT, 1,
-                                       vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         int binding = 0;
         sub_p.init_parameter("width", vk::parameter_stage::VERTEX,
@@ -101,6 +121,7 @@ private:
     
     using parent_type::add_object;
     
+    char const * const *  _texture_type = nullptr;
     const char* _shader = "display";
     vk::screen_plane _screen_plane;
     vk::glfw_swapchain* _swapchain = nullptr;

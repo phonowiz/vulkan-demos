@@ -124,7 +124,7 @@ void game_loop()
     {
         glfwPollEvents();
         app.user_controller->update();
-        app.texture_3d_view_controller->update();
+        //app.texture_3d_view_controller->update();
 
         app.voxel_graph->update(*app.perspective_camera, next_swap);
         app.voxel_graph->record(next_swap);
@@ -204,9 +204,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if( key == GLFW_KEY_6 && action == GLFW_PRESS)
     {
         app.debug_node_3d->set_active(true);
-        
     }
     
+    if( key == GLFW_KEY_7 && action == GLFW_PRESS)
+    {
+        app.debug_node_3d->set_active(false);
+        app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::KEY_LIGHT_DEPTH);
+    }
     if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
         app.quit = true;
@@ -251,7 +255,7 @@ int main()
     model.create();
 
     
-    model.transform.position = glm::vec3(0.5f, -.50f, .0f);
+    model.transform.position = glm::vec3(0.5f, -.50f, .00f);
     model.transform.scale = glm::vec3(1.2f, 1.2f, 1.2f);
     model.transform.update_transform_matrix();
     
@@ -299,22 +303,24 @@ int main()
     
     vk::graph<4> voxel_cone_tracing(&device, material_store, swapchain);
     
-    vk::orthographic_camera directional_light_cam(5.0f, 5.0f, 10.0f);
+    //vk::orthographic_camera directional_light_cam(5.0f, 5.0f, 10.0f);
+    vk::perspective_camera directional_light_cam(glm::radians(45.0f),
+                                                  aspect, .01f, 10.0f);
+    
     directional_light_cam.up = glm::vec3(0.0,  1.0f, 0.0f);
-    directional_light_cam.position = glm::vec3(1.0f, 1.8f, -5.0f);
+    directional_light_cam.position = glm::vec3(.4f, 1.5f, -8.0f);
     directional_light_cam.forward = -directional_light_cam.position;
     directional_light_cam.update_view_matrix();
     
-    mrt<4> mrt_node(&device, &swapchain, directional_light_cam, mrt<4>::light_type::DIRECTIONAL_LIGHT);
+    mrt<4> mrt_node(&device, &swapchain, directional_light_cam, mrt<4>::light_type::POINT_LIGHT);
     
     vsm<4> vsm_node(&device, swapchain.get_vk_swap_extent().width,
                     swapchain.get_vk_swap_extent().height, directional_light_cam);
     
-    vsm_node.set_camera(directional_light_cam);
     vsm_node.set_name("vsm node");
     
     mrt_node.set_name("mrt");
-    
+    mrt_node.set_rendering_state( mrt<4>::rendering_mode::KEY_LIGHT_DEPTH);
     app.mrt_node = &mrt_node;
     
     eastl::array<voxelize<4>, 3> voxelizers;
@@ -453,7 +459,7 @@ int main()
     display_texture_3d<4> debug_node_3d(&device,&swapchain, dims, "voxel_albedos2" );
 
     debug_node_3d.set_name("3d-texture-render");
-    debug_node_3d.set_active(true);
+    debug_node_3d.set_active(false);
     
     debug_node_3d.set_3D_texture_cam(three_d_texture_cam);
     
@@ -478,7 +484,7 @@ int main()
     gsb_horizontal.add_child(gsb_vertical);
 
     gsm_debug.add_child(gsb_horizontal);
-    gsm_debug.set_active(false);
+    gsm_debug.set_active(true);
     //attach the mrt node to the graph
     //voxel_cone_tracing.add_child(gsm_debug);
 

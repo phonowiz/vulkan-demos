@@ -79,7 +79,7 @@ namespace vk
                 }
             }
             
-            assert( result != -1 && "attachment not found, did you misspell the name?");
+            EA_ASSERT_MSG( result != -1, "attachment not found, did you misspell the name?");
             return result;
         }
         
@@ -88,19 +88,22 @@ namespace vk
             resource_set<image*>* result = nullptr;
                 
             int32_t i = get_depth_set_index();
-            assert(i != -1);
+            EA_ASSERT_MSG(i != -1, "depth attachment was not found");
             result = &(_attachments[i]);
                 
             return result;
         }
     
         inline void add_attachment(resource_set<depth_texture>& depth_set,
-                                glm::vec2 defaults, bool clear = true, bool store = true)
+                                   glm::vec2 defaults, bool clear = true, bool store = true)
         {
+            EA_ASSERT_MSG(num_attachments < NUM_ATTACHMENTS, "too many attachments have been added");
             _clear_values[num_attachments] = { defaults.x, defaults.y};
             _clear[num_attachments] = clear;
             _store[num_attachments] = store;
             add_attachment(depth_set);
+            
+
         }
         
         //when render pass is done, should we store attachment
@@ -118,15 +121,19 @@ namespace vk
         template< typename R>
         inline void add_attachment(resource_set<R>& textures_set, glm::vec4 clear_color, bool clear = true, bool store = true)
         {
+            EA_ASSERT_MSG(num_attachments < NUM_ATTACHMENTS, "too many attachments have been added.");
+            
             _clear_values[num_attachments] = { clear_color.x, clear_color.y, clear_color.z, clear_color.w};
             _clear[num_attachments] = clear;
             _store[num_attachments] = store;
             add_attachment(textures_set);
+            
+
         }
         
         inline void init(uint32_t swapchain_id)
         {
-            assert(num_attachments ==NUM_ATTACHMENTS && "you haven't populated all attachments");
+            EA_ASSERT_MSG(num_attachments ==NUM_ATTACHMENTS, "you haven't populated all attachments");
         }
         
         

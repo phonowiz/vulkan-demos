@@ -40,7 +40,8 @@ public:
         FULL_RENDERING,
         AMBIENT_OCCLUSION,
         AMBIENT_LIGHT,
-        DIRECT_LIGHT
+        DIRECT_LIGHT,
+        KEY_LIGHT_DEPTH
     };
     
     using parent_type = vk::graphics_node<5, NUM_CHILDREN>;
@@ -115,7 +116,7 @@ public:
         albedos.set_filter(vk::image::filter::NEAREST);
         
         positions.set_filter(vk::image::filter::NEAREST);
-        
+        positions.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
         depth.set_format(vk::image::formats::DEPTH_32_FLOAT);
         depth.set_filter(vk::image::filter::NEAREST);
         
@@ -172,7 +173,7 @@ public:
         composite.init_parameter("num_of_lods", vk::parameter_stage::FRAGMENT, int(mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS), 5);
         composite.init_parameter("eye_in_world_space", vk::parameter_stage::FRAGMENT, glm::vec3(0), 5);
         composite.init_parameter("eye_inverse_view_matrix", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
-        composite.init_parameter("light_cam_proj_matrix", vk::parameter_stage::FRAGMENT, _light_cam.get_projection_matrix(), 5);
+        composite.init_parameter("light_cam_proj_matrix", vk::parameter_stage::FRAGMENT, _light_cam.get_projection_matrix() * _light_cam.view_matrix, 5);
         composite.init_parameter("light_type", vk::parameter_stage::FRAGMENT, int(_light_type), 5);
         
         composite.set_image_sampler(voxel_normal_set, "voxel_normals", vk::parameter_stage::FRAGMENT, 6, vk::usage_type::COMBINED_IMAGE_SAMPLER);
@@ -237,6 +238,7 @@ public:
         display_fragment_params["world_cam_position"] = glm::vec4(camera.position, 1.0f);
         display_fragment_params["world_light_position"] = _light_pos;
         display_fragment_params["light_color"] = _light_color;
+        display_fragment_params["light_cam_proj_matrix"] = _light_cam.get_projection_matrix() * _light_cam.view_matrix;
         display_fragment_params["mode"] = static_cast<int>(_rendering_mode);
         
         for( int i = 0; i < obj_vec.size(); ++i)
