@@ -85,7 +85,7 @@ public:
         _vsm = &vsm;
         vk::attachment_group<2>& vsm_attachment_grp = pass.get_attachment_group();
         
-        vsm_attachment_grp.add_attachment(vsm, glm::vec4(0.0f));
+        vsm_attachment_grp.add_attachment(vsm, glm::vec4(1.0f));
         vsm_attachment_grp.add_attachment(vsm_depth, glm::vec2(1.0f, 0.0f));
         
         vsm.set_format(vk::image::formats::R8G8_SIGNED_NORMALIZED);

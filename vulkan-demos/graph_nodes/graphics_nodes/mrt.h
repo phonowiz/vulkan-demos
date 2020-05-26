@@ -41,7 +41,7 @@ public:
         AMBIENT_OCCLUSION,
         AMBIENT_LIGHT,
         DIRECT_LIGHT,
-        KEY_LIGHT_DEPTH
+        VARIANCE_SHADOW_MAP
     };
     
     using parent_type = vk::graphics_node<5, NUM_CHILDREN>;
@@ -236,7 +236,7 @@ public:
         display_fragment_params["eye_in_world_space"] = camera.position;
 
         display_fragment_params["world_cam_position"] = glm::vec4(camera.position, 1.0f);
-        display_fragment_params["world_light_position"] = _light_pos;
+        display_fragment_params["world_light_position"] = _light_cam.position;
         display_fragment_params["light_color"] = _light_color;
         display_fragment_params["light_cam_proj_matrix"] = _light_cam.get_projection_matrix() * _light_cam.view_matrix;
         display_fragment_params["mode"] = static_cast<int>(_rendering_mode);
@@ -286,7 +286,6 @@ private:
     static constexpr size_t   NUM_SAMPLING_RAYS = 5;
     eastl::array<glm::vec4, NUM_SAMPLING_RAYS> _sampling_rays = {};
     
-    glm::vec3 _light_pos = glm::vec3(0.0f, .8f, 0.0f);
     glm::vec4 _light_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 };
 

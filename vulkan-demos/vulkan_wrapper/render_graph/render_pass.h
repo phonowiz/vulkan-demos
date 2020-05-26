@@ -354,6 +354,14 @@ namespace vk
                 }
             }
             
+            inline void set_polygon_fill(polygon_mode mode)
+            {
+                for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
+                {
+                    _pipeline[chain_id].set_polygon_fill(mode) ;
+                }
+            }
+            
             
             void set_material( material_store& store, const char* material_name)
             {

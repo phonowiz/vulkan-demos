@@ -76,7 +76,7 @@ int FULL_RENDERING = 4;
 int AMBIENT_OCCLUSION = 5;
 int AMBIENT_LIGHT = 6;
 int DIRECT_LIGHT = 7;
-int KEY_LIGHT_DEPTH = 8;
+int VARIANCE_SHADOW_MAP = 8;
 
 float voxel_jump = 1.8f;
 float num_voxels_limit = 10.0f;
@@ -428,25 +428,26 @@ vec3 decode (vec2 enc)
     return n;
 }
 
-
-float linstep(float low, float high, float v)
-{
-    return clamp((v - low)/(high-low), 0.0f, 1.0f);
-}
 ////variance shadow maps, based off of
 ////http://developer.download.nvidia.com/SDK/10/direct3d/Source/VarianceShadowMapping/Doc/VarianceShadowMapping.pdf
 ////and
 ////http://www.punkuser.net/vsm/vsm_paper.pdf
 //
-vec2 vsm_filter( vec2 moments, float fragDepth )
+float linstep(float low, float high, float v)
+{
+    return clamp((v - low)/(high-low), 0.0f, 1.0f);
+}
+
+vec2 vsm_filter( vec3 moments, float fragDepth )
 {
     vec2 lit = vec2(0.0f);
     float E_x2 = moments.y;
     float Ex_2 = moments.x * moments.x;
-    float variance = max(E_x2 - Ex_2, 0.000002f);
+    float variance = max(E_x2 - Ex_2, 0.00002f);
     float mD = fragDepth - moments.x ;
+    
     float mD_2 = mD * mD;
-    float p = linstep(0.979f, 1.0f, variance / (variance + mD_2));
+    float p = linstep(0.97f, 1.0f, variance / (variance + mD_2));
  
     float result = fragDepth <= moments.x  ? 1 : 0;
     lit.x = min(max( p , result ), 1.0f);
@@ -458,34 +459,20 @@ float shadow_factor(vec3 world_position)
 {
     vec4 texture_space = rendering_state.light_cam_proj_matrix * vec4(world_position, 1.0f);
     
-    
     //to NDC
     texture_space /= texture_space.w;
-    //to 3D texture space, remember that z is already between [0,1] in vulkan
+    //to  2D texture space, remember that z is already between [0,1] in vulkan
     texture_space.xy += 1.0f;
     texture_space.xy *= .5f;
-    
-    //texture_space.z += .00001f;
-    //also remember that in vulkan, y is flipped
-    //texture_space.xy = 1.0f - texture_space.xy;
-    
-    //return texture_space.z;
-    
-    vec2 moments = texture(vsm, texture_space.xy).xy;
+        
+    vec3 moments = texture(vsm, texture_space.xy).xyz;
 
-    //return texture_space.z;
-    //return moments.y;
-    //return (1-subpassLoad(depth).x) * (  90);
-    //return moments.y;//(1-moments.x) * 90;
-
-    //out_color = subpassLoad(depth);
-    //out_color.xyz = 1 - out_color.xxx;
-    //out_color.x *= 90.0f;
-    //float color = texture_space.z <=  moments.x ? 1 : 0;
-    //return color;
     return vsm_filter(moments, texture_space.z).x;
     
 }
+///////////////////////////////////////////////////
+
+
 void main()
 {
     //note: in a real scenario, you don't want all these branches around, this is purely for
@@ -511,20 +498,15 @@ void main()
         out_color.xyz = 1 - out_color.xxx;
         out_color.x *= 90.0f;
     }
-    else if( rendering_state.mode == KEY_LIGHT_DEPTH)
+    else if( rendering_state.mode == VARIANCE_SHADOW_MAP)
     {
         vec3 world_position = subpassLoad(world_positions).xyz;
-        
+        out_color = vec4(0);
         if(world_position != vec3(0))
         {
             float f = shadow_factor(world_position);
             out_color = vec4(f, f, f, 1.0f);
         }
-        else
-        {
-            out_color = vec4(0);
-        }
-
     }
     else
     {
@@ -563,9 +545,10 @@ void main()
             {
                 vec4 direct = direct_illumination( world_normal, world_position);
                 //full ambient light plus direct light
+                direct.xyz *= (shadow_factor(world_position));
                 direct.xyz += ambience.xyz;
                 direct.xyz *= (1.0f - ambience.a);
-                direct.xyz *= shadow_factor(world_position);
+
                 out_color.xyz = direct.xyz;
                 out_color.a = 1.0f;
             }

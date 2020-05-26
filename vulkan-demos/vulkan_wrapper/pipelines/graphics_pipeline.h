@@ -23,11 +23,19 @@ namespace vk
 {
     class texture_2d;
     
+    enum class polygon_mode
+    {
+        FILL = VK_POLYGON_MODE_FILL,
+        LINE = VK_POLYGON_MODE_LINE,
+        POINT = VK_POLYGON_MODE_POINT
+    };
+
     template< uint32_t NUM_ATTACHMENTS>
     class graphics_pipeline : public pipeline
     {
     public:
 
+        
         enum class write_channels
         {
             R = VK_COLOR_COMPONENT_R_BIT,
@@ -74,8 +82,14 @@ namespace vk
         void create(VkRenderPass& vk_render_pass,uint32_t subpass_id);
 
         
-        void set_viewport(uint32_t width, uint32_t height){ _width = width; _height = height;};
-        void set_cull_mode(cull_mode mode){ _cull_mode = mode; };
+        inline void set_viewport(uint32_t width, uint32_t height){ _width = width; _height = height;};
+        inline void set_cull_mode(cull_mode mode){ _cull_mode = mode; };
+        
+        inline void set_polygon_fill(polygon_mode mode)
+        {
+            _polygon_mode = mode;
+        }
+        
         void set_material(visual_mat_shared_ptr material )
         {
             _material[0] = material;
@@ -216,6 +230,7 @@ namespace vk
         uint32_t _height = 0;
         
         cull_mode _cull_mode = cull_mode::BACK_FACE;
+        polygon_mode _polygon_mode = polygon_mode::FILL;
         
         std::array<VkPipeline, 1 >       _pipeline {};
         std::array<VkPipelineLayout, 1>  _pipeline_layout {};

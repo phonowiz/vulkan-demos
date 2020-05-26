@@ -80,7 +80,7 @@ void graphics_pipeline<NUM_ATTACHMENTS>::create(VkRenderPass& vk_render_passes, 
     rasterization_state_create_info.depthClampEnable = VK_TRUE;
 #endif
     rasterization_state_create_info.rasterizerDiscardEnable = VK_FALSE;
-    rasterization_state_create_info.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterization_state_create_info.polygonMode = static_cast<VkPolygonMode>(_polygon_mode);
     rasterization_state_create_info.cullMode = static_cast<VkCullModeFlagBits>(_cull_mode);
 
     rasterization_state_create_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;

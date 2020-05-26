@@ -124,7 +124,7 @@ void game_loop()
     {
         glfwPollEvents();
         app.user_controller->update();
-        //app.texture_3d_view_controller->update();
+        app.texture_3d_view_controller->update();
 
         app.voxel_graph->update(*app.perspective_camera, next_swap);
         app.voxel_graph->record(next_swap);
@@ -209,7 +209,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if( key == GLFW_KEY_7 && action == GLFW_PRESS)
     {
         app.debug_node_3d->set_active(false);
-        app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::KEY_LIGHT_DEPTH);
+        app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::VARIANCE_SHADOW_MAP);
     }
     if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
@@ -237,9 +237,6 @@ int main()
 
     vk::glfw_swapchain swapchain(&device, window, surface);
     
-
-    //vk::graph<1> graph(&device, material_store, swapchain);
-    
     app.device = &device;
     
     //glfwSetCursorPos(window, width * .5f, height * .5f);
@@ -255,7 +252,7 @@ int main()
     model.create();
 
     
-    model.transform.position = glm::vec3(0.5f, -.50f, .00f);
+    model.transform.position = glm::vec3(0.2f, -.50f, -.200f);
     model.transform.scale = glm::vec3(1.2f, 1.2f, 1.2f);
     model.transform.update_transform_matrix();
     
@@ -286,12 +283,6 @@ int main()
     app.shapes.push_back(&model);
 
     
-//    display_texture_2d<1> debug_node(&device, &swapchain, swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height, "mario.png");
-//
-//    graph.add_child(debug_node);
-//
-//    app.graph = &graph;
-    
     first_person_controller user_controler( app.perspective_camera, window);
     first_person_controller  texture_3d_view_controller(app.three_d_texture_camera, window);
     
@@ -303,24 +294,23 @@ int main()
     
     vk::graph<4> voxel_cone_tracing(&device, material_store, swapchain);
     
-    //vk::orthographic_camera directional_light_cam(5.0f, 5.0f, 10.0f);
-    vk::perspective_camera directional_light_cam(glm::radians(45.0f),
+    vk::perspective_camera point_light_cam(glm::radians(110.0f),
                                                   aspect, .01f, 10.0f);
     
-    directional_light_cam.up = glm::vec3(0.0,  1.0f, 0.0f);
-    directional_light_cam.position = glm::vec3(.4f, 1.5f, -8.0f);
-    directional_light_cam.forward = -directional_light_cam.position;
-    directional_light_cam.update_view_matrix();
+    point_light_cam.up = glm::vec3(0.0,  1.0f, 0.001f);
+    point_light_cam.position = glm::vec3(0.f, .99f, .0f);
+    point_light_cam.forward = -point_light_cam.position;
+    point_light_cam.update_view_matrix();
     
-    mrt<4> mrt_node(&device, &swapchain, directional_light_cam, mrt<4>::light_type::POINT_LIGHT);
+    mrt<4> mrt_node(&device, &swapchain, point_light_cam, mrt<4>::light_type::POINT_LIGHT);
     
     vsm<4> vsm_node(&device, swapchain.get_vk_swap_extent().width,
-                    swapchain.get_vk_swap_extent().height, directional_light_cam);
+                    swapchain.get_vk_swap_extent().height, point_light_cam);
     
     vsm_node.set_name("vsm node");
     
     mrt_node.set_name("mrt");
-    mrt_node.set_rendering_state( mrt<4>::rendering_mode::KEY_LIGHT_DEPTH);
+    mrt_node.set_rendering_state( mrt<4>::rendering_mode::FULL_RENDERING);
     app.mrt_node = &mrt_node;
     
     eastl::array<voxelize<4>, 3> voxelizers;
@@ -345,9 +335,8 @@ int main()
         voxelizers[i].set_cam_params(cam_positions[i], up_vectors[i]);
         voxelizers[i].set_name(names[i]);
         voxelizers[i].set_dimensions(voxelize<4>::VOXEL_CUBE_WIDTH, voxelize<4>::VOXEL_CUBE_HEIGHT);
-        //vector towards light
-        //voxelizers[i].set_light_dir(glm::vec3(0.0f, .0f, -1.f));
-        voxelizers[i].set_key_light_cam(directional_light_cam, voxelize<4>::light_type::DIRECTIONAL_LIGHT);
+
+        voxelizers[i].set_key_light_cam(point_light_cam, voxelize<4>::light_type::POINT_LIGHT);
         //TODO: LET'S CREATE A MESH NODE, ATTACH THESE TO VOXELIZERS
         for(int j = 0; j < app.shapes.size(); ++j)
         {
@@ -395,9 +384,9 @@ int main()
     
     for( int map_id = 1; map_id < clear_mip_maps.size(); ++map_id)
     {
-        assert((voxelize<4>::VOXEL_CUBE_WIDTH >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
-        assert((voxelize<4>::VOXEL_CUBE_HEIGHT >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
-        assert((voxelize<4>::VOXEL_CUBE_DEPTH >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, voxel texture will not clear properly");
+        EA_ASSERT_MSG((voxelize<4>::VOXEL_CUBE_WIDTH >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0, "invalid voxel cube size, voxel texture will not clear properly");
+        EA_ASSERT_MSG((voxelize<4>::VOXEL_CUBE_HEIGHT >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0, "invalid voxel cube size, voxel texture will not clear properly");
+        EA_ASSERT_MSG((voxelize<4>::VOXEL_CUBE_DEPTH >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0, "invalid voxel cube size, voxel texture will not clear properly");
 
 
         uint32_t local_groups_x = (voxelize<4>::VOXEL_CUBE_WIDTH >> map_id) / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE;
@@ -472,9 +461,6 @@ int main()
     
     vsm_node.add_child(debug_node_3d);
     vsm_debug.add_child(vsm_node);
-    
-    //mrt_node.add_child(vsm_debug);
-    
 
     gaussian_blur<4> gsb_vertical(&device,  dims.x, dims.y, gaussian_blur<4>::DIRECTION::VERTICAL, "vsm", "gauss_vertical");
     gaussian_blur<4> gsb_horizontal(&device, dims.x, dims.y, gaussian_blur<4>::DIRECTION::HORIZONTAL, "gauss_vertical", "blur_final");
@@ -484,9 +470,8 @@ int main()
     gsb_horizontal.add_child(gsb_vertical);
 
     gsm_debug.add_child(gsb_horizontal);
-    gsm_debug.set_active(true);
-    //attach the mrt node to the graph
-    //voxel_cone_tracing.add_child(gsm_debug);
+    gsm_debug.set_active(false);
+
 
     mrt_node.add_child(gsm_debug);
     
@@ -495,15 +480,11 @@ int main()
     app.debug_node_3d = &debug_node_3d;
 
     app.voxel_graph->init();
-    //app.graph->init();
-    
-    //game_loop_ortho();
     game_loop();
     
     device.wait_for_all_operations_to_finish();
 
     app.voxel_graph->destroy_all();
-    //app.graph->destroy_all();
     
     material_store.destroy();
     model.destroy();

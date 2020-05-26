@@ -71,10 +71,11 @@ public:
         
         vk::attachment_group<1>& attach_group = pass.get_attachment_group();
         
-        vk::resource_set<vk::render_texture>& gaussblur_tex = _tex_registry->get_write_render_texture_set(_output_texture.c_str(), this, vk::usage_type::INPUT_ATTACHMENT);
-        attach_group.add_attachment(gaussblur_tex, glm::vec4(0.0f));
+        vk::resource_set<vk::render_texture>& gaussblur_tex =
+                _tex_registry->get_write_render_texture_set(_output_texture.c_str(), this, vk::usage_type::INPUT_ATTACHMENT);
+        attach_group.add_attachment(gaussblur_tex, glm::vec4(1.0f));
         
-        gaussblur_tex.set_format(vk::image::formats::R32G32_SIGNED_FLOAT);
+        gaussblur_tex.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
         gaussblur_tex.set_filter(vk::image::filter::NEAREST);
         gaussblur_tex.init();
         
@@ -83,6 +84,7 @@ public:
         sub_p.init_parameter("blurScale", vk::parameter_stage::FRAGMENT, 1.f, 1);
         sub_p.init_parameter("blurStrength", vk::parameter_stage::FRAGMENT, 1.f, 1);
         sub_p.init_parameter("blurDirection", vk::parameter_stage::FRAGMENT, int(_dir), 1 );
+        
         
         vk::resource_set<vk::render_texture>& target = _tex_registry->get_read_render_texture_set(_input_texture.c_str(), this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
