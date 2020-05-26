@@ -14,9 +14,6 @@
 
 #include "glm/gtx/rotate_vector.hpp"
 
-//#include "Time/FrameRate.h"
-//#include "Graphic/Camera/PerspectiveCamera.h"
-//#include "Application.h"
 #define GLFW_INCLUDE_VULKAN
 
 

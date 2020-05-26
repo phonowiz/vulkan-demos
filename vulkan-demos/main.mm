@@ -37,6 +37,7 @@
 
 #include "vulkan_wrapper/cameras/perspective_camera.h"
 #include "camera_controllers/first_person_controller.h"
+#include "camera_controllers/circle_controller.h"
 
 #include "graph_nodes/graphics_nodes/display_texture_2d.h"
 #include "graph_nodes/graphics_nodes/display_texture_3d.h"
@@ -100,6 +101,7 @@ struct App
     
     first_person_controller* user_controller = nullptr;
     first_person_controller* texture_3d_view_controller = nullptr;
+    circle_controller* circle_controller = nullptr;
     
     vk::camera*     perspective_camera = nullptr;
     vk::camera*     three_d_texture_camera = nullptr;
@@ -123,9 +125,9 @@ void game_loop()
     while (!glfwWindowShouldClose(window) && !app.quit)
     {
         glfwPollEvents();
-        app.user_controller->update();
-        app.texture_3d_view_controller->update();
-
+        //app.user_controller->update();
+        //app.texture_3d_view_controller->update();
+        app.circle_controller->update();
         app.voxel_graph->update(*app.perspective_camera, next_swap);
         app.voxel_graph->record(next_swap);
         app.voxel_graph->execute(next_swap);
@@ -285,8 +287,10 @@ int main()
     
     first_person_controller user_controler( app.perspective_camera, window);
     first_person_controller  texture_3d_view_controller(app.three_d_texture_camera, window);
+    circle_controller   circle_controller(app.perspective_camera, 1.8f, glm::vec3(0.0f, -.02f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
     
     app.user_controller = &user_controler;
+    app.circle_controller = &circle_controller;
     app.texture_3d_view_controller = &texture_3d_view_controller;
     
     app.user_controller->update();

@@ -226,6 +226,7 @@
 		B96A668C244701B10076ACB1 /* resource_set.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = resource_set.h; sourceTree = "<group>"; };
 		B96AB61C22EE5C4000F33807 /* transform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = transform.h; sourceTree = "<group>"; };
 		B96AB61E22EE5E5000F33807 /* transform.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = transform.cpp; sourceTree = "<group>"; };
+		B97347BF247CC55B005E3E1D /* circle_controller.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = circle_controller.h; sourceTree = "<group>"; };
 		B978316022E541AF00E5DE71 /* camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = camera.cpp; sourceTree = "<group>"; };
 		B978316122E541AF00E5DE71 /* camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = camera.h; sourceTree = "<group>"; };
 		B978316322E5435600E5DE71 /* orthographic_camera.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = orthographic_camera.cpp; sourceTree = "<group>"; };
@@ -551,6 +552,7 @@
 		B978316D22E54DEC00E5DE71 /* camera_controllers */ = {
 			isa = PBXGroup;
 			children = (
+				B97347BF247CC55B005E3E1D /* circle_controller.h */,
 				B978316E22E54DEC00E5DE71 /* first_person_controller.h */,
 				B978316F22E54DEC00E5DE71 /* first_person_controller.cpp */,
 			);
