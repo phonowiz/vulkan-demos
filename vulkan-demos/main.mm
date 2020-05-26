@@ -40,8 +40,8 @@
 
 #include "graph_nodes/graphics_nodes/display_texture_2d.h"
 #include "graph_nodes/graphics_nodes/display_texture_3d.h"
-#include "graph_nodes/graphics_nodes/vsm.cpp"
-#include "graph_nodes/graphics_nodes/gaussian_blur.cpp"
+#include "graph_nodes/graphics_nodes/vsm.h"
+#include "graph_nodes/graphics_nodes/gaussian_blur.h"
 
 #include "graph_nodes/compute_nodes/mip_map_3d_texture.hpp"
 #include "graph_nodes/graphics_nodes/voxelize.h"

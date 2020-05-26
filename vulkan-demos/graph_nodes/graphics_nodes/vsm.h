@@ -30,16 +30,9 @@ private:
     
     glm::mat4 proj_to_voxel_screen = glm::mat4(1.0f);
     
-    //vk::orthographic_camera _ortho_camera;
-    
     vk::camera* _light_cam = nullptr;
     
     vk::resource_set<vk::render_texture>* _vsm = nullptr;
-//    glm::vec3 _cam_position {};
-//    glm::vec3 _up_vector{};
-//
-//    glm::mat4 _proj_to_voxel_screen = glm::mat4(1.0f);
-//    glm::vec3 _light_pos = glm::vec3(0.0f, .8f, 0.0f);
     
 public:
     
@@ -68,9 +61,7 @@ public:
         object_submask_type& _obj_masks = parent_type::_obj_subpass_mask;
         object_vector_type& _obj_vector = parent_type::_obj_vector;
         
-        
         EA_ASSERT_MSG(_light_cam != nullptr, "light cam has not been initialize");
-        
         
         subpass_type& cam_depth_subpass = pass.add_subpass(_mat_store, "vsm");
          

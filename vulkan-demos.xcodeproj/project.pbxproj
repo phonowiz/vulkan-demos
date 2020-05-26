@@ -19,7 +19,7 @@
 		B90583C22442A21B00366F8E /* numeric_limits.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B90583B92442A21B00366F8E /* numeric_limits.cpp */; };
 		B90583C32442A21B00366F8E /* assert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B90583BA2442A21B00366F8E /* assert.cpp */; };
 		B90583C42442A21B00366F8E /* string.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B90583BB2442A21B00366F8E /* string.cpp */; };
-		B909C3062466663F00D2BF11 /* vsm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B909C3052466663F00D2BF11 /* vsm.cpp */; };
+		B909C3062466663F00D2BF11 /* vsm.h in Sources */ = {isa = PBXBuildFile; fileRef = B909C3052466663F00D2BF11 /* vsm.h */; };
 		B92627DF219B476200D1358A /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627DE219B476200D1358A /* CoreGraphics.framework */; };
 		B92627E0219B477400D1358A /* CoreGraphics.framework in Resources */ = {isa = PBXBuildFile; fileRef = B92627DE219B476200D1358A /* CoreGraphics.framework */; };
 		B92627E2219B47CB00D1358A /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627E1219B47CA00D1358A /* CoreVideo.framework */; };
@@ -27,7 +27,7 @@
 		B92627E5219B481700D1358A /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627E4219B481700D1358A /* IOKit.framework */; };
 		B92627E6219B481F00D1358A /* IOKit.framework in Resources */ = {isa = PBXBuildFile; fileRef = B92627E4219B481700D1358A /* IOKit.framework */; };
 		B92627E9219B48E000D1358A /* AppKit.framework in Resources */ = {isa = PBXBuildFile; fileRef = B92627E7219B48D700D1358A /* AppKit.framework */; };
-		B9337F08246D11050008E857 /* gaussian_blur.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9337F07246D11050008E857 /* gaussian_blur.cpp */; };
+		B9337F08246D11050008E857 /* gaussian_blur.h in Sources */ = {isa = PBXBuildFile; fileRef = B9337F07246D11050008E857 /* gaussian_blur.h */; };
 		B9384E75220171E500565024 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9384E74220171E400565024 /* main.mm */; };
 		B938D04D219534B7004F759E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B938D04C219534B7004F759E /* Assets.xcassets */; };
 		B93FDCA623036C29000AECBE /* texture_3d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B93FDCA223036C29000AECBE /* texture_3d.cpp */; };
@@ -125,13 +125,13 @@
 		B90583BA2442A21B00366F8E /* assert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = assert.cpp; path = "vulkan-demos/eastl-3.16.05/source/assert.cpp"; sourceTree = SOURCE_ROOT; };
 		B90583BB2442A21B00366F8E /* string.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = string.cpp; path = "vulkan-demos/eastl-3.16.05/source/string.cpp"; sourceTree = SOURCE_ROOT; };
 		B90583C62442BEF600366F8E /* new_operators.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = new_operators.h; sourceTree = "<group>"; };
-		B909C3052466663F00D2BF11 /* vsm.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = vsm.cpp; sourceTree = "<group>"; };
+		B909C3052466663F00D2BF11 /* vsm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vsm.h; sourceTree = "<group>"; };
 		B92354E3246133A800BEC4F3 /* render_pass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = render_pass.h; sourceTree = "<group>"; };
 		B92627DE219B476200D1358A /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		B92627E1219B47CA00D1358A /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		B92627E4219B481700D1358A /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		B92627E7219B48D700D1358A /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
-		B9337F07246D11050008E857 /* gaussian_blur.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gaussian_blur.cpp; sourceTree = "<group>"; };
+		B9337F07246D11050008E857 /* gaussian_blur.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gaussian_blur.h; sourceTree = "<group>"; };
 		B9384E74220171E400565024 /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		B938D043219534B7004F759E /* vulkan-demos.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "vulkan-demos.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B938D04C219534B7004F759E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -596,8 +596,8 @@
 				B9BD3143244D23CD0093A826 /* display_texture_3d.h */,
 				B94247FE244AC8D90080BD66 /* mrt.h */,
 				B9D4644D2448466E0011D358 /* voxelize.h */,
-				B909C3052466663F00D2BF11 /* vsm.cpp */,
-				B9337F07246D11050008E857 /* gaussian_blur.cpp */,
+				B909C3052466663F00D2BF11 /* vsm.h */,
+				B9337F07246D11050008E857 /* gaussian_blur.h */,
 			);
 			path = graphics_nodes;
 			sourceTree = "<group>";
@@ -716,7 +716,7 @@
 				B93FDCE32303709B000AECBE /* display_plane.cpp in Sources */,
 				B978316222E541B000E5DE71 /* camera.cpp in Sources */,
 				B90583C22442A21B00366F8E /* numeric_limits.cpp in Sources */,
-				B909C3062466663F00D2BF11 /* vsm.cpp in Sources */,
+				B909C3062466663F00D2BF11 /* vsm.h in Sources */,
 				B949E6DB2449812E003E5AD4 /* eathread_pthread_stack_info.cpp in Sources */,
 				B949E669244979A2003E5AD4 /* EAGlobal.cpp in Sources */,
 				B949E65C244979A2003E5AD4 /* EASprintfCore.cpp in Sources */,
@@ -731,7 +731,7 @@
 				B949E6BB24497B91003E5AD4 /* eathread_condition.cpp in Sources */,
 				B93FDCA723036C29000AECBE /* texture_2d.cpp in Sources */,
 				B949E665244979A2003E5AD4 /* EADateTime.cpp in Sources */,
-				B9337F08246D11050008E857 /* gaussian_blur.cpp in Sources */,
+				B9337F08246D11050008E857 /* gaussian_blur.h in Sources */,
 				B978316822E5480700E5DE71 /* perspective_camera.cpp in Sources */,
 				B93FDCBD23036EB0000AECBE /* material_store.cpp in Sources */,
 				B949E65F244979A2003E5AD4 /* EAStopwatch.cpp in Sources */,
