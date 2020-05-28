@@ -46,7 +46,7 @@ public:
     
     virtual void init_node() override
     {
-        assert(_texture != nullptr);
+        EA_ASSERT_MSG(_texture != nullptr, "No 3D texture has been specifed to be displayed");
         
         render_pass_type &pass = parent_type::_node_render_pass;
         object_vector_type &obj_vec = parent_type::_obj_vector;
@@ -89,7 +89,7 @@ public:
     virtual void update_node(vk::camera& camera, uint32_t image_id) override
     {
         
-        assert(_three_d_cam != nullptr);
+        EA_ASSERT_MSG(_three_d_cam != nullptr, "No 3D camera has been specified to be used for rendering");
         render_pass_type &pass = parent_type::_node_render_pass;
         
         subpass_type& sub_p = pass.get_subpass(0);

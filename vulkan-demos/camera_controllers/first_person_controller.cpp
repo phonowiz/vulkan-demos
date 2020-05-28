@@ -13,6 +13,8 @@
 
 void first_person_controller::update()
 {
+    if(_lock)
+        return;
     double xpos, ypos;
 
     glfwGetCursorPos(_window, &xpos, &ypos);

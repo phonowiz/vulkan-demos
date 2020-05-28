@@ -56,8 +56,7 @@ public:
         vk::resource_set<vk::texture_3d>& normal_tx =
         _tex_registry->get_write_texture_3d_set(_normal_texture.c_str(), this);
         
-        //assert( parent_type::_group_x == parent_type::_group_y == parent_type::_group_z);
-        //assert((parent_type::_group_x) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0 && "invalid voxel cube size, compute shader won't run properly");
+
         uint32_t size =  parent_type::_group_x * vk::compute_pipeline<1>::LOCAL_GROUP_SIZE;
         
         albedo_tx.set_device(parent_type::_device);
@@ -71,18 +70,7 @@ public:
         
         albedo_tx.init();
         normal_tx.init();
-        
-//        for( int i = 0; i < albedo_tx.size(); ++i)
-//        {
-//            albedo_tx[i].set_device(parent_type::_device);
-//            albedo_tx[i].set_dimensions(size, size, size);
-//            albedo_tx[i].init();
-//
-//            normal_tx[i].set_device(parent_type::_device);
-//            normal_tx[i].set_dimensions(size, size, size);
-//            normal_tx[i].init();
-//        }
-        
+
         //TODO: ADAPT THIS SHADER TO TAKE IN TWO TEXTURES SO THAT WE CAN CLEAR NORMAL TEXTURES AS WELL
         parent_type::_compute_pipelines.set_image_sampler( albedo_tx, "texture_3d", 0);
         

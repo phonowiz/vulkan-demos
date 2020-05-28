@@ -46,8 +46,8 @@ public:
     
     virtual void init_node() override
     {
-        assert( !_input_textures[0].empty() && !_input_textures[1].empty() &&"you need 2 input textures");
-        assert( !_output_textures[0].empty() && !_output_textures[1].empty() && "you need 2 output textures");
+        EA_ASSERT_MSG( !_input_textures[0].empty() && !_input_textures[1].empty(), "you need 2 input textures");
+        EA_ASSERT_MSG( !_output_textures[0].empty() && !_output_textures[1].empty(), "you need 2 output textures");
         
         tex_registry_type* _tex_registry = parent_type::_texture_registry;
         material_store_type* _mat_store = parent_type::_material_store;
@@ -61,7 +61,7 @@ public:
         vk::resource_set<vk::texture_3d>& input_tex2 = _tex_registry->get_read_texture_3d_set(_input_textures[1].c_str(), this,
                                                                                vk::usage_type::STORAGE_IMAGE);
         
-        assert(_tex_registry->is_resource_created(_output_textures[0].c_str()) && "output resource hasn't been created");
+        EA_ASSERT_MSG(_tex_registry->is_resource_created(_output_textures[0].c_str()), "output resource hasn't been created");
         
         vk::resource_set<vk::texture_3d>& out_tex1 = _tex_registry->get_write_texture_3d_set(_output_textures[0].c_str(), this);
         vk::resource_set<vk::texture_3d>& out_tex2 = _tex_registry->get_write_texture_3d_set(_output_textures[1].c_str(), this);

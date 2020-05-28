@@ -36,9 +36,11 @@ public:
         
     }
     
+    void lock(bool b){ _lock = b;}
     first_person_controller() { delete _target_camera; }
     
     void update();
+    void reset(){ _first_update = true; }
 private:
     bool _first_update = true;
     
@@ -54,6 +56,7 @@ private:
     double _time = 0.0;
     double _delta_time = 0.0;
     
+    bool _lock = false;
     float _mouse_x_start;
     float _mouse_y_start;
 };

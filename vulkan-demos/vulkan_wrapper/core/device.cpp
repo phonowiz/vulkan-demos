@@ -166,7 +166,7 @@ device::queue_family_indices device::find_queue_families( VkPhysicalDevice devic
     
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
     static const uint32_t MAX_QUEUE_FAMILIES = 200;
-    assert(MAX_QUEUE_FAMILIES > queue_family_count);
+    EA_ASSERT_MSG(MAX_QUEUE_FAMILIES > queue_family_count, "There are more queue families than we can handle");
     eastl::array<VkQueueFamilyProperties, MAX_QUEUE_FAMILIES> queue_families;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
     
@@ -310,7 +310,7 @@ void device::create_instance()
     eastl::array<const char*, 10> all_required_extensions {};
     //all_required_extensions[0] = "VK_EXT_debug_report";
     
-    assert(all_required_extensions.size() > (glfw_extensions_count + 1));
+    EA_ASSERT(all_required_extensions.size() > (glfw_extensions_count + 1));
     int i = 0;
     for( ; i < glfw_extensions_count; ++i)
     {

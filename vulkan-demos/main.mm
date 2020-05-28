@@ -89,6 +89,12 @@ void shutdown_glfw() {
     glfwTerminate();
 }
 
+enum class camera_type
+{
+    USER,
+    DEMO,
+    THREE_D_TEXTURE
+};
 struct App
 {
     vk::device* device = nullptr;
@@ -108,8 +114,8 @@ struct App
     vk::glfw_swapchain*  swapchain = nullptr;
     
     std::vector<vk::obj_shape*> shapes;
-     
     
+    camera_type cam_type = camera_type::USER;
     bool quit = false;
     glm::mat4 model = glm::mat4(1.0f);
     
@@ -125,9 +131,19 @@ void game_loop()
     while (!glfwWindowShouldClose(window) && !app.quit)
     {
         glfwPollEvents();
-        //app.user_controller->update();
-        //app.texture_3d_view_controller->update();
-        app.circle_controller->update();
+        
+        if(app.cam_type == camera_type::USER)
+        {
+            app.user_controller->update();
+        }
+        else if( app.cam_type == camera_type::THREE_D_TEXTURE)
+        {
+            app.texture_3d_view_controller->update();
+        }
+        else if( app.cam_type == camera_type::DEMO)
+            app.circle_controller->update();
+        
+       
         app.voxel_graph->update(*app.perspective_camera, next_swap);
         app.voxel_graph->record(next_swap);
         app.voxel_graph->execute(next_swap);
@@ -176,42 +192,58 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
     if (key == GLFW_KEY_1 && action == GLFW_PRESS)
     {
+        app.cam_type = camera_type::USER;
         app.debug_node_3d->set_active(false);
         app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::FULL_RENDERING);
     }
     
     if (key == GLFW_KEY_2 && action == GLFW_PRESS)
     {
+        app.cam_type = camera_type::USER;
         app.debug_node_3d->set_active(false);
         app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::ALBEDO);
     }
     
     if (key == GLFW_KEY_3 && action == GLFW_PRESS)
     {
+        app.cam_type = camera_type::USER;
         app.debug_node_3d->set_active(false);
         app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::NORMALS);
     }
     
     if( key == GLFW_KEY_4 && action == GLFW_PRESS)
     {
+        app.cam_type = camera_type::USER;
         app.debug_node_3d->set_active(false);
         app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::POSITIONS);
     }
     
     if( key == GLFW_KEY_5 && action == GLFW_PRESS)
     {
+        app.cam_type = camera_type::USER;
         app.debug_node_3d->set_active(false);
         app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::DEPTH);
     }
     if( key == GLFW_KEY_6 && action == GLFW_PRESS)
     {
+        
         app.debug_node_3d->set_active(true);
+        app.cam_type = camera_type::THREE_D_TEXTURE;
+        app.texture_3d_view_controller->reset();
     }
     
     if( key == GLFW_KEY_7 && action == GLFW_PRESS)
     {
+        app.cam_type = camera_type::USER;
         app.debug_node_3d->set_active(false);
         app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::VARIANCE_SHADOW_MAP);
+    }
+    if( key == GLFW_KEY_L && action == GLFW_PRESS)
+    {
+        static bool user_cam_locked = false;
+        user_cam_locked = !user_cam_locked;
+        app.user_controller->lock(user_cam_locked);
+        app.user_controller->reset();
     }
     if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {

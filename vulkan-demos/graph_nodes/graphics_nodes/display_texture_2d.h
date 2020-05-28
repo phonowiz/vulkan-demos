@@ -52,7 +52,7 @@ public:
     
     virtual void init_node() override
     {
-        assert(_texture != nullptr);
+        EA_ASSERT_MSG(_texture != nullptr, "No texture was assigned to this node");
         
         render_pass_type &pass = parent_type::_node_render_pass;
         object_vector_type &obj_vec = parent_type::_obj_vector;
@@ -86,8 +86,6 @@ public:
         {
             EA_FAIL_MSG("unrecognized texture");
         }
-        //vk::resource_set<vk::render_texture>& rsrc = _tex_registry->get_read_render_texture_set(_texture, this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-        //vk::resource_set<vk::image>& rsrc = _tex_registry->get_read_image_texture_set(_texture, this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         
         int binding = 0;
