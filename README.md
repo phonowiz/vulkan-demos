@@ -18,9 +18,7 @@ My philosophy is to make something that satisfies my needs specifically and only
 Tutorial
 -----------
 
-### Some Concepts
-
-The following is a quick introduction on how to use the API. I expect you've have some sort of familiarty with vulkan and that at least you have written some time of code with it. If you haven't, try to at least create a window and show something with it.  Once you can do that, learning Vulkan (or DirectX 12 or Metal) based API's  becomes easier.    
+### Concepts
 
 Fist, some concepts to introduce.  At a very high level, the **frame graph** (or **render graph**) is a structure which has global knowledge of what is being rendered; it knows about the relationships between render passes and and their dependecies on other render passes.  This is not to be confused with a scene graph, which is another structure with knowledge of entities (like meshes for example) in a game scene.  It is important that a frame graph is acyclic, otherwise you can have 2 render passes which depend on each other.  Render passes are described next.
 
