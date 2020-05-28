@@ -6,10 +6,34 @@ Purpose
 ----------
 I want to create renderer that I could use to prototype ideas quickly, game engines are very good for this, but I'd rather implement everything from scratch because you learn more that way.  The need came about because Apple will deprecate OpenGL soon, and I need to port my other project to Vulkan, you can check it out here: https://github.com/phonowiz/voxel-cone-tracing
 
-This code is not very organized as of now, there is still lots of code moving all over the place as I try what I think is right.  The meaningful work can be found in the folder "vulkan_wrapper" which you can look at here: https://github.com/phonowiz/vulkan-gui-test/tree/master/vulkan-demos.  
+I ended up implementing a frame graph (or render graph) based off of the chat which can be found here:
 
+https://www.ea.com/frostbite/news/framegraph-extensible-rendering-architecture-in-frostbite
+
+There are other implementations of this topic on the internet.  But I think they are too low level and as result complex to use for my purposes. 
 
 My philosophy is to make something that satisfies my needs specifically and only expose exactly what I need from Vulkan, the rest can stay hidden with default values. As my development gets more sophisticated, I'll keep exposing more and more of the API, just enough to get what I need done.  It keeps things simpler. 
+
+
+Tutorial
+-----------
+
+### Some Concepts
+
+The following is a quick introduction on how to use the API. I expect you've have some sort of familiarty with vulkan and that at least you have written some time of code with it. If you haven't, try to at least create a window and show something with it.  Once you can do that, learning Vulkan (or DirectX 12 or Metal) based API's  becomes easier.    
+
+Fist, some concepts to introduce.  At a very high level, the **frame graph** (or **render graph**) is a structure which has global knowledge of what is being rendered; it knows about the relationships between render passes and and their dependecies on other render passes.  This is not to be confused with a scene graph, which is another structure with knowledge of entities (like meshes for example) in a game scene.  It is important that a frame graph is acyclic, otherwise you can have 2 render passes which depend on each other.
+
+Then there is the concept of a [**render pass**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/vulkan_wrapper/render_graph/render_pass.h) which I mentioned before.  I see render passes in Vulkan as a way to tie all the Vulkan concepts together into one unit.  All the stuctures, in one way or another, are tied to a render pass.  Render passes are composed of **subpasses**, which accomplish a specific task in a series tasks needed to render something. A render pass may have one or more subpasses.
+
+Each subpass owns a **pipeline**. Pipelines control different rendering states and cannot be changed once created.  There are two types of pipelines, [graphics pipeline](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/vulkan_wrapper/pipelines/graphics_pipeline.h) and [compute pipelines](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/vulkan_wrapper/pipelines/compute_pipeline.h).  Graphics Pipelines are used to communicate to materials, which are described next. 
+
+**Materials** take care of creating shaders and handling parameters that shaders need, as well as passing values to the GPU to be used for when rendering occurs.  At the moment of this writing, I only support one uniform buffer, one dynamic buffer but no API restrictions on how many samplers your shader uses.  This is not a Vulkan limitation, more I limitation I put on myself for implementation simplicity.  This applies to both vertex, fragment, and compute shaders.  Uniform and dynamic buffers use std140 memory layout, so make sure to write so in your shader uniform and dynamic buffers.  There are two types of materials, [**visual materials**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/vulkan_wrapper/materials/visual_material.h), used with graphics pipelines, and [**compute materials**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/vulkan_wrapper/materials/compute_material.h), used with compute pipelines.
+
+
+
+
+
 
 ## Deferred Rendering
 Here are screenshots of my deferred renderings, these will be used for voxel cone tracing. 
