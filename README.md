@@ -15,10 +15,8 @@ There are other implementations of this topic on the internet.  But I think they
 My philosophy is to make something that satisfies my needs specifically and only expose exactly what I need from Vulkan, the rest can stay hidden with default values. As my development gets more sophisticated, I'll keep exposing more and more of the API, just enough to get what I need done.  It keeps things simpler. 
 
 
-Tutorial
+Concepts
 -----------
-
-### Concepts
 
 Fist, some concepts to introduce.  At a very high level, the **frame graph** (or **render graph**) is a structure which has global knowledge of what is being rendered; it knows about the relationships between render passes and and their dependecies on other render passes.  This is not to be confused with a scene graph, which is another structure with knowledge of entities (like meshes for example) in a game scene.  It is important that a frame graph is acyclic, otherwise you can have 2 render passes which depend on each other.  Render passes are described next.
 
