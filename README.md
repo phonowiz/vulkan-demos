@@ -32,6 +32,120 @@ A few more concepts about render graphs in my API. [**Command recorder**](https:
 
 Ok, I think I've laid the ground work to start looking at a very simple example which ties all of these concepts together.  Let's explore that next. 
 
+Example
+----------
+The following is the function ```init``` from [**display_texture_2d**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/graph_nodes/graphics_nodes/display_texture_2d.h) node.
+
+```c++
+    virtual void init_node() override
+    {
+        EA_ASSERT_MSG(_texture != nullptr, "No texture was assigned to this node");
+        
+        render_pass_type &pass = parent_type::_node_render_pass;
+        object_vector_type &obj_vec = parent_type::_obj_vector;
+        tex_registry_type* _tex_registry = parent_type::_texture_registry;
+        
+        
+        pass.get_attachment_group().add_attachment( _swapchain->present_textures, glm::vec4(0.0f));
+        
+        _screen_plane.create();
+        subpass_type& sub_p = pass.add_subpass(parent_type::_material_store, _material);
+        
+        if(_texture_type == vk::render_texture::get_class_type())
+        {
+            vk::resource_set<vk::render_texture>& rsrc = _tex_registry->get_read_render_texture_set(_texture, this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            sub_p.set_image_sampler(rsrc, "tex", vk::parameter_stage::FRAGMENT, 1,
+                                           vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        }
+        else if(_texture_type == vk::depth_texture::get_class_type())
+        {
+            vk::resource_set<vk::depth_texture>& rsrc = _tex_registry->get_read_depth_texture_set(_texture, this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            sub_p.set_image_sampler(rsrc, "tex", vk::parameter_stage::FRAGMENT, 1,
+            vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        }
+        else if(vk::texture_2d::get_class_type() == _texture_type)
+        {
+            vk::texture_2d& rsrc = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
+            sub_p.set_image_sampler(rsrc, "tex", vk::parameter_stage::FRAGMENT, 1,
+                                            vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        }
+        else
+        {
+            EA_FAIL_MSG("unrecognized texture");
+        }
+        
+        
+        int binding = 0;
+        sub_p.init_parameter("width", vk::parameter_stage::VERTEX,
+                             _swapchain->get_vk_swap_extent().width, binding);
+        sub_p.init_parameter("height", vk::parameter_stage::VERTEX,
+                             _swapchain->get_vk_swap_extent().height, binding);
+        
+        sub_p.add_output_attachment("present");
+        pass.add_object(_screen_plane);
+        
+    }
+
+```
+
+```init``` functions is where nodes decide what they need in order for their render passes to work properly.  Let's break this down from the top.  
+
+The function
+
+```C++
+  pass.get_attachment_group().add_attachment( _swapchain->present_textures, glm::vec4(0.0f));
+```
+is saying that the render pass for this node is going to render the the swapchain present textures, the clear value to be used is zero for all channels.  A couple of new words to define here, whenever you see the word ***group*** or [**attachment group**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/vulkan_wrapper/textures/attachment_group.h) in the code, it refers to a group of [***resource sets***](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/vulkan_wrapper/textures/resource_set.h). In Vulkan, you don't have to wait for rendering to finish on the CPU side in order to continue performing operations, every frame can be rendered in parallel while the rendering is happening on the GPU side.  Resource set size depends on how many images your swapchain can handle.  On my version of MoltenVk is 3, therefore, all resource sets in the code are of size 3. So when this node executes, it renders to the first image in the resource set, then the cpu will not wait, it'll continue to render to the 2nd image in the resource set, and so forth.  [**_swapchain->present_textures**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/vulkan_wrapper/textures/glfw_present_texture.h) is a resource set of these textures whose job is to display things on screen.  In this particular example, we have an attachment group of size 1 ( as in 1 resource_set), whose resource_set is of size 3 (for the 3 images the swapchain can handle)
+
+This line of code just creates a screen plane we can use to render the texture:
+```C++
+  _screen_plane.create();
+```
+This line of code creates a subpass and assigns to it a _material, which is just the name of a material in the [**material store**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/vulkan_wrapper/materials/material_store.cpp):
+
+```C++
+  subpass_type& sub_p = pass.add_subpass(parent_type::_material_store, _material);
+```
+Every subpass needs one material assigned to it, and this material will define how things get rendered.  If this were a compute pipeline, we'd use a compute material instead.
+
+The following if statement is just looking for what type of texture the client wants to display, but pretty much the concept is the same for each branch.  Let's look at one example:
+
+```C++
+
+            vk::resource_set<vk::render_texture>& rsrc = _tex_registry->get_read_render_texture_set(_texture, this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            sub_p.set_image_sampler(rsrc, "tex", vk::parameter_stage::FRAGMENT, 1,
+                                           vk::usage_type::COMBINED_IMAGE_SAMPLER);
+
+```
+
+What this says is: look for the render texture set in the texture registry, and then assign this render texture set to the argument "tex" bound at 1 of the fragment shader of the material.  We plan to use this texture in the shader as a combined image sampler.  Look at the [**display_plane.frag**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/shaders/graphics/display_plane.frag).  All of this information becomes useful when deciding how we want the layout to be when the barrier gets created when recording commands.
+
+The following lines of code will create arguments for the material to consume, the arguments **MUST** be created in the order in which they appear in the shader, in this case the shader defined is [**display_plane.vert**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/shaders/graphics/display_plane.vert), click on the link, you'll see how the binding argument matches the binding specified in the shader.
+
+```C++
+        int binding = 0;
+        sub_p.init_parameter("width", vk::parameter_stage::VERTEX,
+                             _swapchain->get_vk_swap_extent().width, binding);
+        sub_p.init_parameter("height", vk::parameter_stage::VERTEX,
+                             _swapchain->get_vk_swap_extent().height, binding);
+```
+
+Since this is a master node (a node which renders to present textures), then we must tell the graph not to record any more commands, and to just present what is found in present textues, here is how we do that:
+
+```C++
+    virtual bool record_node_commands(vk::command_recorder& buffer, uint32_t image_id) override
+    {
+        parent_type::record_node_commands(buffer, image_id);
+        return false; //if this were true, then commands can continue to record, possibly stumping on whats on the present textures
+    }
+```
+The last line of code simply adds our screen plane to the render pass.  This screen plane will go through the subpass we talked above, causing the texture to render to the present textures:
+
+```C++
+  pass.add_object(_screen_plane);
+```
+
+In [this](https://github.com/phonowiz/vulkan-demos/tree/master/vulkan-demos/graph_nodes/graphics_nodes) directory, you'll find many more  examples that will hopefully help you understand what else can be done.  By now, you have enough knowledge to give you a good sense of what these nodes are trying to accomplish. 
 
 ## Deferred Rendering
 Here are screenshots of my deferred renderings, these will be used for voxel cone tracing. 
