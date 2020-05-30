@@ -2,8 +2,8 @@
 
 This is my test bed for all things vulkan.  It is project using MoltenVK on a mac and a setup using Xcode.  Vulkan projects are not very common on the mac and I would like to set up an example for others to learn from.
 
-Purpose
-----------
+## Purpose
+
 I want to create renderer that I could use to prototype ideas quickly, game engines are very good for this, but I'd rather implement everything from scratch because you learn more that way.  The need came about because Apple will deprecate OpenGL soon, and I need to port my other project to Vulkan, you can check it out here: https://github.com/phonowiz/voxel-cone-tracing
 
 I ended up implementing a frame graph (or render graph) based off of the chat which can be found here:
@@ -15,8 +15,8 @@ There are other implementations of this topic on the internet.  But I think they
 My philosophy is to make something that satisfies my needs specifically and only expose exactly what I need from Vulkan, the rest can stay hidden with default values. As my development gets more sophisticated, I'll keep exposing more and more of the API, just enough to get what I need done.  It keeps things simpler. 
 
 
-Concepts
------------
+## Concepts
+
 
 Fist, some concepts to introduce.  At a very high level, the **frame graph** (or **render graph**) is a structure which has global knowledge of what is being rendered; it knows about the relationships between render passes and and their dependecies on other render passes.  This is not to be confused with a scene graph, which is another structure with knowledge of entities (like meshes for example) in a game scene.  It is important that a frame graph is acyclic, otherwise you can have 2 render passes which depend on each other.
 
@@ -32,8 +32,10 @@ A few more concepts about render graphs in my API. [**Command recorder**](https:
 
 Ok, I think I've laid the ground work to start looking at a very simple example which ties all of these concepts together.  Let's explore that next. 
 
-Example
-----------
+## Example
+
+### Graphics Node
+
 The following is the function ```init``` from [**display_texture_2d**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/graph_nodes/graphics_nodes/display_texture_2d.h) node.
 
 ```c++
@@ -146,6 +148,90 @@ The last line of code simply adds our screen plane to the render pass.  This scr
 ```
 
 In [this](https://github.com/phonowiz/vulkan-demos/tree/master/vulkan-demos/graph_nodes/graphics_nodes) directory, you'll find many more  examples that will hopefully help you understand what else can be done.  By now, you have enough knowledge to give you a good sense of what these nodes are trying to accomplish. 
+
+
+### Build A Graph
+
+Here is an example of how to build graph based on the node above:
+
+```C++
+
+    glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
+    constexpr int DEFAULT_VSYNC = 1;
+    glfwSwapInterval(DEFAULT_VSYNC);
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+    
+    int width = 1024;
+    int height = 768;
+    
+    GLFWwindow* window = glfwCreateWindow(width, height, "Sample Demo", nullptr, nullptr);
+    VkSurfaceKHR surface;
+
+    vk::device device;
+    glfwCreateWindowSurface(device._instance, window, nullptr, &surface);
+    
+    vk::glfw_swapchain swapchain(&device, window, surface);
+      
+    device.create_logical_device(surface); 
+    
+    //material store is just the class which loads up all materials to be used by the nodes
+    vk::material_store material_store;
+    material_store.create(&device);
+    
+    //set up the swapchain 
+    vk::glfw_swapchain swapchain(&device, window, surface);
+    
+    static constexpr uint32_t NUM_CHILDREN = 1;
+    const char* sample_texture = "sample_texture.png";
+    
+    //Create the root node of the sample graph
+    vk::graph<NUM_CHILDREN> sample_graph(&device, material_store, swapchain);
+    
+    //create one node: the display texture node
+    glm::vec2 dims = {swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height };
+    display_texture_2d<NUM_CHILDREN> texture_node(&device, &swapchain, (uint32_t)dims.x, (uint32_t)dims.y, sample_texture);
+    
+    //add node to the graph
+    sample_graph.add_child(texture_node);
+    
+    //init all nodes in the graph
+    sample_graph.init();
+    
+    
+    //next_swap is a variable that stores which of of the swapchain images we are rendering.
+    //Remember that in vulkan, the cpu doesn't have to wait for rendering to finish before moving forward, unlike opengl.
+    //The graph we build uses this to its advantage, this is the reason why we need to tell it which of the swapchain images
+    //we are rendering to.
+    
+    int next_swap = 0;
+    while (!glfwWindowShouldClose(window) )
+    {
+        glfwPollEvents();
+       
+        //every frame, we are going to call the update function on every node, this is where the 
+        //material arguments get updated, and these argument are then used at rendering time
+        sample_graph.update(*app.perspective_camera, next_swap);
+        
+        //here we record vulkan rendering commands, or compute commands
+        sample_graph.record(next_swap);
+        
+        //here we execute the command we just recorded.
+        sample_graph.execute(next_swap);
+        next_swap = ++next_swap % vk::NUM_SWAPCHAIN_IMAGES;
+    }
+    
+    device.wait_for_all_operations_to_finish();
+    sample_graph.destroy_all();
+    
+    vkDestroySurfaceKHR(device._instance, surface, nullptr);
+    device.destroy();
+    
+    glfwDestroyWindow(window);
+    glfwTerminate();
+```
 
 ## Deferred Rendering
 Here are screenshots of my deferred renderings, these will be used for voxel cone tracing. 
