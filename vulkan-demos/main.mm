@@ -72,8 +72,8 @@ int height = 768;
 void start_glfw() {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-    glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
+    //my computer cannot handle retina right now, commented for this reason
+    //glfwWindowHint(GLFW_COCOA_RETINA_FRAMEBUFFER, GLFW_TRUE);
     constexpr int DEFAULT_VSYNC = 1;
     glfwSwapInterval(DEFAULT_VSYNC);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
