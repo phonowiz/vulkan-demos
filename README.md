@@ -237,7 +237,7 @@ I will make sure to update [**main.mm**](https://github.com/phonowiz/vulkan-demo
 
 
 ## Voxel Cone Tracing Example
-Here are screenshots of my deferred renderings, these will be used for voxel cone tracing. 
+Here are screenshots of my deferred renderings, these are used for voxel cone tracing, my most complex graph I've built so far, with over 15 nodes.  Some of these are are debug nodes and therefore not active. 
 
 #### Albedo
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/albedo.png">
