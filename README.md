@@ -242,7 +242,7 @@ Obviously I don't have access to EA's code, or an army of graphics engineers to 
 
 In the 2017 GDC presentation they mention that their code has the ability to cull sections of the graph that are not used for rendering.  This is useful for debug code, for example.  In my implementation, all nodes take up resources, wether they are used or not, which would be a bad idea on a full blown game.  They implemented some kind intermediate metadata graph which can then be analyzed, and after this analysis, a graph is built with the minimum resources necessary to render the scene. 
 
-Also, how resources are handled is also pretty genious.  If you analyze the graph you can tell up to what point you need a resource, and once the graph is done with this resource, discard it, or reuse it in a node that needs a resource which has similar/same properties.  This of course, will save you memory.
+Also, how resources are handled is pretty genious.  If you analyze the graph you can tell up to what point you need a resource, and once the graph is done with this resource, discard it, or reuse it in a node that needs a resource which has similar/same properties.  This of course, will save you memory.
 
 There 100 more ideas in the presentation, some of which I don't fully understand, but it is quite obvious they've thrown a lot of time and energy in coming up with all these features.  I do believe frame graphs will become more common over time in the years to come; it is a very natural way to approach modern graphics APIs,  and I would encourage you to look at the presentation and search around on the internet for more information about them.   
 
