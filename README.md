@@ -110,7 +110,7 @@ This line of code creates a subpass and assigns to it a _material, which is just
 ```
 Every subpass needs one material assigned to it, and this material will define how things get rendered.  If this were a compute pipeline, we'd use a compute material instead.
 
-The following if statement is just looking for what type of texture the client wants to display, but pretty much the concept is the same for each branch.  Let's look at one example:
+The ``if`` statement that follows in the code is just looking for what type of texture the client wants to display, but pretty much the concept is the same for each branch.  Let's look at one example:
 
 ```C++
 
@@ -232,6 +232,9 @@ Here is an example of how to build graph based on the node above:
     glfwDestroyWindow(window);
     glfwTerminate();
 ```
+
+I will make sure to update [**main.mm**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/main.mm) with example graphs you can use to learn more about them.  
+
 
 ## Deferred Rendering
 Here are screenshots of my deferred renderings, these will be used for voxel cone tracing. 
