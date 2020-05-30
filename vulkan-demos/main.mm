@@ -238,6 +238,24 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         app.debug_node_3d->set_active(false);
         app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::VARIANCE_SHADOW_MAP);
     }
+    if( key == GLFW_KEY_8 && action == GLFW_PRESS)
+    {
+        app.cam_type = camera_type::USER;
+        app.debug_node_3d->set_active(false);
+        app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::AMBIENT_LIGHT);
+    }
+    if( key == GLFW_KEY_9 && action == GLFW_PRESS)
+    {
+        app.cam_type = camera_type::USER;
+        app.debug_node_3d->set_active(false);
+        app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::AMBIENT_OCCLUSION);
+    }
+    if( key == GLFW_KEY_0 && action == GLFW_PRESS)
+    {
+        app.cam_type = camera_type::USER;
+        app.debug_node_3d->set_active(false);
+        app.mrt_node->set_rendering_state(mrt<4>::rendering_mode::DIRECT_LIGHT);
+    }
     if( key == GLFW_KEY_L && action == GLFW_PRESS)
     {
         static bool user_cam_locked = false;
