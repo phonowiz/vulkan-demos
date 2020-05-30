@@ -236,7 +236,7 @@ Here is an example of how to build graph based on the node above:
 I will make sure to update [**main.mm**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/main.mm) with example graphs you can use to learn more about them.  
 
 
-## Deferred Rendering
+## Voxel Cone Tracing Example
 Here are screenshots of my deferred renderings, these will be used for voxel cone tracing. 
 
 #### Albedo
@@ -256,6 +256,9 @@ Here are screenshots of my deferred renderings, these will be used for voxel con
 
 #### Ambient Occlusion
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/ambient_occlusion.png">
+
+#### Variance Shadow Mapping
+<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/vsm.png">
 
 #### Direct+Ambient Lighting with Ambient Occlusion
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/ambient+direct.png">
