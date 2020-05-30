@@ -10,7 +10,7 @@ I ended up implementing a frame graph (or render graph) based off of the chat wh
 
 https://www.ea.com/frostbite/news/framegraph-extensible-rendering-architecture-in-frostbite
 
-There are other implementations of this topic on the internet.  But I think they are too low level and as result complex to use for my purposes. 
+There are other implementations of this topic on the internet.  But I think they are too low level and as result complex to use for my purposes.  If you somethign more sophisticated than what I have done here look at [Pumex](https://github.com/pumexx/pumex).  
 
 My philosophy is to make something that satisfies my needs specifically and only expose exactly what I need from Vulkan, the rest can stay hidden with default values. As my development gets more sophisticated, I'll keep exposing more and more of the API, just enough to get what I need done.  It keeps things simpler. 
 
