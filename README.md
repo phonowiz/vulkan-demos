@@ -17,7 +17,6 @@ My philosophy is to make something that satisfies my needs specifically and only
 
 ## Concepts
 
-
 Fist, some concepts to introduce.  At a very high level, the **frame graph** (or **render graph**) is a structure which has global knowledge of what is being rendered; it knows about the relationships between render passes and and their dependecies on other render passes.  This is not to be confused with a scene graph, which is another structure with knowledge of entities (like meshes for example) in a game scene.  It is important that a frame graph is acyclic, otherwise you can have 2 render passes which depend on each other.
 
 [**Render passes**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/vulkan_wrapper/render_graph/render_pass.h) are a way to tie all Vulkan (as well my API) concepts together into one unit.  All the stuctures, in one way or another, are tied to a render pass.  Render passes are composed of **subpasses**, which accomplish a specific task in a series tasks needed to render something. A render pass may have one or more subpasses.
@@ -121,6 +120,9 @@ The ``if`` statement that follows in the code is just looking for what type of t
 ```
 
 What this says is: look for the render texture set in the texture registry, and then assign this render texture set to the argument "tex" bound at 1 of the fragment shader of the material.  We plan to use this texture in the shader as a combined image sampler.  Look at the [**display_plane.frag**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/shaders/graphics/display_plane.frag).  All of this information becomes useful when deciding how we want the layout to be when the barrier gets created when recording commands.
+
+[**Render textures**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/vulkan_wrapper/textures/render_texture.h) are very important because it is the type of texture used by render passses to store their work.  This work becomes available to other parent nodes through the texture registry class as you see in this example.  Behind the scenes, layout transitions are set up at recording time to make sure it meets usage needs of the nodes which consume them.
+
 
 The following lines of code will create arguments for the material to consume, the arguments **MUST** be created in the order in which they appear in the shader, in this case the shader defined is [**display_plane.vert**](https://github.com/phonowiz/vulkan-demos/blob/master/vulkan-demos/shaders/graphics/display_plane.vert), click on the link, you'll see how the binding argument matches the binding specified in the shader.
 
@@ -244,7 +246,7 @@ In the 2017 GDC presentation they mention that their code has the ability to cul
 
 Also, how resources are handled is pretty genious.  If you analyze the graph you can tell up to what point you need a resource, and once the graph is done with this resource, discard it, or reuse it in a node that needs a resource which has similar/same properties.  This of course, will save you memory.
 
-There 100 more ideas in the presentation, some of which I don't fully understand, but it is quite obvious they've thrown a lot of time and energy in coming up with all these features.  I do believe frame graphs will become more common over time in the years to come; it is a very natural way to approach modern graphics APIs,  and I would encourage you to look at the presentation and search around on the internet for more information about them.   
+There are 100 more ideas in the presentation, some of which I wish I had more info on; it is quite obvious they've thrown a lot of time and energy in coming up with all these features.  I do believe frame graphs will become more common over time in the years to come; it is a very natural way to approach modern graphics APIs,  and I would encourage you to look at the presentation and search around on the internet for more information about them.   
 
 ## Voxel Cone Tracing Example
 Here are screenshots of my deferred renderings, these are used for voxel cone tracing, my most complex graph I've built so far, with over 15 nodes.  Some of these are are debug nodes and therefore not active. 
@@ -273,3 +275,9 @@ Here are screenshots of my deferred renderings, these are used for voxel cone tr
 #### Direct+Ambient Lighting with Ambient Occlusion
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/ambient+direct.png">
 
+
+## YouTube
+
+Here is my youtube channel if you'd like to see videos of the different demos I create:
+
+https://www.youtube.com/channel/UCrowOeZPG9TtjzvS-bh1KAg?view_as=subscriber
