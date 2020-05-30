@@ -248,17 +248,15 @@ Here are screenshots of my deferred renderings, these will be used for voxel con
 #### Direct Lighting
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/direct-lighting.png">
 
-#### Normals
+#### Normals (Only 2 channels are needed to store normals)
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/normals.png">
 
 #### 3D Texture Visualization
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/3d-texture visualization.png">
-The streaks you see here are as result of the ray marching am doing to render the 3D texture.  This view is mostly for debugging purposes and designed to show me what the 3D texture content is, how I visualize this doesn't contribute to the final cone traced image, but the contents of the 3D texture will contrinbute to final cone traced image.   
 
 #### Ambient Occlusion
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/ambient_occlusion.png">
 
 #### Direct+Ambient Lighting with Ambient Occlusion
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/ambient+direct.png">
-<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/ambient+direct+backlit.png">
 
