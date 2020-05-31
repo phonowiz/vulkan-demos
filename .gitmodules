@@ -1,0 +1,3 @@
+[submodule "vulkan-demos/assimp"]
+	path = vulkan-demos/assimp
+	url = https://github.com/assimp/assimp.git
