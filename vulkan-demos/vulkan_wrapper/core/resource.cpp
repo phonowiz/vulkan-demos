@@ -11,24 +11,30 @@
 #include <fstream>
 #include <iostream>
 
+#include "EASTL/fixed_string.h"
 #include "device.h"
 using namespace vk;
 #if __APPLE__
-const std::string resource::resource_root = "../Resources";
+const eastl::fixed_string<char, 250> resource::resource_root = "../Resources";
 #else
 const std::string Resource::resourceRoot = ".";
 #endif
 
 
-void resource::read_file(std::string& fileContents, std::string& path)
+void resource::read_file(std::string& fileContents, eastl::fixed_string<char, 250>& path)
 {
-    std::ifstream fileStream(path, std::ios::in);
+    eastl::fixed_string<char, 200> msg {};
+    std::ifstream fileStream(path.c_str(), std::ios::in);
     if (!fileStream.is_open()) {
-        std::cerr << "Couldn't load compute shader '" + std::string(path) + "'." << std::endl;
+        
+        eastl::fixed_string<char, 200> msg;
+        msg.sprintf("Couldn't load compute shader '%s'", path.c_str());
+        std::cerr <<  msg.c_str() << std::endl;
         fileStream.close();
-        assert(false);
+        EA_FAIL();
     }
-    std::cout << "Loading kernel source from file " << path << "..." << std::endl;
+    msg.sprintf("Loading kernel source from file %s...", path.c_str());
+    std::cout << msg.c_str() << std::endl;
     std::string line = "";
     while (!fileStream.eof()) {
         std::getline(fileStream, line);

@@ -1,7 +1,4 @@
-// VulkanTutorial.cpp : Defines the entry point for the console application.
-//
 
-//#include "stdafx.h"
 #define VK_USE_PLATFORM_MACOS_MVK
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -34,6 +31,7 @@
 #include "vulkan_wrapper/materials/material_store.h"
 #include "vulkan_wrapper/shapes/obj_shape.h"
 #include "vulkan_wrapper/shapes/cornell_box.h"
+#include "vulkan_wrapper/shapes/assimp/assimp_loader.h"
 
 #include "vulkan_wrapper/cameras/perspective_camera.h"
 #include "camera_controllers/first_person_controller.h"
@@ -62,7 +60,7 @@ namespace fs = std::filesystem;
 //https://renderdoc.org/vulkan-in-30-minutes.html
 
 
-GLFWwindow *window = nullptr;
+GLFWwindow   *window = nullptr;
 VkSurfaceKHR surface;
 VkSurfaceKHR surface2;
 
@@ -295,6 +293,19 @@ int main()
 
     app.swapchain = &swapchain;
 
+    vk::vertex_components comps;
+    comps.push_back(vk::vertex_componets::VERTEX_COMPONENT_POSITION);
+    comps.push_back(vk::vertex_componets::VERTEX_COMPONENT_COLOR);
+    comps.push_back(vk::vertex_componets::VERTEX_COMPONENT_UV);
+    comps.push_back(vk::vertex_componets::VERTEX_COMPONENT_NORMAL);
+//
+    vk::vertex_layout layout(comps);
+    
+    vk::assimp_obj a_obj(&device, layout, "dragon.obj" );
+    
+    
+//    a_obj.destroy();
+    
     vk::obj_shape model(&device, "dragon.obj");
     vk::obj_shape cube(&device, "cube.obj");
     vk::cornell_box cornell_box(&device);
@@ -303,6 +314,13 @@ int main()
     model.set_diffuse(glm::vec3(.00f, 0.00f, .80f));
     model.create();
 
+    a_obj.set_diffuse(glm::vec3(.0f, 0.0f, .8f));
+    a_obj.create();
+    
+    
+    a_obj.transform.position = glm::vec3(0.2f, -.50f, -.200f);
+    a_obj.transform.scale = glm::vec3(1.2f, 1.2f, 1.2f);
+    a_obj.transform.update_transform_matrix();
     
     model.transform.position = glm::vec3(0.2f, -.50f, -.200f);
     model.transform.scale = glm::vec3(1.2f, 1.2f, 1.2f);
@@ -332,7 +350,7 @@ int main()
     
     
     app.shapes.push_back(&cornell_box);
-    app.shapes.push_back(&model);
+    app.shapes.push_back(&a_obj);
 
     
     first_person_controller user_controler( app.perspective_camera, window);
@@ -545,6 +563,7 @@ int main()
     cube.destroy();
     cornell_box.destroy();
     swapchain.destroy();
+    a_obj.destroy();
     
     vkDestroySurfaceKHR(device._instance, surface, nullptr);
     device.destroy();

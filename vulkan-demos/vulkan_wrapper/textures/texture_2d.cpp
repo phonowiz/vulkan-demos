@@ -16,7 +16,7 @@
 using namespace vk;
 
 
-const std::string texture_2d::texture_resource_path =  "/textures/";
+const eastl::fixed_string<char, 250> texture_2d::texture_resource_path =  "/textures/";
 
 texture_2d::texture_2d(device* device):image(device)
 {

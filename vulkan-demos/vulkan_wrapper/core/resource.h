@@ -11,6 +11,7 @@
 #include <string>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
+#include "EASTL/fixed_string.h"
 #include "object.h"
 #include <atomic>
 
@@ -29,11 +30,11 @@ namespace  vk
     class resource : public object
     {
     public:
-        static const std::string resource_root;
+        static const eastl::fixed_string<char,250> resource_root;
         
         virtual ~resource(){}
         
-        void read_file(std::string& fileContents, std::string& path);
+        void read_file(std::string& fileContents, eastl::fixed_string<char, 250>& path);
         
         void create_buffer(VkDevice device, VkPhysicalDevice physicalDevice, VkDeviceSize deviceSize, VkBufferUsageFlags bufferUsageFlags, VkBuffer &buffer,
                      VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceMemory &deviceMemory);

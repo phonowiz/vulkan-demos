@@ -10,12 +10,14 @@
 #include "device.h"
 #include "EASTL/unordered_map.h"
 #include "EASTL/fixed_string.h"
+#include <fstream>
+#include <iostream>
 
 using namespace vk;
 
 
-static eastl::unordered_map<const char*,  shader_shared_ptr> shader_database;
-static eastl::unordered_map<const char*,  mat_shared_ptr > material_database;
+static eastl::unordered_map<eastl::string,  shader_shared_ptr> shader_database;
+static eastl::unordered_map<eastl::string,  mat_shared_ptr > material_database;
 
 material_store::material_store()
 {}
@@ -89,7 +91,10 @@ void material_store::create(device* device)
 
 void material_store::add_material( mat_shared_ptr material)
 {
-    material_database[material->_name] = material;
+    std::cout << "adding material " <<  material->_name << std::endl;
+    
+    eastl::string key = material->_name;
+    material_database[key] = material;
 }
 
 
@@ -100,7 +105,8 @@ shader_shared_ptr material_store::add_shader(const char *shaderPath, shader::sha
     if(shader_database.count(shaderPath) == 0)
     {
         result = eastl::make_shared<shader>(_device, shaderPath, shaderType);
-        shader_database[shaderPath] = result;
+        eastl::string key = shaderPath;
+        shader_database[key] = result;
     }
     else
     {
@@ -137,12 +143,12 @@ shader_shared_ptr const   material_store::find_shader_using_path(const char* pat
 
 void material_store::destroy()
 {
-    for (eastl::pair<const char* , shader_shared_ptr> pair : shader_database)
+    for (eastl::pair<eastl::string , shader_shared_ptr> pair : shader_database)
     {
         pair.second->destroy();
     }
     
-    for (eastl::pair<const char* , mat_shared_ptr> pair : material_database)
+    for (eastl::pair<eastl::string , mat_shared_ptr> pair : material_database)
     {
         pair.second->destroy();
     }

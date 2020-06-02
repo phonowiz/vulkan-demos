@@ -96,7 +96,7 @@ namespace vk
         inline setting_value* get_stored_value_memory(){ return &value; }
         
         using shader_params_group = ordered_map< string_key_type ,shader_parameter>;
-        using KeyValue = std::pair<string_key_type, shader_parameter> ;
+        using KeyValue = eastl::pair<string_key_type, shader_parameter> ;
         
         shader_parameter():value(),type(Type::NONE)
         {}

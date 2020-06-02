@@ -67,7 +67,7 @@ namespace vk
         }
         
         
-        static const std::string texture_resource_path;
+        static const eastl::fixed_string<char, 250> texture_resource_path;
         
     protected:
         
@@ -81,7 +81,7 @@ namespace vk
         bool _loaded = false;
         
         stbi_uc *_ppixels = nullptr;
-        std::string _path;
+        eastl::fixed_string<char, 250> _path;
     };
 }
 

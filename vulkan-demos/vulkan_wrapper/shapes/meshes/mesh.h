@@ -39,6 +39,7 @@ namespace vk
         
     protected:
         mesh(){};
+        mesh(device* dev){_device = dev;}
     public:
         
         struct material_properties
@@ -51,10 +52,62 @@ namespace vk
         ~mesh();
         
         template<typename T>
-        inline void create_and_upload_buffer( VkCommandPool commandPool,
-                                          std::vector<T>& data, VkBufferUsageFlags usage, VkBuffer &buffer, VkDeviceMemory &deviceMemory);
+        void create_and_upload_buffer(VkCommandPool command_pool,
+                                          std::vector<T>& data, VkBufferUsageFlags usage, VkBuffer &buffer, VkDeviceMemory &device_memory)
+        {
+            VkDeviceSize buffer_size = sizeof(T) * data.size();
+            assert(data.size() != 0);
+            VkBuffer staging_buffer {};
+            VkDeviceMemory staging_buffer_memory {};
+            
+            create_buffer(_device->_logical_device, _device->_physical_device, buffer_size,  VK_BUFFER_USAGE_TRANSFER_SRC_BIT, staging_buffer,
+                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, staging_buffer_memory);
+            
+            void* raw_data= nullptr;
+            VkResult r = vkMapMemory(_device->_logical_device, staging_buffer_memory, 0, buffer_size, 0, &raw_data);
+            ASSERT_VULKAN(r);
+            memcpy(raw_data, data.data(), buffer_size);
+            vkUnmapMemory(_device->_logical_device, staging_buffer_memory);
+            
+            
+            create_buffer(_device->_logical_device, _device->_physical_device, buffer_size, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT, buffer,
+                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, device_memory);
+            
+            _device->copy_buffer(command_pool, _device->_graphics_queue, staging_buffer, buffer, buffer_size);
+            vkDestroyBuffer(_device->_logical_device, staging_buffer, nullptr);
+            vkFreeMemory(_device->_logical_device, staging_buffer_memory, nullptr);
+            
+        }
         
-        static const std::string _mesh_resource_path;
+        template<typename T>
+        void create_and_upload_buffer_void(VkCommandPool command_pool,
+                                          eastl::vector<T> &data, VkBufferUsageFlags usage, VkBuffer &buffer, VkDeviceMemory &device_memory)
+        {
+            VkDeviceSize buffer_size = sizeof(T) * data.size();
+            assert(data.size() != 0);
+            VkBuffer staging_buffer {};
+            VkDeviceMemory staging_buffer_memory {};
+            
+            create_buffer(_device->_logical_device, _device->_physical_device, buffer_size,  VK_BUFFER_USAGE_TRANSFER_SRC_BIT, staging_buffer,
+                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, staging_buffer_memory);
+  
+            void* raw_data= nullptr;
+            VkResult r = vkMapMemory(_device->_logical_device, staging_buffer_memory, 0, buffer_size, 0, &raw_data);
+            ASSERT_VULKAN(r);
+            memcpy(raw_data, data.data(), buffer_size);
+            vkUnmapMemory(_device->_logical_device, staging_buffer_memory);
+            
+            
+            create_buffer(_device->_logical_device, _device->_physical_device, buffer_size, usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT, buffer,
+                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, device_memory);
+            
+            _device->copy_buffer(command_pool, _device->_graphics_queue, staging_buffer, buffer, buffer_size);
+            vkDestroyBuffer(_device->_logical_device, staging_buffer, nullptr);
+            vkFreeMemory(_device->_logical_device, staging_buffer_memory, nullptr);
+            
+        }
+
+        static const eastl::string _mesh_resource_path;
         
         template<uint32_t NUM_ATTACHMENTS>
         void draw(VkCommandBuffer command_buffer, vk::render_pass< NUM_ATTACHMENTS>& pipeline, uint32_t object_index, uint32_t swapchain_index);
@@ -70,11 +123,11 @@ namespace vk
             vkCmdBindIndexBuffer(command_buffer, _index_buffer, 0, VK_INDEX_TYPE_UINT32);
         }
         
-        inline void draw_indexed(VkCommandBuffer command_buffer, uint32_t instance_count)
+        virtual void draw_indexed(VkCommandBuffer command_buffer, uint32_t instance_count)
         {
             vkCmdDrawIndexed(command_buffer, static_cast<uint32_t>(get_indices().size()), instance_count, 0, 0, 0);
         }
-        inline void draw(VkCommandBuffer command_buffer)
+        virtual void draw(VkCommandBuffer command_buffer)
         {
             vkCmdDraw(command_buffer, static_cast<uint32_t>(_vertices.size()), 1, 0,0 );
         }

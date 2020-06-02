@@ -55,11 +55,11 @@ static android_app *Android_application = nullptr;
 
 using namespace vk;
 
-const std::string shader::shaderResourcePath =  "/shaders/";
+const eastl::fixed_string<char, 250> shader::shaderResourcePath =  "/shaders/";
 
 shader::shader(device* device, const char* filePath, shader::shader_type shaderType)
 {
-    std::string  path = resource::resource_root + shader::shaderResourcePath + filePath;
+    eastl::fixed_string<char, 250>   path = resource::resource_root + shader::shaderResourcePath + filePath;
     _device = device;
     
     std::string shader;

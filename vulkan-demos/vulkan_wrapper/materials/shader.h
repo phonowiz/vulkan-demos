@@ -37,7 +37,7 @@ namespace  vk
         shader(device* device, const char* shader_path, shader::shader_type shader_type);
         
         device* _device;
-        static const std::string shaderResourcePath;
+        static const eastl::fixed_string<char, 250> shaderResourcePath;
         
 
         

@@ -23,7 +23,7 @@
 
 using namespace vk;
 
-const std::string obj_shape::_shape_resource_path =  "/models/";
+const eastl::fixed_string<char, 250> obj_shape::_shape_resource_path =  "/models/";
 
 
 obj_shape::obj_shape(device* device, const char* path)
@@ -42,7 +42,7 @@ void obj_shape::create()
     std::string error_string;
     std::string warn_string;
     
-    std::string  full_path = resource::resource_root + obj_shape::_shape_resource_path + _path;
+    eastl::fixed_string<char, 250>  full_path = resource::resource_root + obj_shape::_shape_resource_path + _path;
     
     bool success = tinyobj::LoadObj(&vertex_attributes, &shapes, &materials, &warn_string, &error_string, full_path.c_str());
     
@@ -80,5 +80,4 @@ void obj_shape::destroy()
         m = nullptr;
     }
     _meshes.clear();
-    
 }

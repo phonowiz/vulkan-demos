@@ -70,7 +70,7 @@ namespace vk {
         }
         
         inline size_t get_num_meshes(){ return _meshes.size(); }
-        static const std::string _shape_resource_path;
+        static const eastl::fixed_string<char, 250> _shape_resource_path;
         
         virtual void set_diffuse(glm::vec3 diffuse);
         
@@ -79,7 +79,7 @@ namespace vk {
     protected:
         
         glm::vec3 _diffuse = glm::vec3(1.0f);
-        std::vector<mesh*> _meshes;
+        eastl::vector<mesh*> _meshes;
         device* _device = nullptr;
         uint32_t _id = std::numeric_limits<uint32_t>::max();
         const char* _path = nullptr;
