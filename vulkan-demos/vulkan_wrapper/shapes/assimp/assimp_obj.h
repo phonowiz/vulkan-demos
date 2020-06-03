@@ -302,32 +302,30 @@ namespace vk
 
     class assimp_obj : public obj_shape
     {
-    public:
+    private:
         assimp_mesh mesh;
+        assimp_mesh  mesh_lod;
         uint32_t indexCount = 0;
         uint32_t vertexCount = 0;
-        
         vk::device* _device = nullptr;
         
         vertex_layout _vertex_layout;
-        
+        //eastl::fixed_vector<vk::mesh*, 20> _meshes_lod;
         model_create_info create_info = model_create_info(1.0f, 1.0f, 0.0f);
 
         static const int defaultFlags = aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals;
-
-        assimp_obj(device* dev, vertex_layout layout, const char* path):
-            obj_shape(dev, path), mesh(dev), _device(dev)
+    
+        
+    private:
+        
+        bool load(const char* path, assimp_mesh& mesh)
         {
-            _vertex_layout = layout;//eastl::move(layout);
-        }
-       
-        virtual void create() override
-        {
+            bool result = true;
             Assimp::Importer Importer;
             const aiScene* pScene  = nullptr;
 
             // Load file
-#if defined(__ANDROID__)
+    #if defined(__ANDROID__)
             // Meshes are stored inside the apk on Android (compressed)
             // So they need to be loaded via the asset manager
 
@@ -348,27 +346,39 @@ namespace vk
             pScene = Importer.ReadFileFromMemory(meshData, size, defaultFlags);
 
             free(meshData);
-#else
+    #else
             eastl::fixed_string<char, 250>  full_path = resource::resource_root + obj_shape::_shape_resource_path + _path;
             pScene = Importer.ReadFile(full_path.c_str(), 0);
             if (!pScene) {
                 const char* error = Importer.GetErrorString();
                 EA_FAIL_MSG(error);
+                result = false;
             }
-#endif
+    #endif
 
 
             if (pScene)
             {
                 mesh.create(pScene,&create_info, _vertex_layout);
             }
-            else
-            {
-                EA_FAIL_MSG(Importer.GetErrorString());
-            }
-            _meshes.push_back(&mesh);
+            
+            return result;
         }
         
+        
+    public:
+        assimp_obj(device* dev, vertex_layout layout, const char* path):
+            obj_shape(dev, path), mesh(dev), mesh_lod(dev),_device(dev)
+        {
+            _vertex_layout = layout;
+        }
+        
+        virtual void create() override
+        {
+            bool result = load(_path.c_str(), mesh);
+            EA_ASSERT_FORMATTED(result, ("could not load mesh %s", _path.c_str()));
+            _meshes.push_back(&mesh);
+        }
         
         virtual void destroy() override
         {

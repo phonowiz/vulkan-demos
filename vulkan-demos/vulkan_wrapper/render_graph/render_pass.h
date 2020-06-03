@@ -592,13 +592,13 @@ namespace vk
         
         inline subpass_s& get_subpass(uint32_t subpass_id)
         {
-            assert(subpass_id < _num_subpasses && "you asking for subpass that doesn't exist, call \"add_subpass\" on the render_pass object first");
+            EA_ASSERT_MSG(subpass_id < _num_subpasses,"you asking for subpass that doesn't exist, call \"add_subpass\" on the render_pass object first");
             return _subpasses[subpass_id];
         }
         
         inline void create(uint32_t swapchain_id)
         {
-            assert(_num_subpasses != 0 && "you need at least one subpass");
+            EA_ASSERT_MSG(_num_subpasses != 0, "you need at least one subpass");
             init(swapchain_id);
             for( int subpass_id = 0; subpass_id < _num_subpasses; ++subpass_id)
             {
@@ -648,7 +648,7 @@ namespace vk
     template<uint32_t NUM_ATTACHMENTS>
     void render_pass< NUM_ATTACHMENTS>::record_draw_commands(VkCommandBuffer& buffer, uint32_t swapchain_id, uint32_t instance_count)
     {
-        assert(_num_objects != 0 && "you must have objects to render in a subpass");
+        EA_ASSERT_MSG(_num_objects != 0, "you must have objects to render in a subpass");
         begin_render_pass(buffer, swapchain_id);
 
         
@@ -771,7 +771,7 @@ namespace vk
             
              if(_subpasses[subpass_id].get_depth_enable())
             {
-                assert( _subpasses[subpass_id].is_depth_an_input() != true && "depth cannot be both an input an output in subpass, call subpass.set_depth_enable");
+                EA_ASSERT_MSG( _subpasses[subpass_id].is_depth_an_input() != true, "depth cannot be both an input an output in subpass, call subpass.set_depth_enable");
                 //note: in this code base, the last attachement is the depth, the frame buffer creating code assumes this as well.
                 resource_set<image*>& depths =  get_depth_textures();
                 depth_texture* t = static_cast<depth_texture*>( depths[swapchain_id]);

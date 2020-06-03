@@ -120,7 +120,6 @@
 		B9DE4A6223517578003559DC /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627E7219B48D700D1358A /* AppKit.framework */; };
 		B9F1E94C23F2A62000B0484A /* vulkan in Resources */ = {isa = PBXBuildFile; fileRef = B9F1E94B23F2A61E00B0484A /* vulkan */; };
 		B9F4EFF622FD2CE20058B38E /* obj_shape.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4EFF422FD2CE20058B38E /* obj_shape.cpp */; };
-		B9F4EFF922FE084E0058B38E /* screen_plane.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4EFF722FE084E0058B38E /* screen_plane.cpp */; };
 		B9F4EFFC22FE1F380058B38E /* cornell_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4EFFA22FE1F370058B38E /* cornell_box.cpp */; };
 /* End PBXBuildFile section */
 
@@ -327,7 +326,7 @@
 		B9755DEE2483379F00FB15DD /* scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = scene.h; sourceTree = "<group>"; };
 		B9755DEF2483379F00FB15DD /* LogStream.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = LogStream.hpp; sourceTree = "<group>"; };
 		B9755DFA248339BB00FB15DD /* assimp_loader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = assimp_loader.cpp; sourceTree = "<group>"; };
-		B9755DFB248339BB00FB15DD /* assimp_loader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = assimp_loader.h; sourceTree = "<group>"; };
+		B9755DFB248339BB00FB15DD /* assimp_obj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = assimp_obj.h; sourceTree = "<group>"; };
 		B978316022E541AF00E5DE71 /* camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = camera.cpp; sourceTree = "<group>"; };
 		B978316122E541AF00E5DE71 /* camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = camera.h; sourceTree = "<group>"; };
 		B978316322E5435600E5DE71 /* orthographic_camera.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = orthographic_camera.cpp; sourceTree = "<group>"; };
@@ -356,7 +355,6 @@
 		B9F1E94B23F2A61E00B0484A /* vulkan */ = {isa = PBXFileReference; lastKnownFileType = folder; name = vulkan; path = "vulkan-demos/vulkan"; sourceTree = "<group>"; };
 		B9F4EFF422FD2CE20058B38E /* obj_shape.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = obj_shape.cpp; sourceTree = "<group>"; };
 		B9F4EFF522FD2CE20058B38E /* obj_shape.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = obj_shape.h; sourceTree = "<group>"; };
-		B9F4EFF722FE084E0058B38E /* screen_plane.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = screen_plane.cpp; sourceTree = "<group>"; };
 		B9F4EFF822FE084E0058B38E /* screen_plane.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = screen_plane.h; sourceTree = "<group>"; };
 		B9F4EFFA22FE1F370058B38E /* cornell_box.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cornell_box.cpp; sourceTree = "<group>"; };
 		B9F4EFFB22FE1F380058B38E /* cornell_box.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cornell_box.h; sourceTree = "<group>"; };
@@ -632,7 +630,6 @@
 				B93FDCC923036FD1000AECBE /* meshes */,
 				B9F4EFF422FD2CE20058B38E /* obj_shape.cpp */,
 				B9F4EFF522FD2CE20058B38E /* obj_shape.h */,
-				B9F4EFF722FE084E0058B38E /* screen_plane.cpp */,
 				B9F4EFF822FE084E0058B38E /* screen_plane.h */,
 				B93FDCDE23037085000AECBE /* shape.h */,
 				B96AB61E22EE5E5000F33807 /* transform.cpp */,
@@ -764,7 +761,7 @@
 			isa = PBXGroup;
 			children = (
 				B9755DFA248339BB00FB15DD /* assimp_loader.cpp */,
-				B9755DFB248339BB00FB15DD /* assimp_loader.h */,
+				B9755DFB248339BB00FB15DD /* assimp_obj.h */,
 			);
 			path = assimp;
 			sourceTree = "<group>";
@@ -956,7 +953,6 @@
 				B90583BC2442A21B00366F8E /* intrusive_list.cpp in Sources */,
 				B949E6D724497B91003E5AD4 /* eathread_rwmutex_ip.cpp in Sources */,
 				B90583BD2442A21B00366F8E /* red_black_tree.cpp in Sources */,
-				B9F4EFF922FE084E0058B38E /* screen_plane.cpp in Sources */,
 				B93FDCDB23037064000AECBE /* device.cpp in Sources */,
 				B949E664244979A2003E5AD4 /* EAHashString.cpp in Sources */,
 				B93FDCE32303709B000AECBE /* display_plane.cpp in Sources */,

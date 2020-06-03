@@ -24,7 +24,7 @@ namespace vk {
     class render_pass;
 
     //note: the name obj_shape comes from the fact that these objects are created by reading .obj files
-    class obj_shape  : public object
+    class obj_shape : public object
     {
     protected:
         obj_shape(vk::device* device){ _device = device; };
@@ -79,9 +79,9 @@ namespace vk {
     protected:
         
         glm::vec3 _diffuse = glm::vec3(1.0f);
-        eastl::vector<mesh*> _meshes;
+        eastl::fixed_vector<mesh*, 20> _meshes;
         device* _device = nullptr;
         uint32_t _id = std::numeric_limits<uint32_t>::max();
-        const char* _path = nullptr;
+        eastl::fixed_string<char, 250> _path = {};
     };
 }
