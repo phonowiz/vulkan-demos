@@ -460,15 +460,15 @@ namespace vk
         /////////////////////////////////////////////////////////////////////////////////////
         
         
-        inline void add_object( obj_shape& obj)
+        inline void add_object( obj_shape* obj)
         {
-            _shapes[_num_objects] = &obj;
+            _shapes[_num_objects] = obj;
             _num_objects++;
         }
         
         inline obj_shape* get_object(uint32_t obj_id)
         {
-            assert(_shapes.size() > obj_id);
+            EA_ASSERT(_shapes.size() > obj_id);
             return _shapes[obj_id];
         }
         
@@ -501,18 +501,19 @@ namespace vk
             return result;
         }
         
-        inline bool skip_subpass(obj_shape& shape, uint32_t subpass_id)
+        inline bool skip_subpass(obj_shape* shape, uint32_t subpass_id)
         {
+            EA_ASSERT_MSG(shape != nullptr, "shape is null");
             bool result = false;
             for( uint32_t i = 0; i < _num_objects; ++i)
             {
-                if(_shapes[i] == &shape)
+                if(_shapes[i] == shape)
                 {
                     get_subpass(subpass_id).ignore_object(i);
                     result = true;
                 }
             }
-            assert( result == true && "you are asking to ignore an object not yet added to render pass");
+            EA_ASSERT_MSG( result == true, "you are asking to ignore an object not yet added to render pass");
             return result;
         }
         
@@ -522,31 +523,31 @@ namespace vk
         
         inline VkRenderPass& get_vk_render_pass(uint32_t i)
         {
-            assert( i < _vk_render_passes.size());
+            EA_ASSERT( i < _vk_render_passes.size());
             return _vk_render_passes[i];
 
         };
         
         inline VkImageView& get_vk_depth_image_view(uint32_t i)
         {
-            assert(_attachment_group->get_depth_set() != nullptr);
+            EA_ASSERT(_attachment_group->get_depth_set() != nullptr);
             
             resource_set<depth_texture>& depth = *(_attachment_group->get_depth_set());
             
-            assert( i < depth.size());
+            EA_ASSERT( i < depth.size());
             return depth[i]._image_view;
             
         }
         
         inline VkFramebuffer& get_vk_frame_buffer( uint32_t swapchain_id)
         {
-            assert(_vk_frame_buffer_infos.size() > swapchain_id);
+            EA_ASSERT(_vk_frame_buffer_infos.size() > swapchain_id);
             return _vk_frame_buffer_infos[swapchain_id];
         }
         
         inline resource_set<image*>& get_depth_textures()
         {
-            assert(_attachment_group.get_depth_set() != nullptr && "This render pass doesn't have a depth texture as an attachment");
+            EA_ASSERT_MSG(_attachment_group.get_depth_set() != nullptr, "This render pass doesn't have a depth texture as an attachment");
             
             resource_set<image*>& depth = *(_attachment_group.get_depth_set());
             return depth;

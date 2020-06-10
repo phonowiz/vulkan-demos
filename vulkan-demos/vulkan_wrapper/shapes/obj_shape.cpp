@@ -46,7 +46,7 @@ void obj_shape::create()
     
     bool success = tinyobj::LoadObj(&vertex_attributes, &shapes, &materials, &warn_string, &error_string, full_path.c_str());
     
-    assert(success && "check errorString variable");
+    EA_ASSERT_MSG(success,  error_string.c_str());
     
     tinyobj::material_t mat {};
     mat.diffuse[0] = _diffuse.r;

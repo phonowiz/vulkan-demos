@@ -20,6 +20,7 @@
 		B90583C32442A21B00366F8E /* assert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B90583BA2442A21B00366F8E /* assert.cpp */; };
 		B90583C42442A21B00366F8E /* string.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B90583BB2442A21B00366F8E /* string.cpp */; };
 		B909C3062466663F00D2BF11 /* vsm.h in Sources */ = {isa = PBXBuildFile; fileRef = B909C3052466663F00D2BF11 /* vsm.h */; };
+		B91D55C2248A41F20003B4DB /* assimp_node.h in Sources */ = {isa = PBXBuildFile; fileRef = B91D55C1248A41F20003B4DB /* assimp_node.h */; };
 		B92627DF219B476200D1358A /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627DE219B476200D1358A /* CoreGraphics.framework */; };
 		B92627E0219B477400D1358A /* CoreGraphics.framework in Resources */ = {isa = PBXBuildFile; fileRef = B92627DE219B476200D1358A /* CoreGraphics.framework */; };
 		B92627E2219B47CB00D1358A /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627E1219B47CA00D1358A /* CoreVideo.framework */; };
@@ -102,7 +103,6 @@
 		B9755DF72483379F00FB15DD /* vector3.inl in Resources */ = {isa = PBXBuildFile; fileRef = B9755DCB2483379F00FB15DD /* vector3.inl */; };
 		B9755DF82483379F00FB15DD /* matrix3x3.inl in Resources */ = {isa = PBXBuildFile; fileRef = B9755DDA2483379F00FB15DD /* matrix3x3.inl */; };
 		B9755DF92483379F00FB15DD /* SmoothingGroups.inl in Resources */ = {isa = PBXBuildFile; fileRef = B9755DEB2483379F00FB15DD /* SmoothingGroups.inl */; };
-		B9755DFC248339BB00FB15DD /* assimp_loader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9755DFA248339BB00FB15DD /* assimp_loader.cpp */; };
 		B978316222E541B000E5DE71 /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B978316022E541AF00E5DE71 /* camera.cpp */; };
 		B978316522E5435600E5DE71 /* orthographic_camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B978316322E5435600E5DE71 /* orthographic_camera.cpp */; };
 		B978316822E5480700E5DE71 /* perspective_camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B978316622E5480700E5DE71 /* perspective_camera.cpp */; };
@@ -120,7 +120,6 @@
 		B9DE4A6223517578003559DC /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627E7219B48D700D1358A /* AppKit.framework */; };
 		B9F1E94C23F2A62000B0484A /* vulkan in Resources */ = {isa = PBXBuildFile; fileRef = B9F1E94B23F2A61E00B0484A /* vulkan */; };
 		B9F4EFF622FD2CE20058B38E /* obj_shape.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4EFF422FD2CE20058B38E /* obj_shape.cpp */; };
-		B9F4EFFC22FE1F380058B38E /* cornell_box.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4EFFA22FE1F370058B38E /* cornell_box.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -138,6 +137,7 @@
 		B90583BB2442A21B00366F8E /* string.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = string.cpp; path = "vulkan-demos/eastl-3.16.05/source/string.cpp"; sourceTree = SOURCE_ROOT; };
 		B90583C62442BEF600366F8E /* new_operators.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = new_operators.h; sourceTree = "<group>"; };
 		B909C3052466663F00D2BF11 /* vsm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vsm.h; sourceTree = "<group>"; };
+		B91D55C1248A41F20003B4DB /* assimp_node.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = assimp_node.h; sourceTree = "<group>"; };
 		B92354E3246133A800BEC4F3 /* render_pass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = render_pass.h; sourceTree = "<group>"; };
 		B92627DE219B476200D1358A /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		B92627E1219B47CA00D1358A /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
@@ -325,7 +325,6 @@
 		B9755DED2483379F00FB15DD /* DefaultIOSystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DefaultIOSystem.h; sourceTree = "<group>"; };
 		B9755DEE2483379F00FB15DD /* scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = scene.h; sourceTree = "<group>"; };
 		B9755DEF2483379F00FB15DD /* LogStream.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = LogStream.hpp; sourceTree = "<group>"; };
-		B9755DFA248339BB00FB15DD /* assimp_loader.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = assimp_loader.cpp; sourceTree = "<group>"; };
 		B9755DFB248339BB00FB15DD /* assimp_obj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = assimp_obj.h; sourceTree = "<group>"; };
 		B978316022E541AF00E5DE71 /* camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = camera.cpp; sourceTree = "<group>"; };
 		B978316122E541AF00E5DE71 /* camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = camera.h; sourceTree = "<group>"; };
@@ -356,8 +355,6 @@
 		B9F4EFF422FD2CE20058B38E /* obj_shape.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = obj_shape.cpp; sourceTree = "<group>"; };
 		B9F4EFF522FD2CE20058B38E /* obj_shape.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = obj_shape.h; sourceTree = "<group>"; };
 		B9F4EFF822FE084E0058B38E /* screen_plane.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = screen_plane.h; sourceTree = "<group>"; };
-		B9F4EFFA22FE1F370058B38E /* cornell_box.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cornell_box.cpp; sourceTree = "<group>"; };
-		B9F4EFFB22FE1F380058B38E /* cornell_box.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cornell_box.h; sourceTree = "<group>"; };
 		B9FD1B4D23747747002B1985 /* texture_2d_array.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = texture_2d_array.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -397,6 +394,13 @@
 				B90583B52442A21B00366F8E /* thread_support.cpp */,
 			);
 			name = "eastl-3.16.05";
+			sourceTree = "<group>";
+		};
+		B91D55C0248A41C80003B4DB /* mesh_nodes */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = mesh_nodes;
 			sourceTree = "<group>";
 		};
 		B938D03A219534B7004F759E = {
@@ -625,8 +629,6 @@
 			isa = PBXGroup;
 			children = (
 				B9755DFD2483450100FB15DD /* assimp */,
-				B9F4EFFA22FE1F370058B38E /* cornell_box.cpp */,
-				B9F4EFFB22FE1F380058B38E /* cornell_box.h */,
 				B93FDCC923036FD1000AECBE /* meshes */,
 				B9F4EFF422FD2CE20058B38E /* obj_shape.cpp */,
 				B9F4EFF522FD2CE20058B38E /* obj_shape.h */,
@@ -760,7 +762,6 @@
 		B9755DFD2483450100FB15DD /* assimp */ = {
 			isa = PBXGroup;
 			children = (
-				B9755DFA248339BB00FB15DD /* assimp_loader.cpp */,
 				B9755DFB248339BB00FB15DD /* assimp_obj.h */,
 			);
 			path = assimp;
@@ -792,6 +793,7 @@
 		B997A04824419A120074ADBE /* graph_nodes */ = {
 			isa = PBXGroup;
 			children = (
+				B91D55C0248A41C80003B4DB /* mesh_nodes */,
 				B9C2D0CF244446CD00D7621F /* graphics_nodes */,
 				B9C2D0CE244446C500D7621F /* compute_nodes */,
 			);
@@ -801,6 +803,7 @@
 		B9A23CBE23D3D1A900D4D556 /* render_graph */ = {
 			isa = PBXGroup;
 			children = (
+				B91D55C1248A41F20003B4DB /* assimp_node.h */,
 				B9939B5424398D5700D9D345 /* command_recorder.h */,
 				B95252B5243DAD2D00BD848A /* compute_node.h */,
 				B9939B4E24394E9600D9D345 /* graph.h */,
@@ -958,7 +961,6 @@
 				B93FDCE32303709B000AECBE /* display_plane.cpp in Sources */,
 				B978316222E541B000E5DE71 /* camera.cpp in Sources */,
 				B90583C22442A21B00366F8E /* numeric_limits.cpp in Sources */,
-				B9755DFC248339BB00FB15DD /* assimp_loader.cpp in Sources */,
 				B909C3062466663F00D2BF11 /* vsm.h in Sources */,
 				B949E6DB2449812E003E5AD4 /* eathread_pthread_stack_info.cpp in Sources */,
 				B949E669244979A2003E5AD4 /* EAGlobal.cpp in Sources */,
@@ -989,6 +991,7 @@
 				B949E65D244979A2003E5AD4 /* EARandom.cpp in Sources */,
 				B9005AFE2467BD0D00C1E03D /* eaassert.cpp in Sources */,
 				B93FDCE723037359000AECBE /* shader.cpp in Sources */,
+				B91D55C2248A41F20003B4DB /* assimp_node.h in Sources */,
 				B93FDCBE23036EB0000AECBE /* compute_material.cpp in Sources */,
 				B949E660244979A2003E5AD4 /* EAString.cpp in Sources */,
 				B96AB61D22EE5C4000F33807 /* transform.h in Sources */,
@@ -1005,7 +1008,6 @@
 				B93FDCBF23036EB0000AECBE /* material_base.cpp in Sources */,
 				B93FDCC823036F60000AECBE /* compute_pipeline.hpp in Sources */,
 				B949E65E244979A2003E5AD4 /* EACallback.cpp in Sources */,
-				B9F4EFFC22FE1F380058B38E /* cornell_box.cpp in Sources */,
 				B93FDCB023036D70000AECBE /* render_texture.cpp in Sources */,
 				B96AB61F22EE5E5000F33807 /* transform.cpp in Sources */,
 				B9F4EFF622FD2CE20058B38E /* obj_shape.cpp in Sources */,

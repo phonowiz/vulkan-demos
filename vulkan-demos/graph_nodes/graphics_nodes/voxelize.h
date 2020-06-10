@@ -155,7 +155,7 @@ public:
         
         for(int i = 0; i < _obj_vector.size(); ++i)
         {
-            pass.add_object(*_obj_vector[i]);
+            pass.add_object( _obj_vector[i]->get_lod(0) );
         }
     }
     
@@ -196,7 +196,7 @@ public:
         for( int i = 0; i < _obj_vector.size(); ++i)
         {
             parent_type::set_dynamic_param("model", image_id, 0, _obj_vector[i],
-                                           _obj_vector[i]->transform.get_transform_matrix(), 3 );
+                                           _obj_vector[i]->transforms[image_id].get_transform_matrix(), 3 );
         }
     }
     

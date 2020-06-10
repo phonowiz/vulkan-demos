@@ -80,14 +80,14 @@ public:
         
         setup_sampling_rays();
         
-        pass.add_object(_screen_plane);
-        pass.skip_subpass(_screen_plane, 0);
+        pass.add_object(static_cast<vk::obj_shape*>(&_screen_plane));
+        pass.skip_subpass(static_cast<vk::obj_shape*>(&_screen_plane), 0);
         
         EA_ASSERT_MSG(_obj_vector.size() != 0, "there are no objects to be rendered in the MRT node");
         for(int i = 0; i < _obj_vector.size(); ++i)
         {
-            pass.add_object(*_obj_vector[i]);
-            pass.skip_subpass( *_obj_vector[i], 1);
+            pass.add_object(_obj_vector[i]->get_lod(0));
+            pass.skip_subpass( _obj_vector[i]->get_lod(0), 1);
         }
         
         vk::attachment_group<5>& mrt_attachment_group = pass.get_attachment_group();
@@ -241,10 +241,12 @@ public:
         display_fragment_params["light_cam_proj_matrix"] = _light_cam.get_projection_matrix() * _light_cam.view_matrix;
         display_fragment_params["mode"] = static_cast<int>(_rendering_mode);
         
+        mrt_pass.set_cull_mode(render_pass_type::graphics_pipeline_type::cull_mode::NONE);
+        
         for( int i = 0; i < obj_vec.size(); ++i)
         {
             parent_type::set_dynamic_param("model", image_id, 0, obj_vec[i],
-                                           obj_vec[i]->transform.get_transform_matrix(), 0 );
+                                           obj_vec[i]->transforms[image_id].get_transform_matrix(), 0 );
         }
         
     }

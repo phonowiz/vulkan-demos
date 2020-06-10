@@ -16,6 +16,7 @@
 #include "screen_plane.h"
 #include "texture_2d.h"
 #include "attachment_group.h"
+#include "assimp_node.h"
 
 template< uint32_t NUM_CHILDREN>
 class display_texture_2d : public vk::graphics_node<1, NUM_CHILDREN>
@@ -95,7 +96,7 @@ public:
                              _swapchain->get_vk_swap_extent().height, binding);
         
         sub_p.add_output_attachment("present");
-        pass.add_object(_screen_plane);
+        pass.add_object(static_cast<vk::obj_shape*>(&_screen_plane));
         
     }
     

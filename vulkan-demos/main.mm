@@ -30,8 +30,8 @@
 
 #include "vulkan_wrapper/materials/material_store.h"
 #include "vulkan_wrapper/shapes/obj_shape.h"
-#include "vulkan_wrapper/shapes/cornell_box.h"
 #include "vulkan_wrapper/shapes/assimp/assimp_obj.h"
+#include "vulkan_wrapper/render_graph/assimp_node.h"
 
 #include "vulkan_wrapper/cameras/perspective_camera.h"
 #include "camera_controllers/first_person_controller.h"
@@ -46,6 +46,7 @@
 #include "graph_nodes/graphics_nodes/voxelize.h"
 #include "graph_nodes/compute_nodes/clear_3d_texture.hpp"
 #include "graph_nodes/graphics_nodes/mrt.h"
+
 
 #include "new_operators.h"
 #include "graph.h"
@@ -294,38 +295,25 @@ int main()
 
     app.swapchain = &swapchain;
 
-    vk::vertex_components comps;
-    comps.push_back(vk::vertex_componets::VERTEX_COMPONENT_POSITION);
-    comps.push_back(vk::vertex_componets::VERTEX_COMPONENT_COLOR);
-    comps.push_back(vk::vertex_componets::VERTEX_COMPONENT_UV);
-    comps.push_back(vk::vertex_componets::VERTEX_COMPONENT_NORMAL);
+    vk::assimp_node<4> model_node(&device, "dragon.obj");
 
-    vk::vertex_layout layout(comps);
+    vk::assimp_node<4> cornell_node(&device, "cornell/cornell_box.obj");
     
-    vk::assimp_obj model(&device, layout, "dragon.obj" );
-    vk::assimp_obj model_lod(&device, layout, "dragon_lod.obj");
+    vk::transform trans ={};
     
-    vk::obj_shape cube(&device, "cube.obj");
-    vk::cornell_box cornell_box(&device);
-    
-    cube.create();
-
-    model.create();
-    model_lod.create();
-    
-    model.transform.position = glm::vec3(0.5f, -.50f, -.200f);
-    model.transform.scale = glm::vec3(1.2f, 1.2f, 1.2f);
-    model.transform.update_transform_matrix();
-    
-    model_lod.transform.position = model.transform.position;
-    model_lod.transform.scale = model.transform.scale;
-    model_lod.transform.update_transform_matrix();
+    trans.position = glm::vec3(0.5f, -.50f, -.200f);
+    trans.scale = glm::vec3(1.2f, 1.2f, 1.2f);
+    trans.update_transform_matrix();
     
     
-    cornell_box.transform.position = glm::vec3(0.0f, 0.0f, 0.0f);
-    cornell_box.transform.rotation.y = 3.14159f;
-    cornell_box.transform.update_transform_matrix();
-    cornell_box.create();
+    model_node.init_transforms(trans);
+    
+    trans.position = glm::vec3(0.0f, 0.0f, 0.0f);
+    trans.scale = glm::vec3(1.0f);
+    trans.rotation.y = 3.14159f;
+    trans.update_transform_matrix();
+    
+    cornell_node.init_transforms(trans);
     
     float aspect = static_cast<float>(swapchain.get_vk_swap_extent().width)/ static_cast<float>(swapchain.get_vk_swap_extent().height);
     vk::perspective_camera perspective_camera(glm::radians(45.0f),
@@ -343,13 +331,6 @@ int main()
     app.three_d_texture_camera = &three_d_texture_cam;
     app.three_d_texture_camera->position = eye;
     app.three_d_texture_camera->forward = -eye;
-    
-    
-    app.shapes.push_back(&cornell_box);
-    app.shapes.push_back(&model);
-    
-    app.shapes_lods.push_back(&cornell_box);
-    app.shapes_lods.push_back(&model_lod);
     
     first_person_controller user_controler( app.perspective_camera, window);
     first_person_controller  texture_3d_view_controller(app.three_d_texture_camera, window);
@@ -407,18 +388,16 @@ int main()
         voxelizers[i].set_dimensions(voxelize<4>::VOXEL_CUBE_WIDTH, voxelize<4>::VOXEL_CUBE_HEIGHT);
 
         voxelizers[i].set_key_light_cam(point_light_cam, voxelize<4>::light_type::POINT_LIGHT);
-        //TODO: LET'S CREATE A MESH NODE, ATTACH THESE TO VOXELIZERS
-        for(int j = 0; j < app.shapes_lods.size(); ++j)
-        {
-            voxelizers[i].add_object(*(app.shapes_lods[j]));
-        }
+
+        voxelizers[i].add_child(model_node);
+        voxelizers[i].add_child(cornell_node);
     }
     
-    for( int i = 0; i < app.shapes.size(); ++i)
-    {
-        mrt_node.add_object(*(app.shapes[i]));
-        vsm_node.add_object(*(app.shapes[i]));
-    }
+    mrt_node.add_child(model_node);
+    mrt_node.add_child(cornell_node);
+    
+    vsm_node.add_child(model_node);
+    vsm_node.add_child(cornell_node);
 
     
     eastl::array<clear_3d_textures<4>, mip_map_3d_texture<4>::TOTAL_LODS> clear_mip_maps;
@@ -557,12 +536,7 @@ int main()
     app.voxel_graph->destroy_all();
     
     material_store.destroy();
-    model.destroy();
-    model_lod.destroy();
-    cube.destroy();
-    cornell_box.destroy();
     swapchain.destroy();
-    model.destroy();
     
     vkDestroySurfaceKHR(device._instance, surface, nullptr);
     device.destroy();

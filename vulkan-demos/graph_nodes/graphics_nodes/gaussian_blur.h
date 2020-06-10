@@ -91,7 +91,7 @@ public:
         sub_p.set_image_sampler( target, "samplerColor", vk::parameter_stage::FRAGMENT, 0, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         sub_p.add_output_attachment(_output_texture.c_str(), render_pass_type::write_channels::RGBA, true);
         
-        pass.add_object(_screen_plane);
+        pass.add_object(static_cast<vk::obj_shape*>(&_screen_plane));
         
     }
     

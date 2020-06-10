@@ -67,6 +67,9 @@ namespace vk
         VkPipelineStageFlagBits get_producer_stage() override {  return VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT; };
         VkPipelineStageFlagBits get_consumer_stage() override {  return VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT; };
         
+        virtual char const * const * get_instance_type() override { return (&_node_type); };
+        static char const * const *  get_class_type(){ return (&_node_type); }
+        
     protected:
         virtual void create_gpu_resources() override
         {
@@ -85,5 +88,8 @@ namespace vk
         uint32_t _group_x = 8;
         uint32_t _group_y = 8;
         uint32_t _group_z = 8;
+        
+    private:
+        static constexpr char const * _node_type = nullptr;
     };
 }

@@ -24,12 +24,11 @@
 #include "../obj_shape.h"
 #include "core/device.h"
 #include "mesh.h"
+#include "texture.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-
 
 namespace vk
 {
@@ -55,9 +54,10 @@ namespace vk
         /** @brief Components used to generate vertices from */
         vertex_components components;
         
-        vertex_layout( vertex_components components)
+        
+        vertex_layout( vertex_components &components)
         {
-            this->components = eastl::move(components);
+            this->components = components;
         }
 
         uint32_t stride()
@@ -137,7 +137,15 @@ namespace vk
         
     public:
         
-        assimp_mesh(device* dev):mesh(dev){}
+        assimp_mesh(){}
+        assimp_mesh(device* dev):mesh(dev)
+        {}
+        
+        
+        inline void set_device(device* dev)
+        {
+            _device = dev;
+        }
         
         virtual void draw_indexed(VkCommandBuffer command_buffer, uint32_t instance_count) override
         {
@@ -156,7 +164,7 @@ namespace vk
             
             _parts.clear();
             _parts.resize(pScene->mNumMeshes);
-
+            
             glm::vec3 scale(1.0f);
             glm::vec2 uvscale(1.0f);
             glm::vec3 center(0.0f);
@@ -186,6 +194,20 @@ namespace vk
 
                 aiColor3D pColor(0.f, 0.f, 0.f);
                 pScene->mMaterials[paiMesh->mMaterialIndex]->Get(AI_MATKEY_COLOR_DIFFUSE, pColor);
+                const aiMaterial* material = pScene->mMaterials[paiMesh->mMaterialIndex];
+                aiString path;
+                
+                //TODO: LOAD TEXTURES
+//                for( int xx = 0; xx < aiTextureType_UNKNOWN; ++xx)
+//                {
+//                    for( int x  = 0; x < material->GetTextureCount(aiTextureType_DIFFUSE); ++x)
+//                    {
+//                        if(material->GetTexture( aiTextureType_NORMALS, 0,&path) == AI_SUCCESS)
+//                        {
+//                            //std::cout << "test" << std::endl;f
+//                        }
+//                    }
+//                }
 
                 const aiVector3D Zero3D(0.0f, 0.0f, 0.0f);
 
@@ -263,8 +285,7 @@ namespace vk
                 for (unsigned int j = 0; j < paiMesh->mNumFaces; j++)
                 {
                     const aiFace& Face = paiMesh->mFaces[j];
-                    if (Face.mNumIndices != 3)
-                        continue;
+                    EA_ASSERT_MSG(Face.mNumIndices == 3, "This mesh needs to be triangulated");
                     indexBuffer.push_back(indexBase + Face.mIndices[0]);
                     indexBuffer.push_back(indexBase + Face.mIndices[1]);
                     indexBuffer.push_back(indexBase + Face.mIndices[2]);
@@ -275,7 +296,7 @@ namespace vk
             
             _vertex_size = static_cast<uint32_t>(vertexBuffer.size());
             _index_size = static_cast<uint32_t>(indexBuffer.size());
-//            
+
             create_and_upload_buffer_void( _device->_graphics_command_pool, vertexBuffer,
                                      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | createInfo->memoryPropertyFlags,
                                      _vertex_buffer, _vertex_buffer_device_memory);
@@ -289,7 +310,6 @@ namespace vk
         virtual void destroy() override
         {
             mesh::destroy();
-            //assert(device);
             vkDestroyBuffer(_device->_logical_device, _vertex_buffer, nullptr);
             vkFreeMemory(_device->_logical_device, _vertex_buffer_device_memory, nullptr);
             if (_index_buffer != VK_NULL_HANDLE)
@@ -302,15 +322,13 @@ namespace vk
 
     class assimp_obj : public obj_shape
     {
-    private:
-        assimp_mesh mesh;
-        assimp_mesh  mesh_lod;
+    protected:
+        assimp_mesh _mesh;
         uint32_t indexCount = 0;
         uint32_t vertexCount = 0;
         vk::device* _device = nullptr;
         
         vertex_layout _vertex_layout;
-        //eastl::fixed_vector<vk::mesh*, 20> _meshes_lod;
         model_create_info create_info = model_create_info(1.0f, 1.0f, 0.0f);
 
         static const int defaultFlags = aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals;
@@ -348,7 +366,7 @@ namespace vk
             free(meshData);
     #else
             eastl::fixed_string<char, 250>  full_path = resource::resource_root + obj_shape::_shape_resource_path + _path;
-            pScene = Importer.ReadFile(full_path.c_str(), 0);
+            pScene = Importer.ReadFile(full_path.c_str(), aiProcess_ValidateDataStructure | aiProcess_Triangulate | aiProcess_ImproveCacheLocality);
             if (!pScene) {
                 const char* error = Importer.GetErrorString();
                 EA_FAIL_MSG(error);
@@ -366,18 +384,58 @@ namespace vk
         }
         
         
-    public:
-        assimp_obj(device* dev, vertex_layout layout, const char* path):
-            obj_shape(dev, path), mesh(dev), mesh_lod(dev),_device(dev)
+        void setup_vertex_layout()
         {
-            _vertex_layout = layout;
+            vk::vertex_components comps;
+            comps.push_back(vk::vertex_componets::VERTEX_COMPONENT_POSITION);
+            comps.push_back(vk::vertex_componets::VERTEX_COMPONENT_COLOR);
+            comps.push_back(vk::vertex_componets::VERTEX_COMPONENT_UV);
+            comps.push_back(vk::vertex_componets::VERTEX_COMPONENT_NORMAL);
+
+            _vertex_layout.components = comps;
+        }
+        
+    public:
+        assimp_obj(device* dev,  const char* path):
+            obj_shape(dev, path), _mesh(dev),_device(dev)
+        {
+            setup_vertex_layout();
+        }
+        
+        assimp_obj()
+        {
+            setup_vertex_layout();
+        }
+        assimp_obj(device* dev)
+        {
+            setup_vertex_layout();
+        }
+        
+        void set_vertex_layout(vk::vertex_components& comps)
+        {
+            _vertex_layout.components.clear();
+            _vertex_layout.components = comps;
+        }
+        
+        
+        void set_device(device* dev)
+        {
+            _device = dev;
+            _mesh.set_device(dev);
+            
+        }
+        
+        void set_path(const char* path)
+        {
+            _path = path;
         }
         
         virtual void create() override
         {
-            bool result = load(_path.c_str(), mesh);
+            EA_ASSERT_MSG(!_path.empty(), "path to mesh was not proviced");
+            bool result = load(_path.c_str(), _mesh);
             EA_ASSERT_FORMATTED(result, ("could not load mesh %s", _path.c_str()));
-            _meshes.push_back(&mesh);
+            _meshes.push_back(&_mesh);
         }
         
         virtual void destroy() override

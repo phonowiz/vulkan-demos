@@ -82,7 +82,7 @@ public:
         sub_p.add_output_attachment( _swapchain->present_textures.get_name().c_str());
         
         sub_p.set_cull_mode(vk::standard_pipeline::cull_mode::BACK_FACE);
-        pass.add_object(_cube);
+        pass.add_object(static_cast<vk::obj_shape*>(&_cube));
         
     }
     

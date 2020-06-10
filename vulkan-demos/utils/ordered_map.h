@@ -10,7 +10,7 @@
 
 #include "EASTL/string_view.h"
 #include "EASTL/fixed_vector.h"
-#include "EAassert/eaassert.h"
+#include "EAAssert/eaassert.h"
 #include <algorithm>
 
 //this container gives us the ability to keep the insertion order of the keys as they are entered

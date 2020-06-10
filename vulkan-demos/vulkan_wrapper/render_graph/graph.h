@@ -46,7 +46,7 @@ namespace vk
         
         virtual void init() override
         {
-            node_type::validate(node_type::_level, node_type::_device);
+            node_type::reset_node(node_type::_level, node_type::_device);
             create_gpu_resources();
 
             for( eastl_size_t i = 0; i < node_type::_children.size(); ++i)
@@ -63,6 +63,8 @@ namespace vk
         
         inline void record(uint32_t image_id)
         {
+            node_type::reset_node(node_type::_level, node_type::_device);
+            
             _texture_registry.reset_render_textures();
             
             _commands.reset(image_id);
@@ -79,6 +81,8 @@ namespace vk
         
         void update(vk::camera& camera, uint32_t image_id) override
         {
+            node_type::reset_node(node_type::_level, node_type::_device);
+            
             for( eastl_size_t i = 0; i < node_type::_children.size(); ++i)
             {
                 node_type::_children[i]->update(camera,  image_id);

@@ -63,17 +63,21 @@ namespace  vk
         virtual void init()
         {
             assert( _device != nullptr);
-
-            //debug_print("initting...");
             
-            for( eastl_size_t i = 0; i < _children.size(); ++i)
+            if(!_visited)
             {
-                _children[i]->set_stores(*_texture_registry, *_material_store);
-                _children[i]->init();
+                _visited = true;
+                //debug_print("initting...");
+                
+                for( eastl_size_t i = 0; i < _children.size(); ++i)
+                {
+                    _children[i]->set_stores(*_texture_registry, *_material_store);
+                    _children[i]->init();
+                }
+                
+                init_node();
+                create_gpu_resources();
             }
-            
-            init_node();
-            create_gpu_resources();
         }
         
         
@@ -91,9 +95,13 @@ namespace  vk
         
         virtual void update(vk::camera& camera, uint32_t image_id)
         {
-            for( eastl_size_t i = 0; i < node_type::_children.size(); ++i)
+            if(!_visited)
             {
-                node_type::_children[i]->update(camera,  image_id);
+                _visited = true;
+                for( eastl_size_t i = 0; i < node_type::_children.size(); ++i)
+                {
+                    node_type::_children[i]->update(camera,  image_id);
+                }
             }
             
             //debug_print("updating...");
@@ -110,13 +118,9 @@ namespace  vk
         virtual VkPipelineStageFlagBits get_consumer_stage() = 0;
         
         
-        //use this to show on screen  a texture
-        virtual bool debug_display(){ return false; };
-        
-        
         inline void set_enable(bool b){ _enable = b; }
         
-        inline void add_child( node_type& child )
+        virtual void add_child( node_type& child )
         {
             child.set_device(_device);
             _children.push_back(&child);
@@ -137,16 +141,21 @@ namespace  vk
         virtual bool record(command_recorder& buffer, uint32_t image_id)
         {
             bool result = true;
-            for( int i = 0; i < _children.size(); ++i)
-            {
-                result = result && node_type::_children[i]->record(buffer, image_id);
-            }
             
-            if( result && _active)
+            if(!_visited)
             {
-                //debug_print("recording...");
-                record_barriers(buffer, image_id);
-                result = record_node_commands(buffer, image_id);
+                _visited = true;
+                for( int i = 0; i < _children.size(); ++i)
+                {
+                    result = result && node_type::_children[i]->record(buffer, image_id);
+                }
+                
+                if( result && _active)
+                {
+                    //debug_print("recording...");
+                    record_barriers(buffer, image_id);
+                    result = record_node_commands(buffer, image_id);
+                }
             }
             
             return result;
@@ -174,16 +183,15 @@ namespace  vk
         
     protected:
         
-        virtual void validate( uint32_t i, vk::device* device )
+        virtual void reset_node( uint32_t i, vk::device* device )
         {
-            EA_ASSERT_MSG(!_visited, "we have a cyclic dependency, revise your graph");
-            _visited = true;
+            _visited = false;
             _device = device;
             _level = i;
-            
+
             for( int i = 0; i < _children.size(); ++i)
             {
-                node_type::_children[i]->validate(_level + 1, device);
+                node_type::_children[i]->reset_node(_level + 1, device);
             }
         }
         
