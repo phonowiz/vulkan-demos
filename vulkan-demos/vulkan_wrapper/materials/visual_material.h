@@ -113,7 +113,7 @@ namespace  vk
             return *this;
         }
         
-        shader_parameter::shader_params_group& get_uniform_parameters(parameter_stage stage, uint32_t binding);
+        //shader_parameter::shader_params_group& get_uniform_parameters(parameter_stage stage, uint32_t binding);
         visual_material::object_shader_params_group& get_dynamic_parameters(parameter_stage stage, uint32_t binding);
         
         ~visual_material();

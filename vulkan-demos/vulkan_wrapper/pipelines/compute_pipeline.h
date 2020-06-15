@@ -39,6 +39,55 @@ namespace vk
             }
         }
         
+        inline void init_parameter(const char* parameter_name, float value, int binding)
+        {
+            for(int i = 0; i < NUM_MATERIALS; ++i)
+            {
+                _material[i]->init_parameter(parameter_name, parameter_stage::COMPUTE, value, binding);
+            }
+        };
+        
+        inline void init_parameter(const char* parameter_name, int32_t value, int binding)
+        {
+            for(int i = 0; i < NUM_MATERIALS; ++i)
+                _material[i]->init_parameter(parameter_name, parameter_stage::COMPUTE, value, binding);
+        };
+        
+        inline void init_parameter(const char* parameter_name, uint32_t value, int binding)
+        {
+            for(int i = 0; i < NUM_MATERIALS; ++i)
+                _material[i]->init_parameter(parameter_name, parameter_stage::COMPUTE, value, binding);
+        };
+        
+        inline void init_parameter(const char* parameter_name, glm::vec3 value, int binding)
+        {
+            for(int i = 0; i < NUM_MATERIALS; ++i)
+                _material[i]->init_parameter(parameter_name, parameter_stage::COMPUTE, value, binding);
+        };
+        inline void init_parameter(const char* parameter_name, glm::vec4 value, int binding)
+        {
+            for(int i = 0; i < NUM_MATERIALS; ++i)
+                _material[i]->init_parameter(parameter_name, parameter_stage::COMPUTE, value, binding);
+            
+        };
+        inline void init_parameter(const char* parameter_name, glm::vec2 value, int binding)
+        {
+            for(int i = 0; i < NUM_MATERIALS; ++i)
+                _material[i]->init_parameter(parameter_name, parameter_stage::COMPUTE, value, binding);
+        }
+        inline void init_parameter(const char* parameter_name, glm::mat4 value, int binding)
+        {
+            for(int i = 0; i < NUM_MATERIALS; ++i)
+                _material[i]->init_parameter(parameter_name, parameter_stage::COMPUTE, value, binding);
+        }
+        
+        inline void init_parameter(const char* parameter_name,
+                                   glm::vec4* vecs, size_t num_vectors, int binding)
+        {
+            for(int i = 0; i < NUM_MATERIALS; ++i)
+                _material[i]->init_parameter(parameter_name, parameter_stage::COMPUTE, vecs, num_vectors, binding);
+        }
+        
         template<typename T>
         inline void set_image_sampler(resource_set<T>& textures, const char* parameter_name, uint32_t binding)
         {

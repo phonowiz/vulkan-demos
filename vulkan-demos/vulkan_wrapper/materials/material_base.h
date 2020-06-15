@@ -113,6 +113,17 @@ namespace vk
         virtual VkPipelineShaderStageCreateInfo* get_shader_stages() = 0;
         virtual size_t get_shader_stages_size() = 0;
         const char* _name = nullptr;
+        
+        
+        inline shader_parameter::shader_params_group& get_uniform_parameters(parameter_stage stage, uint32_t binding)
+        {
+            buffer_info& mem = _uniform_buffers[stage];
+            mem.binding = binding;
+            mem.usage_type = usage_type::UNIFORM_BUFFER;
+            
+            return _uniform_parameters[stage];
+        }
+
     
     public:
             using object_shader_params_group = ordered_map<uint32_t, shader_parameter::shader_params_group >  ;

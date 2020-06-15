@@ -42,6 +42,43 @@ namespace vk
         virtual char const * const * get_instance_type() override { return &_type; }
         static char const* const * get_material_type() { return &_type; }
         
+        inline void init_parameter(const char* parameter_name, vk::parameter_stage stage, float value, int32_t binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name] = value;
+        };
+        
+        inline void init_parameter(const char* parameter_name, vk::parameter_stage stage, int32_t value, int32_t binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name] = value;
+        };
+        
+        inline void init_parameter(const char* parameter_name, vk::parameter_stage stage, uint32_t value, int32_t binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name] = value;
+        };
+        
+        inline void init_parameter(const char* parameter_name, vk::parameter_stage stage, glm::vec3 value, int32_t binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name] = value;
+        };
+        inline void init_parameter(const char* parameter_name, vk::parameter_stage stage, glm::vec4 value, int32_t binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name] = value;
+        };
+        inline void init_parameter(const char* parameter_name, vk::parameter_stage stage, glm::vec2 value, int32_t binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name] = value;
+        }
+        inline void init_parameter(const char* parameter_name, vk::parameter_stage stage, glm::mat4 value, int32_t binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name] = value;
+        }
+        
+        inline void init_parameter(const char* parameter_name, vk::parameter_stage stage, glm::vec4* vecs, size_t num_vectors, int32_t binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name].set_vectors_array(vecs, num_vectors);
+        }
+        
         virtual size_t get_shader_stages_size() override { return 1; }
         
         inline compute_material& operator=( const compute_material& right)

@@ -117,7 +117,8 @@ namespace vk
             DEPTH_32_FLOAT = VK_FORMAT_D32_SFLOAT,
             DEPTH_32_STENCIL_8 = VK_FORMAT_D32_SFLOAT_S8_UINT,
             DEPTH_24_STENCIL_8 = VK_FORMAT_D24_UNORM_S8_UINT,
-            R8G8_SIGNED_NORMALIZED =  VK_FORMAT_R8G8_SNORM 
+            R8G8_SIGNED_NORMALIZED =  VK_FORMAT_R8G8_SNORM,
+            R32_UINT = VK_FORMAT_R32_UINT
         };
         
         enum class image_layouts
