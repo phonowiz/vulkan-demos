@@ -20,7 +20,6 @@
 		B90583C32442A21B00366F8E /* assert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B90583BA2442A21B00366F8E /* assert.cpp */; };
 		B90583C42442A21B00366F8E /* string.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B90583BB2442A21B00366F8E /* string.cpp */; };
 		B909C3062466663F00D2BF11 /* vsm.h in Sources */ = {isa = PBXBuildFile; fileRef = B909C3052466663F00D2BF11 /* vsm.h */; };
-		B91D55C2248A41F20003B4DB /* assimp_node.h in Sources */ = {isa = PBXBuildFile; fileRef = B91D55C1248A41F20003B4DB /* assimp_node.h */; };
 		B92627DF219B476200D1358A /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627DE219B476200D1358A /* CoreGraphics.framework */; };
 		B92627E0219B477400D1358A /* CoreGraphics.framework in Resources */ = {isa = PBXBuildFile; fileRef = B92627DE219B476200D1358A /* CoreGraphics.framework */; };
 		B92627E2219B47CB00D1358A /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627E1219B47CA00D1358A /* CoreVideo.framework */; };
@@ -137,7 +136,7 @@
 		B90583BB2442A21B00366F8E /* string.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = string.cpp; path = "vulkan-demos/eastl-3.16.05/source/string.cpp"; sourceTree = SOURCE_ROOT; };
 		B90583C62442BEF600366F8E /* new_operators.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = new_operators.h; sourceTree = "<group>"; };
 		B909C3052466663F00D2BF11 /* vsm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vsm.h; sourceTree = "<group>"; };
-		B91D55C1248A41F20003B4DB /* assimp_node.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = assimp_node.h; sourceTree = "<group>"; };
+		B909D5AF249DE72700622D27 /* diffuse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = diffuse.h; sourceTree = "<group>"; };
 		B92354E3246133A800BEC4F3 /* render_pass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = render_pass.h; sourceTree = "<group>"; };
 		B92627DE219B476200D1358A /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		B92627E1219B47CA00D1358A /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
@@ -325,7 +324,6 @@
 		B9755DED2483379F00FB15DD /* DefaultIOSystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DefaultIOSystem.h; sourceTree = "<group>"; };
 		B9755DEE2483379F00FB15DD /* scene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = scene.h; sourceTree = "<group>"; };
 		B9755DEF2483379F00FB15DD /* LogStream.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = LogStream.hpp; sourceTree = "<group>"; };
-		B9755DFB248339BB00FB15DD /* assimp_obj.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = assimp_obj.h; sourceTree = "<group>"; };
 		B978316022E541AF00E5DE71 /* camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = camera.cpp; sourceTree = "<group>"; };
 		B978316122E541AF00E5DE71 /* camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = camera.h; sourceTree = "<group>"; };
 		B978316322E5435600E5DE71 /* orthographic_camera.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = orthographic_camera.cpp; sourceTree = "<group>"; };
@@ -355,6 +353,8 @@
 		B9F4EFF422FD2CE20058B38E /* obj_shape.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = obj_shape.cpp; sourceTree = "<group>"; };
 		B9F4EFF522FD2CE20058B38E /* obj_shape.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = obj_shape.h; sourceTree = "<group>"; };
 		B9F4EFF822FE084E0058B38E /* screen_plane.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = screen_plane.h; sourceTree = "<group>"; };
+		B9F88E8E249B5B85005486FD /* assimp_node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = assimp_node.h; sourceTree = "<group>"; };
+		B9F88E8F249B5B95005486FD /* assimp_obj.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = assimp_obj.h; sourceTree = "<group>"; };
 		B9FD1B4D23747747002B1985 /* texture_2d_array.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = texture_2d_array.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -628,7 +628,7 @@
 		B96AB61B22EE5BBA00F33807 /* shapes */ = {
 			isa = PBXGroup;
 			children = (
-				B9755DFD2483450100FB15DD /* assimp */,
+				B9F88E8F249B5B95005486FD /* assimp_obj.h */,
 				B93FDCC923036FD1000AECBE /* meshes */,
 				B9F4EFF422FD2CE20058B38E /* obj_shape.cpp */,
 				B9F4EFF522FD2CE20058B38E /* obj_shape.h */,
@@ -759,14 +759,6 @@
 			path = Compiler;
 			sourceTree = "<group>";
 		};
-		B9755DFD2483450100FB15DD /* assimp */ = {
-			isa = PBXGroup;
-			children = (
-				B9755DFB248339BB00FB15DD /* assimp_obj.h */,
-			);
-			path = assimp;
-			sourceTree = "<group>";
-		};
 		B978315F22E541AF00E5DE71 /* cameras */ = {
 			isa = PBXGroup;
 			children = (
@@ -803,7 +795,7 @@
 		B9A23CBE23D3D1A900D4D556 /* render_graph */ = {
 			isa = PBXGroup;
 			children = (
-				B91D55C1248A41F20003B4DB /* assimp_node.h */,
+				B9F88E8E249B5B85005486FD /* assimp_node.h */,
 				B9939B5424398D5700D9D345 /* command_recorder.h */,
 				B95252B5243DAD2D00BD848A /* compute_node.h */,
 				B9939B4E24394E9600D9D345 /* graph.h */,
@@ -833,6 +825,7 @@
 				B9D4644D2448466E0011D358 /* voxelize.h */,
 				B909C3052466663F00D2BF11 /* vsm.h */,
 				B9337F07246D11050008E857 /* gaussian_blur.h */,
+				B909D5AF249DE72700622D27 /* diffuse.h */,
 			);
 			path = graphics_nodes;
 			sourceTree = "<group>";
@@ -991,7 +984,6 @@
 				B949E65D244979A2003E5AD4 /* EARandom.cpp in Sources */,
 				B9005AFE2467BD0D00C1E03D /* eaassert.cpp in Sources */,
 				B93FDCE723037359000AECBE /* shader.cpp in Sources */,
-				B91D55C2248A41F20003B4DB /* assimp_node.h in Sources */,
 				B93FDCBE23036EB0000AECBE /* compute_material.cpp in Sources */,
 				B949E660244979A2003E5AD4 /* EAString.cpp in Sources */,
 				B96AB61D22EE5C4000F33807 /* transform.h in Sources */,

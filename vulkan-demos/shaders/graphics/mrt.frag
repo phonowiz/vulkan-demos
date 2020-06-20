@@ -4,10 +4,13 @@
 layout (location = 0) in vec4 inNormal;
 layout (location = 1) in vec4 inAlbedo;
 layout (location = 2) in vec4 inWorldPos;
+layout (location = 3) in vec2 inUVCoords;
 
 layout (location = 0) out vec4 outNormal;
 layout (location = 1) out vec4 outAlbedo;
 layout (location = 2) out vec4 outWorldPos;
+
+layout (binding = 2) uniform sampler2D diffuse;
 
 
 //based off of: https://aras-p.info/texts/CompactNormalStorage.html and

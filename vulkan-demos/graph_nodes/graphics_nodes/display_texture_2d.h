@@ -16,7 +16,7 @@
 #include "screen_plane.h"
 #include "texture_2d.h"
 #include "attachment_group.h"
-#include "assimp_node.h"
+//#include "assimp_node.h"
 
 template< uint32_t NUM_CHILDREN>
 class display_texture_2d : public vk::graphics_node<1, NUM_CHILDREN>

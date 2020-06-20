@@ -125,9 +125,6 @@ namespace vk
         texture_registry<NUM_CHILDREN> _texture_registry;
         command_recorder _commands;
         material_store& _material_store;
-        
-        vk::device device;
-        
     };
 }
 

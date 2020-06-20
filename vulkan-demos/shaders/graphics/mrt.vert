@@ -23,6 +23,7 @@ layout(binding = 1,std140) uniform DYNAMIC
 layout (location = 0) out vec4 out_normal;
 layout (location = 1) out vec4 out_albedo;
 layout (location = 2) out vec4 out_world_pos;
+layout (location = 3) out vec2 out_uv_coords;
 
 
 

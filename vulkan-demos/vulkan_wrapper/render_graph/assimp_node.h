@@ -26,13 +26,13 @@ namespace vk
         using node_type = vk::node<NUM_CHILDREN>;
          
         assimp_node(vk::device* dev, const char* path):
-        _device(dev), _path(path)
+        node_type(dev),_path(path)
         {
             node_type::_name = path;
         }
         
         assimp_node(vk::device* dev, const char* path, vk::vertex_components& v_components):
-        _device(dev), _path(path)
+        node_type(dev), _path(path)
         {
             node_type::_name = path;
             for(int i = 0; i < _mesh_lods.size(); ++i)
@@ -51,12 +51,12 @@ namespace vk
         
         virtual void init_node() override
         {
-            EA_ASSERT_MSG(_device != nullptr, "vk::device is nullptr");
+            EA_ASSERT_MSG(node_type::_device != nullptr, "vk::device is nullptr");
             EA_ASSERT_MSG(_path != nullptr, "path directory is empty for this mesh");
             for( int i = 0; i < _mesh_lods.size(); ++i)
             {
                 eastl::fixed_string<char, 250> name = _path;
-                _mesh_lods[i].set_device(_device);
+                _mesh_lods[i].set_device(node_type::_device);
                 _mesh_lods[i].set_path(name.c_str());
                 if( i != 0)
                 {
@@ -123,7 +123,6 @@ namespace vk
         
         static constexpr char const * _node_type = nullptr;
         
-        vk::device* _device = nullptr;
         eastl::array<vk::assimp_obj, 10> _mesh_lods;
         uint32_t    _num_lods = 1;
         const char* _path;

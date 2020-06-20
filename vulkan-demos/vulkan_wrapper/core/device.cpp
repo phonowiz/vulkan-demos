@@ -98,11 +98,30 @@ void device::create_logical_device( VkSurfaceKHR surface)
         queue_create_infos.push_back(queue_create_info);
     }
 
+    VkPhysicalDeviceFragmentShaderInterlockFeaturesEXT features_ext = {};
+    
     VkPhysicalDeviceFeatures device_features = {};
+    
     device_features.samplerAnisotropy = VK_TRUE;
     device_features.shaderStorageImageWriteWithoutFormat = VK_TRUE;
     device_features.fragmentStoresAndAtomics = VK_TRUE;
     device_features.independentBlend = VK_TRUE;
+    
+    VkPhysicalDeviceFeatures2 device_features_2 = {};
+    
+    features_ext.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_INTERLOCK_FEATURES_EXT;
+    features_ext.fragmentShaderPixelInterlock = VK_FALSE;
+//    device_features_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FRAGMENT_SHADER_INTERLOCK_FEATURES_EXT;
+//    device_features_2.pNext = &features_ext;
+    
+    device_features_2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    device_features_2.pNext = &features_ext;
+    device_features_2.features = device_features;
+    
+
+    
+
+
 
 #if !defined(__APPLE__)
     //not supported by mac os
@@ -111,11 +130,11 @@ void device::create_logical_device( VkSurfaceKHR surface)
 #endif
     VkDeviceCreateInfo create_info = {};
     create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-
+    create_info.pNext = &device_features_2;
     create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
     create_info.pQueueCreateInfos = queue_create_infos.data();
 
-    create_info.pEnabledFeatures = &device_features;
+    create_info.pEnabledFeatures = nullptr;
 
     create_info.enabledExtensionCount = static_cast<uint32_t>(device::device_extensions.size());
     create_info.ppEnabledExtensionNames = device::device_extensions.data();
@@ -318,6 +337,7 @@ void device::create_instance()
     }
     //NOTE: Keep in mind that the order in which you load extensions matters, careful in loading something too early
     all_required_extensions[i] = "VK_EXT_debug_report";
+    all_required_extensions[++i] = "VK_KHR_get_physical_device_properties2";
 
     VkInstanceCreateInfo instanceInfo;
     instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -326,7 +346,7 @@ void device::create_instance()
     instanceInfo.pApplicationInfo = &app_info;
     instanceInfo.enabledLayerCount = (uint32_t)validation_layers.size();
     instanceInfo.ppEnabledLayerNames = validation_layers.data();
-    instanceInfo.enabledExtensionCount = glfw_extensions_count + 1;
+    instanceInfo.enabledExtensionCount = i + 1;
     instanceInfo.ppEnabledExtensionNames = all_required_extensions.data();
     
     uint32_t instance_layer_count {};
@@ -549,7 +569,7 @@ void device::pick_physical_device(VkSurfaceKHR surface)
             
             if(_properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
             {
-                
+
                 _physical_device = device;
                 continue;
             }
