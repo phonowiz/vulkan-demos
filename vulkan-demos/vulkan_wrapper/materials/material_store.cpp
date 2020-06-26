@@ -55,6 +55,19 @@ void material_store::create(device* device)
     shader_shared_ptr gauss_blur_vert = add_shader("graphics/gaussblur.vert", shader::shader_type::VERTEX);
     shader_shared_ptr gauss_blur_frag = add_shader("graphics/gaussblur.frag", shader::shader_type::FRAGMENT);
     
+    
+    shader_shared_ptr color_vert = add_shader("graphics/color.vert", shader::shader_type::VERTEX);
+    shader_shared_ptr color_frag = add_shader("graphics/color.frag", shader::shader_type::FRAGMENT);
+    
+    mat_shared_ptr color_mat = CREATE_MAT<visual_material>("color", color_vert, color_frag, device);
+    add_material(color_mat);
+    
+    shader_shared_ptr pbr_vert = add_shader("graphics/pbr.vert", shader::shader_type::VERTEX);
+    shader_shared_ptr pbr_frag = add_shader("graphics/pbr.frag", shader::shader_type::FRAGMENT);
+    
+    mat_shared_ptr pbr_mat = CREATE_MAT<visual_material>("pbr", pbr_vert, pbr_frag, device);
+    add_material(pbr_mat);
+    
     mat_shared_ptr gaussblur_mat = CREATE_MAT<visual_material>("gaussblur", gauss_blur_vert, gauss_blur_frag, device);
     add_material(gaussblur_mat);
     

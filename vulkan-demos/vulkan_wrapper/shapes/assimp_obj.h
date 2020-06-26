@@ -32,6 +32,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <filesystem>
+
 namespace vk
 {
 
@@ -197,9 +199,8 @@ namespace vk
         vertex_layout _vertex_layout;
         model_create_info create_info = model_create_info(1.0f, 1.0f, 0.0f);
 
-        static const int defaultFlags = aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals;
-        
-        using texture_path_vec = eastl::array< eastl::fixed_string<char, 50>, 20>;
+        static const uint32_t defaultFlags = aiProcess_ConvertToLeftHanded;
+        using texture_path_vec = eastl::array< texture_path, 20>;
         using texture_type_vec = eastl::array<texture_path_vec, 20>;
         using mesh_textures = eastl::array<texture_type_vec, aiTextureType_UNKNOWN + 1>;
         
@@ -230,6 +231,7 @@ namespace vk
             uint32_t indexCount = 0;
             uint32_t vertexCount = 0;
             
+            //EA_ASSERT_MSG(pScene->mNumMeshes == 1, "Please merge all meshes into one");
             // Load meshes
             for (unsigned int i = 0; i < pScene->mNumMeshes; i++)
             {
@@ -253,6 +255,8 @@ namespace vk
                     {
                         if(material->GetTexture( (aiTextureType)t, c,&path) == AI_SUCCESS)
                         {
+                            EA_ASSERT_FORMATTED(_textures[i][t][c].empty(),
+                                                ("You have multiple textures of type %i on this mesh, (%s and %s)", _textures[i][t][c].c_str(), path.C_Str()));
                             _textures[i][t][c] = path.C_Str();
                         }
                     }
@@ -378,8 +382,8 @@ namespace vk
 
             free(meshData);
     #else
-            eastl::fixed_string<char, 250>  full_path = resource::resource_root + obj_shape::_shape_resource_path + _path;
-            pScene = Importer.ReadFile(full_path.c_str(), 0);
+            texture_path full_path = resource::resource_root + obj_shape::_shape_resource_path + _path;
+            pScene = Importer.ReadFile(full_path.c_str(), defaultFlags);
             if (!pScene) {
                 const char* error = Importer.GetErrorString();
                 EA_FAIL_MSG(error);
@@ -431,13 +435,27 @@ namespace vk
         void set_device(device* dev)
         {
             _device = dev;
-            //_mesh.set_device(dev);
-            
         }
+        
         
         void set_path(const char* path)
         {
             _path = path;
+        }
+        
+        virtual texture_path get_texture(uint32_t id)  override
+        {
+            texture_path path;
+            if(!_textures[0][id][0].empty())
+            {
+                std::filesystem::path base_path = _path.c_str();
+                base_path = base_path.parent_path();
+                
+                path.sprintf("..%s%s/%s",obj_shape::_shape_resource_path.c_str(), base_path.c_str(), _textures[0][id][0].c_str());
+                //path = _textures[0][id][0].c_str();
+
+            }
+            return path;
         }
         
         virtual void create() override

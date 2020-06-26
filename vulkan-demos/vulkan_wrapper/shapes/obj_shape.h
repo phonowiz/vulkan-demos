@@ -23,6 +23,8 @@ namespace vk {
     template< uint32_t NUM_ATTACHMENTS>
     class render_pass;
 
+    using texture_path = eastl::fixed_string<char, 250>;
+
     //note: the name obj_shape comes from the fact that these objects are created by reading .obj files
     class obj_shape : public object
     {
@@ -74,6 +76,11 @@ namespace vk {
         
         virtual void set_diffuse(glm::vec3 diffuse);
         
+        virtual texture_path get_texture(uint32_t id) 
+        {
+            texture_path path = {};
+            return path;
+        }
         vk::transform transform;
 
     protected:

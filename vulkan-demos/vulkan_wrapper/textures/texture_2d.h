@@ -32,9 +32,36 @@ namespace vk
             return _ppixels;
         }
         
+        int get_bytes_per_channel()
+        {
+            switch(_format)
+            {
+                case formats::R8G8B8A8_UNSIGNED_NORMALIZED:
+                case formats::R8G8B8_UNSIGNED_NORMALIZED:
+                case formats::R8G8B8A8_SIGNED_NORMALIZED:
+                case formats::R8G8_SIGNED_NORMALIZED:
+                {
+                    return 1;
+                }
+                case formats::R32G32_SIGNED_FLOAT:
+                case formats::R32G32B32_SIGNED_FLOAT:
+                case formats::R32G32B32A32_SIGNED_FLOAT:
+                {
+                    return 4;
+                }
+                case formats::R16G16B16A16_UNSIGNED_NORMALIZED:
+                {
+                    return 2;
+                }
+                default:
+                    EA_FAIL_MSG("unrecognized texture format");
+            }
+            return 0;
+        }
+        
         int get_size_in_bytes()
         {
-            return get_width() * get_height() * get_channels();
+            return get_width() * get_height() * get_channels() * get_bytes_per_channel();
         }
         
         void load();

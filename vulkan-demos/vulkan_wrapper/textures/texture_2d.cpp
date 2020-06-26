@@ -31,13 +31,16 @@ image(device)
 
 void texture_2d::init()
 {
-    assert(_device != nullptr);
-    _mip_levels = _enable_mipmapping ? static_cast<uint32_t>( std::floor(std::log2( std::max( _width, _height)))) + 1 : 1;
-    create_sampler();
-    assert( _width != 0 && _height != 0);
-    create(_width, _height);
-    
-    _initialized = true;
+    if(!_initialized)
+    {
+        assert(_device != nullptr);
+        _mip_levels = _enable_mipmapping ? static_cast<uint32_t>( std::floor(std::log2( std::max( _width, _height)))) + 1 : 1;
+        create_sampler();
+        assert( _width != 0 && _height != 0);
+        create(_width, _height);
+        
+        _initialized = true;
+    }
 }
 
 texture_2d::texture_2d(device* device,const char* path)
@@ -64,6 +67,11 @@ void texture_2d::load()
     _width = static_cast<uint32_t>(w);
     _height = static_cast<uint32_t>(h);
     _channels = static_cast<uint32_t>(c);
+    
+    if(_channels == 3)
+    {
+        _format = formats::R8G8B8_UNSIGNED_NORMALIZED;
+    }
     
     assert(_ppixels != nullptr);
     _loaded = true;
@@ -117,7 +125,7 @@ void texture_2d::create(uint32_t width, uint32_t height)
     if(_loaded)
     {
         void *data = nullptr;
-        vkMapMemory(_device->_logical_device, staging_buffer_memory, 0, image_size, 0, &data);
+        VkResult res = vkMapMemory(_device->_logical_device, staging_buffer_memory, 0, VK_WHOLE_SIZE, 0, &data);
         memcpy(data, get_raw(), image_size);
         vkUnmapMemory(_device->_logical_device, staging_buffer_memory);
     }

@@ -41,6 +41,7 @@
 #include "graph_nodes/graphics_nodes/display_texture_3d.h"
 #include "graph_nodes/graphics_nodes/vsm.h"
 #include "graph_nodes/graphics_nodes/gaussian_blur.h"
+#include "graph_nodes/graphics_nodes/pbr.h"
 
 #include "graph_nodes/compute_nodes/mip_map_3d_texture.hpp"
 #include "graph_nodes/graphics_nodes/voxelize.h"
@@ -278,14 +279,16 @@ void create_graph()
     
     eastl::shared_ptr<vk::assimp_node<4>> cornell_node = eastl::make_shared<vk::assimp_node<4>>(app.device, "cornell/cornell_box.obj");
     eastl::shared_ptr<vk::assimp_node<4>> model_node = eastl::make_shared<vk::assimp_node<4>>( app.device, "IndoorPotPlant/indoor_plant_02_fbx/indoor_plant_02_6.1_1+2_tri.fbx" );
-    
+    //eastl::shared_ptr<vk::assimp_node<4>> model_node = eastl::make_shared<vk::assimp_node<4>>(app.device, "rose/rose.fbx");
+    //eastl::shared_ptr<vk::assimp_node<4>> model_node = eastl::make_shared<vk::assimp_node<4>>( app.device, "stone_1/stone.fbx" );
+
     vk::transform trans ={};
 
-    trans.position = glm::vec3(0.f, -.500f, .000f);
+    trans.position = glm::vec3(0.f, -.900f, .000f);
     //these things are necessary because assimp won't pick up on scaling/rotation attributes specified in the Blender exporter
     //I don't know how to fix these things from the blender or assimp side.
-    trans.scale = glm::vec3(.1f,.1f, .1f);
-    trans.rotation.x = -1.0f * glm::half_pi<float>();
+    trans.scale = glm::vec3(.2f,.2f, .2f);
+    trans.rotation.x = glm::half_pi<float>();
     trans.update_transform_matrix();
 
 
@@ -293,7 +296,7 @@ void create_graph()
     trans = {};
     trans.position = glm::vec3(0.0f, 0.0f, 0.0f);
     trans.scale = glm::vec3(1.0f);
-    trans.rotation.y = glm::pi<float>();
+    //trans.rotation.y = glm::pi<float>();
     trans.update_transform_matrix();
 
     cornell_node->init_transforms(trans);
@@ -332,7 +335,7 @@ void create_graph()
                                                   aspect, .01f, 10.0f);
 
     point_light_cam.up = glm::vec3(0.0,  1.0f, 0.001f);
-    point_light_cam.position = glm::vec3(0.f, .99f, .0f);
+    point_light_cam.position = glm::vec3(0.f, .5f, -1.4f);
     point_light_cam.forward = -point_light_cam.position;
     point_light_cam.update_view_matrix();
 
@@ -366,7 +369,6 @@ void create_graph()
 
     for( int i = 0; i < voxelizers.size(); ++i)
     {
-        //TODO: EVERY FRAME TICK, YOU MUST UPDATE THE LIGHT POSITION FOR EACH VOXELIZER
         voxelizers[i]->set_proj_to_voxel_screen(vox_proj_cam.get_projection_matrix() * vox_proj_cam.view_matrix);
 
         voxelizers[i]->set_device(app.device);
@@ -378,7 +380,6 @@ void create_graph()
 
         voxelizers[i]->add_child(*model_node);
         voxelizers[i]->add_child(*cornell_node);
-        //voxelizers[i]->set_active(false);
     }
 
     mrt_node->add_child(*model_node);
@@ -508,8 +509,24 @@ void create_graph()
     gsm_debug->add_child(*gsb_horizontal);
     gsm_debug->set_active(false);
 
+    eastl::shared_ptr<pbr<4>> pbr_node = eastl::make_shared<pbr<4>>(app.device, dims.x, dims.y);
+    eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "albedos");
+    //eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "model_albedo", vk::texture_2d::get_class_type());
+    
+    pbr_node->add_child(*gsm_debug);
+    
+    pbr_node->add_child(*model_node);
+    pbr_node->add_child(*cornell_node);
 
-    mrt_node->add_child(*gsm_debug);
+    
+    pbr_node->set_name("pbr node");
+    //pbr_node->set_active(false);
+    
+    pbr_debug->add_child(*pbr_node);
+    pbr_debug->set_name("pbr debug");
+    pbr_debug->set_active(false);
+    
+    mrt_node->add_child(*pbr_debug);
 
     voxel_cone_tracing.add_child(*mrt_node);
     app.voxel_graph = &voxel_cone_tracing;
@@ -552,250 +569,7 @@ int main()
 
     app.swapchain = &swapchain;
 
-    //
-
     create_graph();
-//
-//
-////    trans.position = glm::vec3(0.f, -.500f, .000f);
-////    //these things are necessary because assimp won't pick up on scaling/rotation attributes specified in the Blender exporter
-////    //I don't know how to fix these things from the blender or assimp side.
-////    trans.scale = glm::vec3(.1f,.1f, .1f);
-////    trans.rotation.x = -1.0f * glm::half_pi<float>();
-////    trans.update_transform_matrix();
-//
-//
-//    //model_node.init_transforms(trans);
-//    trans = {};
-//    trans.position = glm::vec3(0.0f, 0.0f, 0.0f);
-//    trans.scale = glm::vec3(1.0f);
-//    trans.rotation.y = glm::pi<float>();
-//    trans.update_transform_matrix();
-//
-//    //cornell_node.init_transforms(trans);
-//
-//    float aspect = static_cast<float>(swapchain.get_vk_swap_extent().width)/ static_cast<float>(swapchain.get_vk_swap_extent().height);
-//    vk::perspective_camera perspective_camera(glm::radians(45.0f),
-//                                              aspect, .01f, 100.0f);
-//
-//    vk::perspective_camera three_d_texture_cam(glm::radians(45.0f),
-//                                               aspect, .01f, 50.0f);
-//
-//    app.perspective_camera = &perspective_camera;
-//    app.perspective_camera->position = glm::vec3(0.0f, .2f, -5.0f);
-//    app.perspective_camera->forward = -perspective_camera.position;
-//
-//
-//    glm::vec3 eye(0.0f, 0.0f, -3.0f);
-//    app.three_d_texture_camera = &three_d_texture_cam;
-//    app.three_d_texture_camera->position = eye;
-//    app.three_d_texture_camera->forward = -eye;
-//
-//    first_person_controller user_controler( app.perspective_camera, window);
-//    first_person_controller  texture_3d_view_controller(app.three_d_texture_camera, window);
-//    circle_controller   circle_controller(app.perspective_camera, 1.8f, glm::vec3(0.0f, -.02f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f));
-//
-//    app.user_controller = &user_controler;
-//    app.circle_controller = &circle_controller;
-//    app.texture_3d_view_controller = &texture_3d_view_controller;
-//
-//    app.user_controller->update();
-//    app.texture_3d_view_controller->update();
-//
-//    vk::graph<4> voxel_cone_tracing(&device, material_store, swapchain);
-//
-//    vk::perspective_camera point_light_cam(glm::radians(110.0f),
-//                                                  aspect, .01f, 10.0f);
-//
-//    point_light_cam.up = glm::vec3(0.0,  1.0f, 0.001f);
-//    point_light_cam.position = glm::vec3(0.f, .99f, .0f);
-//    point_light_cam.forward = -point_light_cam.position;
-//    point_light_cam.update_view_matrix();
-//
-//    mrt<4> mrt_node(&device, &swapchain, point_light_cam, mrt<4>::light_type::POINT_LIGHT);
-//
-//    vsm<4> vsm_node(&device, swapchain.get_vk_swap_extent().width,
-//                    swapchain.get_vk_swap_extent().height, point_light_cam);
-//
-//    vsm_node.set_name("vsm node");
-//
-//    mrt_node.set_name("mrt");
-//    mrt_node.set_rendering_state( mrt<4>::rendering_mode::FULL_RENDERING);
-//    app.mrt_node = &mrt_node;
-//
-//    eastl::array<voxelize<4>, 3> voxelizers;
-//
-//    constexpr float distance = 8.f;
-//    std::array<glm::vec3, 3> cam_positions = {  glm::vec3(0.0f, 0.0f, -distance),glm::vec3(0.0f, distance, 0.0f), glm::vec3(distance, 0.0f, 0.0f)};
-//    std::array<glm::vec3, 3> up_vectors = { glm::vec3 {0.0f, 1.0f, 0.0f}, glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)};
-//    std::array<const char*, 3>     names = { "z-axis", "y-axis", "x-axis"};
-//
-//    vk::orthographic_camera vox_proj_cam(10.0f, 10.0f, 10.0f);
-//    vox_proj_cam.up = up_vectors[0];
-//    vox_proj_cam.position = cam_positions[0];
-//    vox_proj_cam.forward = -cam_positions[0];
-//    vox_proj_cam.update_view_matrix();
-//
-//    for( int i = 0; i < voxelizers.size(); ++i)
-//    {
-//        //TODO: EVERY FRAME TICK, YOU MUST UPDATE THE LIGHT POSITION FOR EACH VOXELIZER
-//        voxelizers[i].set_proj_to_voxel_screen(vox_proj_cam.get_projection_matrix() * vox_proj_cam.view_matrix);
-//
-//        voxelizers[i].set_device(&device);
-//        voxelizers[i].set_cam_params(cam_positions[i], up_vectors[i]);
-//        voxelizers[i].set_name(names[i]);
-//        voxelizers[i].set_dimensions(voxelize<4>::VOXEL_CUBE_WIDTH, voxelize<4>::VOXEL_CUBE_HEIGHT);
-//
-//        voxelizers[i].set_key_light_cam(point_light_cam, voxelize<4>::light_type::POINT_LIGHT);
-//
-//        //voxelizers[i].add_child(model_node);
-//        //voxelizers[i].add_child(cornell_node);
-//
-//        if( i == 1 ||  i == 2)
-//            voxelizers[i].set_active(false);
-//    }
-//
-//    //mrt_node.add_child(model_node);
-//    //mrt_node.add_child(cornell_node);
-//
-//    //vsm_node.add_child(model_node);
-//    //vsm_node.add_child(cornell_node);
-//
-//
-//    eastl::array<clear_3d_textures<4>, mip_map_3d_texture<4>::TOTAL_LODS> clear_mip_maps;
-//    eastl::array<mip_map_3d_texture<4>, mip_map_3d_texture<4>::TOTAL_LODS-1> three_d_mip_maps;
-//
-//
-//    clear_mip_maps[0].set_device(&device);
-//    clear_mip_maps[0].set_group_size(voxelize<4>::VOXEL_CUBE_WIDTH / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE,
-//                                     voxelize<4>::VOXEL_CUBE_HEIGHT / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE,
-//                                     voxelize<4>::VOXEL_CUBE_DEPTH / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE);
-//
-//    static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<4>::TOTAL_LODS > albedo_names = {};
-//    static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<4>::TOTAL_LODS > normal_names = {};
-//
-//    albedo_names[0] = "voxel_albedos";
-//    normal_names[0] = "voxel_normals";
-//
-//
-//    eastl::array< eastl::fixed_string<char, 100>, 2 > input_tex;
-//    eastl::array< eastl::fixed_string<char, 100>, 2 > output_tex;
-//
-//    input_tex[0] = "voxel_albedos4";
-//    input_tex[1] = "voxel_normals4";
-//
-//    output_tex[0] = "voxel_albedos5";
-//    output_tex[1] = "voxel_normals5";
-//
-//    clear_mip_maps[0].set_clear_texture(albedo_names[0], normal_names[0]);
-//
-//    clear_mip_maps[0].set_name("clear mip map 0");
-//    three_d_mip_maps[0].set_name("three d mip map 0");
-//
-//
-//    for( int map_id = 1; map_id < clear_mip_maps.size(); ++map_id)
-//    {
-//        EA_ASSERT_MSG((voxelize<4>::VOXEL_CUBE_WIDTH >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0, "invalid voxel cube size, voxel texture will not clear properly");
-//        EA_ASSERT_MSG((voxelize<4>::VOXEL_CUBE_HEIGHT >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0, "invalid voxel cube size, voxel texture will not clear properly");
-//        EA_ASSERT_MSG((voxelize<4>::VOXEL_CUBE_DEPTH >> map_id) % vk::compute_pipeline<1>::LOCAL_GROUP_SIZE == 0, "invalid voxel cube size, voxel texture will not clear properly");
-//
-//
-//        uint32_t local_groups_x = (voxelize<4>::VOXEL_CUBE_WIDTH >> map_id) / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE;
-//        uint32_t local_groups_y = (voxelize<4>::VOXEL_CUBE_HEIGHT >> map_id) / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE;
-//        uint32_t local_groups_z = (voxelize<4>::VOXEL_CUBE_DEPTH >> map_id) / vk::compute_pipeline<1>::LOCAL_GROUP_SIZE;
-//
-//        albedo_names[map_id].sprintf("voxel_albedos%i", map_id);
-//        normal_names[map_id].sprintf("voxel_normals%i", map_id);
-//
-//        input_tex[0] = albedo_names[map_id -1];
-//        input_tex[1] = normal_names[map_id -1];
-//
-//        output_tex[0] = albedo_names[map_id];
-//        output_tex[1] = normal_names[map_id];
-//
-//        three_d_mip_maps[map_id -1].set_textures(input_tex, output_tex);
-//        three_d_mip_maps[map_id -1].set_device(&device);
-//        three_d_mip_maps[map_id -1].set_group_size(local_groups_x,local_groups_y,local_groups_z);
-//
-//        eastl::fixed_string<char, 100> name = {};
-//
-//        name.sprintf( "three d mip map %i with local group %i", map_id, local_groups_z);
-//        three_d_mip_maps[map_id -1].set_name(name.c_str());
-//
-//        //TODO: we also need to clear the normal voxel textures
-//        clear_mip_maps[map_id].set_clear_texture(albedo_names[map_id], normal_names[map_id]);
-//        clear_mip_maps[map_id].set_device(&device);
-//        clear_mip_maps[map_id].set_group_size(local_groups_x, local_groups_y, local_groups_z);
-//
-//        name.sprintf("clear mip map node %i with local group %i", map_id, local_groups_x);
-//        clear_mip_maps[map_id].set_name( name.c_str()) ;
-//
-//    }
-//
-//    //build the graph!
-//
-//    //attach mip map nodes together starting with the lowest mip map all the way up to the highest
-//    for( unsigned long i = three_d_mip_maps.size()-1 ; i > 0 ; --i)
-//    {
-//        three_d_mip_maps[i].add_child( three_d_mip_maps[i-1]);
-//    }
-//
-//    //attach all clear maps to the last voxelizer
-//    for( int i = 0; i < clear_mip_maps.size(); ++i)
-//    {
-//        voxelizers[voxelizers.size() -1].add_child(clear_mip_maps[i]);
-//    }
-//
-//    //chain voxelizers together
-//    for( int i = 0; i < voxelizers.size()-1; ++i)
-//    {
-//        voxelizers[i].add_child( voxelizers[i + 1] );
-//    }
-//
-//    //attach the zero voxelizer to the highest three_d mip map...
-//    three_d_mip_maps[0].add_child(voxelizers[0]);
-//
-//    glm::vec2 dims = {swapchain.get_vk_swap_extent().width, swapchain.get_vk_swap_extent().height };
-//    display_texture_3d<4> debug_node_3d(&device,&swapchain, dims, "voxel_normals" );
-//
-//    debug_node_3d.set_name("3d-texture-render");
-//    debug_node_3d.set_active(false);
-//
-//    debug_node_3d.set_3D_texture_cam(three_d_texture_cam);
-//
-//    debug_node_3d.add_child( three_d_mip_maps[three_d_mip_maps.size()-1]);
-//
-//
-//    display_texture_2d<4> vsm_debug(&device, &swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "vsm");
-//    vsm_debug.set_active(false);
-//    vsm_debug.set_name("vsm_debug");
-//
-//    vsm_node.add_child(debug_node_3d);
-//    vsm_debug.add_child(vsm_node);
-//
-//    gaussian_blur<4> gsb_vertical(&device,  dims.x, dims.y, gaussian_blur<4>::DIRECTION::VERTICAL, "vsm", "gauss_vertical");
-//    gaussian_blur<4> gsb_horizontal(&device, dims.x, dims.y, gaussian_blur<4>::DIRECTION::HORIZONTAL, "gauss_vertical", "blur_final");
-//    display_texture_2d<4> gsm_debug(&device, &swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "blur_final");
-//
-//    gsb_vertical.add_child(vsm_debug);
-//    gsb_horizontal.add_child(gsb_vertical);
-//
-//    gsm_debug.add_child(gsb_horizontal);
-//    gsm_debug.set_active(false);
-//
-//
-//    mrt_node.add_child(gsm_debug);
-//
-//    voxel_cone_tracing.add_child(mrt_node);
-//    app.voxel_graph = &voxel_cone_tracing;
-//    app.debug_node_3d = &debug_node_3d;
-//
-//    app.voxel_graph->init();
-//    game_loop();
-
-
-
-//    app.voxel_graph->destroy_all();
 
     material_store.destroy();
     swapchain.destroy();

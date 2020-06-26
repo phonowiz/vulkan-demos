@@ -115,7 +115,7 @@ namespace vk
         //when we load this attachment, should it clear?
         inline bool should_clear( uint32_t i )
         {
-            return _clear[i] = true;
+            return _clear[i];
         }
         
         template< typename R>

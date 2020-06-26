@@ -136,7 +136,7 @@
 		B90583BB2442A21B00366F8E /* string.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = string.cpp; path = "vulkan-demos/eastl-3.16.05/source/string.cpp"; sourceTree = SOURCE_ROOT; };
 		B90583C62442BEF600366F8E /* new_operators.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = new_operators.h; sourceTree = "<group>"; };
 		B909C3052466663F00D2BF11 /* vsm.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vsm.h; sourceTree = "<group>"; };
-		B909D5AF249DE72700622D27 /* diffuse.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = diffuse.h; sourceTree = "<group>"; };
+		B909D5AF249DE72700622D27 /* pbr.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = pbr.h; sourceTree = "<group>"; };
 		B92354E3246133A800BEC4F3 /* render_pass.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = render_pass.h; sourceTree = "<group>"; };
 		B92627DE219B476200D1358A /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		B92627E1219B47CA00D1358A /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
@@ -394,13 +394,6 @@
 				B90583B52442A21B00366F8E /* thread_support.cpp */,
 			);
 			name = "eastl-3.16.05";
-			sourceTree = "<group>";
-		};
-		B91D55C0248A41C80003B4DB /* mesh_nodes */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = mesh_nodes;
 			sourceTree = "<group>";
 		};
 		B938D03A219534B7004F759E = {
@@ -785,7 +778,6 @@
 		B997A04824419A120074ADBE /* graph_nodes */ = {
 			isa = PBXGroup;
 			children = (
-				B91D55C0248A41C80003B4DB /* mesh_nodes */,
 				B9C2D0CF244446CD00D7621F /* graphics_nodes */,
 				B9C2D0CE244446C500D7621F /* compute_nodes */,
 			);
@@ -825,7 +817,7 @@
 				B9D4644D2448466E0011D358 /* voxelize.h */,
 				B909C3052466663F00D2BF11 /* vsm.h */,
 				B9337F07246D11050008E857 /* gaussian_blur.h */,
-				B909D5AF249DE72700622D27 /* diffuse.h */,
+				B909D5AF249DE72700622D27 /* pbr.h */,
 			);
 			path = graphics_nodes;
 			sourceTree = "<group>";

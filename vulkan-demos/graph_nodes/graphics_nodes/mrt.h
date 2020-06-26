@@ -102,18 +102,18 @@ public:
         //GBUFFER SUBPASS
         //follow the order in which the attachments are expected in the shader
         mrt_attachment_group.add_attachment(normals, glm::vec4(0.0f), true, false);
-        mrt_attachment_group.add_attachment(albedos, glm::vec4(0.0f), true, false);
+        mrt_attachment_group.add_attachment(albedos, glm::vec4(0.0f), false, false);
         mrt_attachment_group.add_attachment(positions, glm::vec4(0.0f), true, false);
-        mrt_attachment_group.add_attachment(_swapchain->present_textures, glm::vec4(0.0f), false, false);
+        mrt_attachment_group.add_attachment(_swapchain->present_textures, glm::vec4(0.0f), true, false);
         mrt_attachment_group.add_attachment(depth, glm::vec2(1.0f, 0.0f), false, false);
+        
         
         glm::vec2 dims = parent_type::_node_render_pass.get_dimensions();
         
         normals.set_format(vk::image::formats::R8G8_SIGNED_NORMALIZED);
         normals.set_filter(vk::image::filter::NEAREST);
         
-        albedos.set_dimensions(dims.x, dims.y);
-        albedos.set_filter(vk::image::filter::NEAREST);
+
         
         positions.set_filter(vk::image::filter::NEAREST);
         positions.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
@@ -121,12 +121,11 @@ public:
         depth.set_filter(vk::image::filter::NEAREST);
         
         normals.init();
-        albedos.init();
+
         positions.init();
         depth.init();
         
         mrt_subpass.add_output_attachment("normals", render_pass_type::write_channels::RG, false);
-        mrt_subpass.add_output_attachment("albedos", render_pass_type::write_channels::RGBA, false);
         mrt_subpass.add_output_attachment("positions", render_pass_type::write_channels::RGBA, false);
         mrt_subpass.add_output_attachment("depth");
         
@@ -288,7 +287,7 @@ private:
     static constexpr size_t   NUM_SAMPLING_RAYS = 5;
     eastl::array<glm::vec4, NUM_SAMPLING_RAYS> _sampling_rays = {};
     
-    glm::vec4 _light_color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    glm::vec4 _light_color = glm::vec4(1.5f, 1.5f, 1.5f, 1.5f);
 };
 
 template class mrt<4>;

@@ -68,6 +68,7 @@ namespace vk
             
             static constexpr int32_t INVALID_ATTACHMENT = -1;
             
+            //TODO: We don't need this function, let's get rid of it. 
             inline bool is_active(){ return _active; }
             
             enum class layout
@@ -409,7 +410,7 @@ namespace vk
             
             inline void set_active(){ _active = true; }
             
-            const char* _name = nullptr;
+            eastl::fixed_string<char, 100> _name = {};
         private:
 
             inline void set_number_of_blend_attachments( uint32_t blend_attachments)
@@ -581,14 +582,7 @@ namespace vk
         
         inline uint32_t get_number_of_subpasses()
         {
-            uint32_t result = 0;
-            
-            for( int i = 0; i < _subpasses.size(); ++i)
-            {
-                result += _subpasses[i].is_active() ? 1 : 0;
-            }
-            
-            return result;
+            return _num_subpasses;
         }
         
         inline subpass_s& get_subpass(uint32_t subpass_id)
@@ -743,6 +737,19 @@ namespace vk
             
         }
         
+        VkAttachmentReference depth_reference {};
+        
+        if(is_depth_enabled())
+        {
+            //note: in this code base, the last attachement is the depth, the frame buffer creating code assumes this as well.
+            resource_set<image*>& depths =  get_depth_textures();
+            depth_texture* t = static_cast<depth_texture*>( depths[swapchain_id]);
+            attachment_descriptions[attachment_id] =  t->get_depth_attachment();
+            depth_reference.attachment = attachment_id;
+            depth_reference.layout = static_cast<VkImageLayout>(depths[swapchain_id]->get_usage_layout(vk::usage_type::STORAGE_IMAGE));
+            ++attachment_id;
+        }
+        
         EA_ASSERT(attachment_id != 0);
         
         eastl::array<VkSubpassDescription, MAX_SUBPASSES> subpass {};
@@ -760,7 +767,7 @@ namespace vk
         dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
         dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
         
-        VkAttachmentReference depth_reference {};
+
         
         while(_subpasses[subpass_id].is_active())
         {
@@ -773,14 +780,7 @@ namespace vk
              if(_subpasses[subpass_id].get_depth_enable())
             {
                 EA_ASSERT_MSG( _subpasses[subpass_id].is_depth_an_input() != true, "depth cannot be both an input an output in subpass, call subpass.set_depth_enable");
-                //note: in this code base, the last attachement is the depth, the frame buffer creating code assumes this as well.
-                resource_set<image*>& depths =  get_depth_textures();
-                depth_texture* t = static_cast<depth_texture*>( depths[swapchain_id]);
-                attachment_descriptions[attachment_id] =  t->get_depth_attachment();
-                depth_reference.attachment = attachment_id;
-                depth_reference.layout = static_cast<VkImageLayout>(depths[swapchain_id]->get_usage_layout(vk::usage_type::STORAGE_IMAGE));
                 subpass[subpass_id].pDepthStencilAttachment = &depth_reference;
-                ++attachment_id;
             }
 
             //note: for a great explanation of VK_SUBPASS_EXTERNAL:

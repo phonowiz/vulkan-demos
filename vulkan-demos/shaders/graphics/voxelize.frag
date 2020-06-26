@@ -56,6 +56,11 @@ void main()
     ndc.xy = (ndc.xy + 1.f) * .5f;
     ndc.xy = 1.0f - ndc.xy;
 
+    //TODO: there is a bug here.  You might see flicker in voxel box, the solution involves adding all fragments that contribute to the same
+    //TODO: voxel and do an average.
+    //TODO: This  requires atomic instructions not supported by metal, and therefore not supported by moltenvk
+    //TODO: here is description to solution: https://rauwendaal.net/2013/02/07/glslrunningaverage/
+    //TODO: Here is a bug filed by me to moltenvk, and their answer: https://github.com/KhronosGroup/MoltenVK/issues/924
     ivec3 voxel = ivec3(imageSize(voxel_albedo_texture) * ndc.xyz);
     imageStore(voxel_albedo_texture, voxel, vec4(diffuse, 1.f));
 

@@ -348,7 +348,7 @@ vec4 indirect_illumination( vec3 world_normal, vec3 world_pos, vec3 direction)
     }
     
     //TODO: this hack should go away when we start using HDR values and gamma correction
-    float hack = 1.2f;
+    float hack = 1.9f;
     return vec4(final_color.xyz, 1.0f) * hack ;
 }
 
@@ -443,7 +443,7 @@ vec2 vsm_filter( vec3 moments, float fragDepth )
     vec2 lit = vec2(0.0f);
     float E_x2 = moments.y;
     float Ex_2 = moments.x * moments.x;
-    float variance = max(E_x2 - Ex_2, 0.00002f);
+    float variance = max(E_x2 - Ex_2, 0.00025f);
     float mD = fragDepth - moments.x ;
     
     float mD_2 = mD * mD;
@@ -546,7 +546,7 @@ void main()
                 vec4 direct = direct_illumination( world_normal, world_position);
                 //full ambient light plus direct light
                 direct.xyz *= (shadow_factor(world_position));
-                direct.xyz += ambience.xyz;
+                direct.xyz *= ambience.xyz;
                 direct.xyz *= (1.0f - ambience.a);
 
                 out_color.xyz = direct.xyz;

@@ -21,9 +21,7 @@ layout(binding = 1,std140) uniform DYNAMIC
 
 
 layout (location = 0) out vec4 out_normal;
-layout (location = 1) out vec4 out_albedo;
-layout (location = 2) out vec4 out_world_pos;
-layout (location = 3) out vec2 out_uv_coords;
+layout (location = 1) out vec4 out_world_pos;
 
 
 
@@ -35,6 +33,5 @@ void main()
     vec3 normal_view = ( ubo.view * dynamic_b.model * vec4(normal,0.0f)).xyz;
     normal_view = normalize(normal_view);
     out_normal = vec4(normal_view, 1.0f);
-    out_albedo = color;
     out_world_pos = pos_world;
 }
