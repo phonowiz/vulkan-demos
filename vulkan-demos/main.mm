@@ -274,17 +274,13 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 void create_graph()
 {
-    //TODO: if I allocate these guys on the stack I get a run time error, despite the fact that am doing
-    //TODO: nothing illigal here, am not sure why this is, compiler bug???
     
     eastl::shared_ptr<vk::assimp_node<4>> cornell_node = eastl::make_shared<vk::assimp_node<4>>(app.device, "cornell/cornell_box.obj");
     eastl::shared_ptr<vk::assimp_node<4>> model_node = eastl::make_shared<vk::assimp_node<4>>( app.device, "IndoorPotPlant/indoor_plant_02_fbx/indoor_plant_02_6.1_1+2_tri.fbx" );
-    //eastl::shared_ptr<vk::assimp_node<4>> model_node = eastl::make_shared<vk::assimp_node<4>>(app.device, "rose/rose.fbx");
-    //eastl::shared_ptr<vk::assimp_node<4>> model_node = eastl::make_shared<vk::assimp_node<4>>( app.device, "stone_1/stone.fbx" );
 
     vk::transform trans ={};
 
-    trans.position = glm::vec3(0.f, -.900f, .000f);
+    trans.position = glm::vec3(0.f, -1.00f, .000f);
     //these things are necessary because assimp won't pick up on scaling/rotation attributes specified in the Blender exporter
     //I don't know how to fix these things from the blender or assimp side.
     trans.scale = glm::vec3(.2f,.2f, .2f);
@@ -296,7 +292,7 @@ void create_graph()
     trans = {};
     trans.position = glm::vec3(0.0f, 0.0f, 0.0f);
     trans.scale = glm::vec3(1.0f);
-    //trans.rotation.y = glm::pi<float>();
+
     trans.update_transform_matrix();
 
     cornell_node->init_transforms(trans);
@@ -483,7 +479,7 @@ void create_graph()
     three_d_mip_maps[0].add_child(*voxelizers[0]);
 
     glm::vec2 dims = {app.swapchain->get_vk_swap_extent().width, app.swapchain->get_vk_swap_extent().height };
-    eastl::shared_ptr<display_texture_3d<4>> debug_node_3d = eastl::make_shared<display_texture_3d<4>>(app.device,app.swapchain, dims, "voxel_normals" );
+    eastl::shared_ptr<display_texture_3d<4>> debug_node_3d = eastl::make_shared<display_texture_3d<4>>(app.device,app.swapchain, dims, "voxel_albedos" );
 
     debug_node_3d->set_name("3d-texture-render");
     debug_node_3d->set_active(false);

@@ -16,7 +16,7 @@
 
 #define ASSERT_VULKAN(val)\
 if(val != VK_SUCCESS){\
-assert(0);\
+EA_ASSERT(false);\
 }\
 else{\
 (void*)val;\
