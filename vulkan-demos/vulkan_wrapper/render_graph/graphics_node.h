@@ -136,7 +136,7 @@ namespace vk {
                                parameter_stage stage, glm::mat4 mat, uint32_t binding)
         {
             
-            assert(_obj_vector.size() != 0 && "dynamic parameters cannot be created without adding objects to this node");
+            EA_ASSERT_MSG(_obj_vector.size() != 0, "dynamic parameters cannot be created without adding objects to this node");
             int count = 0;
             typename render_pass_type::subpass_s& subpass = _node_render_pass.get_subpass(subpass_id);
             for( int i = 0; i < _obj_vector.size(); ++i)

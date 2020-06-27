@@ -126,6 +126,7 @@ void texture_2d::create(uint32_t width, uint32_t height)
     {
         void *data = nullptr;
         VkResult res = vkMapMemory(_device->_logical_device, staging_buffer_memory, 0, VK_WHOLE_SIZE, 0, &data);
+        ASSERT_VULKAN(res);
         memcpy(data, get_raw(), image_size);
         vkUnmapMemory(_device->_logical_device, staging_buffer_memory);
     }

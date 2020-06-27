@@ -82,27 +82,36 @@ namespace vk
             {
                 for( int a = 0; a < MAX_NUMBER_OF_ATTACHMENTS; ++a)
                 {
-                    _color_references[a].attachment = std::numeric_limits<uint32_t>::max();
+                    _color_references[a].attachment = eastl::numeric_limits<uint32_t>::max();
                     _color_references[a].layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
                     
-                    _input_references[a].attachment = std::numeric_limits<uint32_t>::max();
+                    _input_references[a].attachment = eastl::numeric_limits<uint32_t>::max();
                     _input_references[a].layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
                 }
                 //all objects affected by this subpass by defualt
-                std::fill(_subpass_activate.begin(), _subpass_activate.end(), false);
+                ignore_all_objs(false);
+            }
+            
+            inline void ignore_object( uint32_t obj, bool b)
+            {
+                _subass_ignore[obj] = b;
+            }
+            
+            inline void ignore_all_objs(bool b)
+            {
+                std::fill(_subass_ignore.begin(), _subass_ignore.end(), b);
             }
              
             inline void ignore_object(uint32_t obj_id)
             {
-                assert(obj_id < _subpass_activate.size() );
-                _subpass_activate[obj_id] = true;
+                EA_ASSERT(obj_id < _subass_ignore.size() );
+                _subass_ignore[obj_id] = true;
             }
             
             inline bool is_ignored(uint32_t obj_id)
             {
-                assert(obj_id < _subpass_activate.size() );
-
-                return _subpass_activate[obj_id];
+                EA_ASSERT(obj_id < _subass_ignore.size() );
+                return _subass_ignore[obj_id];
             }
             
             inline void set_cull_mode(typename graphics_pipeline_type::cull_mode mode)
@@ -452,7 +461,7 @@ namespace vk
             eastl::array<VkAttachmentReference, MAX_NUMBER_OF_ATTACHMENTS> _color_references {};
             eastl::array<VkAttachmentReference, MAX_NUMBER_OF_ATTACHMENTS> _input_references {};
             eastl::array<graphics_pipeline_type, glfw_swapchain::NUM_SWAPCHAIN_IMAGES> _pipeline;
-            eastl::array< bool, MAX_OBJECTS> _subpass_activate {};
+            eastl::array< bool, MAX_OBJECTS> _subass_ignore {};
             
             attachment_group<NUM_ATTACHMENTS>* _attachment_group = nullptr;
             device* _device = nullptr;

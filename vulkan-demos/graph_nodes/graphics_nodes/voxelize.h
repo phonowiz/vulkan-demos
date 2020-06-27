@@ -97,6 +97,20 @@ public:
         _key_light_cam = key_light_cam;
     }
     
+    
+private:
+    void set_vertex_args(subpass_type& type, int use_texture)
+    {
+        type.init_parameter("view", vk::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
+        type.init_parameter("projection", vk::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
+        type.init_parameter("light_position", vk::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
+        type.init_parameter("eye_position", vk::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
+        type.init_parameter("light_type", vk::parameter_stage::VERTEX, int(_light_type), 0);
+        type.init_parameter("use_texture", vk::parameter_stage::VERTEX, use_texture, 0);
+        
+    }
+    
+public:
     virtual void init_node() override
     {
         render_pass_type &pass = parent_type::_node_render_pass;
@@ -106,37 +120,16 @@ public:
         object_submask_type& _obj_masks = parent_type::_obj_subpass_mask;
         object_vector_type& _obj_vector = parent_type::_obj_vector;
         
-        parent_type::debug_print("initializing node voxelize!!!");
-        subpass_type& voxelize_subpass = pass.add_subpass(_mat_store, "voxelizer");
+        for(int i = 0; i < _obj_vector.size(); ++i)
+        {
+            pass.add_object( _obj_vector[i]->get_lod(0) );
+        }
         
-        vk::resource_set<vk::texture_3d>& albedo_textures = _tex_registry->get_write_texture_3d_set("voxel_albedos", this);
-        vk::resource_set<vk::texture_3d>& normal_textures = _tex_registry->get_write_texture_3d_set("voxel_normals", this);
-        
-        voxelize_subpass.set_image_sampler(albedo_textures, "voxel_albedo_texture",
-                                           vk::parameter_stage::FRAGMENT, 1, vk::usage_type::STORAGE_IMAGE );
-        
-        voxelize_subpass.set_image_sampler(normal_textures, "voxel_normal_texture",
-                                           vk::parameter_stage::FRAGMENT, 4, vk::usage_type::STORAGE_IMAGE );
-        
-        voxelize_subpass.init_parameter("inverse_view_projection", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
-        voxelize_subpass.init_parameter("project_to_voxel_screen", vk::parameter_stage::FRAGMENT, _proj_to_voxel_screen, 2);
-        voxelize_subpass.init_parameter("voxel_coords", vk::parameter_stage::FRAGMENT,
-                                            glm::vec3(VOXEL_CUBE_WIDTH,VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH ), 2);
-        
-        voxelize_subpass.init_parameter("view", vk::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
-        voxelize_subpass.init_parameter("projection", vk::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
-        voxelize_subpass.init_parameter("light_position", vk::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
-        voxelize_subpass.init_parameter("eye_position", vk::parameter_stage::VERTEX, glm::vec3(1.0f), 0);
-        voxelize_subpass.init_parameter("light_type", vk::parameter_stage::VERTEX, int(_light_type), 0);
+        vk::texture_2d& black = _tex_registry->get_loaded_texture("black.png", this, parent_type::_device,"black.png");
 
-        
-        parent_type::add_dynamic_param("model", 0, vk::parameter_stage::VERTEX, glm::mat4(1.0), 3);
-        
-        voxelize_subpass.set_cull_mode( render_pass_type::graphics_pipeline_type::cull_mode::NONE);
-        
         vk::attachment_group<1>& attachment_group = pass.get_attachment_group();
         
-        eastl::fixed_string<char, 100> test_name;
+        eastl::fixed_string<char, 100> test_name {};
         
         //TODO: MAKE IT SO THAT WE CAN RE-USE THE SAME TEXTURE BETWEEN THE VOXELIZATION  NODES
         test_name.sprintf("vox_test<%f, %f, %f>", _cam_position.x, _cam_position.y, _cam_position.z );
@@ -150,13 +143,52 @@ public:
         
         attachment_group.add_attachment(target, glm::vec4(1.0f, 1.0f, 1.0f, .0f));
         enum{ VOXEL_ATTACHMENT_ID = 0 };
-        voxelize_subpass.add_output_attachment(test_name.c_str(), render_pass_type::write_channels::RGBA, false);
         
-        
-        for(int i = 0; i < _obj_vector.size(); ++i)
+        for( int obj = 0; obj < _obj_vector.size(); ++obj )
         {
-            pass.add_object( _obj_vector[i]->get_lod(0) );
+            int use_texture = 1;
+            
+            subpass_type& voxelize_subpass = pass.add_subpass(_mat_store, "voxelizer");
+            vk::texture_path diffuse = _obj_vector[obj]->get_lod(0)->get_texture((uint32_t)(aiTextureType_DIFFUSE));
+            
+            if(!diffuse.empty())
+            {
+                vk::texture_2d& rsrc = _tex_registry->get_loaded_texture(diffuse.c_str(), this, parent_type::_device, diffuse.c_str());
+                voxelize_subpass.set_image_sampler( rsrc, "albedos",
+                                      vk::parameter_stage::VERTEX, 5, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            }
+            else
+            {
+                use_texture = 0;
+                voxelize_subpass.set_image_sampler( black, "albedos",
+                                      vk::parameter_stage::VERTEX, 5, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            }
+            
+            set_vertex_args(voxelize_subpass, use_texture);
+            
+            voxelize_subpass.ignore_all_objs(true);
+            voxelize_subpass.ignore_object(obj, false);
+            
+            vk::resource_set<vk::texture_3d>& albedo_textures = _tex_registry->get_write_texture_3d_set("voxel_albedos", this);
+            vk::resource_set<vk::texture_3d>& normal_textures = _tex_registry->get_write_texture_3d_set("voxel_normals", this);
+            
+            voxelize_subpass.set_image_sampler(albedo_textures, "voxel_albedo_texture",
+                                               vk::parameter_stage::FRAGMENT, 1, vk::usage_type::STORAGE_IMAGE );
+            
+            voxelize_subpass.set_image_sampler(normal_textures, "voxel_normal_texture",
+                                               vk::parameter_stage::FRAGMENT, 4, vk::usage_type::STORAGE_IMAGE );
+            
+            voxelize_subpass.init_parameter("inverse_view_projection", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
+            voxelize_subpass.init_parameter("project_to_voxel_screen", vk::parameter_stage::FRAGMENT, _proj_to_voxel_screen, 2);
+            voxelize_subpass.init_parameter("voxel_coords", vk::parameter_stage::FRAGMENT,
+                                                glm::vec3(VOXEL_CUBE_WIDTH,VOXEL_CUBE_HEIGHT, VOXEL_CUBE_DEPTH ), 2);
+            
+            parent_type::add_dynamic_param("model", obj, vk::parameter_stage::VERTEX, glm::mat4(1.0), 3);
+            voxelize_subpass.set_cull_mode( render_pass_type::graphics_pipeline_type::cull_mode::NONE);
+            
+            voxelize_subpass.add_output_attachment(test_name.c_str(), render_pass_type::write_channels::RGBA, false);
         }
+
     }
     
     virtual void update_node(vk::camera& camera, uint32_t image_id) override
@@ -169,32 +201,32 @@ public:
         object_submask_type& _obj_masks = parent_type::_obj_subpass_mask;
         object_vector_type& _obj_vector = parent_type::_obj_vector;
         
-        
-        subpass_type& vox_subpass = pass.get_subpass(0);
-        vk::shader_parameter::shader_params_group& voxelize_vertex_params =
-                vox_subpass.get_pipeline(image_id).get_uniform_parameters(vk::parameter_stage::VERTEX, 0);
-        
-        vk::shader_parameter::shader_params_group& voxelize_frag_params =
-                vox_subpass.get_pipeline(image_id).get_uniform_parameters(vk::parameter_stage::FRAGMENT, 2);
-        
-        
-        _ortho_camera.position = _cam_position;
-        _ortho_camera.forward = -_ortho_camera.position;
-        
-        _ortho_camera.up = _up_vector;
-        _ortho_camera.update_view_matrix();
-        
-        glm::mat4 ivp = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
-        ivp = glm::inverse( ivp );
-        voxelize_frag_params["inverse_view_projection"] = ivp;
-        
-        voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
-        voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
-        voxelize_vertex_params["light_position"] = _key_light_cam.position;
-        voxelize_vertex_params["eye_position"] = camera.position;
-    
         for( int i = 0; i < _obj_vector.size(); ++i)
         {
+            subpass_type& vox_subpass = pass.get_subpass(i);
+            vk::shader_parameter::shader_params_group& voxelize_vertex_params =
+                    vox_subpass.get_pipeline(image_id).get_uniform_parameters(vk::parameter_stage::VERTEX, 0);
+            
+            vk::shader_parameter::shader_params_group& voxelize_frag_params =
+                    vox_subpass.get_pipeline(image_id).get_uniform_parameters(vk::parameter_stage::FRAGMENT, 2);
+            
+            
+            _ortho_camera.position = _cam_position;
+            _ortho_camera.forward = -_ortho_camera.position;
+            
+            _ortho_camera.up = _up_vector;
+            _ortho_camera.update_view_matrix();
+            
+            glm::mat4 ivp = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
+            ivp = glm::inverse( ivp );
+            voxelize_frag_params["inverse_view_projection"] = ivp;
+            
+            voxelize_vertex_params["view"] = _ortho_camera.view_matrix;
+            voxelize_vertex_params["projection"] =_ortho_camera.get_projection_matrix();
+            voxelize_vertex_params["light_position"] = _key_light_cam.position;
+            voxelize_vertex_params["eye_position"] = camera.position;
+    
+
             parent_type::set_dynamic_param("model", image_id, 0, _obj_vector[i],
                                            _obj_vector[i]->transforms[image_id].get_transform_matrix(), 3 );
         }

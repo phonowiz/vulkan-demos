@@ -88,7 +88,7 @@ void shader::init(const char *shaderText, shader::shader_type shaderType, const 
     _pipeline_shader_stage.pName = entryPoint;
     
     retVal = glsl_to_spv(shaderType, shaderText, vtx_spv);
-    assert(retVal);
+    EA_ASSERT_MSG(retVal, "shader compilation has failed");
     
     module_create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     module_create_info.pNext = NULL;
@@ -96,7 +96,7 @@ void shader::init(const char *shaderText, shader::shader_type shaderType, const 
     module_create_info.codeSize = vtx_spv.size() * sizeof(unsigned int);
     module_create_info.pCode = vtx_spv.data();
     res = vkCreateShaderModule(_device->_logical_device, &module_create_info, NULL, &_pipeline_shader_stage.module);
-    assert(res == VK_SUCCESS);
+    EA_ASSERT_MSG(res == VK_SUCCESS, "creation of shader module has failed");
     
     
     finalize_glsl_lang();

@@ -82,20 +82,13 @@ public:
                                       vk::parameter_stage::FRAGMENT, 2, vk::usage_type::COMBINED_IMAGE_SAMPLER);
                 
                 parent_type::add_dynamic_param("model", i, vk::parameter_stage::VERTEX, glm::mat4(1.0), 1);
-                //++subpass_id;
                 
-                for( int32_t j = 0; j < ((int32_t)pass.get_number_of_subpasses())-1; ++j)
-                {
-                    pass.skip_subpass(_obj_vector[i]->get_lod(0), j );
-                }
-                
-                for(int x = 0; x < i; ++x)
-                {
-                    pass.skip_subpass(_obj_vector[x]->get_lod(0), x);
-                }
+                pbr.ignore_all_objs(true);
+                pbr.ignore_object(i, false);
             }
             else
             {
+                //TODO: AT SOME POINT THIS ELSE WILL GO AWAY, ALL MODELS WILL BE REQUIRED TO HAVE TEXTURES
                 subpass_type& pbr =  pass.add_subpass(_mat_store,"color");
                 pbr.add_output_attachment("albedos", render_pass_type::write_channels::RGBA, true);
                 pbr.add_output_attachment("albedo_depth");
@@ -109,15 +102,8 @@ public:
                 parent_type::add_dynamic_param("model", i, vk::parameter_stage::VERTEX, glm::mat4(1.0), 1);
                 ++subpass_id;
                 
-                for( int32_t j = 0; j < ((int32_t)pass.get_number_of_subpasses())-1; ++j)
-                {
-                    pass.skip_subpass(_obj_vector[i]->get_lod(0), j );
-                }
-                
-                for(int x = 0; x < i; ++x)
-                {
-                    pass.skip_subpass(_obj_vector[x]->get_lod(0), i);
-                }
+                pbr.ignore_all_objs(true);
+                pbr.ignore_object(i, false);
             }
         }
     }
@@ -130,26 +116,15 @@ public:
         uint32_t subpass_id = 0;
         for(int i = 0; i < _obj_vector.size(); ++i)
         {
-            //vk::texture_path diffuse_texture = _obj_vector[i]->get_lod(0)->get_texture((uint32_t)(aiTextureType_DIFFUSE));
+            subpass_type& pbr_subpass = pass.get_subpass(i);
+            vk::shader_parameter::shader_params_group& pbr_vertex_params =
+                    pbr_subpass.get_pipeline(image_id).get_uniform_parameters(vk::parameter_stage::VERTEX, 0);
             
-            //if(!diffuse_texture.empty())
-            {
-                subpass_type& pbr_subpass = pass.get_subpass(i);
-                vk::shader_parameter::shader_params_group& pbr_vertex_params =
-                        pbr_subpass.get_pipeline(image_id).get_uniform_parameters(vk::parameter_stage::VERTEX, 0);
-                
-                pbr_vertex_params["view"] = camera.view_matrix;
-                pbr_vertex_params["projection"] = camera.get_projection_matrix();
-                
-                parent_type::set_dynamic_param("model", image_id, subpass_id, obj_vec[i],
-                                               obj_vec[i]->transforms[image_id].get_transform_matrix(), 1 );
-    
-                
-            }
-//            else
-//            {
-//
-//            }
+            pbr_vertex_params["view"] = camera.view_matrix;
+            pbr_vertex_params["projection"] = camera.get_projection_matrix();
+            
+            parent_type::set_dynamic_param("model", image_id, subpass_id, obj_vec[i],
+                                           obj_vec[i]->transforms[image_id].get_transform_matrix(), 1 );
         }
     }
     

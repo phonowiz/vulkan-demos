@@ -12,6 +12,7 @@
 #include <iostream>
 
 #include "EASTL/fixed_string.h"
+#include "EAAssert/eaassert.h"
 #include "device.h"
 using namespace vk;
 #if __APPLE__
@@ -31,7 +32,7 @@ void resource::read_file(std::string& fileContents, eastl::fixed_string<char, 25
         msg.sprintf("Couldn't load compute shader '%s'", path.c_str());
         std::cerr <<  msg.c_str() << std::endl;
         fileStream.close();
-        EA_FAIL();
+        EA_FAIL_FORMATTED(("%s was not found", path.c_str()));
     }
     msg.sprintf("Loading kernel source from file %s...", path.c_str());
     std::cout << msg.c_str() << std::endl;

@@ -33,8 +33,10 @@ layout(binding = 0, std140) uniform UBO
     vec3 light_position;
     vec3 eye_position;
     int  light_type;
+    int  use_texture;
 
 } ubo;
+layout (binding = 5) uniform sampler2D albedo;
 
 layout(binding = 3, std140) uniform DYNAMIC_UBO
 {
@@ -56,6 +58,9 @@ void main()
     vec3 world_space_view_vec = ubo.eye_position.xyz - world_pos.xyz;
     
     vertex_color = color;
+    if(ubo.use_texture != 0)
+        vertex_color = texture(albedo,uv_coord);
+    
     out_normal = (d_ubo.model * vec4(normal,0)).xyz;
     out_light_vec = wrold_space_light_vec;
     out_view_vec = world_space_view_vec;
