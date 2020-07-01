@@ -553,14 +553,9 @@ int main()
     device.create_logical_device(surface);
     vk::material_store material_store;
     material_store.create(&device);
-
-
     
     vk::glfw_swapchain swapchain(&device, window, surface);
-
     app.device = &device;
-
-
     //glfwSetCursorPos(window, width * .5f, height * .5f);
 
     app.swapchain = &swapchain;

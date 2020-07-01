@@ -443,7 +443,7 @@ vec2 vsm_filter( vec3 moments, float fragDepth )
     vec2 lit = vec2(0.0f);
     float E_x2 = moments.y;
     float Ex_2 = moments.x * moments.x;
-    float variance = max(E_x2 - Ex_2, 0.00025f);
+    float variance = max(E_x2 - Ex_2, 0.00002f);
     float mD = fragDepth - moments.x ;
     
     float mD_2 = mD * mD;
@@ -452,7 +452,7 @@ vec2 vsm_filter( vec3 moments, float fragDepth )
     float result = fragDepth <= moments.x  ? 1 : 0;
     lit.x = min(max( p , result ), 1.0f);
     //lit.x = result;
-    return lit; //lit.x == VSM calculation
+    return lit ; //lit.x == VSM calculation
 }
 
 float shadow_factor(vec3 world_position)
@@ -545,7 +545,13 @@ void main()
             {
                 vec4 direct = direct_illumination( world_normal, world_position);
                 //full ambient light plus direct light
-                direct.xyz *= (shadow_factor(world_position));
+                float shadow = shadow_factor(world_position);
+                direct.xyz *= shadow;
+                
+                //shadows look wierd when they are pitch black, this doesn't happen
+                //often in the real world, this hack is to improve this situation.
+                direct.xyz += (shadow < .001f) ? .2f :  0.0f;
+                
                 direct.xyz *= ambience.xyz;
                 direct.xyz *= (1.0f - ambience.a);
 
