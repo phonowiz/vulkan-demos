@@ -467,7 +467,10 @@ float shadow_factor(vec3 world_position)
         
     vec3 moments = texture(vsm, texture_space.xy).xyz;
 
-    return vsm_filter(moments, texture_space.z).x;
+    //shadows look weird when they are pitch black, this doesn't happen
+    //often in the real world, this hack is to improve this situation.
+
+    return max(vsm_filter(moments, texture_space.z).x, .15f);
     
 }
 ///////////////////////////////////////////////////
@@ -547,10 +550,6 @@ void main()
                 //full ambient light plus direct light
                 float shadow = shadow_factor(world_position);
                 direct.xyz *= shadow;
-                
-                //shadows look wierd when they are pitch black, this doesn't happen
-                //often in the real world, this hack is to improve this situation.
-                direct.xyz += (shadow < .001f) ? .2f :  0.0f;
                 
                 direct.xyz *= ambience.xyz;
                 direct.xyz *= (1.0f - ambience.a);
