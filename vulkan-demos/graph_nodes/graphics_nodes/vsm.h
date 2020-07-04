@@ -58,7 +58,6 @@ public:
         object_vector_type &obj_vec = parent_type::_obj_vector;
         tex_registry_type* _tex_registry = parent_type::_texture_registry;
         material_store_type* _mat_store = parent_type::_material_store;
-        object_submask_type& _obj_masks = parent_type::_obj_subpass_mask;
         object_vector_type& _obj_vector = parent_type::_obj_vector;
         
         EA_ASSERT_MSG(_light_cam != nullptr, "light cam has not been initialize");
@@ -96,12 +95,14 @@ public:
         cam_depth_subpass.init_parameter("view", vk::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
         cam_depth_subpass.init_parameter("projection", vk::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
         
-        parent_type::add_dynamic_param("model", 0, vk::parameter_stage::VERTEX, glm::mat4(1.0), 1);
-        
         for(int i = 0; i < _obj_vector.size(); ++i)
         {
             pass.add_object(_obj_vector[i]->get_lod(1));
         }
+        
+        parent_type::add_dynamic_param("model", 0, vk::parameter_stage::VERTEX, glm::mat4(1.0), 1);
+        
+
     }
     
     virtual void update_node(vk::camera& camera, uint32_t image_id) override
@@ -126,7 +127,7 @@ public:
         
         for( int i = 0; i < obj_vec.size(); ++i)
         {
-            parent_type::set_dynamic_param("model", image_id, 0, obj_vec[i],
+            parent_type::set_dynamic_param("model", image_id, 0, obj_vec[i]->get_lod(1),
                                            obj_vec[i]->transforms[image_id].get_transform_matrix(), 1 );
         }
         

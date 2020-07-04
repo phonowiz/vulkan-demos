@@ -40,10 +40,7 @@ public:
         object_vector_type &obj_vec = parent_type::_obj_vector;
         tex_registry_type* _tex_registry = parent_type::_texture_registry;
         material_store_type* _mat_store = parent_type::_material_store;
-        object_submask_type& _obj_masks = parent_type::_obj_subpass_mask;
         object_vector_type& _obj_vector = parent_type::_obj_vector;
-        
-//        eastl::fixed_string<char, 200> subpass_name = {};
         
         vk::resource_set<vk::render_texture>& albedos =  _tex_registry->get_write_render_texture_set("albedos",
                                                                                                  this, vk::usage_type::INPUT_ATTACHMENT);
@@ -60,7 +57,6 @@ public:
         albedos.init();
         depth.init();
         
-        int subpass_id = 0;
         for(int i = 0; i < _obj_vector.size(); ++i)
         {
             
@@ -81,10 +77,12 @@ public:
                 pbr.set_image_sampler( rsrc, "albedos",
                                       vk::parameter_stage::FRAGMENT, 2, vk::usage_type::COMBINED_IMAGE_SAMPLER);
                 
-                parent_type::add_dynamic_param("model", i, vk::parameter_stage::VERTEX, glm::mat4(1.0), 1);
-                
                 pbr.ignore_all_objs(true);
                 pbr.ignore_object(i, false);
+                
+                parent_type::add_dynamic_param("model", i, vk::parameter_stage::VERTEX, glm::mat4(1.0), 1);
+                
+
             }
             else
             {
@@ -100,10 +98,12 @@ public:
                 
                 
                 parent_type::add_dynamic_param("model", i, vk::parameter_stage::VERTEX, glm::mat4(1.0), 1);
-                ++subpass_id;
-                
                 pbr.ignore_all_objs(true);
                 pbr.ignore_object(i, false);
+                
+                parent_type::add_dynamic_param("model", i, vk::parameter_stage::VERTEX, glm::mat4(2.0), 1);
+                
+
             }
         }
     }
@@ -113,7 +113,6 @@ public:
         render_pass_type &pass = parent_type::_node_render_pass;
         object_vector_type &obj_vec = parent_type::_obj_vector;
         
-        uint32_t subpass_id = 0;
         for(int i = 0; i < _obj_vector.size(); ++i)
         {
             subpass_type& pbr_subpass = pass.get_subpass(i);
@@ -123,7 +122,7 @@ public:
             pbr_vertex_params["view"] = camera.view_matrix;
             pbr_vertex_params["projection"] = camera.get_projection_matrix();
             
-            parent_type::set_dynamic_param("model", image_id, subpass_id, obj_vec[i],
+            parent_type::set_dynamic_param("model", image_id, i, obj_vec[i]->get_lod(0),
                                            obj_vec[i]->transforms[image_id].get_transform_matrix(), 1 );
         }
     }

@@ -117,7 +117,6 @@ public:
         object_vector_type &obj_vec = parent_type::_obj_vector;
         tex_registry_type* _tex_registry = parent_type::_texture_registry;
         material_store_type* _mat_store = parent_type::_material_store;
-        object_submask_type& _obj_masks = parent_type::_obj_subpass_mask;
         object_vector_type& _obj_vector = parent_type::_obj_vector;
         
         for(int i = 0; i < _obj_vector.size(); ++i)
@@ -198,7 +197,6 @@ public:
         object_vector_type &obj_vec = parent_type::_obj_vector;
         tex_registry_type* _tex_registry = parent_type::_texture_registry;
         material_store_type* _mat_store = parent_type::_material_store;
-        object_submask_type& _obj_masks = parent_type::_obj_subpass_mask;
         object_vector_type& _obj_vector = parent_type::_obj_vector;
         
         for( int i = 0; i < _obj_vector.size(); ++i)
@@ -227,7 +225,7 @@ public:
             voxelize_vertex_params["eye_position"] = camera.position;
     
 
-            parent_type::set_dynamic_param("model", image_id, 0, _obj_vector[i],
+            parent_type::set_dynamic_param("model", image_id, i, _obj_vector[i]->get_lod(0),
                                            _obj_vector[i]->transforms[image_id].get_transform_matrix(), 3 );
         }
     }

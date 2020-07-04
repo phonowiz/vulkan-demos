@@ -99,7 +99,7 @@ namespace vk
             
             inline void ignore_all_objs(bool b)
             {
-                std::fill(_subass_ignore.begin(), _subass_ignore.end(), b);
+                eastl::fill(_subass_ignore.begin(), _subass_ignore.end(), b);
             }
              
             inline void ignore_object(uint32_t obj_id)
@@ -467,8 +467,13 @@ namespace vk
             device* _device = nullptr;
             bool _depth_enable = false;
         };
-        /////////////////////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////////////////// subpass
         
+        
+        inline uint32_t get_num_objs()
+        {
+            return _num_objects;
+        }
         
         inline void add_object( obj_shape* obj)
         {
@@ -511,21 +516,21 @@ namespace vk
             return result;
         }
         
-        inline bool skip_subpass(obj_shape* shape, uint32_t subpass_id)
-        {
-            EA_ASSERT_MSG(shape != nullptr, "shape is null");
-            bool result = false;
-            for( uint32_t i = 0; i < _num_objects; ++i)
-            {
-                if(_shapes[i] == shape)
-                {
-                    get_subpass(subpass_id).ignore_object(i);
-                    result = true;
-                }
-            }
-            EA_ASSERT_MSG( result == true, "you are asking to ignore an object not yet added to render pass");
-            return result;
-        }
+//        inline bool skip_subpass(obj_shape* shape, uint32_t subpass_id)
+//        {
+//            EA_ASSERT_MSG(shape != nullptr, "shape is null");
+//            bool result = false;
+//            for( uint32_t i = 0; i < _num_objects; ++i)
+//            {
+//                if(_shapes[i] == shape)
+//                {
+//                    get_subpass(subpass_id).ignore_object(i);
+//                    result = true;
+//                }
+//            }
+//            EA_ASSERT_MSG( result == true, "you are asking to ignore an object not yet added to render pass");
+//            return result;
+//        }
         
         void init(uint32_t swapchain_id);
         

@@ -67,11 +67,9 @@ public:
 
     virtual void init_node() override
     {
-        render_pass_type &pass = parent_type::_node_render_pass;
-        //object_vector_type &obj_vec = parent_type::_obj_vector;
+        render_pass_type &pass = parent_type::_node_render_pass; 
         tex_registry_type* _tex_registry = parent_type::_texture_registry;
         material_store_type* _mat_store = parent_type::_material_store;
-        //object_submask_type& _obj_masks = parent_type::_obj_subpass_mask;
         object_vector_type& _obj_vector = parent_type::_obj_vector;
         
         subpass_type& mrt_subpass = pass.add_subpass(_mat_store, "mrt");
@@ -81,13 +79,14 @@ public:
         setup_sampling_rays();
         
         pass.add_object(static_cast<vk::obj_shape*>(&_screen_plane));
-        pass.skip_subpass(static_cast<vk::obj_shape*>(&_screen_plane), 0);
+        mrt_subpass.ignore_all_objs(false);
+        mrt_subpass.ignore_object(0, true);
         
         EA_ASSERT_MSG(_obj_vector.size() != 0, "there are no objects to be rendered in the MRT node");
         for(int i = 0; i < _obj_vector.size(); ++i)
         {
             pass.add_object(_obj_vector[i]->get_lod(0));
-            pass.skip_subpass( _obj_vector[i]->get_lod(0), 1);
+            composite.ignore_object(i+1, true);
         }
         
         vk::attachment_group<5>& mrt_attachment_group = pass.get_attachment_group();
@@ -244,7 +243,7 @@ public:
         
         for( int i = 0; i < obj_vec.size(); ++i)
         {
-            parent_type::set_dynamic_param("model", image_id, 0, obj_vec[i],
+            parent_type::set_dynamic_param("model", image_id, 0, obj_vec[i]->get_lod(0),
                                            obj_vec[i]->transforms[image_id].get_transform_matrix(), 0 );
         }
         

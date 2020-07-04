@@ -276,22 +276,25 @@ void create_graph()
 {
     
     eastl::shared_ptr<vk::assimp_node<4>> cornell_node = eastl::make_shared<vk::assimp_node<4>>(app.device, "cornell/cornell_box.obj");
-    eastl::shared_ptr<vk::assimp_node<4>> model_node = eastl::make_shared<vk::assimp_node<4>>( app.device, "IndoorPotPlant/indoor_plant_02_fbx/indoor_plant_02_6.1_1+2_tri.fbx" );
-
+    //eastl::shared_ptr<vk::assimp_node<4>> model_node = eastl::make_shared<vk::assimp_node<4>>( app.device, "IndoorPotPlant/indoor_plant_02_fbx/indoor_plant_02_6.1_1+2_tri.fbx" );
+    
+    eastl::shared_ptr<vk::assimp_node<4>> model_node =
+    eastl::make_shared<vk::assimp_node<4>>( app.device, "1977-plymouth-volaire-sedan/source/549152622d66472dae9489efa29991c4.rar/plymouthfix-modified.fbx" );
     vk::transform trans ={};
 
-    trans.position = glm::vec3(0.f, -1.00f, .000f);
+    trans.position = glm::vec3(-0.4f, -1.00f, -.6f);
     //these things are necessary because assimp won't pick up on scaling/rotation attributes specified in the Blender exporter
     //I don't know how to fix these things from the blender or assimp side.
-    trans.scale = glm::vec3(.2f,.2f, .2f);
+    trans.scale = glm::vec3(.0004f,.0004f, .0004f);
     trans.rotation.x = glm::half_pi<float>();
+    trans.rotation.y = .9f;
     trans.update_transform_matrix();
 
 
     model_node->init_transforms(trans);
     trans = {};
     trans.position = glm::vec3(0.0f, 0.0f, 0.0f);
-    trans.scale = glm::vec3(1.0f);
+    trans.scale = glm::vec3(1.5f, 1.f, 1.4f);
 
     trans.update_transform_matrix();
 
@@ -331,7 +334,7 @@ void create_graph()
                                                   aspect, .01f, 10.0f);
 
     point_light_cam.up = glm::vec3(0.0,  1.0f, 0.001f);
-    point_light_cam.position = glm::vec3(0.f, .5f, -1.4f);
+    point_light_cam.position = glm::vec3(0.f, .5f, -2.4f);
     point_light_cam.forward = -point_light_cam.position;
     point_light_cam.update_view_matrix();
 
@@ -479,7 +482,7 @@ void create_graph()
     three_d_mip_maps[0].add_child(*voxelizers[0]);
 
     glm::vec2 dims = {app.swapchain->get_vk_swap_extent().width, app.swapchain->get_vk_swap_extent().height };
-    eastl::shared_ptr<display_texture_3d<4>> debug_node_3d = eastl::make_shared<display_texture_3d<4>>(app.device,app.swapchain, dims, "voxel_albedos" );
+    eastl::shared_ptr<display_texture_3d<4>> debug_node_3d = eastl::make_shared<display_texture_3d<4>>(app.device,app.swapchain, dims, "voxel_albedos3" );
 
     debug_node_3d->set_name("3d-texture-render");
     debug_node_3d->set_active(false);

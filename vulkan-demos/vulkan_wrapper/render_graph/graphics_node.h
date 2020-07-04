@@ -65,17 +65,6 @@ namespace vk {
             _node_render_pass.destroy();
         }
         
-        void skip_subpass( mesh_node* object, uint32_t subpass_id)
-        {
-            uint32_t new_mask = 1 << subpass_id;
-            new_mask = ~new_mask;
-            uint32_t old_mask = _obj_subpass_mask[object];
-            
-            uint32_t combine = new_mask & old_mask;
-            
-            _obj_subpass_mask[object] = combine;
-        }
-        
         virtual void add_child( node_type& child ) override
         {
             node_type::add_child(child);
@@ -94,14 +83,12 @@ namespace vk {
         
         void add_object(mesh_node* object)
         {
-            uint32_t all_subpasses = ~0;
-            _obj_subpass_mask[object] = all_subpasses;
             _obj_vector.push_back(object);
         }
         
         
         bool set_dynamic_param(const char* name, uint32_t image_id,
-                                uint32_t subpass_id, vk::assimp_node<NUM_CHILDREN>* obj,  glm::mat4 mat, uint32_t binding)
+                                uint32_t subpass_id, obj_shape* obj,  glm::mat4 mat, uint32_t binding)
         {
             typename render_pass_type::subpass_s& subpass = _node_render_pass.get_subpass(subpass_id);
             
@@ -112,15 +99,15 @@ namespace vk {
             int i = 0;
             
             bool result = false;
-            while(i < _obj_vector.size())
+            while(i < _node_render_pass.get_num_objs())
             {
-                if(apply_subpass(_obj_vector[count], subpass_id))
+                if(!subpass.is_ignored(i))
                 {
-                    if(obj == _obj_vector[count])
+                    if(obj == _node_render_pass.get_object(i))
                     {
                         //use the index to access the dynamic parameter memory for this object
                         subpass.get_pipeline(image_id).
-                        get_dynamic_parameters(parameter_stage::VERTEX, binding)[count][name] = mat;
+                                            get_dynamic_parameters(parameter_stage::VERTEX, binding)[count][name] = mat;
                         
                         result = true;
                         break;
@@ -129,23 +116,23 @@ namespace vk {
                 }
                 ++i;
             }
+            EA_ASSERT_MSG(result != false, "you are trying to set a dynamic parameter to an object not included in this subpass");
             return result;
         }
         
         void add_dynamic_param(const char* name, uint32_t subpass_id,
                                parameter_stage stage, glm::mat4 mat, uint32_t binding)
         {
-            
-            EA_ASSERT_MSG(_obj_vector.size() != 0, "dynamic parameters cannot be created without adding objects to this node");
             int count = 0;
             typename render_pass_type::subpass_s& subpass = _node_render_pass.get_subpass(subpass_id);
-            for( int i = 0; i < _obj_vector.size(); ++i)
+            for( int i = 0; i < _node_render_pass.get_num_objs(); ++i)
             {
-                if(apply_subpass(_obj_vector[i], subpass_id))
+                if(!subpass.is_ignored(i))
                 {
                     ++count;
                 }
             }
+            EA_ASSERT_MSG(count != 0, "dynamic parameters cannot be created without adding objects to this subpass");
             subpass.init_dynamic_params(name,
                                         parameter_stage::VERTEX, mat, count, binding);
 
@@ -164,13 +151,6 @@ namespace vk {
         
     private:
         
-        bool apply_subpass(mesh_node* obj, uint32_t subpass_id)
-        {
-            uint32_t mask = 1 << subpass_id;
-            
-            return  _obj_subpass_mask[obj] & mask;
-        }
-        
         static constexpr char const * _node_type = nullptr;
         
     protected:
@@ -178,7 +158,6 @@ namespace vk {
         eastl::fixed_vector<mesh_node, 10> _meshes;
         
         render_pass_type _node_render_pass;
-        object_subpass_mask  _obj_subpass_mask;
         object_vector_type  _obj_vector;
         
         
