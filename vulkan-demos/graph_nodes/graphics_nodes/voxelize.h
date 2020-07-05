@@ -148,7 +148,7 @@ public:
             int use_texture = 1;
             
             subpass_type& voxelize_subpass = pass.add_subpass(_mat_store, "voxelizer");
-            vk::texture_path diffuse = _obj_vector[obj]->get_lod(0)->get_texture((uint32_t)(aiTextureType_DIFFUSE));
+            vk::texture_path diffuse = _obj_vector[obj]->get_lod(0)->get_texture((uint32_t)(aiTextureType_BASE_COLOR));
             
             if(!diffuse.empty())
             {

@@ -52,7 +52,7 @@ texture_2d::texture_2d(device* device,const char* path)
 
 void texture_2d::load()
 {
-    assert(_loaded !=true);
+    EA_ASSERT(_loaded !=true);
     int w = 0;
     int h = 0;
     int c = 0;
@@ -61,7 +61,7 @@ void texture_2d::load()
     //use this format, but am not sure.
     _format = formats::R8G8B8A8_UNSIGNED_NORMALIZED;
     _image_layout = image_layouts::PREINITIALIZED;
-    assert(_path.empty() == false);
+    EA_ASSERT_MSG(_path.empty() == false, "texture path is empty");
     _ppixels = stbi_load(_path.c_str(), &w,
                          &h, &c, STBI_rgb_alpha);
     _width = static_cast<uint32_t>(w);
@@ -73,7 +73,7 @@ void texture_2d::load()
         _format = formats::R8G8B8_UNSIGNED_NORMALIZED;
     }
     
-    assert(_ppixels != nullptr);
+    EA_ASSERT_FORMATTED(_ppixels != nullptr, ("Texture did not load: %s", _path.c_str()));
     _loaded = true;
 }
 

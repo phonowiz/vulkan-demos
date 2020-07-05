@@ -44,7 +44,6 @@ public:
         
         vk::resource_set<vk::render_texture>& albedos =  _tex_registry->get_write_render_texture_set("albedos",
                                                                                                  this, vk::usage_type::INPUT_ATTACHMENT);
-        
         albedos.set_filter(vk::image::filter::NEAREST);
 
         vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_write_depth_texture_set("albedo_depth", this, vk::usage_type::INPUT_ATTACHMENT);
@@ -60,7 +59,11 @@ public:
         for(int i = 0; i < _obj_vector.size(); ++i)
         {
             
-            vk::texture_path diffuse_texture = _obj_vector[i]->get_lod(0)->get_texture((uint32_t)(aiTextureType_DIFFUSE));
+            vk::texture_path diffuse_texture = _obj_vector[i]->get_lod(0)->get_texture((uint32_t)(aiTextureType_BASE_COLOR));
+            vk::texture_path specular_texture = _obj_vector[i]->get_lod(0)->get_texture((uint32_t)(aiTextureType_METALNESS));
+            vk::texture_path normals_texture = _obj_vector[i]->get_lod(0)->get_texture((uint32_t)(aiTextureType_NORMAL_CAMERA));
+            vk::texture_path roughness_texture = _obj_vector[i]->get_lod(0)->get_texture((uint32_t)(aiTextureType_DIFFUSE_ROUGHNESS));
+            vk::texture_path ao_texture = _obj_vector[i]->get_lod(0)->get_texture((uint32_t)(aiTextureType_AMBIENT_OCCLUSION));
             
             if(!diffuse_texture.empty()) 
             {
@@ -68,7 +71,7 @@ public:
                 pbr.add_output_attachment("albedos", render_pass_type::write_channels::RGBA, true);
                 pbr.add_output_attachment("albedo_depth");
                 
-                vk::texture_2d& rsrc = _tex_registry->get_loaded_texture("model_albedo", this, parent_type::_device, diffuse_texture.c_str());
+                vk::texture_2d& rsrc = _tex_registry->get_loaded_texture(diffuse_texture.c_str(), this, parent_type::_device, diffuse_texture.c_str());
                 pass.add_object(_obj_vector[i]->get_lod(0));
                 
                 pbr.init_parameter("view", vk::parameter_stage::VERTEX, glm::mat4(0), 0);
@@ -102,8 +105,6 @@ public:
                 pbr.ignore_object(i, false);
                 
                 parent_type::add_dynamic_param("model", i, vk::parameter_stage::VERTEX, glm::mat4(2.0), 1);
-                
-
             }
         }
     }

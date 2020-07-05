@@ -49,6 +49,14 @@ namespace vk
             return static_cast<vk::obj_shape*>(&_mesh_lods[l-1]);
         }
         
+        void set_texture_relative_path(const char* p, uint32_t id)
+        {
+            for( int i = 0; i < _num_lods; ++i)
+            {
+                _mesh_lods[i].set_texture_relative_path(p, id);
+            }
+        }
+        
         virtual void init_node() override
         {
             EA_ASSERT_MSG(node_type::_device != nullptr, "vk::device is nullptr");

@@ -443,6 +443,11 @@ namespace vk
             _path = path;
         }
         
+        void set_texture_relative_path(const char*  p, uint32_t id)
+        {
+            _textures[0][id][0] = p;
+        }
+        
         virtual texture_path get_texture(uint32_t id)  override
         {
             texture_path path;

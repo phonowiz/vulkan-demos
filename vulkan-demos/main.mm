@@ -275,14 +275,29 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void create_graph()
 {
     
-    eastl::shared_ptr<vk::assimp_node<4>> cornell_node = eastl::make_shared<vk::assimp_node<4>>(app.device, "cornell/cornell_box.obj");
+    //eastl::shared_ptr<vk::assimp_node<4>> cornell_node = eastl::make_shared<vk::assimp_node<4>>(app.device, "cornell/cornell_box.obj");
+    eastl::shared_ptr<vk::assimp_node<4>> cornell_node = eastl::make_shared<vk::assimp_node<4>>(app.device, "plane/plane.fbx");
     //eastl::shared_ptr<vk::assimp_node<4>> model_node = eastl::make_shared<vk::assimp_node<4>>( app.device, "IndoorPotPlant/indoor_plant_02_fbx/indoor_plant_02_6.1_1+2_tri.fbx" );
     
+    cornell_node->set_texture_relative_path("Rock030_2K_Color.png", aiTextureType_BASE_COLOR);
+    cornell_node->set_texture_relative_path("../../textures/black.png", aiTextureType_METALNESS);
+    cornell_node->set_texture_relative_path("Rock030_2K_Normal.png", aiTextureType_NORMAL_CAMERA);
+    cornell_node->set_texture_relative_path("Rock030_2K_Roughness.png", aiTextureType_DIFFUSE_ROUGHNESS);
+    cornell_node->set_texture_relative_path("Rock030_2K_AmbientOcclusion.png", aiTextureType_AMBIENT_OCCLUSION);
+    
     eastl::shared_ptr<vk::assimp_node<4>> model_node =
-    eastl::make_shared<vk::assimp_node<4>>( app.device, "1977-plymouth-volaire-sedan/source/549152622d66472dae9489efa29991c4.rar/plymouthfix-modified.fbx" );
+            eastl::make_shared<vk::assimp_node<4>>( app.device, "1977-plymouth-volaire-sedan/source/549152622d66472dae9489efa29991c4.rar/plymouthfix-modified.fbx" );
+    
+    model_node->set_texture_relative_path("Material_65_Base_Color.png", aiTextureType_BASE_COLOR);
+    model_node->set_texture_relative_path("Material_65_Metallic.png", aiTextureType_METALNESS);
+    model_node->set_texture_relative_path("Material_65_Normal_DirectX.png", aiTextureType_NORMAL_CAMERA);
+    model_node->set_texture_relative_path("Material_65_Roughness.png", aiTextureType_DIFFUSE_ROUGHNESS);
+    model_node->set_texture_relative_path("Material_65_Mixed_AO.png", aiTextureType_AMBIENT_OCCLUSION);
+    
+    
     vk::transform trans ={};
 
-    trans.position = glm::vec3(-0.4f, -1.00f, -.6f);
+    trans.position = glm::vec3(-0.4f, -0.00f, -.6f);
     //these things are necessary because assimp won't pick up on scaling/rotation attributes specified in the Blender exporter
     //I don't know how to fix these things from the blender or assimp side.
     trans.scale = glm::vec3(.0004f,.0004f, .0004f);
@@ -293,8 +308,9 @@ void create_graph()
 
     model_node->init_transforms(trans);
     trans = {};
-    trans.position = glm::vec3(0.0f, 0.0f, 0.0f);
-    trans.scale = glm::vec3(1.5f, 1.f, 1.4f);
+    trans.rotation.x =  1.5708f;
+    trans.position = glm::vec3(0.0f, -.00f, 0.0f);
+    trans.scale = glm::vec3(3.0f, 3.f, 3.0f);
 
     trans.update_transform_matrix();
 
@@ -308,7 +324,7 @@ void create_graph()
                                                aspect, .01f, 50.0f);
 
     app.perspective_camera = &perspective_camera;
-    app.perspective_camera->position = glm::vec3(0.0f, .2f, -5.0f);
+    app.perspective_camera->position = glm::vec3(0.0f, 1.0f, -5.0f);
     app.perspective_camera->forward = -perspective_camera.position;
 
 
@@ -334,7 +350,7 @@ void create_graph()
                                                   aspect, .01f, 10.0f);
 
     point_light_cam.up = glm::vec3(0.0,  1.0f, 0.001f);
-    point_light_cam.position = glm::vec3(0.f, .5f, -2.4f);
+    point_light_cam.position = glm::vec3(0.f, 2.f, -0.8f);
     point_light_cam.forward = -point_light_cam.position;
     point_light_cam.update_view_matrix();
 

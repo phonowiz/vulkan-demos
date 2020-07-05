@@ -106,13 +106,10 @@ public:
         mrt_attachment_group.add_attachment(_swapchain->present_textures, glm::vec4(0.0f), true, false);
         mrt_attachment_group.add_attachment(depth, glm::vec2(1.0f, 0.0f), false, false);
         
-        
         glm::vec2 dims = parent_type::_node_render_pass.get_dimensions();
         
         normals.set_format(vk::image::formats::R8G8_SIGNED_NORMALIZED);
         normals.set_filter(vk::image::filter::NEAREST);
-        
-
         
         positions.set_filter(vk::image::filter::NEAREST);
         positions.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
