@@ -157,7 +157,6 @@ namespace vk
             if( iter == _dependee_data_map.end())
             {
                 result = &(get_write_texture<texture_2d>(name, node, vk::usage_type::COMBINED_IMAGE_SAMPLER, dev, path));
-                result->init();
             }
             else
             {

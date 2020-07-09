@@ -79,7 +79,7 @@ namespace vk
                 }
             }
             
-            EA_ASSERT_MSG( result != -1, "attachment not found, did you misspell the name?");
+            EA_ASSERT_FORMATTED( result != -1, ("attachment %s not found, did you misspell the name?", attachment_name));
             return result;
         }
         

@@ -415,7 +415,7 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position)
 
 // based off of https://aras-p.info/texts/CompactNormalStorage.html
 //and http://en.wikipedia.org/wiki/Lambert_azimuthal_equal-area_projection
-vec3 decode (vec2 enc)
+vec3 decode(vec2 enc)
 {
     //sphere map transform.  The idea here is that the normal is mapped to a 2D plane and then
     //transformed back to sphere.  Please see links
@@ -484,11 +484,14 @@ void main()
     if( rendering_state.mode == ALBEDO )
     {
         out_color = subpassLoad(albedo);
+        out_color.w =1.0f;
     }
 
     else if( rendering_state.mode == NORMALS )
     {
-        out_color = subpassLoad(normals);
+        out_color.xy = subpassLoad(normals).xy;
+        out_color.z = 0.0f;
+        out_color.w = 1.0f;
     }
 
     else if( rendering_state.mode == POSITIONS)
@@ -522,7 +525,6 @@ void main()
         vec3 world_position = subpassLoad(world_positions).xyz;
         branchless_onb(world_normal, rotation);
 
-        out_color = vec4(0);
         if(world_position != vec3(0))
         {
             vec4 ambience = voxel_cone_tracing(rotation, world_normal, world_position);

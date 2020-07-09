@@ -125,7 +125,7 @@ public:
         }
         
         vk::texture_2d& black = _tex_registry->get_loaded_texture("black.png", this, parent_type::_device,"black.png");
-
+        black.init();
         vk::attachment_group<1>& attachment_group = pass.get_attachment_group();
         
         eastl::fixed_string<char, 100> test_name {};
@@ -153,6 +153,7 @@ public:
             if(!diffuse.empty())
             {
                 vk::texture_2d& rsrc = _tex_registry->get_loaded_texture(diffuse.c_str(), this, parent_type::_device, diffuse.c_str());
+                rsrc.init();
                 voxelize_subpass.set_image_sampler( rsrc, "albedos",
                                       vk::parameter_stage::VERTEX, 5, vk::usage_type::COMBINED_IMAGE_SAMPLER);
             }

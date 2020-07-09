@@ -406,6 +406,8 @@ namespace vk
             _vertex_layout.components.push_back(vk::vertex_componets::VERTEX_COMPONENT_COLOR);
             _vertex_layout.components.push_back(vk::vertex_componets::VERTEX_COMPONENT_UV);
             _vertex_layout.components.push_back(vk::vertex_componets::VERTEX_COMPONENT_NORMAL);
+            _vertex_layout.components.push_back(vk::vertex_componets::VERTEX_COMPONENT_TANGENT);
+            _vertex_layout.components.push_back(vk::vertex_componets::VERTEX_COMPONENT_BITANGENT);
         }
         
     public:

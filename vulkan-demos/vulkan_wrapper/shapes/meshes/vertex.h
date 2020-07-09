@@ -13,7 +13,7 @@
 
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
-#include <vector>
+#include "EASTL/array.h"
 
 #ifndef GLM_ENABLE_EXPERIMENTAL
 #define GLM_ENABLE_EXPERIMENTAL
@@ -30,6 +30,8 @@ namespace vk {
         glm::vec4 _color;
         glm::vec2 _uv_coord;
         glm::vec3 _normal;
+        glm::vec3 _tangent;
+        glm::vec3 _bitangent;
         
         
         vertex(glm::vec3 pos, glm::vec4 color, glm::vec2 uvCoord, glm::vec3 normal)
@@ -52,9 +54,9 @@ namespace vk {
             return vertex_input_binding_description;
         }
         
-        static std::vector<VkVertexInputAttributeDescription> get_attribute_descriptions()
+        static eastl::array<VkVertexInputAttributeDescription, 6> get_attribute_descriptions()
         {
-            std::vector<VkVertexInputAttributeDescription> vertex_input_attributes_description(4);
+            eastl::array<VkVertexInputAttributeDescription, 6> vertex_input_attributes_description {};
             
             vertex_input_attributes_description[0].location = 0;
             vertex_input_attributes_description[0].binding = 0;
@@ -75,6 +77,18 @@ namespace vk {
             vertex_input_attributes_description[3].binding = 0;
             vertex_input_attributes_description[3].format = VK_FORMAT_R32G32B32_SFLOAT;
             vertex_input_attributes_description[3].offset = offsetof(vertex, _normal);
+            
+            vertex_input_attributes_description[4].location = 4;
+            vertex_input_attributes_description[4].binding = 0;
+            vertex_input_attributes_description[4].format = VK_FORMAT_R32G32B32_SFLOAT;
+            vertex_input_attributes_description[4].offset = offsetof(vertex, _tangent);
+            
+            
+            vertex_input_attributes_description[5].location = 5;
+            vertex_input_attributes_description[5].binding = 0;
+            vertex_input_attributes_description[5].format = VK_FORMAT_R32G32B32_SFLOAT;
+            vertex_input_attributes_description[5].offset = offsetof(vertex, _bitangent);
+            
             
             return vertex_input_attributes_description;
             

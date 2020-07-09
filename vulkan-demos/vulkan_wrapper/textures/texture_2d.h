@@ -40,6 +40,7 @@ namespace vk
                 case formats::R8G8B8_UNSIGNED_NORMALIZED:
                 case formats::R8G8B8A8_SIGNED_NORMALIZED:
                 case formats::R8G8_SIGNED_NORMALIZED:
+                case formats::R8_UNSIGNED_NORMALIZED:
                 {
                     return 1;
                 }

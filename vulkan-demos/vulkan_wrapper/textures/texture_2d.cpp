@@ -33,10 +33,10 @@ void texture_2d::init()
 {
     if(!_initialized)
     {
-        assert(_device != nullptr);
+        EA_ASSERT(_device != nullptr);
         _mip_levels = _enable_mipmapping ? static_cast<uint32_t>( std::floor(std::log2( std::max( _width, _height)))) + 1 : 1;
         create_sampler();
-        assert( _width != 0 && _height != 0);
+        EA_ASSERT( _width != 0 && _height != 0);
         create(_width, _height);
         
         _initialized = true;
@@ -57,13 +57,12 @@ void texture_2d::load()
     int h = 0;
     int c = 0;
     
-    //TODO: any way to detecct what the pixel format is? stbi_load might always
-    //use this format, but am not sure.
+
     _format = formats::R8G8B8A8_UNSIGNED_NORMALIZED;
     _image_layout = image_layouts::PREINITIALIZED;
     EA_ASSERT_MSG(_path.empty() == false, "texture path is empty");
     _ppixels = stbi_load(_path.c_str(), &w,
-                         &h, &c, STBI_rgb_alpha);
+                         &h, &c, STBI_default);
     _width = static_cast<uint32_t>(w);
     _height = static_cast<uint32_t>(h);
     _channels = static_cast<uint32_t>(c);
@@ -72,7 +71,11 @@ void texture_2d::load()
     {
         _format = formats::R8G8B8_UNSIGNED_NORMALIZED;
     }
-    
+    else if (_channels == 1)
+    {
+        _format = formats::R8_UNSIGNED_NORMALIZED;
+    }
+    EA_ASSERT_FORMATTED(_channels != 2, ("2 channels in a texture are not supported in macs. %s", _path.c_str()));
     EA_ASSERT_FORMATTED(_ppixels != nullptr, ("Texture did not load: %s", _path.c_str()));
     _loaded = true;
 }

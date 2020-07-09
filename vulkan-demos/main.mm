@@ -310,7 +310,7 @@ void create_graph()
     trans = {};
     trans.rotation.x =  1.5708f;
     trans.position = glm::vec3(0.0f, -.00f, 0.0f);
-    trans.scale = glm::vec3(3.0f, 3.f, 3.0f);
+    trans.scale = glm::vec3(2.5f, 2.5f, 2.5f);
 
     trans.update_transform_matrix();
 
@@ -498,7 +498,7 @@ void create_graph()
     three_d_mip_maps[0].add_child(*voxelizers[0]);
 
     glm::vec2 dims = {app.swapchain->get_vk_swap_extent().width, app.swapchain->get_vk_swap_extent().height };
-    eastl::shared_ptr<display_texture_3d<4>> debug_node_3d = eastl::make_shared<display_texture_3d<4>>(app.device,app.swapchain, dims, "voxel_albedos3" );
+    eastl::shared_ptr<display_texture_3d<4>> debug_node_3d = eastl::make_shared<display_texture_3d<4>>(app.device,app.swapchain, dims, "voxel_albedos" );
 
     debug_node_3d->set_name("3d-texture-render");
     debug_node_3d->set_active(false);
@@ -525,7 +525,7 @@ void create_graph()
     gsm_debug->set_active(false);
 
     eastl::shared_ptr<pbr<4>> pbr_node = eastl::make_shared<pbr<4>>(app.device, dims.x, dims.y);
-    eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "albedos");
+    eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "normals");
     //eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "model_albedo", vk::texture_2d::get_class_type());
     
     pbr_node->add_child(*gsm_debug);

@@ -10,12 +10,13 @@
 
 #include "graphics_node.h"
 
+static const uint32_t ATTACHMENTS = 4;
 template< uint32_t NUM_CHILDREN>
-class pbr : public vk::graphics_node<2, NUM_CHILDREN>
+class pbr : public vk::graphics_node<ATTACHMENTS, NUM_CHILDREN>
 {
 public:
     
-    using parent_type = vk::graphics_node<2, NUM_CHILDREN>;
+    using parent_type = vk::graphics_node<ATTACHMENTS, NUM_CHILDREN>;
     using render_pass_type = typename parent_type::render_pass_type;
     using subpass_type = typename parent_type::render_pass_type::subpass_s;
     using object_vector_type = typename parent_type::object_vector_type;
@@ -44,17 +45,39 @@ public:
         
         vk::resource_set<vk::render_texture>& albedos =  _tex_registry->get_write_render_texture_set("albedos",
                                                                                                  this, vk::usage_type::INPUT_ATTACHMENT);
+        
+        vk::resource_set<vk::render_texture>& normals =  _tex_registry->get_write_render_texture_set("normals",
+                                                                                                 this, vk::usage_type::INPUT_ATTACHMENT);
+        
+        //TODO: you can derive positon from depth and sampling fragment position
+        vk::resource_set<vk::render_texture>& positions = _tex_registry->get_write_render_texture_set("positions", this, vk::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_write_depth_texture_set("depth", this, vk::usage_type::INPUT_ATTACHMENT);
+        
         albedos.set_filter(vk::image::filter::NEAREST);
 
-        vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_write_depth_texture_set("albedo_depth", this, vk::usage_type::INPUT_ATTACHMENT);
-        
-        vk::attachment_group<2>& pbr_attachment_group = pass.get_attachment_group();
+        vk::attachment_group<ATTACHMENTS>& pbr_attachment_group = pass.get_attachment_group();
         
         pbr_attachment_group.add_attachment(albedos, glm::vec4(0));
-        pbr_attachment_group.add_attachment(depth, glm::vec2(1.0f, 0.0f), false, false);
+        pbr_attachment_group.add_attachment(normals, glm::vec4(0));
+        pbr_attachment_group.add_attachment(positions, glm::vec4(0));
+        
+        pbr_attachment_group.add_attachment(depth, glm::vec2(1.0f, 0.0f), true, true);
+        
+
+        normals.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
+        normals.set_filter(vk::image::filter::NEAREST);
+        
+        positions.set_filter(vk::image::filter::NEAREST);
+        positions.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
+        depth.set_format(vk::image::formats::DEPTH_32_FLOAT);
+        depth.set_filter(vk::image::filter::NEAREST);
         
         albedos.init();
+        normals.init();
+        positions.init();
+        
         depth.init();
+        
         
         for(int i = 0; i < _obj_vector.size(); ++i)
         {
@@ -65,47 +88,46 @@ public:
             vk::texture_path roughness_texture = _obj_vector[i]->get_lod(0)->get_texture((uint32_t)(aiTextureType_DIFFUSE_ROUGHNESS));
             vk::texture_path ao_texture = _obj_vector[i]->get_lod(0)->get_texture((uint32_t)(aiTextureType_AMBIENT_OCCLUSION));
             
-            if(!diffuse_texture.empty()) 
-            {
-                subpass_type& pbr =  pass.add_subpass(_mat_store,"pbr");
-                pbr.add_output_attachment("albedos", render_pass_type::write_channels::RGBA, true);
-                pbr.add_output_attachment("albedo_depth");
-                
-                vk::texture_2d& rsrc = _tex_registry->get_loaded_texture(diffuse_texture.c_str(), this, parent_type::_device, diffuse_texture.c_str());
-                pass.add_object(_obj_vector[i]->get_lod(0));
-                
-                pbr.init_parameter("view", vk::parameter_stage::VERTEX, glm::mat4(0), 0);
-                pbr.init_parameter("projection", vk::parameter_stage::VERTEX, glm::mat4(0), 0);
-                
-                pbr.set_image_sampler( rsrc, "albedos",
-                                      vk::parameter_stage::FRAGMENT, 2, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-                
-                pbr.ignore_all_objs(true);
-                pbr.ignore_object(i, false);
-                
-                parent_type::add_dynamic_param("model", i, vk::parameter_stage::VERTEX, glm::mat4(1.0), 1);
-                
 
-            }
-            else
-            {
-                //TODO: AT SOME POINT THIS ELSE WILL GO AWAY, ALL MODELS WILL BE REQUIRED TO HAVE TEXTURES
-                subpass_type& pbr =  pass.add_subpass(_mat_store,"color");
-                pbr.add_output_attachment("albedos", render_pass_type::write_channels::RGBA, true);
-                pbr.add_output_attachment("albedo_depth");
-                
-                pass.add_object(_obj_vector[i]->get_lod(0));
-                
-                pbr.init_parameter("view", vk::parameter_stage::VERTEX, glm::mat4(0), 0);
-                pbr.init_parameter("projection", vk::parameter_stage::VERTEX, glm::mat4(0), 0);
-                
-                
-                parent_type::add_dynamic_param("model", i, vk::parameter_stage::VERTEX, glm::mat4(1.0), 1);
-                pbr.ignore_all_objs(true);
-                pbr.ignore_object(i, false);
-                
-                parent_type::add_dynamic_param("model", i, vk::parameter_stage::VERTEX, glm::mat4(2.0), 1);
-            }
+            subpass_type& pbr =  pass.add_subpass(_mat_store,"pbr");
+            pbr.add_output_attachment("albedos", render_pass_type::write_channels::RGBA, true);
+            pbr.add_output_attachment("normals", render_pass_type::write_channels::RGBA, true);
+            pbr.add_output_attachment("positions", render_pass_type::write_channels::RGBA, true);
+            pbr.add_output_attachment("depth");
+            
+            vk::texture_2d& diffuse = _tex_registry->get_loaded_texture(diffuse_texture.c_str(), this, parent_type::_device, diffuse_texture.c_str());
+            vk::texture_2d& norms = _tex_registry->get_loaded_texture(normals_texture.c_str(), this, parent_type::_device, normals_texture.c_str());
+            vk::texture_2d& metals = _tex_registry->get_loaded_texture(specular_texture.c_str(), this, parent_type::_device, specular_texture.c_str());
+            vk::texture_2d& roughness = _tex_registry->get_loaded_texture(roughness_texture.c_str(), this, parent_type::_device, roughness_texture.c_str());
+            vk::texture_2d& occlusion = _tex_registry->get_loaded_texture(ao_texture.c_str(), this, parent_type::_device, ao_texture.c_str());
+            pass.add_object(_obj_vector[i]->get_lod(0));
+            
+            roughness.set_filter(vk::image::filter::LINEAR);
+            roughness.init();
+            
+            norms.init();
+            metals.init();
+            roughness.init();
+            occlusion.init();
+            
+            pbr.init_parameter("view", vk::parameter_stage::VERTEX, glm::mat4(0), 0);
+            pbr.init_parameter("projection", vk::parameter_stage::VERTEX, glm::mat4(0), 0);
+            
+            pbr.set_image_sampler( diffuse, "albedos",
+                                  vk::parameter_stage::FRAGMENT, 2, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            pbr.set_image_sampler( norms, "normals",
+                                  vk::parameter_stage::FRAGMENT, 3, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            pbr.set_image_sampler( metals, "metalness",
+                                  vk::parameter_stage::FRAGMENT, 4, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            pbr.set_image_sampler( roughness, "roughness",
+                                  vk::parameter_stage::FRAGMENT, 5, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            pbr.set_image_sampler( occlusion, "occlusion",
+                                  vk::parameter_stage::FRAGMENT, 6, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            
+            pbr.ignore_all_objs(true);
+            pbr.ignore_object(i, false);
+            
+            parent_type::add_dynamic_param("model", i, vk::parameter_stage::VERTEX, glm::mat4(1.0), 1);
         }
     }
     

@@ -80,6 +80,8 @@ public:
         else if(vk::texture_2d::get_class_type() == _texture_type)
         {
             vk::texture_2d& rsrc = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
+            
+            rsrc.init();
             sub_p.set_image_sampler(rsrc, "tex", vk::parameter_stage::FRAGMENT, 1,
                                             vk::usage_type::COMBINED_IMAGE_SAMPLER);
         }

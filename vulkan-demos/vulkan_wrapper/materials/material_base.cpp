@@ -361,7 +361,7 @@ void material_base::init_shader_parameters()
 void material_base::set_image_sampler(image* texture, const char* parameter_name, parameter_stage stage, uint32_t binding, usage_type usage)
 {
     
-    assert( texture->is_initialized() && "This image has not been initialized.  Call 'init' on the texture");
+    EA_ASSERT_MSG( texture->is_initialized(), "This image has not been initialized.  Call 'init' on the texture");
     buffer_info& mem = _sampler_buffers[stage][parameter_name];
     mem.binding = binding;
     mem.usage_type = usage;

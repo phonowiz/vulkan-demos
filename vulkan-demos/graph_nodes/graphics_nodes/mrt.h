@@ -72,69 +72,30 @@ public:
         material_store_type* _mat_store = parent_type::_material_store;
         object_vector_type& _obj_vector = parent_type::_obj_vector;
         
-        subpass_type& mrt_subpass = pass.add_subpass(_mat_store, "mrt");
         subpass_type& composite = pass.add_subpass(_mat_store, "deferred_output");
-        
         
         setup_sampling_rays();
         
         pass.add_object(static_cast<vk::obj_shape*>(&_screen_plane));
-        mrt_subpass.ignore_all_objs(false);
-        mrt_subpass.ignore_object(0, true);
-        
-        EA_ASSERT_MSG(_obj_vector.size() != 0, "there are no objects to be rendered in the MRT node");
-        for(int i = 0; i < _obj_vector.size(); ++i)
-        {
-            pass.add_object(_obj_vector[i]->get_lod(0));
-            composite.ignore_object(i+1, true);
-        }
-        
+
         vk::attachment_group<5>& mrt_attachment_group = pass.get_attachment_group();
         
-        vk::resource_set<vk::render_texture>& normals = _tex_registry->get_write_render_texture_set("normals", this, vk::usage_type::INPUT_ATTACHMENT);
-        vk::resource_set<vk::render_texture>& albedos = _tex_registry->get_write_render_texture_set("albedos", this, vk::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::render_texture>& normals = _tex_registry->get_read_render_texture_set("normals", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        vk::resource_set<vk::render_texture>& albedos = _tex_registry->get_read_render_texture_set("albedos", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         //TODO: you can derive positon from depth and sampling fragment position
-        vk::resource_set<vk::render_texture>& positions = _tex_registry->get_write_render_texture_set("positions", this, vk::usage_type::INPUT_ATTACHMENT);
-        vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_write_depth_texture_set("depth", this, vk::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::render_texture>& positions = _tex_registry->get_read_render_texture_set("positions", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_read_depth_texture_set("depth", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         //GBUFFER SUBPASS
         //follow the order in which the attachments are expected in the shader
-        mrt_attachment_group.add_attachment(normals, glm::vec4(0.0f), true, false);
+        mrt_attachment_group.add_attachment(normals, glm::vec4(0.0f), false, false);
         mrt_attachment_group.add_attachment(albedos, glm::vec4(0.0f), false, false);
-        mrt_attachment_group.add_attachment(positions, glm::vec4(0.0f), true, false);
+        mrt_attachment_group.add_attachment(positions, glm::vec4(0.0f), false, false);
         mrt_attachment_group.add_attachment(_swapchain->present_textures, glm::vec4(0.0f), true, false);
         mrt_attachment_group.add_attachment(depth, glm::vec2(1.0f, 0.0f), false, false);
         
-        glm::vec2 dims = parent_type::_node_render_pass.get_dimensions();
-        
-        normals.set_format(vk::image::formats::R8G8_SIGNED_NORMALIZED);
-        normals.set_filter(vk::image::filter::NEAREST);
-        
-        positions.set_filter(vk::image::filter::NEAREST);
-        positions.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
-        depth.set_format(vk::image::formats::DEPTH_32_FLOAT);
-        depth.set_filter(vk::image::filter::NEAREST);
-        
-        normals.init();
 
-        positions.init();
-        depth.init();
-        
-        mrt_subpass.add_output_attachment("normals", render_pass_type::write_channels::RG, false);
-        mrt_subpass.add_output_attachment("positions", render_pass_type::write_channels::RGBA, false);
-        mrt_subpass.add_output_attachment("depth");
-        
-        
-        int binding = 0;
-        //note: parameters are initialized in the order found in the shader
-        mrt_subpass.init_parameter("view", vk::parameter_stage::VERTEX, glm::mat4(0), binding);
-        mrt_subpass.init_parameter("projection", vk::parameter_stage::VERTEX, glm::mat4(0), binding);
-        mrt_subpass.init_parameter("lightPosition", vk::parameter_stage::VERTEX, glm::vec3(0), binding);
-        
-        parent_type::add_dynamic_param("model", 0, vk::parameter_stage::VERTEX, glm::mat4(1.0), 1);
-        
-        
         //COMPOSITE SUBPASS
         composite.add_input_attachment( "normals", "normals", vk::parameter_stage::FRAGMENT, 1 );
         composite.add_input_attachment("albedos", "albedos", vk::parameter_stage::FRAGMENT, 2);
@@ -201,16 +162,8 @@ public:
     {
         render_pass_type &pass = parent_type::_node_render_pass;
         object_vector_type &obj_vec = parent_type::_obj_vector;
-        //tex_registry_type* _tex_registry = parent_type::_texture_registry;
-        //material_store_type* _mat_store = parent_type::_material_store;
-        //object_submask_type& _obj_masks = parent_type::_obj_subpass_mask;
-        //object_vector_type& _obj_vector = parent_type::_obj_vector;
-        
-        subpass_type& mrt_pass = pass.get_subpass(0);
-        subpass_type& composite = pass.get_subpass(1);
-        
-        vk::shader_parameter::shader_params_group& vertex_params = mrt_pass.get_pipeline(image_id).
-                                                get_uniform_parameters(vk::parameter_stage::VERTEX, 0);
+
+        subpass_type& composite = pass.get_subpass(0);
         
         vk::shader_parameter::shader_params_group& display_fragment_params = composite.get_pipeline(image_id).
                                                 get_uniform_parameters(vk::parameter_stage::FRAGMENT, 5) ;
@@ -223,9 +176,6 @@ public:
         _ortho_camera.up = camera.up;
         _ortho_camera.update_view_matrix();
         
-        vertex_params["view"] = camera.view_matrix;
-        vertex_params["projection"] =  camera.get_projection_matrix();
-        
         display_fragment_params["eye_inverse_view_matrix"] = glm::inverse(camera.view_matrix);
         display_fragment_params["vox_view_projection"] = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
         display_fragment_params["eye_in_world_space"] = camera.position;
@@ -235,14 +185,6 @@ public:
         display_fragment_params["light_color"] = _light_color;
         display_fragment_params["light_cam_proj_matrix"] = _light_cam.get_projection_matrix() * _light_cam.view_matrix;
         display_fragment_params["mode"] = static_cast<int>(_rendering_mode);
-        
-        mrt_pass.set_cull_mode(render_pass_type::graphics_pipeline_type::cull_mode::NONE);
-        
-        for( int i = 0; i < obj_vec.size(); ++i)
-        {
-            parent_type::set_dynamic_param("model", image_id, 0, obj_vec[i]->get_lod(0),
-                                           obj_vec[i]->transforms[image_id].get_transform_matrix(), 0 );
-        }
         
     }
     
