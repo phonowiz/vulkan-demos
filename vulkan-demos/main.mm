@@ -276,14 +276,14 @@ void create_graph()
 {
     
     //eastl::shared_ptr<vk::assimp_node<4>> cornell_node = eastl::make_shared<vk::assimp_node<4>>(app.device, "cornell/cornell_box.obj");
-    eastl::shared_ptr<vk::assimp_node<4>> cornell_node = eastl::make_shared<vk::assimp_node<4>>(app.device, "plane/plane.fbx");
+    eastl::shared_ptr<vk::assimp_node<4>> floor = eastl::make_shared<vk::assimp_node<4>>(app.device, "plane/plane.fbx");
     //eastl::shared_ptr<vk::assimp_node<4>> model_node = eastl::make_shared<vk::assimp_node<4>>( app.device, "IndoorPotPlant/indoor_plant_02_fbx/indoor_plant_02_6.1_1+2_tri.fbx" );
     
-    cornell_node->set_texture_relative_path("Rock030_2K_Color.png", aiTextureType_BASE_COLOR);
-    cornell_node->set_texture_relative_path("../../textures/black.png", aiTextureType_METALNESS);
-    cornell_node->set_texture_relative_path("Rock030_2K_Normal.png", aiTextureType_NORMAL_CAMERA);
-    cornell_node->set_texture_relative_path("Rock030_2K_Roughness.png", aiTextureType_DIFFUSE_ROUGHNESS);
-    cornell_node->set_texture_relative_path("Rock030_2K_AmbientOcclusion.png", aiTextureType_AMBIENT_OCCLUSION);
+    floor->set_texture_relative_path("Rock030_2K_Color.png", aiTextureType_BASE_COLOR);
+    floor->set_texture_relative_path("../../textures/black.png", aiTextureType_METALNESS);
+    floor->set_texture_relative_path("Rock030_2K_Normal.png", aiTextureType_NORMAL_CAMERA);
+    floor->set_texture_relative_path("Rock030_2K_Roughness.png", aiTextureType_DIFFUSE_ROUGHNESS);
+    floor->set_texture_relative_path("Rock030_2K_AmbientOcclusion.png", aiTextureType_AMBIENT_OCCLUSION);
     
     eastl::shared_ptr<vk::assimp_node<4>> model_node =
             eastl::make_shared<vk::assimp_node<4>>( app.device, "1977-plymouth-volaire-sedan/source/549152622d66472dae9489efa29991c4.rar/plymouthfix-modified.fbx" );
@@ -314,7 +314,7 @@ void create_graph()
 
     trans.update_transform_matrix();
 
-    cornell_node->init_transforms(trans);
+    floor->init_transforms(trans);
 
     float aspect = static_cast<float>(app.swapchain->get_vk_swap_extent().width)/ static_cast<float>(app.swapchain->get_vk_swap_extent().height);
     vk::perspective_camera perspective_camera(glm::radians(45.0f),
@@ -394,14 +394,14 @@ void create_graph()
         voxelizers[i]->set_key_light_cam(point_light_cam, voxelize<4>::light_type::POINT_LIGHT);
 
         voxelizers[i]->add_child(*model_node);
-        voxelizers[i]->add_child(*cornell_node);
+        voxelizers[i]->add_child(*floor);
     }
 
     mrt_node->add_child(*model_node);
-    mrt_node->add_child(*cornell_node);
+    mrt_node->add_child(*floor);
 
     vsm_node->add_child(*model_node);
-    vsm_node->add_child(*cornell_node);
+    vsm_node->add_child(*floor);
 
 
     eastl::array<clear_3d_textures<4>, mip_map_3d_texture<4>::TOTAL_LODS> clear_mip_maps;
@@ -531,7 +531,7 @@ void create_graph()
     pbr_node->add_child(*gsm_debug);
     
     pbr_node->add_child(*model_node);
-    pbr_node->add_child(*cornell_node);
+    pbr_node->add_child(*floor);
 
     
     pbr_node->set_name("pbr node");

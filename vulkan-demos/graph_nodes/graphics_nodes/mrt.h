@@ -225,7 +225,7 @@ private:
     static constexpr size_t   NUM_SAMPLING_RAYS = 5;
     eastl::array<glm::vec4, NUM_SAMPLING_RAYS> _sampling_rays = {};
     
-    glm::vec4 _light_color = glm::vec4(1.5f, 1.5f, 1.5f, 1.5f);
+    glm::vec4 _light_color = glm::vec4(15.5f, 15.5f, 15.5f, 15.5f);
 };
 
 template class mrt<4>;

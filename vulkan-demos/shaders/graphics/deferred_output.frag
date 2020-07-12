@@ -291,7 +291,77 @@ float get_variance(float distance)
     return variance;
 }
 
-//section 7 and 8.1 of the paper
+const float PI = 3.14159265359;
+
+vec3 materialcolor()
+{
+    vec4 color = subpassLoad(albedo) ;
+    return vec3(color.r, color.g, color.b);
+}
+
+// Normal Distribution function --------------------------------------
+float D_GGX(float dotNH, float roughness)
+{
+    float alpha = roughness * roughness;
+    float alpha2 = alpha * alpha;
+    float denom = dotNH * dotNH * (alpha2 - 1.0) + 1.0;
+    return (alpha2)/(PI * denom*denom);
+}
+
+// Geometric Shadowing function --------------------------------------
+float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
+{
+    float r = (roughness + 1.0);
+    float k = (r*r) / 8.0;
+    float GL = dotNL / (dotNL * (1.0 - k) + k);
+    float GV = dotNV / (dotNV * (1.0 - k) + k);
+    return GL * GV;
+}
+
+// Fresnel function ----------------------------------------------------
+vec3 F_Schlick(float cosTheta, float metallic)
+{
+    vec3 F0 = mix(vec3(0.04), materialcolor(), metallic); // * material.specular
+    vec3 F = F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+    return F;
+}
+
+
+vec3 BRDF(vec3 L, vec3 V, vec3 N, float metallic, float roughness)
+{
+    // Precalculate vectors and dot products
+    vec3 H = normalize (V + L);
+    float dotNV = clamp(dot(N, V), 0.0, 1.0);
+    float dotNL = clamp(dot(N, L), 0.0, 1.0);
+    float dotLH = clamp(dot(L, H), 0.0, 1.0);
+    float dotNH = clamp(dot(N, H), 0.0, 1.0);
+
+    // Light color fixed
+    vec3 lightColor = rendering_state.light_color.xyz;
+
+    vec3 color = vec3(0.0);
+
+    if (dotNL > 0.0)
+    {
+        float roughness = max(0.05, roughness);
+        // D = Normal distribution (Distribution of the microfacets)
+        float D = D_GGX(dotNH, roughness);
+        // G = Geometric shadowing term (Microfacets shadowing)
+        float G = G_SchlicksmithGGX(dotNL, dotNV, roughness);
+        // F = Fresnel factor (Reflectance depending on angle of incidence)
+        vec3 F = F_Schlick(dotNV, metallic);
+
+        vec3 spec = D * F * G / (4.0 * dotNL * dotNV);
+
+        color += spec * dotNL * lightColor;
+        //color = F;//vec3(F,F,F);
+    }
+
+    return color;
+}
+
+
+//section 7 and 8.1 of orignal voxel cone tracing paper...
 vec4 indirect_illumination( vec3 world_normal, vec3 world_pos, vec3 direction)
 {
     vec3 j = rendering_state.voxel_size_in_world_space.xyz;
@@ -376,9 +446,9 @@ vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_posi
     return sample_color;
 }
 
-vec4 direct_illumination( vec3 world_normal, vec3 world_position)
+vec4 direct_illumination( vec3 world_normal, vec3 world_position, float metalness, float roughness)
 {
-    vec3 surface_color = subpassLoad(albedo).xyz;
+    //vec3 surface_color = subpassLoad(albedo).xyz;
     
     vec3 v = rendering_state.eye_in_world_space.xyz - world_position;
     v = normalize(v);
@@ -398,15 +468,7 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position)
             if(rendering_state.light_type == POINT_LIGHT)
                 l = rendering_state.world_light_position.xyz - world_position;
             
-            l = normalize(l);
-            vec3 h = normalize( v + l);
-            float ndoth = clamp( dot(n, h), 0.0f, 1.0f);
-            
-            float s = .65f;
-            float spec = pow(ndoth, s);
-
-            float ndotl = max(dot(n, l),0);
-            final += (surface_color + spec * surface_color)* ndotl * rendering_state.light_color.xyz ;
+            final += BRDF( l, v, world_normal, metalness, roughness );
         }
     }
 
@@ -490,7 +552,10 @@ void main()
     else if( rendering_state.mode == NORMALS )
     {
         out_color.xy = subpassLoad(normals).xy;
-        out_color.z = 0.0f;
+        
+        out_color.xyz = decode(out_color.xy);
+        //out_color.xyz = vec3(subpassLoad(normals).z);
+        //out_color.z = 0.0f;
         out_color.w = 1.0f;
     }
 
@@ -517,9 +582,12 @@ void main()
     else
     {
         mat3 rotation;
-        vec3 world_normal = subpassLoad(normals).xyz;
-
-        world_normal = decode(world_normal.xy);
+        vec4 normal_sample = subpassLoad(normals);
+        
+        vec3 world_normal = decode(normal_sample.xy);
+        float metalness = normal_sample.z;
+        float roughness = normal_sample.w;
+        
         world_normal = (rendering_state.eye_inverse_view_matrix * vec4(world_normal.xyz,0.0f)).xyz;
 
         vec3 world_position = subpassLoad(world_positions).xyz;
@@ -542,21 +610,23 @@ void main()
             }
             else if ( rendering_state.mode == DIRECT_LIGHT)
             {
-                vec4 direct = direct_illumination( world_normal, world_position);
+                vec4 direct = direct_illumination( world_normal, world_position, metalness, roughness);
                 out_color = direct;
                 out_color.a = 1.0f;
             }
             else
             {
-                vec4 direct = direct_illumination( world_normal, world_position);
+                vec4 direct = direct_illumination( world_normal, world_position, 1-metalness, roughness);
                 //full ambient light plus direct light
                 float shadow = shadow_factor(world_position);
                 direct.xyz *= shadow;
-                
+//
                 direct.xyz *= ambience.xyz;
                 direct.xyz *= (1.0f - ambience.a);
 
                 out_color.xyz = direct.xyz;
+                
+                out_color.xyz = pow(out_color.xyz, vec3(0.4545));
                 out_color.a = 1.0f;
             }
         }

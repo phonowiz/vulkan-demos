@@ -90,9 +90,9 @@ public:
             
 
             subpass_type& pbr =  pass.add_subpass(_mat_store,"pbr");
-            pbr.add_output_attachment("albedos", render_pass_type::write_channels::RGBA, true);
-            pbr.add_output_attachment("normals", render_pass_type::write_channels::RGBA, true);
-            pbr.add_output_attachment("positions", render_pass_type::write_channels::RGBA, true);
+            pbr.add_output_attachment("albedos", render_pass_type::write_channels::RGBA, false);
+            pbr.add_output_attachment("normals", render_pass_type::write_channels::RGBA, false);
+            pbr.add_output_attachment("positions", render_pass_type::write_channels::RGBA, false);
             pbr.add_output_attachment("depth");
             
             vk::texture_2d& diffuse = _tex_registry->get_loaded_texture(diffuse_texture.c_str(), this, parent_type::_device, diffuse_texture.c_str());
