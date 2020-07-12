@@ -89,6 +89,8 @@ vec3 one_over_distance_limit = 1.0f/rendering_state.voxel_size_in_world_space.xy
 vec4  albedo_lod_colors[NUM_MIP_MAPS];
 vec4  normal_lod_colors[NUM_MIP_MAPS];
 
+#define ALBEDO_SAMPLE pow(materialcolor(), vec3(2.2))
+
 //note: moltenvk doesn't support lod's for sampler3D textures, it only supports lods for texture2d arrays
 //this is the reason I have this function here
 vec4 sample_lod_texture(int texture_type, vec3 coord, uint level)
@@ -319,15 +321,18 @@ float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
 }
 
 // Fresnel function ----------------------------------------------------
-vec3 F_Schlick(float cosTheta, float metallic)
+vec3 F_Schlick(float cosTheta, vec3 F0)
 {
-    vec3 F0 = mix(vec3(0.04), materialcolor(), metallic); // * material.specular
     vec3 F = F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
     return F;
 }
 
+vec3 F_SchlickR(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}
 
-vec3 BRDF(vec3 L, vec3 V, vec3 N, float metallic, float roughness)
+vec3 BRDF(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float roughness)
 {
     // Precalculate vectors and dot products
     vec3 H = normalize (V + L);
@@ -343,17 +348,16 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, float metallic, float roughness)
 
     if (dotNL > 0.0)
     {
-        float roughness = max(0.05, roughness);
         // D = Normal distribution (Distribution of the microfacets)
         float D = D_GGX(dotNH, roughness);
         // G = Geometric shadowing term (Microfacets shadowing)
         float G = G_SchlicksmithGGX(dotNL, dotNV, roughness);
         // F = Fresnel factor (Reflectance depending on angle of incidence)
-        vec3 F = F_Schlick(dotNV, metallic);
+        vec3 F = F_Schlick(dotNV, F0);
 
-        vec3 spec = D * F * G / (4.0 * dotNL * dotNV);
-
-        color += spec * dotNL * lightColor;
+        vec3 spec = D * F * G / (4.0 * dotNL * dotNV + 0.001f);
+        vec3 kD = (vec3(1.0f) - F) * (1.0f - metallic);
+        color += (kD * ALBEDO_SAMPLE / PI + spec) * dotNL * lightColor;
         //color = F;//vec3(F,F,F);
     }
 
@@ -457,6 +461,8 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position, float metalnes
     
     vec3 final = vec3(0.0f);
     
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, ALBEDO_SAMPLE, metalness);
     //todo: let's add support for more lights in the future
     //for(int i = 0; i < numberOfLights; ++i)
     {
@@ -468,7 +474,7 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position, float metalnes
             if(rendering_state.light_type == POINT_LIGHT)
                 l = rendering_state.world_light_position.xyz - world_position;
             
-            final += BRDF( l, v, world_normal, metalness, roughness );
+            final += BRDF( l, v, world_normal, F0, metalness, roughness );
         }
     }
 
@@ -616,11 +622,11 @@ void main()
             }
             else
             {
-                vec4 direct = direct_illumination( world_normal, world_position, 1-metalness, roughness);
+                vec4 direct = direct_illumination( world_normal, world_position, metalness, roughness);
                 //full ambient light plus direct light
                 float shadow = shadow_factor(world_position);
                 direct.xyz *= shadow;
-//
+
                 direct.xyz *= ambience.xyz;
                 direct.xyz *= (1.0f - ambience.a);
 
