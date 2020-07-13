@@ -89,7 +89,7 @@ vec3 one_over_distance_limit = 1.0f/rendering_state.voxel_size_in_world_space.xy
 vec4  albedo_lod_colors[NUM_MIP_MAPS];
 vec4  normal_lod_colors[NUM_MIP_MAPS];
 
-#define ALBEDO_SAMPLE pow(materialcolor(), vec3(2.2))
+#define ALBEDO_SAMPLE pow(materialcolor().xyzw, vec4(2.2))
 
 //note: moltenvk doesn't support lod's for sampler3D textures, it only supports lods for texture2d arrays
 //this is the reason I have this function here
@@ -295,10 +295,10 @@ float get_variance(float distance)
 
 const float PI = 3.14159265359;
 
-vec3 materialcolor()
+vec4 materialcolor()
 {
     vec4 color = subpassLoad(albedo) ;
-    return vec3(color.r, color.g, color.b);
+    return vec4(color.r, color.g, color.b, color.a);
 }
 
 // Normal Distribution function --------------------------------------
@@ -323,8 +323,7 @@ float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
 // Fresnel function ----------------------------------------------------
 vec3 F_Schlick(float cosTheta, vec3 F0)
 {
-    vec3 F = F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
-    return F;
+    return  F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
 vec3 F_SchlickR(float cosTheta, vec3 F0, float roughness)
@@ -357,7 +356,9 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float roughness)
 
         vec3 spec = D * F * G / (4.0 * dotNL * dotNV + 0.001f);
         vec3 kD = (vec3(1.0f) - F) * (1.0f - metallic);
-        color += (kD * ALBEDO_SAMPLE / PI + spec) * dotNL * lightColor;
+        vec4 c = ALBEDO_SAMPLE;
+        //the w component is the artist's added ambient occlusion
+        color += (kD * c.xyz / PI + spec) * dotNL * lightColor * c.w;
         //color = F;//vec3(F,F,F);
     }
 
@@ -432,8 +433,6 @@ vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_posi
     vec3 one_over_voxel_size = vec3(1.0f)/rendering_state.voxel_size_in_world_space.xyz;
     
     vec4 sample_color = vec4(0.0f);
-
-    
     for( uint i = 0; i < NUM_SAMPLING_RAYS; ++i)
     {
         vec3 direction = rotation * rendering_state.sampling_rays[i].xyz;
@@ -462,7 +461,7 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position, float metalnes
     vec3 final = vec3(0.0f);
     
     vec3 F0 = vec3(0.04);
-    F0 = mix(F0, ALBEDO_SAMPLE, metalness);
+    F0 = mix(F0, ALBEDO_SAMPLE.xyz, metalness);
     //todo: let's add support for more lights in the future
     //for(int i = 0; i < numberOfLights; ++i)
     {
@@ -552,6 +551,7 @@ void main()
     if( rendering_state.mode == ALBEDO )
     {
         out_color = subpassLoad(albedo);
+        //out_color.xyz = vec3(out_color.w);
         out_color.w =1.0f;
     }
 
@@ -592,7 +592,7 @@ void main()
         
         vec3 world_normal = decode(normal_sample.xy);
         float metalness = normal_sample.z;
-        float roughness = normal_sample.w;
+        float roughness = normal_sample.w ;
         
         world_normal = (rendering_state.eye_inverse_view_matrix * vec4(world_normal.xyz,0.0f)).xyz;
 
@@ -618,6 +618,9 @@ void main()
             {
                 vec4 direct = direct_illumination( world_normal, world_position, metalness, roughness);
                 out_color = direct;
+                
+                out_color.xyz = pow(out_color.xyz, vec3(0.4545));
+                
                 out_color.a = 1.0f;
             }
             else

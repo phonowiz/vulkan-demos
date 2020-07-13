@@ -282,7 +282,7 @@ void create_graph()
     floor->set_texture_relative_path("Rock030_2K_Color.png", aiTextureType_BASE_COLOR);
     floor->set_texture_relative_path("../../textures/black.png", aiTextureType_METALNESS);
     floor->set_texture_relative_path("Rock030_2K_Normal.png", aiTextureType_NORMAL_CAMERA);
-    floor->set_texture_relative_path("Rock030_2K_Roughness.png", aiTextureType_DIFFUSE_ROUGHNESS);
+    floor->set_texture_relative_path("../../textures/white.png", aiTextureType_DIFFUSE_ROUGHNESS);
     floor->set_texture_relative_path("Rock030_2K_AmbientOcclusion.png", aiTextureType_AMBIENT_OCCLUSION);
     
     eastl::shared_ptr<vk::assimp_node<4>> model_node =

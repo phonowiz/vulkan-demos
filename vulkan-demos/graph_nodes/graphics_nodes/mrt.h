@@ -182,7 +182,7 @@ public:
 
         display_fragment_params["world_cam_position"] = glm::vec4(camera.position, 1.0f);
         display_fragment_params["world_light_position"] = _light_cam.position;
-        display_fragment_params["light_color"] = _light_color;
+        display_fragment_params["light_color"] = _light_color * 20.f;
         display_fragment_params["light_cam_proj_matrix"] = _light_cam.get_projection_matrix() * _light_cam.view_matrix;
         display_fragment_params["mode"] = static_cast<int>(_rendering_mode);
         
@@ -225,7 +225,7 @@ private:
     static constexpr size_t   NUM_SAMPLING_RAYS = 5;
     eastl::array<glm::vec4, NUM_SAMPLING_RAYS> _sampling_rays = {};
     
-    glm::vec4 _light_color = glm::vec4(5.5f, 5.5f, 5.5f, 5.5f);
+    glm::vec4 _light_color = glm::vec4(0.0f, .33, .64f, 1.0f);
 };
 
 template class mrt<4>;
