@@ -25,8 +25,6 @@ public:
 
 private:
     vk::orthographic_camera _ortho_camera;
-    
-    light_type _light_type = light_type::DIRECTIONAL_LIGHT;
     vk::camera _light_cam;
     
 public:
@@ -62,7 +60,11 @@ public:
         _screen_plane.create();
         
         _light_cam = key_light_cam;
-        _light_type = light_type;
+        
+        for( int i = 0; i < _light_types.size(); ++i)
+        {
+            _light_types[i] = static_cast<int>(light_type::DIRECTIONAL_LIGHT);
+        }
     }
 
     virtual void init_node() override
@@ -120,8 +122,8 @@ public:
                                                 float(_voxel_world_dimensions.z/voxelize<NUM_CHILDREN>::VOXEL_CUBE_DEPTH), 1.0f);
         
         composite.init_parameter("world_cam_position", vk::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
-        composite.init_parameter("world_light_position", vk::parameter_stage::FRAGMENT, glm::vec3(0.0f), 5);
-        composite.init_parameter("light_color", vk::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+        composite.init_parameter("world_light_position", vk::parameter_stage::FRAGMENT, _world_light_positions.data(), _world_light_positions.size(), 5);
+        composite.template init_parameter<MAX_LIGHTS>("light_color", vk::parameter_stage::FRAGMENT, _light_color, 5);
         composite.init_parameter("voxel_size_in_world_space", vk::parameter_stage::FRAGMENT, world_scale_voxel, 5);
         composite.init_parameter("mode", vk::parameter_stage::FRAGMENT, int(0), 5);
         composite.init_parameter("sampling_rays", vk::parameter_stage::FRAGMENT, _sampling_rays.data(), _sampling_rays.size(), 5);
@@ -130,7 +132,9 @@ public:
         composite.init_parameter("eye_in_world_space", vk::parameter_stage::FRAGMENT, glm::vec3(0), 5);
         composite.init_parameter("eye_inverse_view_matrix", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
         composite.init_parameter("light_cam_proj_matrix", vk::parameter_stage::FRAGMENT, _light_cam.get_projection_matrix() * _light_cam.view_matrix, 5);
-        composite.init_parameter("light_type", vk::parameter_stage::FRAGMENT, int(_light_type), 5);
+        composite.template init_parameter<MAX_LIGHTS>("light_types", vk::parameter_stage::FRAGMENT, _light_types, 5);
+        composite.init_parameter("light_count", vk::parameter_stage::FRAGMENT, ACTIVE_LIGHTS, 5);
+
         
         composite.set_image_sampler(voxel_normal_set, "voxel_normals", vk::parameter_stage::FRAGMENT, 6, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         composite.set_image_sampler(voxel_albedo_set, "voxel_albedos", vk::parameter_stage::FRAGMENT, 7, vk::usage_type::COMBINED_IMAGE_SAMPLER);
@@ -181,8 +185,37 @@ public:
         display_fragment_params["eye_in_world_space"] = camera.position;
 
         display_fragment_params["world_cam_position"] = glm::vec4(camera.position, 1.0f);
-        display_fragment_params["world_light_position"] = _light_cam.position;
-        display_fragment_params["light_color"] = _light_color * 20.f;
+        
+        //the first light is the key light, and is also the only contributor to ambient light and shadows
+        _world_light_positions[0].x = _light_cam.position.x;
+        _world_light_positions[0].y = _light_cam.position.y;
+        _world_light_positions[0].z = _light_cam.position.z;
+        _world_light_positions[0].w = 1.0f;
+        
+        //TODO: these values could be fed to this node from the client
+        _world_light_positions[1].x = _light_cam.position.x;
+        _world_light_positions[1].y = _light_cam.position.y;
+        _world_light_positions[1].z = -_light_cam.position.z;
+        _world_light_positions[1].w = 1.0f;
+        
+        _world_light_positions[2].x = 5.0f;
+        _world_light_positions[2].y = .50f;
+        _world_light_positions[2].z = 0.0f;
+        _world_light_positions[2].w = 1.0f;
+
+        //the light value is based off of moon light:
+        //https://encycolorpedia.com/0055a5#:~:text=Color%20Directory-,Humbrol%20222%20Moonlight%20Blue%20%2F%20%230055a5%20Hex%20Color%20Code,%25%20saturation%20and%2032%25%20lightness.
+        
+        //TODO: To avoid these magic numbers like the one below, let's go for HDR
+        _light_color[0] = glm::vec4(0.0f, .33, .64f, 1.0f) * 5.0f;
+        _light_color[1] = glm::vec4(0.0f, .33, .64f, 1.0f) * 5.0f;
+        _light_color[2] = glm::vec4(0.0f, .33, .64f, 1.0f) * 5.f;
+        
+        display_fragment_params["world_light_position"].set_vectors_array(_world_light_positions.data(),
+                                                                            _world_light_positions.size());
+        
+
+        display_fragment_params["light_color"].set_vectors_array(_light_color.data(), _light_color.size());
         display_fragment_params["light_cam_proj_matrix"] = _light_cam.get_projection_matrix() * _light_cam.view_matrix;
         display_fragment_params["mode"] = static_cast<int>(_rendering_mode);
         
@@ -223,9 +256,16 @@ private:
     static constexpr glm::vec3 _voxel_world_dimensions = glm::vec3(10.0f, 10.0f, 10.0f);
     
     static constexpr size_t   NUM_SAMPLING_RAYS = 5;
-    eastl::array<glm::vec4, NUM_SAMPLING_RAYS> _sampling_rays = {};
     
-    glm::vec4 _light_color = glm::vec4(0.0f, .33, .64f, 1.0f);
+    //search for MAX_LIGHTS in shaders, if this variable changes here, you'll have to change it shaders too
+    static constexpr int32_t   MAX_LIGHTS = 10;
+    static constexpr int32_t   ACTIVE_LIGHTS = 3;
+    
+    eastl::array<glm::vec4, NUM_SAMPLING_RAYS>  _sampling_rays = {};
+    eastl::array<glm::vec4, MAX_LIGHTS>         _world_light_positions = {};
+    eastl::array<int, MAX_LIGHTS>               _light_types = {};
+    
+    eastl::array<glm::vec4 , MAX_LIGHTS> _light_color = {};
 };
 
 template class mrt<4>;

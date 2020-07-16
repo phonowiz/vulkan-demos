@@ -279,11 +279,11 @@ void create_graph()
     eastl::shared_ptr<vk::assimp_node<4>> floor = eastl::make_shared<vk::assimp_node<4>>(app.device, "plane/plane.fbx");
     //eastl::shared_ptr<vk::assimp_node<4>> model_node = eastl::make_shared<vk::assimp_node<4>>( app.device, "IndoorPotPlant/indoor_plant_02_fbx/indoor_plant_02_6.1_1+2_tri.fbx" );
     
-    floor->set_texture_relative_path("Rock030_2K_Color.png", aiTextureType_BASE_COLOR);
+    floor->set_texture_relative_path("Ground037_2K_Color.png", aiTextureType_BASE_COLOR);
     floor->set_texture_relative_path("../../textures/black.png", aiTextureType_METALNESS);
-    floor->set_texture_relative_path("Rock030_2K_Normal.png", aiTextureType_NORMAL_CAMERA);
+    floor->set_texture_relative_path("Ground037_2K_Normal.png", aiTextureType_NORMAL_CAMERA);
     floor->set_texture_relative_path("../../textures/white.png", aiTextureType_DIFFUSE_ROUGHNESS);
-    floor->set_texture_relative_path("Rock030_2K_AmbientOcclusion.png", aiTextureType_AMBIENT_OCCLUSION);
+    floor->set_texture_relative_path("Ground037_2K_AmbientOcclusion.png", aiTextureType_AMBIENT_OCCLUSION);
     
     eastl::shared_ptr<vk::assimp_node<4>> model_node =
             eastl::make_shared<vk::assimp_node<4>>( app.device, "1977-plymouth-volaire-sedan/source/549152622d66472dae9489efa29991c4.rar/plymouthfix-modified.fbx" );

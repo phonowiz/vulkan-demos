@@ -24,12 +24,13 @@ layout(input_attachment_index = 4, binding = 4 ) uniform subpassInput depth;
 
 #define DIRECTIONAL_LIGHT  0
 #define POINT_LIGHT  1
+#define MAX_LIGHTS 10
 
 layout(binding = 5, std140) uniform _rendering_state
 {
     vec4 world_cam_position;
-    vec4 world_light_position;
-    vec4 light_color;
+    vec4 world_light_position[MAX_LIGHTS];
+    vec4 light_color[MAX_LIGHTS];
     vec4 voxel_size_in_world_space;
     int  mode;
     vec4 sampling_rays[NUM_SAMPLING_RAYS];
@@ -38,8 +39,9 @@ layout(binding = 5, std140) uniform _rendering_state
     vec3 eye_in_world_space;
     mat4 eye_inverse_view_matrix;
     mat4 light_cam_proj_matrix;
-    int  light_type;
-    
+    int  light_types[MAX_LIGHTS];
+    int  light_count;
+
 }rendering_state;
 
 //zeroth levels
@@ -331,7 +333,7 @@ vec3 F_SchlickR(float cosTheta, vec3 F0, float roughness)
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
-vec3 BRDF(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float roughness)
+vec3 BRDF(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float roughness, vec3 lightColor)
 {
     // Precalculate vectors and dot products
     vec3 H = normalize (V + L);
@@ -341,7 +343,7 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float roughness)
     float dotNH = clamp(dot(N, H), 0.0, 1.0);
 
     // Light color fixed
-    vec3 lightColor = rendering_state.light_color.xyz;
+    //vec3 lightColor = rendering_state.light_color.xyz;
 
     vec3 color = vec3(0.0);
 
@@ -359,7 +361,6 @@ vec3 BRDF(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float roughness)
         vec4 c = ALBEDO_SAMPLE;
         //the w component is the artist's added ambient occlusion
         color += (kD * c.xyz / PI + spec) * dotNL * lightColor * c.w;
-        //color = F;//vec3(F,F,F);
     }
 
     return color;
@@ -451,8 +452,6 @@ vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_posi
 
 vec4 direct_illumination( vec3 world_normal, vec3 world_position, float metalness, float roughness)
 {
-    //vec3 surface_color = subpassLoad(albedo).xyz;
-    
     vec3 v = rendering_state.eye_in_world_space.xyz - world_position;
     v = normalize(v);
     
@@ -462,18 +461,18 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position, float metalnes
     
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, ALBEDO_SAMPLE.xyz, metalness);
-    //todo: let's add support for more lights in the future
-    //for(int i = 0; i < numberOfLights; ++i)
+s
+    for(int i = 0; i < rendering_state.light_count; ++i)
     {
         if(world_position != vec3(0.0f))
         {
             //for directional lights, the position is the light direction
-            vec3 l = rendering_state.world_light_position.xyz;
+            vec3 l = rendering_state.world_light_position[i].xyz;
             
-            if(rendering_state.light_type == POINT_LIGHT)
-                l = rendering_state.world_light_position.xyz - world_position;
+            if(rendering_state.light_types[i] == POINT_LIGHT)
+                l = rendering_state.world_light_position[i].xyz - world_position;
             
-            final += BRDF( l, v, world_normal, F0, metalness, roughness );
+            final += BRDF( l, v, world_normal, F0, metalness, roughness, rendering_state.light_color[i].xyz );
         }
     }
 

@@ -18,7 +18,7 @@
 #include "render_texture.h"
 #include "depth_texture.h"
 #include "EASTL/fixed_string.h"
-
+#include "EASTL/array.h"
 #include <map>
 #include "ordered_map.h"
 
@@ -131,10 +131,11 @@ namespace vk
                 case Type::VEC4_ARRAY:
                     return value.buffer.num_elements * sizeof(glm::vec4);
                 default:
-                    assert(0);
+                    EA_FAIL();
                     break;
                     
             }
+            return 0;
         }
         
         static size_t get_std140_alignment( Type data_type)
@@ -158,10 +159,11 @@ namespace vk
                 case Type::VEC4_ARRAY:
                     return 4 * sizeof(float);
                 default:
-                    assert(0);
+                    EA_FAIL();
                     break;
                     
             }
+            return 0;
         }
         //note: this function follows std140 alignment rules, in your glsl shader, make sure to specify std140 as your choice
         //for memory layout.
@@ -201,7 +203,7 @@ namespace vk
                     break;
                 default:
                 {
-                    assert(0 && "this case should never happen");
+                    EA_FAIL_MSG("this case should never happen");
                     result = 0;
                 }
             };
@@ -237,7 +239,7 @@ namespace vk
                 for(size_t i = 0; i < value.buffer.num_elements; ++i)
                 {
                     void* result = std::align( get_std140_alignment(), sizeof(glm::vec4), p, mem_size);
-                    assert(result);
+                    EA_ASSERT(result);
                     std::memcpy(p, &vecs[i], sizeof(glm::vec4));
                     mem_size -= sizeof(glm::vec4);
                     ptr = static_cast<char*>(p);
@@ -247,12 +249,10 @@ namespace vk
             }
             else
             {
-
-                assert(p != nullptr);
-
+                EA_ASSERT(p != nullptr);
                 void* result = std::align( get_std140_alignment(),get_type_size(), p, mem_size);
-                assert(result);
-                assert(mem_size >= get_type_size());
+                EA_ASSERT(result);
+                EA_ASSERT(mem_size >= get_type_size());
                 mem_size -= get_type_size();
                 std::memcpy(p, get_stored_value_memory(), get_type_size());
                 ptr = static_cast<char*>(p);
@@ -307,7 +307,7 @@ namespace vk
             return static_cast<image*>(value.sampler3D);
         }
         
-        inline void set_vectors_array(glm::vec4* vecs, size_t num_vectors)
+        inline void set_vectors_array(const glm::vec4* vecs, size_t num_vectors)
         {
             assert( type == Type::NONE || type == Type::VEC4_ARRAY);
             type = Type::VEC4_ARRAY;
@@ -317,12 +317,40 @@ namespace vk
             std::memcpy(data, &vecs[0], num_vectors * sizeof(glm::vec4));
         }
         
+        template<int MAX_SIZE>
+        inline shader_parameter& operator=(const eastl::array<int32_t, MAX_SIZE>& arr)
+        {
+            //note: as  you can see here int arrays are actually vec4 arrays due to the layout we've chosen for parameters to shaders (std140).
+            //If you can avoid int arrays as arguments to shaders, due so.  There is lots of memory that doesn't get used
+            assert( type == Type::NONE || type == Type::VEC4_ARRAY);
+            type = Type::VEC4_ARRAY;
+            value.buffer.num_elements = arr.size();
+            void* data = reinterpret_cast<void*>(value.buffer.memory);
+            assert((value.buffer.num_elements * sizeof(glm::vec4)) < MAX_UNIFORM_BUFFER_SIZE);
+            
+            char* ptr = reinterpret_cast<char*>(data);
+            for(int i = 0; i < MAX_SIZE; ++i)
+            {
+                ptr += sizeof(glm::vec4);
+                std::memcpy(ptr, &arr[i], sizeof(int32_t));
+            }
+            
+            return *this;
+        }
+        
+        template<int MAX_SIZE>
+        inline shader_parameter& operator=(const eastl::array<glm::vec4, MAX_SIZE>& arr)
+        {
+            set_vectors_array(static_cast<const glm::vec4*>(arr.data()), arr.size());
+            return *this;
+        }
+
         inline shader_parameter& operator=(const glm::mat4 &value)
         {
             assert( type == Type::NONE || type == Type::MAT4);
             type = Type::MAT4;
             this->value.mat4 = value;
-            
+
             return *this;
         }
         

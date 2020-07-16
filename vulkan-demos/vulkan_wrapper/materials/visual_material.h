@@ -52,6 +52,8 @@ namespace  vk
 
         virtual void destroy() override;
         
+        
+        //TODO:: templates?
         inline void init_parameter(const char* parameter_name, vk::parameter_stage stage, float value, int32_t binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;
@@ -82,6 +84,18 @@ namespace  vk
         inline void init_parameter(const char* parameter_name, vk::parameter_stage stage, glm::mat4 value, int32_t binding)
         {
             get_uniform_parameters(stage, binding)[parameter_name] = value;
+        }
+        
+        template<int MAX_SIZE>
+        inline void init_parameter(const char* parameter_name, vk::parameter_stage stage, eastl::array<int, MAX_SIZE>& value, int32_t binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name].template operator=<MAX_SIZE>(value);
+        }
+        
+        template<int MAX_SIZE>
+        inline void init_parameter(const char* parameter_name, vk::parameter_stage stage, eastl::array<glm::vec4, MAX_SIZE>& value, int32_t binding)
+        {
+            get_uniform_parameters(stage, binding)[parameter_name].template operator=<MAX_SIZE>(value);
         }
         
         inline void init_parameter(const char* parameter_name, vk::parameter_stage stage, glm::vec4* vecs, size_t num_vectors, int32_t binding)

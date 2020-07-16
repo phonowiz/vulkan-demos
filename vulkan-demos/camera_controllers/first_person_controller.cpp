@@ -44,9 +44,7 @@ void first_person_controller::update()
 
     // Y rotation.
     glm::vec3 new_direction = glm::rotate(_target_camera->forward, yRot, _target_camera->right());
-    float a = glm::dot(new_direction, glm::vec3(0, 1, 0));
-    if (abs(a) < 0.99)
-        _target_camera->forward = new_direction;
+    _target_camera->forward = new_direction;
 
 
     double current_time = glfwGetTime();
@@ -81,7 +79,6 @@ void first_person_controller::update()
     float rotation_interpolation= glm::clamp(_delta_time * CAMERA_ROTATION_INTERPOLATION_SPEED, 0.0, 1.0);
     float position_interpolation = glm::clamp(_delta_time * CAMERA_POSITION_INTERPOLATION_SPEED, 0.0, 1.0);
 
-    //printf("%f\n", rotationInterpolation);
     _rendering_camera->forward = mix(_rendering_camera->forward, _target_camera->front(), rotation_interpolation);
     _rendering_camera->position = mix(_rendering_camera->position, _target_camera->position, position_interpolation);
 

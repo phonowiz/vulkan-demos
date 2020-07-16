@@ -112,7 +112,7 @@ namespace vk
         {
             _material[0]->set_image_sampler(&texture, parameter_name, parameter_stage, binding, usage);
         }
-        
+        //TODO: templates?
         inline void init_parameter(const char* parameter_name, parameter_stage stage, float value, int binding)
         {
             _material[0]->init_parameter(parameter_name, stage, value, binding);
@@ -144,6 +144,18 @@ namespace vk
         inline void init_parameter(const char* parameter_name, parameter_stage stage, glm::mat4 value, int binding)
         {
             _material[0]->init_parameter(parameter_name, stage, value, binding);
+        }
+        
+        template<int MAX_SIZE>
+        inline void init_parameter(const char* parameter_name, parameter_stage stage, eastl::array<int32_t, MAX_SIZE>& value, int binding)
+        {
+            _material[0]->template init_parameter<MAX_SIZE>(parameter_name, stage, value, binding);
+        }
+        
+        template<int MAX_SIZE>
+        inline void init_parameter(const char* parameter_name, parameter_stage stage, eastl::array<glm::vec4, MAX_SIZE>& value, int binding)
+        {
+            _material[0]->template init_parameter<MAX_SIZE>(parameter_name, stage, value, binding);
         }
         
         inline void init_parameter(const char* parameter_name, parameter_stage stage,

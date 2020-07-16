@@ -316,6 +316,26 @@ namespace vk
                 }
             }
             
+            template<int MAX_SIZE>
+            inline void init_parameter(const char* parameter_name, parameter_stage stage,
+                                       eastl::array<int32_t,MAX_SIZE>& arr, int32_t binding)
+            {
+                for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
+                {
+                    _pipeline[chain_id].template init_parameter<MAX_SIZE>(parameter_name, stage, arr, binding);
+                }
+            }
+            
+            template<int MAX_SIZE>
+            inline void init_parameter(const char* parameter_name, parameter_stage stage,
+                                       eastl::array<glm::vec4,MAX_SIZE>& arr, int32_t binding)
+            {
+                for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
+                {
+                    _pipeline[chain_id].template init_parameter<MAX_SIZE>(parameter_name, stage, arr, binding);
+                }
+            }
+            
             inline void init_dynamic_params(const char* parameter_name, parameter_stage stage,
                                             glm::mat4& val, size_t num_objs, int32_t binding)
             {
