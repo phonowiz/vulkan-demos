@@ -461,7 +461,6 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position, float metalnes
     
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, ALBEDO_SAMPLE.xyz, metalness);
-s
     for(int i = 0; i < rendering_state.light_count; ++i)
     {
         if(world_position != vec3(0.0f))
