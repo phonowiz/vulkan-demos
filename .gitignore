@@ -17,3 +17,5 @@ vulkan-demos/glfw-master-3.3/build/
 vulkan-demos/eastl-3.16.05/test/.DS_Store
 
 vulkan-demos/eastl-3.16.05/test/packages/.DS_Store
+
+.idea/

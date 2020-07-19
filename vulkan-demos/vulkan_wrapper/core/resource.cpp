@@ -92,6 +92,7 @@ uint32_t resource::find_memory_type_index( VkPhysicalDevice physical_device, uin
            properties)
         {
             result =  i;
+            break;
         }
     }
     assert( result != -1 && "memory property not found");

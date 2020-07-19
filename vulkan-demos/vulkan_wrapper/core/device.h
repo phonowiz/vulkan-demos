@@ -67,6 +67,7 @@ namespace vk {
         void print_instance_extensions();
         VkFormat find_depth_format();
         bool is_device_suitable( VkPhysicalDevice device, VkSurfaceKHR surface);
+        VkSampleCountFlagBits get_max_usable_sample_count();
         
         VkFormat find_support_format( const eastl::fixed_vector<VkFormat, 20, true>& formats,
                                      VkImageTiling tiling, VkFormatFeatureFlags featureFlags);

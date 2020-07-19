@@ -525,7 +525,7 @@ void create_graph()
     gsm_debug->set_active(false);
 
     eastl::shared_ptr<pbr<4>> pbr_node = eastl::make_shared<pbr<4>>(app.device, dims.x, dims.y);
-    eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "normals");
+    eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "depth");
     //eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "model_albedo", vk::texture_2d::get_class_type());
     
     pbr_node->add_child(*gsm_debug);

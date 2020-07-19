@@ -100,7 +100,7 @@ VkAttachmentDescription depth_texture::get_depth_attachment()
     
     depth_attachment.flags = 0;
     depth_attachment.format =_device->find_depth_format();
-    depth_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    depth_attachment.samples = _multisampling ? _device->get_max_usable_sample_count(): VK_SAMPLE_COUNT_1_BIT;
     depth_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     depth_attachment.storeOp = _write_to_texture ?  VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
     depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;

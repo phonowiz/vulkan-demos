@@ -121,7 +121,7 @@ void texture_2d::create(uint32_t width, uint32_t height)
     VkDeviceMemory staging_buffer_memory {};
     
     
-    VkMemoryPropertyFlagBits flags = _path.empty() ? static_cast<VkMemoryPropertyFlagBits>(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) : VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    VkMemoryPropertyFlagBits flags = _path.empty() ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT : static_cast<VkMemoryPropertyFlagBits>(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) ;
     create_buffer(_device->_logical_device, _device->_physical_device, image_size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                   staging_buffer, flags, staging_buffer_memory);
     

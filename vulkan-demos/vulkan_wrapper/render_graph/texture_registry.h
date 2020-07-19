@@ -259,6 +259,8 @@ namespace vk
                 
                 result = eastl::static_pointer_cast<T>(d.resource);
                 
+                EA_ASSERT_FORMATTED(T::get_class_type() == d.resource->get_instance_type(), ("\"%s\" texture is beign cast incorrectly, "
+                                                                                             "check your template argument for function \"get_read_texture\"", name));
                 EA_ASSERT_MSG( result != nullptr, "The asset this node depends on was not created, check the node which creates this asset");
                 
                 //eastl::fixed_string<char, 100> msg {};

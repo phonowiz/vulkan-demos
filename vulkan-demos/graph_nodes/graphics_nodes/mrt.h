@@ -87,7 +87,7 @@ public:
         
         //TODO: you can derive positon from depth and sampling fragment position
         vk::resource_set<vk::render_texture>& positions = _tex_registry->get_read_render_texture_set("positions", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-        vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_read_depth_texture_set("depth", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        vk::resource_set<vk::render_texture>& depth = _tex_registry->get_read_render_texture_set("depth", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         //GBUFFER SUBPASS
         //follow the order in which the attachments are expected in the shader
@@ -95,7 +95,7 @@ public:
         mrt_attachment_group.add_attachment(albedos, glm::vec4(0.0f), false, false);
         mrt_attachment_group.add_attachment(positions, glm::vec4(0.0f), false, false);
         mrt_attachment_group.add_attachment(_swapchain->present_textures, glm::vec4(0.0f), true, false);
-        mrt_attachment_group.add_attachment(depth, glm::vec2(1.0f, 0.0f), false, false);
+        mrt_attachment_group.add_attachment(depth, glm::vec4(0.0f), false, false);
         
 
         //COMPOSITE SUBPASS

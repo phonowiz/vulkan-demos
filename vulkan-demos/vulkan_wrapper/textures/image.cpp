@@ -25,7 +25,7 @@ VkImageCreateInfo image::get_image_create_info(VkFormat format, VkImageTiling ti
     image_create_info.extent.depth = _depth;
     image_create_info.mipLevels = _mip_levels;
     image_create_info.arrayLayers = 1;
-    image_create_info.samples = VK_SAMPLE_COUNT_1_BIT;
+    image_create_info.samples = _multisampling ? _device->get_max_usable_sample_count() : VK_SAMPLE_COUNT_1_BIT ;
     image_create_info.tiling = tiling;
     image_create_info.usage = usage_flags;
     

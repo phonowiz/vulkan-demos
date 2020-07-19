@@ -10,6 +10,7 @@
 		B9005AFE2467BD0D00C1E03D /* eaassert.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9005AFD2467BD0D00C1E03D /* eaassert.cpp */; };
 		B90184B523F1429200A1ADFF /* libVkLayer_api_dump.dylib in Resources */ = {isa = PBXBuildFile; fileRef = B90184B223F1427800A1ADFF /* libVkLayer_api_dump.dylib */; };
 		B90184B623F1429200A1ADFF /* libVkLayer_khronos_validation.dylib in Resources */ = {isa = PBXBuildFile; fileRef = B90184B123F1427800A1ADFF /* libVkLayer_khronos_validation.dylib */; };
+		B902F84624C048C800CEC1FF /* render_pass.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B902F84524C048C800CEC1FF /* render_pass.hpp */; };
 		B90583BC2442A21B00366F8E /* intrusive_list.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B90583B32442A21B00366F8E /* intrusive_list.cpp */; };
 		B90583BD2442A21B00366F8E /* red_black_tree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B90583B42442A21B00366F8E /* red_black_tree.cpp */; };
 		B90583BE2442A21B00366F8E /* thread_support.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B90583B52442A21B00366F8E /* thread_support.cpp */; };
@@ -125,6 +126,7 @@
 		B9005AFD2467BD0D00C1E03D /* eaassert.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = eaassert.cpp; path = "vulkan-demos/eastl-3.16.05/test/packages/EAAssert/source/eaassert.cpp"; sourceTree = SOURCE_ROOT; };
 		B90184B123F1427800A1ADFF /* libVkLayer_khronos_validation.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libVkLayer_khronos_validation.dylib; path = "vulkan-demos/vulkan-loader-1.2.131/macOS/lib/libVkLayer_khronos_validation.dylib"; sourceTree = "<group>"; };
 		B90184B223F1427800A1ADFF /* libVkLayer_api_dump.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libVkLayer_api_dump.dylib; path = "vulkan-demos/vulkan-loader-1.2.131/macOS/lib/libVkLayer_api_dump.dylib"; sourceTree = "<group>"; };
+		B902F84524C048C800CEC1FF /* render_pass.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = render_pass.hpp; sourceTree = "<group>"; };
 		B90583B32442A21B00366F8E /* intrusive_list.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = intrusive_list.cpp; path = "vulkan-demos/eastl-3.16.05/source/intrusive_list.cpp"; sourceTree = SOURCE_ROOT; };
 		B90583B42442A21B00366F8E /* red_black_tree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = red_black_tree.cpp; path = "vulkan-demos/eastl-3.16.05/source/red_black_tree.cpp"; sourceTree = SOURCE_ROOT; };
 		B90583B52442A21B00366F8E /* thread_support.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = thread_support.cpp; path = "vulkan-demos/eastl-3.16.05/source/thread_support.cpp"; sourceTree = SOURCE_ROOT; };
@@ -802,6 +804,7 @@
 				B9A23CC323D3D84E00D4D556 /* graphics_node.h */,
 				B9A23CC023D3D21A00D4D556 /* node.h */,
 				B92354E3246133A800BEC4F3 /* render_pass.h */,
+				B902F84524C048C800CEC1FF /* render_pass.hpp */,
 				B9939B512439668D00D9D345 /* texture_registry.h */,
 			);
 			path = render_graph;
@@ -977,6 +980,7 @@
 				B949E6BC24497B91003E5AD4 /* eathread_futex.cpp in Sources */,
 				B949E662244979A2003E5AD4 /* EAProcess.cpp in Sources */,
 				B96A668D244701B10076ACB1 /* resource_set.h in Sources */,
+				B902F84624C048C800CEC1FF /* render_pass.hpp in Sources */,
 				B978316522E5435600E5DE71 /* orthographic_camera.cpp in Sources */,
 				B95E4F9423BC113F00C13609 /* glfw_present_texture.cpp in Sources */,
 				B949E659244979A2003E5AD4 /* EAMemory.cpp in Sources */,

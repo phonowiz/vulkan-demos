@@ -94,7 +94,7 @@ void graphics_pipeline<NUM_ATTACHMENTS>::create(VkRenderPass& vk_render_passes, 
     multisample_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     multisample_state_create_info.pNext = nullptr;
     multisample_state_create_info.flags = 0;
-    multisample_state_create_info.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+    multisample_state_create_info.rasterizationSamples = _multisampling? _device->get_max_usable_sample_count() : VK_SAMPLE_COUNT_1_BIT;
     multisample_state_create_info.sampleShadingEnable = VK_FALSE;
     multisample_state_create_info.minSampleShading = 1.0f;
     multisample_state_create_info.pSampleMask = nullptr;

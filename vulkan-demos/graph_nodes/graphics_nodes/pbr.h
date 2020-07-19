@@ -10,7 +10,7 @@
 
 #include "graphics_node.h"
 
-static const uint32_t ATTACHMENTS = 4;
+static const uint32_t ATTACHMENTS = 9;
 template< uint32_t NUM_CHILDREN>
 class pbr : public vk::graphics_node<ATTACHMENTS, NUM_CHILDREN>
 {
@@ -31,10 +31,10 @@ public:
     
     pbr(vk::device* dev, uint32_t width, uint32_t height):
     parent_type(dev, width, height)
-    {
-        
-    }
+    { }
     
+    //this node is heavy on multisampling, for an excellent explanation of how this works in vulkan, go here:
+    //https://vulkan-tutorial.com/Multisampling
     virtual void init_node() override
     {
         render_pass_type &pass = parent_type::_node_render_pass;
@@ -43,39 +43,93 @@ public:
         material_store_type* _mat_store = parent_type::_material_store;
         object_vector_type& _obj_vector = parent_type::_obj_vector;
         
+        //mulitsampling textures//
+        vk::resource_set<vk::render_texture>& albedos_ms =  _tex_registry->get_write_render_texture_set("albedos_ms",
+                                                                                                 this, vk::usage_type::INPUT_ATTACHMENT);
+        
+        vk::resource_set<vk::render_texture>& normals_ms =  _tex_registry->get_write_render_texture_set("normals_ms",
+                                                                                                 this, vk::usage_type::INPUT_ATTACHMENT);
+        
+        //TODO: one day when motlen vk reaches version 1.2 of vulkan, depth textures can be resolved and we won't need to do this render texture
+        vk::resource_set<vk::render_texture>& depth_out_ms =  _tex_registry->get_write_render_texture_set("depth_out_ms",
+                                                                                                 this, vk::usage_type::INPUT_ATTACHMENT);
+        
+        
+        //TODO: you can derive positon from depth and sampling fragment position
+        vk::resource_set<vk::render_texture>& positions_ms = _tex_registry->get_write_render_texture_set("positions_ms", this, vk::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::depth_texture>& depth_ms = _tex_registry->get_write_depth_texture_set("depth_ms", this, vk::usage_type::INPUT_ATTACHMENT);
+        
+        
+        //resolve textures, these get used later up in the graph for lighting purposes
         vk::resource_set<vk::render_texture>& albedos =  _tex_registry->get_write_render_texture_set("albedos",
                                                                                                  this, vk::usage_type::INPUT_ATTACHMENT);
         
         vk::resource_set<vk::render_texture>& normals =  _tex_registry->get_write_render_texture_set("normals",
                                                                                                  this, vk::usage_type::INPUT_ATTACHMENT);
         
-        //TODO: you can derive positon from depth and sampling fragment position
         vk::resource_set<vk::render_texture>& positions = _tex_registry->get_write_render_texture_set("positions", this, vk::usage_type::INPUT_ATTACHMENT);
-        vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_write_depth_texture_set("depth", this, vk::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::render_texture>& depth = _tex_registry->get_write_render_texture_set("depth", this, vk::usage_type::INPUT_ATTACHMENT);
         
-        albedos.set_filter(vk::image::filter::NEAREST);
-
         vk::attachment_group<ATTACHMENTS>& pbr_attachment_group = pass.get_attachment_group();
         
+        pbr_attachment_group.add_attachment(albedos_ms, glm::vec4(0), true, true);
+        pbr_attachment_group.add_attachment(normals_ms, glm::vec4(0), true, true);
+        pbr_attachment_group.add_attachment(positions_ms, glm::vec4(0), true, true);
+        pbr_attachment_group.add_attachment(depth_ms, glm::vec2(1.0f, 0.0f), true, true);
+        pbr_attachment_group.add_attachment(depth_out_ms, glm::vec4(0), true, true);
+        
+
+        //all color attachments must have a resolve attachment for the multisampling to work
         pbr_attachment_group.add_attachment(albedos, glm::vec4(0));
         pbr_attachment_group.add_attachment(normals, glm::vec4(0));
         pbr_attachment_group.add_attachment(positions, glm::vec4(0));
+        pbr_attachment_group.add_attachment(depth, glm::vec4(0));
         
-        pbr_attachment_group.add_attachment(depth, glm::vec2(1.0f, 0.0f), true, true);
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        //these are not resolve attachments, so we need them to support multisampling
+        //an assert will be triggered if you froget to set multisampling to true
+        albedos_ms.set_filter(vk::image::filter::NEAREST);
+        albedos_ms.set_multisampling(true);
         
-
+        normals_ms.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
+        normals_ms.set_filter(vk::image::filter::NEAREST);
+        normals_ms.set_multisampling(true);
+        
+        positions_ms.set_filter(vk::image::filter::NEAREST);
+        positions_ms.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
+        positions_ms.set_multisampling(true);
+        
+        depth_out_ms.set_format(vk::image::formats::R32_SIGNED_FLOAT);
+        depth_out_ms.set_filter(vk::image::filter::NEAREST);
+        depth_out_ms.set_multisampling(true);
+        
+        
+        depth_ms.set_format(vk::image::formats::DEPTH_32_FLOAT);
+        depth_ms.set_multisampling(true);
+        
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        albedos.set_filter(vk::image::filter::NEAREST);
+        
+        depth.set_format(vk::image::formats::R32_SIGNED_FLOAT);
+        depth.set_filter(vk::image::filter::NEAREST);
+        
         normals.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
         normals.set_filter(vk::image::filter::NEAREST);
         
         positions.set_filter(vk::image::filter::NEAREST);
         positions.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
-        depth.set_format(vk::image::formats::DEPTH_32_FLOAT);
-        depth.set_filter(vk::image::filter::NEAREST);
+        
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////
+        
+        albedos_ms.init();
+        normals_ms.init();
+        positions_ms.init();
+        depth_ms.init();
+        depth_out_ms.init();
         
         albedos.init();
         normals.init();
         positions.init();
-        
         depth.init();
         
         
@@ -90,10 +144,17 @@ public:
             
 
             subpass_type& pbr =  pass.add_subpass(_mat_store,"pbr");
-            pbr.add_output_attachment("albedos", render_pass_type::write_channels::RGBA, false);
-            pbr.add_output_attachment("normals", render_pass_type::write_channels::RGBA, false);
-            pbr.add_output_attachment("positions", render_pass_type::write_channels::RGBA, false);
-            pbr.add_output_attachment("depth");
+            pbr.add_output_attachment("albedos_ms", render_pass_type::write_channels::RGBA, false);
+            pbr.add_output_attachment("normals_ms", render_pass_type::write_channels::RGBA, false);
+            pbr.add_output_attachment("positions_ms", render_pass_type::write_channels::RGBA, false);
+            pbr.add_output_attachment("depth_out_ms", render_pass_type::write_channels::RGBA, false);
+            pbr.add_output_attachment("depth_ms");
+            
+            pbr.add_resolve_attachment("albedos");
+            pbr.add_resolve_attachment("normals");
+            pbr.add_resolve_attachment("positions");
+            pbr.add_resolve_attachment("depth");
+            
             
             vk::texture_2d& diffuse = _tex_registry->get_loaded_texture(diffuse_texture.c_str(), this, parent_type::_device, diffuse_texture.c_str());
             vk::texture_2d& norms = _tex_registry->get_loaded_texture(normals_texture.c_str(), this, parent_type::_device, normals_texture.c_str());

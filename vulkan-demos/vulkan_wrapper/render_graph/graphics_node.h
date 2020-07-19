@@ -140,6 +140,7 @@ namespace vk {
         
         virtual void create_gpu_resources() override
         {
+            _node_render_pass.init_attachment_group();
             for( uint32_t i = 0; i < vk::glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++i)
             {
                 _node_render_pass.create(i);

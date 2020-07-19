@@ -90,6 +90,11 @@ namespace vk
             _polygon_mode = mode;
         }
         
+        inline void set_multisampling(bool b)
+        {
+            _multisampling = b;
+        }
+        
         void set_material(visual_mat_shared_ptr material )
         {
             _material[0] = material;
@@ -212,7 +217,6 @@ namespace vk
             
         }
         
-        
         void create_frame_buffer();
         
         virtual void destroy() override
@@ -243,6 +247,7 @@ namespace vk
         
         cull_mode _cull_mode = cull_mode::BACK_FACE;
         polygon_mode _polygon_mode = polygon_mode::FILL;
+        bool _multisampling = false;
         
         std::array<VkPipeline, 1 >       _pipeline {};
         std::array<VkPipelineLayout, 1>  _pipeline_layout {};

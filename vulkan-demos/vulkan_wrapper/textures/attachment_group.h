@@ -43,8 +43,15 @@ namespace vk
         
         static_assert(MAX_NUMBER_OF_ATTACHMENTS > (NUM_ATTACHMENTS ));
         
-        attachment_group(){}
-        attachment_group(device* device, glm::vec2 dimensions){ _device = device; _dimensions = dimensions; };
+        attachment_group()
+        {
+            eastl::fill(_multisample.begin(), _multisample.end(), true);
+        }
+        attachment_group(device* device, glm::vec2 dimensions)
+        {
+            eastl::fill(_multisample.begin(), _multisample.end(), true);
+            _device = device; _dimensions = dimensions;
+        };
         
         inline void set_dimensions(glm::vec2 v)
         {
@@ -102,8 +109,16 @@ namespace vk
             _clear[num_attachments] = clear;
             _store[num_attachments] = store;
             add_attachment(depth_set);
-            
-
+        }
+        
+        bool is_multisample_attachment(int32_t i)
+        {
+            return _multisample[i];
+        }
+        
+        void set_multisample_attachment(int32_t i, bool multisample)
+        {
+            _multisample[i] = multisample;
         }
         
         //when render pass is done, should we store attachment
@@ -127,13 +142,25 @@ namespace vk
             _clear[num_attachments] = clear;
             _store[num_attachments] = store;
             add_attachment(textures_set);
-            
-
         }
         
-        inline void init(uint32_t swapchain_id)
+        inline void init()
         {
             EA_ASSERT_MSG(num_attachments ==NUM_ATTACHMENTS, "you haven't populated all attachments");
+            
+            for( int i = 0; i < _multisample.size(); ++i)
+            {
+                if(_multisample[i] == false)
+                {
+                    //one attachment is a resolve attachment
+                    return;
+                }
+            }
+            
+            //if we are here, it means the client didn't make use of resolve attachments, multisampling
+            //is not necessary.
+            eastl::fill(_multisample.begin(), _multisample.end(), false );
+
         }
         
         
@@ -185,8 +212,10 @@ namespace vk
         //note: we add 1 to accomodate for the depth attachment
         device* _device = nullptr;
         
+        
         glm::vec2 _dimensions = glm::vec2(0.0f, 0.0f);
         eastl::array<resource_set<vk::image*>, NUM_ATTACHMENTS> _attachments {};
+        eastl::array<bool, NUM_ATTACHMENTS> _multisample {};
         eastl::array<bool, NUM_ATTACHMENTS> _clear {};
         eastl::array<bool, NUM_ATTACHMENTS> _store {};
         uint32_t num_attachments = 0;

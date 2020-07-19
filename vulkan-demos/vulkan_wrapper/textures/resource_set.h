@@ -56,6 +56,13 @@ namespace vk
             return _name;
         }
         
+        void set_multisampling(bool b)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i].set_multisampling(b);
+            }
+        }
         
         
         virtual char const * const * get_instance_type() override
@@ -141,6 +148,11 @@ namespace vk
             {
                 elements[i].set_filter(filter);
             }
+        }
+        
+        inline bool is_multisampling()
+        {
+                return elements[0].is_multisampling();
         }
         
         inline void reset_image_layout()
@@ -247,6 +259,19 @@ namespace vk
             for( int i = 0; i < elements.size(); ++i)
             {
                 elements[i]->init();
+            }
+        }
+        
+        inline bool is_multisampling()
+        {
+            return elements[0]->is_multisampling();
+        }
+        
+        void set_multisampling(bool b)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i]->set_multisampling(b);
             }
         }
         

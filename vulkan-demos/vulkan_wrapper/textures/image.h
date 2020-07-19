@@ -120,7 +120,8 @@ namespace vk
             DEPTH_32_STENCIL_8 = VK_FORMAT_D32_SFLOAT_S8_UINT,
             DEPTH_24_STENCIL_8 = VK_FORMAT_D24_UNORM_S8_UINT,
             R8G8_SIGNED_NORMALIZED =  VK_FORMAT_R8G8_SNORM,
-            R32_UINT = VK_FORMAT_R32_UINT
+            R32_UINT = VK_FORMAT_R32_UINT,
+            R32_SIGNED_FLOAT = VK_FORMAT_R32_SFLOAT
         };
         
         enum class image_layouts
@@ -205,6 +206,9 @@ namespace vk
         }
         void set_filter( image::filter filter){ _filter = filter; }
         
+        inline void set_multisampling(bool b){ _multisampling = b; }
+        inline bool is_multisampling(){ return _multisampling; }
+        
         //inline bool is_initialized(){ return _initialized; }
         virtual void init() = 0;
     
@@ -233,6 +237,7 @@ namespace vk
         filter  _filter = filter::LINEAR;
         image_layouts _image_layout = image_layouts::UNDEFINED;
         image_layouts _original_layout = image_layouts::UNDEFINED;
+        bool _multisampling = false;
         
     public:
         inline image::filter get_filter()

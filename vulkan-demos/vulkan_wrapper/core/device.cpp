@@ -549,6 +549,24 @@ VkFormat device::find_depth_format()
 }
 
 
+//based off of https://vulkan-tutorial.com/Multisampling
+VkSampleCountFlagBits device::get_max_usable_sample_count()
+{
+    VkPhysicalDeviceProperties physical_device_props {};
+    vkGetPhysicalDeviceProperties(_physical_device, &physical_device_props);
+
+    VkSampleCountFlags counts = physical_device_props.limits.framebufferColorSampleCounts & physical_device_props.limits.framebufferDepthSampleCounts;
+    if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
+    if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
+    if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
+    if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+    if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
+    if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
+
+    return VK_SAMPLE_COUNT_1_BIT;
+}
+
+
 //device function
 void device::pick_physical_device(VkSurfaceKHR surface)
 {
