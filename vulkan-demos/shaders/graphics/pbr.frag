@@ -11,7 +11,6 @@ layout (location = 4) in mat3 tbn;
 layout (location = 0) out vec4 out_albedo;
 layout (location = 1) out vec4 out_normals;
 layout (location = 2) out vec4 out_positions;
-layout (location = 3) out vec4 out_depth;
 
 layout (binding = 2) uniform sampler2D albedos;
 layout (binding = 3) uniform sampler2D normals;
@@ -52,8 +51,5 @@ void main()
     }
     
     out_positions = vec4(in_position,1.0f);
-    
-    out_depth.x = gl_FragCoord.z * gl_FragCoord.w;
-    out_depth.yzw = vec3(.0f);
 }
 

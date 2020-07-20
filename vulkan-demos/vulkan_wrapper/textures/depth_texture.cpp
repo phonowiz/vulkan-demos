@@ -12,31 +12,32 @@ using namespace vk;
 
 void depth_texture::create(uint32_t width, uint32_t height)
 {
-    assert(!_created);
-    
-    VkFormat depth_format = _device->find_depth_format( );
-    _format = static_cast<vk::image::formats>(depth_format);
-    
-    _width = width;
-    _height = height;
-    //TODO: look into using function is_stencil_format
-    _aspect_flag = static_cast< image::formats>(VK_FORMAT_D32_SFLOAT) != _format ?  (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) : VK_IMAGE_ASPECT_DEPTH_BIT;
+    if(!_created)
+    {
+        VkFormat depth_format = _device->find_depth_format( );
+        _format = static_cast<vk::image::formats>(depth_format);
+        
+        _width = width;
+        _height = height;
+        //TODO: look into using function is_stencil_format
+        _aspect_flag = static_cast< image::formats>(VK_FORMAT_D32_SFLOAT) != _format ?  (VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT) : VK_IMAGE_ASPECT_DEPTH_BIT;
 
-    
-    VkImageUsageFlagBits usage_flags = _write_to_texture ? static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT  | VK_IMAGE_USAGE_SAMPLED_BIT) :
-                            static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
-    
-    create_image( depth_format,
-                VK_IMAGE_TILING_OPTIMAL, usage_flags,
-                VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-    
-    create_image_view( _image, depth_format, _image_view);
-    
-    _image_layout = image_layouts::UNDEFINED;
-    _original_layout = image_layouts::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-    
-    _created = true;
-    _initialized = true;
+        
+        VkImageUsageFlagBits usage_flags = _write_to_texture ? static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT  | VK_IMAGE_USAGE_SAMPLED_BIT) :
+                                static_cast<VkImageUsageFlagBits>(VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT);
+        
+        create_image( depth_format,
+                    VK_IMAGE_TILING_OPTIMAL, usage_flags,
+                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        
+        create_image_view( _image, depth_format, _image_view);
+        
+        _image_layout = image_layouts::UNDEFINED;
+        _original_layout = image_layouts::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        
+        _created = true;
+        _initialized = true;
+    }
 }
 void depth_texture::create_sampler()
 {
