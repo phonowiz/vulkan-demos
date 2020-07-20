@@ -345,7 +345,11 @@ void device::create_instance()
     instanceInfo.pNext = nullptr;
     instanceInfo.flags = 0;
     instanceInfo.pApplicationInfo = &app_info;
+#if DEBUG || defined(_DEBUG)
     instanceInfo.enabledLayerCount = (uint32_t)validation_layers.size();
+#else
+    instanceInfo.enabledLayerCount = 0;
+#endif
     instanceInfo.ppEnabledLayerNames = validation_layers.data();
     instanceInfo.enabledExtensionCount = i + 1;
     instanceInfo.ppEnabledExtensionNames = all_required_extensions.data();
