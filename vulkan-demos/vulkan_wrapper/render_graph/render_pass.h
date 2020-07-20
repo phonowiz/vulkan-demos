@@ -155,7 +155,7 @@ namespace vk
                               ("number color references (%i) and resolve references (%i) must be the same",
                               _num_color_references, _num_resolve_references));
                 
-//#if defined(_DEBUG)
+#if EA_DEBUG
                 if(_num_resolve_references)
                 {
                     //verify that all color attachments are multi sampled
@@ -166,7 +166,7 @@ namespace vk
                                                                                    "use \"set_multisampling\" and pass true"));
                     }
                 }
-//#endif
+#endif
             }
             
             inline bool is_depth_an_input()
@@ -460,7 +460,7 @@ namespace vk
             
             inline void create(VkRenderPass& vk_render_pass, uint32_t swapchain_id)
             {
-                _pipeline[swapchain_id].set_multisampling(_num_resolve_references != 0);
+                _pipeline[swapchain_id].set_multisampling(_attachment_group->is_multisampling());
                 _pipeline[swapchain_id].create(vk_render_pass, _id);
             }
             
@@ -631,7 +631,7 @@ namespace vk
         }
         
         
-        inline graphics_pipeline_type& get_pipeline( uint32_t swapchain_id, uint32_t subpass_id){ return get_subpass(subpass_id).get_pipeline(swapchain_id);}
+        inline graphics_pipeline_type& get_pipeline( uint32_t swapchain_id,  uint32_t subpass_id){ return get_subpass(subpass_id).get_pipeline(swapchain_id);}
 
         inline subpass_s& add_subpass(vk::material_store* store,  const char* material_name, const char* subpass_name = "" )
         {

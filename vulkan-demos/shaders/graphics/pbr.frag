@@ -43,7 +43,6 @@ void main()
     vec2 normal_compressed = encode(normal);
     
     out_normals.xy = normal_compressed;
-    //out_normals.zw = vec2(0.0f, 1.0f);
     out_normals.z = texture(metalness, in_uv_coord).x;
     out_normals.w = texture(roughness, in_uv_coord).x;
     

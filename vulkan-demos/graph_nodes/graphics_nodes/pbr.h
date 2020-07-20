@@ -72,6 +72,8 @@ public:
         
         vk::attachment_group<ATTACHMENTS>& pbr_attachment_group = pass.get_attachment_group();
         
+        pbr_attachment_group.set_multisampling(true);
+        
         pbr_attachment_group.add_attachment(albedos_ms, glm::vec4(0), true, true);
         pbr_attachment_group.add_attachment(normals_ms, glm::vec4(0), true, true);
         pbr_attachment_group.add_attachment(positions_ms, glm::vec4(0), true, true);
@@ -109,13 +111,13 @@ public:
         
         ////////////////////////////////////////////////////////////////////////////////////////////////////////
         albedos.set_filter(vk::image::filter::NEAREST);
-        
+
         depth.set_format(vk::image::formats::R32_SIGNED_FLOAT);
         depth.set_filter(vk::image::filter::NEAREST);
         
         normals.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
         normals.set_filter(vk::image::filter::NEAREST);
-        
+
         positions.set_filter(vk::image::filter::NEAREST);
         positions.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
         

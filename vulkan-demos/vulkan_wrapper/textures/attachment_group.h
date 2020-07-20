@@ -45,14 +45,30 @@ namespace vk
         
         attachment_group()
         {
-            eastl::fill(_multisample.begin(), _multisample.end(), true);
+            eastl::fill(_multisample.begin(), _multisample.end(), false);
         }
         attachment_group(device* device, glm::vec2 dimensions)
         {
-            eastl::fill(_multisample.begin(), _multisample.end(), true);
+            eastl::fill(_multisample.begin(), _multisample.end(), false);
             _device = device; _dimensions = dimensions;
         };
         
+        inline void set_multisampling(bool b)
+        {
+            eastl::fill(_multisample.begin(), _multisample.end(), b);
+        }
+        
+        inline bool is_multisampling()
+        {
+            for( int i = 0; i < _multisample.size(); ++i)
+            {
+                if(_multisample[i])
+                    return true;
+            }
+            
+            return false;
+                   
+        }
         inline void set_dimensions(glm::vec2 v)
         {
             _dimensions = v;
@@ -147,20 +163,6 @@ namespace vk
         inline void init()
         {
             EA_ASSERT_MSG(num_attachments ==NUM_ATTACHMENTS, "you haven't populated all attachments");
-            
-            for( int i = 0; i < _multisample.size(); ++i)
-            {
-                if(_multisample[i] == false)
-                {
-                    //one attachment is a resolve attachment
-                    return;
-                }
-            }
-            
-            //if we are here, it means the client didn't make use of resolve attachments, multisampling
-            //is not necessary.
-            eastl::fill(_multisample.begin(), _multisample.end(), false );
-
         }
         
         

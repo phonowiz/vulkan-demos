@@ -106,6 +106,7 @@ void device::create_logical_device( VkSurfaceKHR surface)
     device_features.shaderStorageImageWriteWithoutFormat = VK_TRUE;
     device_features.fragmentStoresAndAtomics = VK_TRUE;
     device_features.independentBlend = VK_TRUE;
+    device_features.sampleRateShading = VK_TRUE;
     
     VkPhysicalDeviceFeatures2 device_features_2 = {};
     
