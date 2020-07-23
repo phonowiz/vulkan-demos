@@ -508,29 +508,22 @@ void create_graph()
     debug_node_3d->set_3D_texture_cam(three_d_texture_cam);
 
     debug_node_3d->add_child( three_d_mip_maps[three_d_mip_maps.size()-1]);
-
-    eastl::shared_ptr<display_texture_2d<4>> vsm_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "vsm");
-    vsm_debug->set_active(false);
-    vsm_debug->set_name("vsm_debug");
-
     vsm_node->add_child(*debug_node_3d);
-    vsm_debug->add_child(*vsm_node);
+
 
     eastl::shared_ptr<gaussian_blur<4>> gsb_vertical = eastl::make_shared<gaussian_blur<4>> (app.device,  dims.x, dims.y, gaussian_blur<4>::DIRECTION::VERTICAL, "vsm", "gauss_vertical");
     eastl::shared_ptr<gaussian_blur<4>> gsb_horizontal = eastl::make_shared<gaussian_blur<4>>(app.device, dims.x, dims.y, gaussian_blur<4>::DIRECTION::HORIZONTAL, "gauss_vertical", "blur_final");
-    eastl::shared_ptr<display_texture_2d<4>> gsm_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "blur_final");
-
-    gsb_vertical->add_child(*vsm_debug);
+//    eastl::shared_ptr<display_texture_2d<4>> gsm_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "blur_final");
+//
+    gsb_vertical->add_child(*vsm_node);
     gsb_horizontal->add_child(*gsb_vertical);
 
-    gsm_debug->add_child(*gsb_horizontal);
-    gsm_debug->set_active(false);
 
     eastl::shared_ptr<pbr<4>> pbr_node = eastl::make_shared<pbr<4>>(app.device, dims.x, dims.y);
     eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "albedos");
     //eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "model_albedo", vk::texture_2d::get_class_type());
     
-    pbr_node->add_child(*gsm_debug);
+    pbr_node->add_child(*gsb_horizontal);
     
     pbr_node->add_child(*model_node);
     pbr_node->add_child(*floor);
