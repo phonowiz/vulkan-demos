@@ -15,9 +15,9 @@
 #include "mip_map_3d_texture.hpp"
 
 
-static constexpr uint32_t NUM_ATTACHMENTS = 5;
+static constexpr uint32_t MRT_ATTACHMENTS = 5;
 template<uint32_t NUM_CHILDREN>
-class mrt: public vk::graphics_node<NUM_ATTACHMENTS, NUM_CHILDREN>
+class mrt: public vk::graphics_node<MRT_ATTACHMENTS, NUM_CHILDREN>
 {
     
 public:
@@ -43,7 +43,7 @@ public:
         VARIANCE_SHADOW_MAP
     };
     
-    using parent_type = vk::graphics_node<NUM_ATTACHMENTS, NUM_CHILDREN>;
+    using parent_type = vk::graphics_node<MRT_ATTACHMENTS, NUM_CHILDREN>;
     using render_pass_type = typename parent_type::render_pass_type;
     using subpass_type = typename parent_type::render_pass_type::subpass_s;
     using object_vector_type = typename parent_type::object_vector_type;
@@ -81,7 +81,7 @@ public:
         
         pass.add_object(static_cast<vk::obj_shape*>(&_screen_plane));
 
-        vk::attachment_group<NUM_ATTACHMENTS>& mrt_attachment_group = pass.get_attachment_group();
+        vk::attachment_group<MRT_ATTACHMENTS>& mrt_attachment_group = pass.get_attachment_group();
         
         vk::resource_set<vk::render_texture>& normals = _tex_registry->get_read_render_texture_set("normals", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         vk::resource_set<vk::render_texture>& albedos = _tex_registry->get_read_render_texture_set("albedos", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);

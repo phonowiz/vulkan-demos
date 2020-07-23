@@ -227,9 +227,11 @@
 		B949E6DA2449812E003E5AD4 /* eathread_pthread_stack_info.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = eathread_pthread_stack_info.cpp; path = unix/eathread_pthread_stack_info.cpp; sourceTree = "<group>"; };
 		B94CEB982248243F001AEDEE /* tiny_obj_loader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tiny_obj_loader.h; sourceTree = "<group>"; };
 		B94CEB9922482516001AEDEE /* stb_image.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stb_image.h; sourceTree = "<group>"; };
+		B9504B5A24C95D71006525FB /* luminance.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = luminance.h; sourceTree = "<group>"; };
 		B95252B5243DAD2D00BD848A /* compute_node.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = compute_node.h; sourceTree = "<group>"; };
 		B95E4F9223BC113F00C13609 /* glfw_present_texture.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = glfw_present_texture.cpp; sourceTree = "<group>"; };
 		B95E4F9323BC113F00C13609 /* glfw_present_texture.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = glfw_present_texture.h; sourceTree = "<group>"; };
+		B95E851A24C6D8D100EAB351 /* fxaa.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = fxaa.h; sourceTree = "<group>"; };
 		B95FF50923B738C400F8580F /* libMoltenVKGLSLToSPIRVConverter.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVKGLSLToSPIRVConverter.dylib; path = "vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/dynamic/libMoltenVKGLSLToSPIRVConverter.dylib"; sourceTree = "<group>"; };
 		B960021D23B5DFDA0025A8AF /* MoltenVKGLSLToSPIRVConverter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MoltenVKGLSLToSPIRVConverter.framework; path = "vulkan-demos/moltenvk-1.0.38/Package/Release/MoltenVKShaderConverter/MoltenVKGLSLToSPIRVConverter/macOS/framework/MoltenVKGLSLToSPIRVConverter.framework"; sourceTree = "<group>"; };
 		B960021F23B5E0290025A8AF /* textures */ = {isa = PBXFileReference; lastKnownFileType = folder; name = textures; path = "vulkan-demos/textures"; sourceTree = "<group>"; };
@@ -829,6 +831,8 @@
 				B909C3052466663F00D2BF11 /* vsm.h */,
 				B9337F07246D11050008E857 /* gaussian_blur.h */,
 				B909D5AF249DE72700622D27 /* pbr.h */,
+				B95E851A24C6D8D100EAB351 /* fxaa.h */,
+				B9504B5A24C95D71006525FB /* luminance.h */,
 			);
 			path = graphics_nodes;
 			sourceTree = "<group>";

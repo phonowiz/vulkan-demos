@@ -42,6 +42,8 @@
 #include "graph_nodes/graphics_nodes/vsm.h"
 #include "graph_nodes/graphics_nodes/gaussian_blur.h"
 #include "graph_nodes/graphics_nodes/pbr.h"
+#include "graph_nodes/graphics_nodes/fxaa.h"
+#include "graph_nodes/graphics_nodes/luminance.h"
 
 #include "graph_nodes/compute_nodes/mip_map_3d_texture.hpp"
 #include "graph_nodes/graphics_nodes/voxelize.h"

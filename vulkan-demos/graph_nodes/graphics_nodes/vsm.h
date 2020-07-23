@@ -13,9 +13,10 @@
 
 
 
+static constexpr uint32_t NUM_ATTACHMENTS = 2;
 //variance shadow maps
 template< uint32_t NUM_CHILDREN>
-class vsm : public vk::graphics_node<2, NUM_CHILDREN>
+class vsm : public vk::graphics_node<NUM_ATTACHMENTS, NUM_CHILDREN>
 {
 public:
     static constexpr uint32_t VOXEL_CUBE_WIDTH = 256u;
@@ -36,7 +37,7 @@ private:
     
 public:
     
-    using parent_type = vk::graphics_node<2, NUM_CHILDREN>;
+    using parent_type = vk::graphics_node<NUM_ATTACHMENTS, NUM_CHILDREN>;
     using render_pass_type = typename parent_type::render_pass_type;
     using subpass_type = typename parent_type::render_pass_type::subpass_s;
     using object_vector_type = typename parent_type::object_vector_type;
@@ -73,7 +74,7 @@ public:
             vsm_depth[i].set_write_to_texture(true);
         }
         _vsm = &vsm;
-        vk::attachment_group<2>& vsm_attachment_grp = pass.get_attachment_group();
+        vk::attachment_group<NUM_ATTACHMENTS>& vsm_attachment_grp = pass.get_attachment_group();
         
         vsm_attachment_grp.add_attachment(vsm, glm::vec4(1.0f));
         vsm_attachment_grp.add_attachment(vsm_depth, glm::vec2(1.0f, 0.0f));
@@ -90,7 +91,7 @@ public:
         cam_depth_subpass.add_output_attachment("vsm", render_pass_type::write_channels::RGBA, true);
         cam_depth_subpass.add_output_attachment("vsm_depth", render_pass_type::write_channels::R, true);
         
-        cam_depth_subpass.set_cull_mode(vk::graphics_pipeline<2>::cull_mode::NONE );
+        cam_depth_subpass.set_cull_mode(vk::graphics_pipeline<NUM_ATTACHMENTS>::cull_mode::NONE );
         
         cam_depth_subpass.init_parameter("view", vk::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
         cam_depth_subpass.init_parameter("projection", vk::parameter_stage::VERTEX, glm::mat4(1.0f), 0);
