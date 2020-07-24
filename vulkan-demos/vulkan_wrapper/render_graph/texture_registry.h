@@ -95,7 +95,7 @@ namespace vk
         inline resource_set<render_texture>& get_read_render_texture_set( const char* name, node_type* node, vk::usage_type usage_type)
         {
             eastl::shared_ptr< resource_set<render_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, usage_type);
-            EA_ASSERT_FORMATTED(tex != nullptr, (" Invalid graph, texture %s, which this node depends, on has not been found", name));
+            EA_ASSERT_FORMATTED(tex != nullptr, (" Invalid graph, texture %s, which this node depends on, has not been found.  Did you mean to call \"get_write_render_texture_set\"?", name));
             
             return *tex;
         }
@@ -132,9 +132,9 @@ namespace vk
             return result;
         }
         
-        inline resource_set<render_texture>& get_write_render_texture_set( const char* name, node_type* node, vk::usage_type usage_type )
+        inline resource_set<render_texture>& get_write_render_texture_set( const char* name, node_type* node)
         {
-            resource_set<render_texture>& result = get_write_texture<resource_set<render_texture>>(name, node, usage_type);
+            resource_set<render_texture>& result = get_write_texture<resource_set<render_texture>>(name, node, vk::usage_type::INPUT_ATTACHMENT);
             result.set_name(name);
             return result;
         }

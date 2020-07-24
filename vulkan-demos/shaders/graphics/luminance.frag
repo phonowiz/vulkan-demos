@@ -8,9 +8,18 @@ layout(location = 0) out vec4 out_color;
 
 layout(binding = 0 ) uniform sampler2D color;
 
+
+
 void main()
 {
-    out_color = texture(color, in_frag_coord);
+    //the assumption here is that the color coming in is not in gamma space yet, it is linear.
+    
+    vec4 linear = texture(color, in_frag_coord);
+    
+    //luminance
+    float y = linear.x * 0.2126f +  linear.y * 0.7152f + linear.z * 0.0722f;
+    
+    out_color = vec4(vec3(y), 1.0f);
 }
 
 

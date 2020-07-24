@@ -133,7 +133,7 @@ public:
         //TODO: MAKE IT SO THAT WE CAN RE-USE THE SAME TEXTURE BETWEEN THE VOXELIZATION  NODES
         test_name.sprintf("vox_test<%f, %f, %f>", _cam_position.x, _cam_position.y, _cam_position.z );
         vk::resource_set<vk::render_texture>& target = _tex_registry->get_write_render_texture_set(test_name.c_str(),
-                                                                                                   this, vk::usage_type::INPUT_ATTACHMENT);
+                                                                                                   this);
         
         target.set_device(parent_type::_device);
         target.set_dimensions(float(VOXEL_CUBE_WIDTH), float(VOXEL_CUBE_HEIGHT));

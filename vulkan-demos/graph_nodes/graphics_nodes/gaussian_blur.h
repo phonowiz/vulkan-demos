@@ -71,7 +71,7 @@ public:
         vk::attachment_group<1>& attach_group = pass.get_attachment_group();
         
         vk::resource_set<vk::render_texture>& gaussblur_tex =
-                _tex_registry->get_write_render_texture_set(_output_texture.c_str(), this, vk::usage_type::INPUT_ATTACHMENT);
+                _tex_registry->get_write_render_texture_set(_output_texture.c_str(), this);
         attach_group.add_attachment(gaussblur_tex, glm::vec4(1.0f));
         
         gaussblur_tex.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);

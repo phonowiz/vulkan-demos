@@ -513,15 +513,12 @@ void create_graph()
 
     eastl::shared_ptr<gaussian_blur<4>> gsb_vertical = eastl::make_shared<gaussian_blur<4>> (app.device,  dims.x, dims.y, gaussian_blur<4>::DIRECTION::VERTICAL, "vsm", "gauss_vertical");
     eastl::shared_ptr<gaussian_blur<4>> gsb_horizontal = eastl::make_shared<gaussian_blur<4>>(app.device, dims.x, dims.y, gaussian_blur<4>::DIRECTION::HORIZONTAL, "gauss_vertical", "blur_final");
-//    eastl::shared_ptr<display_texture_2d<4>> gsm_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "blur_final");
-//
+
     gsb_vertical->add_child(*vsm_node);
     gsb_horizontal->add_child(*gsb_vertical);
 
 
     eastl::shared_ptr<pbr<4>> pbr_node = eastl::make_shared<pbr<4>>(app.device, dims.x, dims.y);
-    eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "albedos");
-    //eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "model_albedo", vk::texture_2d::get_class_type());
     
     pbr_node->add_child(*gsb_horizontal);
     
@@ -532,13 +529,20 @@ void create_graph()
     pbr_node->set_name("pbr node");
     //pbr_node->set_active(false);
     
-    pbr_debug->add_child(*pbr_node);
-    pbr_debug->set_name("pbr debug");
-    pbr_debug->set_active(false);
-    
-    mrt_node->add_child(*pbr_debug);
 
-    voxel_cone_tracing.add_child(*mrt_node);
+    
+    eastl::shared_ptr<luminance<4>> lumins = eastl::make_shared<luminance<4>>(app.device, app.swapchain);
+    mrt_node->add_child(*pbr_node);
+    
+    lumins->add_child(*mrt_node);
+
+    eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "luminance");
+    //eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "model_albedo", vk::texture_2d::get_class_type());
+    pbr_debug->add_child(*lumins);
+    pbr_debug->set_name("pbr debug");
+    pbr_debug->set_active(true);
+    
+    voxel_cone_tracing.add_child(*pbr_debug);
     app.voxel_graph = &voxel_cone_tracing;
     app.debug_node_3d = debug_node_3d;
 

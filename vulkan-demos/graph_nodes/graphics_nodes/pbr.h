@@ -44,14 +44,14 @@ public:
         object_vector_type& _obj_vector = parent_type::_obj_vector;
         
         vk::resource_set<vk::render_texture>& albedos =  _tex_registry->get_write_render_texture_set("albedos",
-                                                                                                 this, vk::usage_type::INPUT_ATTACHMENT);
+                                                                                                 this);
         
         vk::resource_set<vk::render_texture>& normals =  _tex_registry->get_write_render_texture_set("normals",
-                                                                                                 this, vk::usage_type::INPUT_ATTACHMENT);
+                                                                                                 this);
         
         
         //TODO: you can derive positon from depth and sampling fragment position
-        vk::resource_set<vk::render_texture>& positions = _tex_registry->get_write_render_texture_set("positions", this, vk::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::render_texture>& positions = _tex_registry->get_write_render_texture_set("positions", this);
         vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_write_depth_texture_set("depth", this, vk::usage_type::INPUT_ATTACHMENT);
 
         vk::attachment_group<ATTACHMENTS>& pbr_attachment_group = pass.get_attachment_group();

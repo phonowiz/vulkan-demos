@@ -90,13 +90,21 @@ public:
         vk::resource_set<vk::render_texture>& positions = _tex_registry->get_read_render_texture_set("positions", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_read_depth_texture_set("depth", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
+        vk::resource_set<vk::render_texture>& final_render =  _tex_registry->get_write_render_texture_set("final_render",
+                                                                        this);
+        
+        final_render.set_filter(vk::image::filter::NEAREST);
+        final_render.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
+        
+        
         //GBUFFER SUBPASS
         mrt_attachment_group.add_attachment(normals, glm::vec4(0.0f), false, false);
         mrt_attachment_group.add_attachment(albedos, glm::vec4(0.0f), false, false);
         mrt_attachment_group.add_attachment(positions, glm::vec4(0.0f), false, false);
-        mrt_attachment_group.add_attachment(_swapchain->present_textures, glm::vec4(0.0f), true, false);
+        mrt_attachment_group.add_attachment(final_render, glm::vec4(0.0f), true, true);
         mrt_attachment_group.add_attachment(depth, glm::vec4(0.0f), false, false);
         
+        final_render.init();
 
         //COMPOSITE SUBPASS
         composite.add_input_attachment( "normals", "normals", vk::parameter_stage::FRAGMENT, 1 );
@@ -105,7 +113,7 @@ public:
 
         composite.add_input_attachment("depth", "depth", vk::parameter_stage::FRAGMENT, 4);
         
-        composite.add_output_attachment("present");
+        composite.add_output_attachment("final_render");
         
         composite.init_parameter("width", vk::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().width), 0);
         composite.init_parameter("height", vk::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().height), 0);
