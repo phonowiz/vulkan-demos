@@ -118,6 +118,9 @@ struct App
 
     std::vector<vk::obj_shape*> shapes;
     std::vector<vk::obj_shape*> shapes_lods;
+    fxaa<4>* aa = nullptr;
+    display_texture_2d<4>* debug = nullptr;
+    
 
     camera_type cam_type = camera_type::USER;
     bool quit = false;
@@ -267,6 +270,14 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         app.user_controller->lock(user_cam_locked);
         app.user_controller->reset();
     }
+    if( key == GLFW_KEY_Q && action == GLFW_PRESS)
+    {
+        static bool aa_on = true;
+        app.aa->set_active(!aa_on);
+        app.debug->set_active(aa_on);
+        aa_on = !aa_on;
+    }
+    
     if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
         app.quit = true;
@@ -529,24 +540,27 @@ void create_graph()
     pbr_node->set_name("pbr node");
     //pbr_node->set_active(false);
     
-
-    
-    eastl::shared_ptr<luminance<4>> lumins = eastl::make_shared<luminance<4>>(app.device, app.swapchain);
+    eastl::shared_ptr<fxaa<4>> fast_approximate_aa = eastl::make_shared<fxaa<4>>(app.device, app.swapchain);
     mrt_node->add_child(*pbr_node);
+    fast_approximate_aa->set_name("fxaa");
     
-    lumins->add_child(*mrt_node);
+    fast_approximate_aa->add_child(*mrt_node);
+    fast_approximate_aa->set_active(true);
 
-    eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "luminance");
+    eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "final_render");
     //eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "model_albedo", vk::texture_2d::get_class_type());
-    pbr_debug->add_child(*lumins);
+    pbr_debug->add_child(*fast_approximate_aa);
     pbr_debug->set_name("pbr debug");
-    pbr_debug->set_active(true);
+    pbr_debug->set_active(false);
     
     voxel_cone_tracing.add_child(*pbr_debug);
     app.voxel_graph = &voxel_cone_tracing;
     app.debug_node_3d = debug_node_3d;
 
     app.voxel_graph->init();
+    
+    app.aa = fast_approximate_aa.get();
+    app.debug = pbr_debug.get();
 
     game_loop();
 

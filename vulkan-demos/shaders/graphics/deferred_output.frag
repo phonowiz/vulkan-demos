@@ -632,9 +632,7 @@ void main()
                 direct.xyz *= (1.0f - ambience.a);
 
                 out_color.xyz = direct.xyz;
-                
-                out_color.xyz = pow(out_color.xyz, vec3(0.4545));
-                out_color.a = 1.0f;
+                out_color.w = out_color.x * 0.2126f +  out_color.y * 0.7152f + out_color.z * 0.0722f;
             }
         }
     }
