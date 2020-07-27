@@ -4,3 +4,6 @@
 [submodule "eastl"]
 	path = vulkan-demos/utils/EASTL
 	url = https://github.com/electronicarts/EASTL.git
+[submodule "vulkan-demos/utils/glfw"]
+	path = vulkan-demos/utils/glfw
+	url = https://github.com/glfw/glfw.git
