@@ -1,9 +1,9 @@
-[submodule "vulkan-demos/assimp"]
-	path = vulkan-demos/assimp
-	url = https://github.com/assimp/assimp.git
 [submodule "eastl"]
 	path = vulkan-demos/utils/EASTL
 	url = https://github.com/electronicarts/EASTL.git
 [submodule "vulkan-demos/utils/glfw"]
 	path = vulkan-demos/utils/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "vulkan-demos/utils/assimp"]
+	path = vulkan-demos/utils/assimp
+	url = https://github.com/assimp/assimp.git

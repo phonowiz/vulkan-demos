@@ -26,7 +26,7 @@
 #include "obj_shape.h"
 #include "core/device.h"
 #include "mesh.h"
-#include "texture.h"
+#include "assimp/texture.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -255,9 +255,13 @@ namespace vk
                     {
                         if(material->GetTexture( (aiTextureType)t, c,&path) == AI_SUCCESS)
                         {
-                            EA_ASSERT_FORMATTED(_textures[i][t][c].empty(),
-                                                ("You have multiple textures of type %i on this mesh, (%s and %s)", _textures[i][t][c].c_str(), path.C_Str()));
-                            _textures[i][t][c] = path.C_Str();
+                            texture_path new_texture = path.C_Str();
+                            if(_textures[i][t][c] !=  new_texture )
+                            {
+                                EA_ASSERT_FORMATTED(_textures[i][t][c].empty(),
+                                                    ("You have multiple textures of type %i on this mesh, (%s and %s)", t, _textures[i][t][c].c_str(), path.C_Str()));
+                                _textures[i][t][c] = path.C_Str();
+                            }
                         }
                     }
                 }
