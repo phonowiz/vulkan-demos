@@ -49,22 +49,10 @@
 		B96A668D244701B10076ACB1 /* resource_set.h in Sources */ = {isa = PBXBuildFile; fileRef = B96A668C244701B10076ACB1 /* resource_set.h */; };
 		B96AB61D22EE5C4000F33807 /* transform.h in Sources */ = {isa = PBXBuildFile; fileRef = B96AB61C22EE5C4000F33807 /* transform.h */; };
 		B96AB61F22EE5E5000F33807 /* transform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B96AB61E22EE5E5000F33807 /* transform.cpp */; };
-		B9755DF02483379F00FB15DD /* quaternion.inl in Resources */ = {isa = PBXBuildFile; fileRef = B9755D9D2483379F00FB15DD /* quaternion.inl */; };
-		B9755DF12483379F00FB15DD /* color4.inl in Resources */ = {isa = PBXBuildFile; fileRef = B9755DB22483379F00FB15DD /* color4.inl */; };
-		B9755DF22483379F00FB15DD /* config.h.in in Resources */ = {isa = PBXBuildFile; fileRef = B9755DBD2483379F00FB15DD /* config.h.in */; };
-		B9755DF32483379F00FB15DD /* material.inl in Resources */ = {isa = PBXBuildFile; fileRef = B9755DBF2483379F00FB15DD /* material.inl */; };
-		B9755DF42483379F00FB15DD /* .editorconfig in Resources */ = {isa = PBXBuildFile; fileRef = B9755DC52483379F00FB15DD /* .editorconfig */; };
-		B9755DF52483379F00FB15DD /* vector2.inl in Resources */ = {isa = PBXBuildFile; fileRef = B9755DC92483379F00FB15DD /* vector2.inl */; };
-		B9755DF62483379F00FB15DD /* matrix4x4.inl in Resources */ = {isa = PBXBuildFile; fileRef = B9755DCA2483379F00FB15DD /* matrix4x4.inl */; };
-		B9755DF72483379F00FB15DD /* vector3.inl in Resources */ = {isa = PBXBuildFile; fileRef = B9755DCB2483379F00FB15DD /* vector3.inl */; };
-		B9755DF82483379F00FB15DD /* matrix3x3.inl in Resources */ = {isa = PBXBuildFile; fileRef = B9755DDA2483379F00FB15DD /* matrix3x3.inl */; };
-		B9755DF92483379F00FB15DD /* SmoothingGroups.inl in Resources */ = {isa = PBXBuildFile; fileRef = B9755DEB2483379F00FB15DD /* SmoothingGroups.inl */; };
 		B978316222E541B000E5DE71 /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B978316022E541AF00E5DE71 /* camera.cpp */; };
 		B978316522E5435600E5DE71 /* orthographic_camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B978316322E5435600E5DE71 /* orthographic_camera.cpp */; };
 		B978316822E5480700E5DE71 /* perspective_camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B978316622E5480700E5DE71 /* perspective_camera.cpp */; };
 		B978317022E54DEC00E5DE71 /* first_person_controller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B978316F22E54DEC00E5DE71 /* first_person_controller.cpp */; };
-		B985493324D01EE700B2E49E /* libassimp.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B985493224D01EE700B2E49E /* libassimp.5.dylib */; };
-		B985493424D01EF500B2E49E /* libassimp.5.dylib in Resources */ = {isa = PBXBuildFile; fileRef = B985493224D01EE700B2E49E /* libassimp.5.dylib */; };
 		B991089B2372B8AC00990E39 /* texture_2d_array.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B99108992372B8AC00990E39 /* texture_2d_array.cpp */; };
 		B9929CCD23EFC59E00BE33C0 /* libvulkan.1.dylib in Resources */ = {isa = PBXBuildFile; fileRef = B9B7CFA023EFC56C00FFCDC2 /* libvulkan.1.dylib */; };
 		B9929CCF23F04D0B00BE33C0 /* vulkan.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9929CCE23F04D0B00BE33C0 /* vulkan.framework */; };
@@ -83,8 +71,6 @@
 		B9A933FF24CE3BC4005803B0 /* eathread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9A933F324CE3BC4005803B0 /* eathread.cpp */; };
 		B9A9340024CE3BC4005803B0 /* eathread_barrier.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9A933F424CE3BC4005803B0 /* eathread_barrier.cpp */; };
 		B9A9340224CE4014005803B0 /* eathread_callstack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9A9340124CE4014005803B0 /* eathread_callstack.cpp */; };
-		B9A9E19C24CE2C2E005803B0 /* EAMemory.inl in Resources */ = {isa = PBXBuildFile; fileRef = B9A9B4EA24CE2BD7005803B0 /* EAMemory.inl */; };
-		B9A9E19D24CE2C2E005803B0 /* EAMathHelpWin32.inl in Resources */ = {isa = PBXBuildFile; fileRef = B9A9B4FA24CE2BD7005803B0 /* EAMathHelpWin32.inl */; };
 		B9A9E19E24CE2C2E005803B0 /* EAMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9A9B50124CE2BD7005803B0 /* EAMemory.cpp */; };
 		B9A9E19F24CE2C2E005803B0 /* EAHashCRC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9A9B50224CE2BD7005803B0 /* EAHashCRC.cpp */; };
 		B9A9E1A024CE2C2E005803B0 /* EAStdC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9A9B50324CE2BD7005803B0 /* EAStdC.cpp */; };
@@ -117,6 +103,8 @@
 		B9BB9AE1244A5956003564D3 /* clear_3d_texture.hpp in Sources */ = {isa = PBXBuildFile; fileRef = B9BB9AE0244A5956003564D3 /* clear_3d_texture.hpp */; };
 		B9BD3144244D23CD0093A826 /* display_texture_3d.h in Sources */ = {isa = PBXBuildFile; fileRef = B9BD3143244D23CD0093A826 /* display_texture_3d.h */; };
 		B9D4644E2448466E0011D358 /* voxelize.h in Sources */ = {isa = PBXBuildFile; fileRef = B9D4644D2448466E0011D358 /* voxelize.h */; };
+		B9D4E41F24D10E76000A3C20 /* libassimp.5.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B9D4E41E24D10E76000A3C20 /* libassimp.5.dylib */; };
+		B9D4E42024D10E82000A3C20 /* libassimp.5.dylib in Resources */ = {isa = PBXBuildFile; fileRef = B9D4E41E24D10E76000A3C20 /* libassimp.5.dylib */; };
 		B9DE4A6223517578003559DC /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92627E7219B48D700D1358A /* AppKit.framework */; };
 		B9F1E94C23F2A62000B0484A /* vulkan in Resources */ = {isa = PBXBuildFile; fileRef = B9F1E94B23F2A61E00B0484A /* vulkan */; };
 		B9F4EFF622FD2CE20058B38E /* obj_shape.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9F4EFF422FD2CE20058B38E /* obj_shape.cpp */; };
@@ -292,7 +280,6 @@
 		B978316722E5480700E5DE71 /* perspective_camera.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = perspective_camera.h; sourceTree = "<group>"; };
 		B978316E22E54DEC00E5DE71 /* first_person_controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = first_person_controller.h; sourceTree = "<group>"; };
 		B978316F22E54DEC00E5DE71 /* first_person_controller.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = first_person_controller.cpp; sourceTree = "<group>"; };
-		B985493224D01EE700B2E49E /* libassimp.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libassimp.5.dylib; path = "vulkan-demos/assimp/bin/Release/libassimp.5.dylib"; sourceTree = "<group>"; };
 		B99108992372B8AC00990E39 /* texture_2d_array.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = texture_2d_array.cpp; sourceTree = "<group>"; };
 		B9929CCE23F04D0B00BE33C0 /* vulkan.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = vulkan.framework; path = "vulkan-demos/vulkan-loader-1.2.131/macOS/Frameworks/vulkan.framework"; sourceTree = "<group>"; };
 		B9929CD123F0B40C00BE33C0 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = "vulkan-demos/moltenvk-1.0.38/Package/Debug/MoltenVK/macOS/dynamic/libMoltenVK.dylib"; sourceTree = "<group>"; };
@@ -539,6 +526,7 @@
 		B9BD3143244D23CD0093A826 /* display_texture_3d.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = display_texture_3d.h; sourceTree = "<group>"; };
 		B9C2D0D12444472200D7621F /* mip_map_3d_texture.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = mip_map_3d_texture.hpp; sourceTree = "<group>"; };
 		B9D4644D2448466E0011D358 /* voxelize.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = voxelize.h; sourceTree = "<group>"; };
+		B9D4E41E24D10E76000A3C20 /* libassimp.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libassimp.5.dylib; path = "vulkan-demos/utils/assimp/bin/Release/libassimp.5.dylib"; sourceTree = "<group>"; };
 		B9E0746F2424933400F18A0B /* attachment_group.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = attachment_group.h; sourceTree = "<group>"; };
 		B9E221AF2410F96400EFE3DA /* debug_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = debug_utils.h; sourceTree = "<group>"; };
 		B9F1E94B23F2A61E00B0484A /* vulkan */ = {isa = PBXFileReference; lastKnownFileType = folder; name = vulkan; path = "vulkan-demos/vulkan"; sourceTree = "<group>"; };
@@ -555,11 +543,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B985493324D01EE700B2E49E /* libassimp.5.dylib in Frameworks */,
 				B9DE4A6223517578003559DC /* AppKit.framework in Frameworks */,
 				B92627E5219B481700D1358A /* IOKit.framework in Frameworks */,
 				B960021E23B5DFDA0025A8AF /* MoltenVKGLSLToSPIRVConverter.framework in Frameworks */,
 				B92627E2219B47CB00D1358A /* CoreVideo.framework in Frameworks */,
+				B9D4E41F24D10E76000A3C20 /* libassimp.5.dylib in Frameworks */,
 				B92627DF219B476200D1358A /* CoreGraphics.framework in Frameworks */,
 				B95FF50A23B738C400F8580F /* libMoltenVKGLSLToSPIRVConverter.dylib in Frameworks */,
 				B9929CCF23F04D0B00BE33C0 /* vulkan.framework in Frameworks */,
@@ -607,7 +595,7 @@
 		B938D05A21953D34004F759E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				B985493224D01EE700B2E49E /* libassimp.5.dylib */,
+				B9D4E41E24D10E76000A3C20 /* libassimp.5.dylib */,
 				B90184B123F1427800A1ADFF /* libVkLayer_khronos_validation.dylib */,
 				B90184B223F1427800A1ADFF /* libVkLayer_api_dump.dylib */,
 				B9929CD123F0B40C00BE33C0 /* libMoltenVK.dylib */,
@@ -1426,34 +1414,22 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B985493424D01EF500B2E49E /* libassimp.5.dylib in Resources */,
+				B9D4E42024D10E82000A3C20 /* libassimp.5.dylib in Resources */,
 				B90184B523F1429200A1ADFF /* libVkLayer_api_dump.dylib in Resources */,
-				B9755DF82483379F00FB15DD /* matrix3x3.inl in Resources */,
 				B90184B623F1429200A1ADFF /* libVkLayer_khronos_validation.dylib in Resources */,
 				B9929CD323F0B41A00BE33C0 /* libMoltenVK.dylib in Resources */,
 				B9929CD023F04D1D00BE33C0 /* vulkan.framework in Resources */,
 				B9929CCD23EFC59E00BE33C0 /* libvulkan.1.dylib in Resources */,
-				B9755DF72483379F00FB15DD /* vector3.inl in Resources */,
-				B9755DF02483379F00FB15DD /* quaternion.inl in Resources */,
 				B95FF50B23B738EF00F8580F /* libMoltenVKGLSLToSPIRVConverter.dylib in Resources */,
-				B9755DF62483379F00FB15DD /* matrix4x4.inl in Resources */,
 				B960022223B5E04A0025A8AF /* models in Resources */,
-				B9755DF42483379F00FB15DD /* .editorconfig in Resources */,
-				B9755DF12483379F00FB15DD /* color4.inl in Resources */,
 				B960022423B5E05D0025A8AF /* shaders in Resources */,
-				B9755DF92483379F00FB15DD /* SmoothingGroups.inl in Resources */,
-				B9A9E19D24CE2C2E005803B0 /* EAMathHelpWin32.inl in Resources */,
 				B92627E9219B48E000D1358A /* AppKit.framework in Resources */,
 				B92627E6219B481F00D1358A /* IOKit.framework in Resources */,
 				B9F1E94C23F2A62000B0484A /* vulkan in Resources */,
-				B9755DF32483379F00FB15DD /* material.inl in Resources */,
 				B960022023B5E0290025A8AF /* textures in Resources */,
-				B9755DF22483379F00FB15DD /* config.h.in in Resources */,
 				B92627E3219B47D500D1358A /* CoreVideo.framework in Resources */,
 				B92627E0219B477400D1358A /* CoreGraphics.framework in Resources */,
-				B9755DF52483379F00FB15DD /* vector2.inl in Resources */,
 				B938D04D219534B7004F759E /* Assets.xcassets in Resources */,
-				B9A9E19C24CE2C2E005803B0 /* EAMemory.inl in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1699,7 +1675,7 @@
 					"./vulkan-demos/utils/EASTL/test/packages/EAAssert/include",
 					"./vulkan-demos/utils/EASTL/test/packages/EAStdC/include",
 					"./vulkan-demos/utils/EASTL/test/packages/EAThread/include",
-					"./vulkan-demos/assimp/include",
+					"./vulkan-demos/utils/assimp/include",
 				);
 				INFOPLIST_FILE = "vulkan-demos/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1723,7 +1699,8 @@
 					"$(PROJECT_DIR)/vulkan-demos/utils/EASTL/test/packages/EAAssert/test/packages/EABase/test/packages/EAAssert/test/packages/EAMain/test/packages/EAAssert/test/packages/EAAssert/test/packages/EABase/test/packages/EAAssert/test/packages/EAThread/test/thread/lib/pthreads-win32/lib",
 					"$(PROJECT_DIR)/vulkan-demos/utils/EASTL/test/packages/EAAssert/test/packages/EABase/test/packages/EAAssert/test/packages/EAMain/test/packages/EAThread/test/thread/lib/pthreads-win32/lib",
 					"$(PROJECT_DIR)/vulkan-demos/utils/EASTL/test/packages/EAAssert/test/packages/EABase/test/packages/EAAssert/test/packages/EAThread/test/thread/lib/pthreads-win32/lib",
-					"$(PROJECT_DIR)/vulkan-demos/assimp/bin/Release",
+					"$(PROJECT_DIR)/vulkan-demos/utils/assimp/bin/Release",
+					"$(PROJECT_DIR)/vulkan-demos/utils/assimp/bin/Release",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (
@@ -1771,7 +1748,7 @@
 					"./vulkan-demos/utils/EASTL/test/packages/EAAssert/include",
 					"./vulkan-demos/utils/EASTL/test/packages/EAStdC/include",
 					"./vulkan-demos/utils/EASTL/test/packages/EAThread/include",
-					"./vulkan-demos/assimp/include",
+					"./vulkan-demos/utils/assimp/include",
 				);
 				INFOPLIST_FILE = "vulkan-demos/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1799,7 +1776,8 @@
 					"$(PROJECT_DIR)/vulkan-demos/utils/EASTL/test/packages/EAAssert/test/packages/EABase/test/packages/EAAssert/test/packages/EAMain/test/packages/EAAssert/test/packages/EAAssert/test/packages/EABase/test/packages/EAAssert/test/packages/EAThread/test/thread/lib/pthreads-win32/lib",
 					"$(PROJECT_DIR)/vulkan-demos/utils/EASTL/test/packages/EAAssert/test/packages/EABase/test/packages/EAAssert/test/packages/EAMain/test/packages/EAThread/test/thread/lib/pthreads-win32/lib",
 					"$(PROJECT_DIR)/vulkan-demos/utils/EASTL/test/packages/EAAssert/test/packages/EABase/test/packages/EAAssert/test/packages/EAThread/test/thread/lib/pthreads-win32/lib",
-					"$(PROJECT_DIR)/vulkan-demos/assimp/bin/Release",
+					"$(PROJECT_DIR)/vulkan-demos/utils/assimp/bin/Release",
+					"$(PROJECT_DIR)/vulkan-demos/utils/assimp/bin/Release",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				OTHER_LDFLAGS = (

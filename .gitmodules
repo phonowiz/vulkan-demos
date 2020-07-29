@@ -7,3 +7,6 @@
 [submodule "vulkan-demos/utils/glfw"]
 	path = vulkan-demos/utils/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "vulkan-demos/utils/assimp"]
+	path = vulkan-demos/utils/assimp
+	url = https://github.com/assimp/assimp.git
