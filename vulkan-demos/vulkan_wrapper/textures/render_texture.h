@@ -19,7 +19,7 @@ namespace vk
         
         render_texture()
         {
-            _original_layout = vk::image::image_layouts::COLOR_ATTACHMENT_OPTIMAL;
+            _original_layout = image::image_layouts::SHADER_READ_ONLY_OPTIMAL;
         };
         render_texture(device* device, uint32_t width, uint32_t height);
         
@@ -32,6 +32,10 @@ namespace vk
             image::image_layouts layout = texture_2d::get_usage_layout(usage);
             
             if(usage == vk::usage_type::COMBINED_IMAGE_SAMPLER)
+            {
+                layout = image::image_layouts::SHADER_READ_ONLY_OPTIMAL;
+            }
+            if(usage == vk::usage_type::INPUT_ATTACHMENT)
             {
                 layout = image::image_layouts::SHADER_READ_ONLY_OPTIMAL;
             }

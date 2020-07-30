@@ -83,12 +83,12 @@ public:
 
         vk::attachment_group<MRT_ATTACHMENTS>& mrt_attachment_group = pass.get_attachment_group();
         
-        vk::resource_set<vk::render_texture>& normals = _tex_registry->get_read_render_texture_set("normals", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-        vk::resource_set<vk::render_texture>& albedos = _tex_registry->get_read_render_texture_set("albedos", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        vk::resource_set<vk::render_texture>& normals = _tex_registry->get_read_render_texture_set("normals", this, vk::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::render_texture>& albedos = _tex_registry->get_read_render_texture_set("albedos", this, vk::usage_type::INPUT_ATTACHMENT);
         
         //TODO: you can derive positon from depth and sampling fragment position
-        vk::resource_set<vk::render_texture>& positions = _tex_registry->get_read_render_texture_set("positions", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-        vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_read_depth_texture_set("depth", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        vk::resource_set<vk::render_texture>& positions = _tex_registry->get_read_render_texture_set("positions", this, vk::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_read_depth_texture_set("depth", this, vk::usage_type::INPUT_ATTACHMENT);
         
         vk::resource_set<vk::render_texture>& final_render =  _tex_registry->get_write_render_texture_set("final_render",this);
         

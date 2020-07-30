@@ -270,7 +270,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         app.user_controller->lock(user_cam_locked);
         app.user_controller->reset();
     }
-    if( key == GLFW_KEY_Q && action == GLFW_PRESS)
+    if( key == GLFW_KEY_M && action == GLFW_PRESS)
     {
         static bool aa_on = true;
         app.aa->set_active(!aa_on);
@@ -547,7 +547,7 @@ void create_graph()
     fast_approximate_aa->add_child(*mrt_node);
     fast_approximate_aa->set_active(true);
 
-    eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "final_render");
+    eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "normals");
     //eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "model_albedo", vk::texture_2d::get_class_type());
     pbr_debug->add_child(*fast_approximate_aa);
     pbr_debug->set_name("pbr debug");

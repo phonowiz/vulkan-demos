@@ -43,11 +43,8 @@ public:
         material_store_type* _mat_store = parent_type::_material_store;
         object_vector_type& _obj_vector = parent_type::_obj_vector;
         
-        vk::resource_set<vk::render_texture>& albedos =  _tex_registry->get_write_render_texture_set("albedos",
-                                                                                                 this);
-        
-        vk::resource_set<vk::render_texture>& normals =  _tex_registry->get_write_render_texture_set("normals",
-                                                                                                 this);
+        vk::resource_set<vk::render_texture>& albedos =  _tex_registry->get_write_render_texture_set("albedos", this);
+        vk::resource_set<vk::render_texture>& normals =  _tex_registry->get_write_render_texture_set("normals", this);
         
         
         //TODO: you can derive positon from depth and sampling fragment position
