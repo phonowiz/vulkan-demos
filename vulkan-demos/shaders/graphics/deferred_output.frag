@@ -2,6 +2,8 @@
 #version 450
 #extension GL_ARB_separate_shader_objects: enable
 
+//TODO: temporal antialiasing might be a better choice than FXAA, start here:
+//https://gist.github.com/Erkaman/f24ef6bd7499be363e6c99d116d8734d
 
 //if you change this define, you must also change the equivalent variable in deferred_renderer.h
 //also, make sure that you have as many rays as defined by this define.

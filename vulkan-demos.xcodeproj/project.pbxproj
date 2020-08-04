@@ -521,6 +521,7 @@
 		B9A9E0E024CE2C27005803B0 /* fixed_pool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = fixed_pool.cpp; sourceTree = "<group>"; };
 		B9BB9AE0244A5956003564D3 /* clear_3d_texture.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = clear_3d_texture.hpp; sourceTree = "<group>"; };
 		B9BD3143244D23CD0093A826 /* display_texture_3d.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = display_texture_3d.h; sourceTree = "<group>"; };
+		B9C2B58224D943700084CE78 /* texture_cube.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = texture_cube.h; sourceTree = "<group>"; };
 		B9C2D0D12444472200D7621F /* mip_map_3d_texture.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = mip_map_3d_texture.hpp; sourceTree = "<group>"; };
 		B9D4644D2448466E0011D358 /* voxelize.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = voxelize.h; sourceTree = "<group>"; };
 		B9D4E41E24D10E76000A3C20 /* libassimp.5.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libassimp.5.dylib; path = "vulkan-demos/utils/assimp/bin/Release/libassimp.5.dylib"; sourceTree = "<group>"; };
@@ -533,6 +534,7 @@
 		B9D4E44024D143D7000A3C20 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = "vulkan-demos/utils/MoltenVK/Package/Release/MoltenVK/macOS/dynamic/libMoltenVK.dylib"; sourceTree = "<group>"; };
 		B9D4E44624D1498F000A3C20 /* libVkLayer_khronos_validation.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libVkLayer_khronos_validation.dylib; path = "vulkan-demos/vulkan-loader-1.2.141.2/macOS/lib/libVkLayer_khronos_validation.dylib"; sourceTree = "<group>"; };
 		B9D4E44F24D14B12000A3C20 /* libvulkan.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libvulkan.1.dylib; path = "vulkan-demos/vulkan-loader-1.2.141.2/macOS/lib/libvulkan.1.dylib"; sourceTree = "<group>"; };
+		B9DFCE6724D5079D00151C7D /* atmospheric.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = atmospheric.h; sourceTree = "<group>"; };
 		B9E0746F2424933400F18A0B /* attachment_group.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = attachment_group.h; sourceTree = "<group>"; };
 		B9E221AF2410F96400EFE3DA /* debug_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = debug_utils.h; sourceTree = "<group>"; };
 		B9F1E94B23F2A61E00B0484A /* vulkan */ = {isa = PBXFileReference; lastKnownFileType = folder; name = vulkan; path = "vulkan-demos/vulkan"; sourceTree = "<group>"; };
@@ -658,6 +660,7 @@
 				B93FDCA523036C29000AECBE /* texture_2d.h */,
 				B93FDCA223036C29000AECBE /* texture_3d.cpp */,
 				B93FDCA423036C29000AECBE /* texture_3d.h */,
+				B9C2B58224D943700084CE78 /* texture_cube.h */,
 			);
 			path = textures;
 			sourceTree = "<group>";
@@ -717,13 +720,6 @@
 				B93FDCD223037064000AECBE /* glfw_swapchain.h */,
 			);
 			path = core;
-			sourceTree = "<group>";
-		};
-		B9590F6624B02DB2005E79C8 /* mesh_nodes */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = mesh_nodes;
 			sourceTree = "<group>";
 		};
 		B96AB61B22EE5BBA00F33807 /* shapes */ = {
@@ -886,7 +882,6 @@
 		B997A04824419A120074ADBE /* graph_nodes */ = {
 			isa = PBXGroup;
 			children = (
-				B9590F6624B02DB2005E79C8 /* mesh_nodes */,
 				B9C2D0CF244446CD00D7621F /* graphics_nodes */,
 				B9C2D0CE244446C500D7621F /* compute_nodes */,
 			);
@@ -1353,6 +1348,7 @@
 				B909D5AF249DE72700622D27 /* pbr.h */,
 				B95E851A24C6D8D100EAB351 /* fxaa.h */,
 				B9504B5A24C95D71006525FB /* luminance.h */,
+				B9DFCE6724D5079D00151C7D /* atmospheric.h */,
 			);
 			path = graphics_nodes;
 			sourceTree = "<group>";

@@ -22,11 +22,12 @@ texture_2d::texture_2d(device* device):image(device)
 {
 }
 
-texture_2d::texture_2d(device* device, uint32_t width, uint32_t height):
+texture_2d::texture_2d(device* device, uint32_t width, uint32_t height, uint32_t depth):
 image(device)
 {
     _width = width;
     _height = height;
+    _depth = depth;
 }
 
 void texture_2d::init()

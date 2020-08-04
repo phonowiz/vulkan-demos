@@ -20,6 +20,8 @@ class fxaa : public vk::graphics_node<FXAA_ATTACHMENTS, NUM_CHILDREN>
 private:
     vk::screen_plane _screen_plane;
     vk::glfw_swapchain* _swapchain = nullptr;
+    
+    const char* _aliased_texture =nullptr;
 public:
     
     using parent_type = vk::graphics_node<FXAA_ATTACHMENTS, NUM_CHILDREN>;
@@ -32,11 +34,11 @@ public:
     using object_submask_type = typename parent_type::object_subpass_mask;
     
     
-    fxaa(vk::device* dev, vk::glfw_swapchain* swapchain):
+    fxaa(vk::device* dev, vk::glfw_swapchain* swapchain, const char* aliased_texture):
     parent_type(dev,swapchain->get_vk_swap_extent().width ,swapchain->get_vk_swap_extent().height),
-    _screen_plane(dev), _swapchain(swapchain)
+    _screen_plane(dev), _swapchain(swapchain),_aliased_texture(aliased_texture)
     {}
-    
+
     virtual void init_node() override
     {
         render_pass_type &pass = parent_type::_node_render_pass;
@@ -49,14 +51,14 @@ public:
         
         subpass_type& fxaa_subpass = pass.add_subpass(_mat_store, "fxaa");
         
-        vk::resource_set<vk::render_texture>& luminance =  _tex_registry->get_read_render_texture_set("final_render", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        vk::resource_set<vk::render_texture>& aliased_tex =  _tex_registry->get_read_render_texture_set(_aliased_texture, this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
 
         vk::attachment_group<FXAA_ATTACHMENTS>& fxaa_attachment_grp = pass.get_attachment_group();
        
         fxaa_attachment_grp.add_attachment( _swapchain->present_textures, glm::vec4(0.0f));
        
 
-        fxaa_subpass.set_image_sampler(luminance, "final_render", vk::parameter_stage::FRAGMENT, 0, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        fxaa_subpass.set_image_sampler(aliased_tex, "final_render", vk::parameter_stage::FRAGMENT, 0, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         fxaa_subpass.add_output_attachment("present");
         
         glm::vec4 texel_size = glm::vec4(0.0f);

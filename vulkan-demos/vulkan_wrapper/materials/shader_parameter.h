@@ -347,7 +347,7 @@ namespace vk
 
         inline shader_parameter& operator=(const glm::mat4 &value)
         {
-            assert( type == Type::NONE || type == Type::MAT4);
+            EA_ASSERT_MSG( type == Type::NONE || type == Type::MAT4, "shader argument type mismatch");
             type = Type::MAT4;
             this->value.mat4 = value;
 
@@ -356,7 +356,7 @@ namespace vk
         
         inline shader_parameter& operator=(const float &value)
         {
-            assert( type == Type::NONE || type == Type::FLOAT);
+            EA_ASSERT_MSG( type == Type::NONE || type == Type::FLOAT, "shader argument type mismatch");
             type = Type::FLOAT;
             this->value.float_value = value;
             
@@ -365,7 +365,7 @@ namespace vk
         
         inline shader_parameter& operator=(const glm::vec4 &value)
         {
-            assert( type == Type::NONE || type == Type::VEC4);
+            EA_ASSERT_MSG( type == Type::NONE || type == Type::VEC4, "shader argument type mismatch");
             type = Type::VEC4;
             this->value.vector4 = value;
             
@@ -374,7 +374,7 @@ namespace vk
         
         inline shader_parameter& operator=(const glm::vec3 &value)
         {
-            assert( type == Type::NONE || type == Type::VEC3);
+            EA_ASSERT_MSG( type == Type::NONE || type == Type::VEC3, "shader argument type mismatch");
             type = Type::VEC3;
             this->value.vector3 = value;
             
@@ -383,7 +383,7 @@ namespace vk
         
         inline shader_parameter& operator=(const glm::vec2 &value)
         {
-            assert( type == Type::NONE || type == Type::VEC2);
+            EA_ASSERT_MSG( type == Type::NONE || type == Type::VEC2, "shader argument type mismatch");
             type = Type::VEC2;
             this->value.vector2 = value;
             
@@ -392,7 +392,7 @@ namespace vk
         
         inline shader_parameter& operator=(const int32_t &value)
         {
-            assert( type == Type::NONE || type == Type::INT);
+            EA_ASSERT_MSG( type == Type::NONE || type == Type::INT, "shader argument type mismatch");
             type = Type::INT;
             this->value.intValue = value;
             
@@ -401,7 +401,7 @@ namespace vk
         
         inline shader_parameter& operator=(const uint32_t &value)
         {
-            assert( type == Type::NONE || type == Type::UINT);
+            EA_ASSERT_MSG( type == Type::NONE || type == Type::UINT, "shader argument type mismatch");
             type = Type::UINT;
             this->value.intValue = value;
             
@@ -410,7 +410,7 @@ namespace vk
         
         inline shader_parameter& operator=(texture_2d_array* sampler)
         {
-            assert( type == Type::NONE || type == Type::SAMPLER_2D_ARRAY);
+            EA_ASSERT_MSG( type == Type::NONE || type == Type::SAMPLER_2D_ARRAY, "shader argument type mismatch");
             type = Type::SAMPLER_2D_ARRAY;
             this->value.sampler_2d_array = sampler;
             
@@ -419,7 +419,7 @@ namespace vk
         
         inline shader_parameter& operator=(texture_2d* sampler)
         {
-            assert( type == Type::NONE || type == Type::SAMPLER_2D);
+            EA_ASSERT_MSG( type == Type::NONE || type == Type::SAMPLER_2D, "shader argument type mismatch");
             type = Type::SAMPLER_2D;
             this->value.sampler2D = sampler;
     
@@ -428,7 +428,7 @@ namespace vk
         
         inline shader_parameter& operator=(texture_3d* sampler)
         {
-            assert( type == Type::NONE || type == Type::SAMPLER_3D);
+            EA_ASSERT_MSG( type == Type::NONE || type == Type::SAMPLER_3D, "shader argument type mismatch");
             type = Type::SAMPLER_3D;
             this->value.sampler3D = sampler;
             
@@ -437,7 +437,7 @@ namespace vk
         
         inline shader_parameter& operator=(glfw_present_texture* sampler)
         {
-            assert( type == Type::NONE || type == Type::SAMPLER_PRESENT_TEXTURE);
+            EA_ASSERT_MSG( type == Type::NONE || type == Type::SAMPLER_PRESENT_TEXTURE, "shader argument type mismatch");
             type = Type::SAMPLER_PRESENT_TEXTURE;
             this->value.sampler_present_tex = sampler;
             
@@ -447,7 +447,7 @@ namespace vk
         
         inline shader_parameter& operator=(image* sampler)
         {
-            assert( type == Type::NONE || type == Type::SAMPLER_3D || type == Type::SAMPLER_2D || type == Type::SAMPLER_PRESENT_TEXTURE);
+            EA_ASSERT_MSG( type == Type::NONE || type == Type::SAMPLER_3D || type == Type::SAMPLER_2D || type == Type::SAMPLER_PRESENT_TEXTURE, "shader argument type mismatch");
             if(sampler->get_instance_type() == texture_3d::get_class_type())
             {
                 type = Type::SAMPLER_3D;

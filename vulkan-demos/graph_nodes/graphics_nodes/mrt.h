@@ -106,7 +106,7 @@ public:
         final_render.init();
 
         //COMPOSITE SUBPASS
-        composite.add_input_attachment( "normals", "normals", vk::parameter_stage::FRAGMENT, 1 );
+        composite.add_input_attachment("normals", "normals", vk::parameter_stage::FRAGMENT, 1 );
         composite.add_input_attachment("albedos", "albedos", vk::parameter_stage::FRAGMENT, 2);
         composite.add_input_attachment("positions", "positions", vk::parameter_stage::FRAGMENT, 3);
 
@@ -265,7 +265,7 @@ private:
     
     //search for MAX_LIGHTS in shaders, if this variable changes here, you'll have to change it shaders too
     static constexpr int32_t   MAX_LIGHTS = 10;
-    static constexpr int32_t   ACTIVE_LIGHTS = 3;
+    static constexpr int32_t   ACTIVE_LIGHTS = 1;
     
     eastl::array<glm::vec4, NUM_SAMPLING_RAYS>  _sampling_rays = {};
     eastl::array<glm::vec4, MAX_LIGHTS>         _world_light_positions = {};

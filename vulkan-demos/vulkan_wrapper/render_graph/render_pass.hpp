@@ -222,7 +222,11 @@ template<uint32_t NUM_ATTACHMENTS>
      framebuffer_create_info.width = _dimensions.x;
      framebuffer_create_info.height = _dimensions.y;
      framebuffer_create_info.layers = 1;
-     
+     if(num_views == 1)
+     {
+         framebuffer_create_info.layers = _attachment_group[0][swapchain_id]->get_layer_count();
+     }
+
      VkResult result = vkCreateFramebuffer(_device->_logical_device, &framebuffer_create_info, nullptr, &(_vk_frame_buffer_infos[swapchain_id]));
      ASSERT_VULKAN(result)
      

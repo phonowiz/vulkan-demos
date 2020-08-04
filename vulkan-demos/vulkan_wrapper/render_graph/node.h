@@ -15,6 +15,7 @@
 #include "texture_registry.h"
 #include "material_store.h"
 #include "EASTL/fixed_string.h"
+#include "texture_cube.h"
 #include <iostream>
 
 namespace  vk
@@ -261,6 +262,10 @@ namespace  vk
                 if(p_image->get_instance_type() == vk::depth_texture::get_class_type())
                 {
                     barrier.subresourceRange = { p_image->get_aspect_flag() , 0, 1, 0, 1 };
+                }
+                if(p_image->get_instance_type() == vk::texture_cube::get_class_type())
+                {
+                    barrier.subresourceRange = { p_image->get_aspect_flag() , 0, 1, 0, 6 };
                 }
                 
                 //we are not transferring ownership
