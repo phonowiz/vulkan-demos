@@ -90,13 +90,14 @@ Note:     Because rayleigh is a long word to type, I use ray instead on most var
 
 layout(location = 0) out vec4 out_color;
 
-layout(input_attachment_index = 0, binding = 0 ) uniform subpassInput final_render;
-layout(input_attachment_index = 1, binding = 2 ) uniform subpassInput normals;
-layout(input_attachment_index = 2, binding = 3 ) uniform subpassInput depth;
-layout(input_attachment_index = 3, binding = 4 ) uniform subpassInput positions;
-layout(input_attachment_index = 4, binding = 5 ) uniform subpassInput albedos;
+layout(input_attachment_index = 0, binding = 0 ) uniform subpassInput normals;
+layout(input_attachment_index = 1, binding = 1 ) uniform subpassInput depth;
+layout(input_attachment_index = 2, binding = 2 ) uniform subpassInput positions;
+layout(input_attachment_index = 3, binding = 3 ) uniform subpassInput albedos;
 
-layout(binding =1, std140) uniform _atmospheric_state
+layout(binding = 4) writeonly restrict uniform imageCube cubemap_texture;
+
+layout(binding =5, std140) uniform _atmospheric_state
 {
     mat4    inverse_proj;
     mat4    inverse_view;
@@ -480,7 +481,7 @@ vec4 render_scene(vec3 pos, vec3 dir, vec3 light_dir) {
 //        float shadow = dotNL / (dotNL + dotNV);
 
         color.xyz += albedo * clamp(skylight(pos, normal, light_dir, vec3(0.0)), 0.0, 1.0);
-        color.xyz += subpassLoad(final_render).xyz;
+        //color.xyz += subpassLoad(final_render).xyz;
         color.w = 0.0f;//1.0f;
     }
     //color.xyz += clamp(skylight(sample_pos, surface_normal, light_dir, vec3(0.0)), 0.0, 1.0);
@@ -509,50 +510,54 @@ we first get the camera vector and position, as well as the light dir
 */
 void main() {
     
-    // get the camera vector
-    vec4 camera_vector = vec4(get_camera_vector(), 0.0f);
-    vec3 camera_position = atmosphere_state.cam_position.xyz;
-
-    // get the scene color and depth, color is in xyz, depth in w
-    // replace this with something better if you are using this shader for something else
-    vec4 scene = render_scene(camera_position, camera_vector.xyz, atmosphere_state.light_direction.xyz);
+//    // get the camera vector
+//    vec4 camera_vector = vec4(get_camera_vector(), 0.0f);
+//    vec3 camera_position = atmosphere_state.cam_position.xyz;
+//
+//    // get the scene color and depth, color is in xyz, depth in w
+//    // replace this with something better if you are using this shader for something else
+//    vec4 scene = render_scene(camera_position, camera_vector.xyz, atmosphere_state.light_direction.xyz);
+//
+//    // the color of this pixel
+//    vec3 col = scene.xyz;
+//
+//    // get the atmosphere color
+////    vec3 atmos_color = vec3(0.0f);
+//    vec3 atmos_color = calculate_scattering(
+//        camera_position,                // the position of the camera
+//        camera_vector.xyz,                     // the camera vector (ray direction of this pixel)
+//        scene.w,                         // max dist, essentially the scene depth
+//        scene.xyz,                        // scene color, the color of the current pixel being rendered
+//        atmosphere_state.light_direction.xyz,                        // light direction
+//        vec3(40.0f),                        // light intensity, 40 looks nice
+//        atmosphere_state.planet_position.xyz,                        // position of the planet
+//        atmosphere_state.planet_radius,                  // radius of the planet in meters
+//        ATMOS_RADIUS,                   // radius of the atmosphere in meters
+//        atmosphere_state.ray_beta.xyz,                        // Rayleigh scattering coefficient
+//        atmosphere_state.mie_beta.xyz,                       // Mie scattering coefficient
+//        atmosphere_state.absorption_beta.xyz,                // Absorbtion coefficient
+//        atmosphere_state.ambient_beta.xyz,                    // ambient scattering, turned off for now. This causes the air to glow a bit when no light reaches it
+//        atmosphere_state.g,                              // Mie preferred scattering direction
+//        HEIGHT_RAY,                     // Rayleigh scale height
+//        HEIGHT_MIE,                     // Mie scale height
+//        HEIGHT_ABSORPTION,                // the height at which the most absorption happens
+//        ABSORPTION_FALLOFF,                // how fast the absorption falls off from the absorption height
+//        PRIMARY_STEPS,                     // steps in the ray direction
+//        LIGHT_STEPS                     // steps in the light direction
+//    );
+//
+//    // apply exposure, removing this makes the brighter colors look ugly
+//    // you can play around with removing this
+//    atmos_color = 1.0 - exp(-atmos_color);
+//
+//
+//    // Output to screen
+//    //out_color = vec4(col, 1.0);
+//    out_color.xyz = scene.xyz + atmos_color;
+//    out_color.w = 1.0f;
     
-    // the color of this pixel
-    vec3 col = scene.xyz;
+    ivec3 voxel = ivec3(gl_FragCoord.x, gl_FragCoord.y, 0);
+    imageStore(cubemap_texture, voxel, vec4(1.0f, 0.0f, 0.0f, 1.0f));
     
-    // get the atmosphere color
-//    vec3 atmos_color = vec3(0.0f);
-    vec3 atmos_color = calculate_scattering(
-        camera_position,                // the position of the camera
-        camera_vector.xyz,                     // the camera vector (ray direction of this pixel)
-        scene.w,                         // max dist, essentially the scene depth
-        scene.xyz,                        // scene color, the color of the current pixel being rendered
-        atmosphere_state.light_direction.xyz,                        // light direction
-        vec3(40.0f),                        // light intensity, 40 looks nice
-        atmosphere_state.planet_position.xyz,                        // position of the planet
-        atmosphere_state.planet_radius,                  // radius of the planet in meters
-        ATMOS_RADIUS,                   // radius of the atmosphere in meters
-        atmosphere_state.ray_beta.xyz,                        // Rayleigh scattering coefficient
-        atmosphere_state.mie_beta.xyz,                       // Mie scattering coefficient
-        atmosphere_state.absorption_beta.xyz,                // Absorbtion coefficient
-        atmosphere_state.ambient_beta.xyz,                    // ambient scattering, turned off for now. This causes the air to glow a bit when no light reaches it
-        atmosphere_state.g,                              // Mie preferred scattering direction
-        HEIGHT_RAY,                     // Rayleigh scale height
-        HEIGHT_MIE,                     // Mie scale height
-        HEIGHT_ABSORPTION,                // the height at which the most absorption happens
-        ABSORPTION_FALLOFF,                // how fast the absorption falls off from the absorption height
-        PRIMARY_STEPS,                     // steps in the ray direction
-        LIGHT_STEPS                     // steps in the light direction
-    );
-
-    // apply exposure, removing this makes the brighter colors look ugly
-    // you can play around with removing this
-    atmos_color = 1.0 - exp(-atmos_color);
-    
-
-    // Output to screen
-    //out_color = vec4(col, 1.0);
-    out_color.xyz = scene.xyz + atmos_color;
-    out_color.w = 1.0f;
     //out_color = vec4(1.0f, .0f, .0f, 1.0f);
 }

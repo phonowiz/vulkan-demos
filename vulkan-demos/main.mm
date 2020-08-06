@@ -541,19 +541,20 @@ void create_graph()
     
     pbr_node->set_name("pbr node");
     //pbr_node->set_active(false);
+    eastl::shared_ptr<atmospheric<4>> atmos_node = eastl::make_shared<atmospheric<4>>(app.device, app.swapchain);
+    atmos_node->set_name("atmospheric");
     
-    eastl::shared_ptr<fxaa<4>> fast_approximate_aa = eastl::make_shared<fxaa<4>>(app.device, app.swapchain,"atmospheric");
-    mrt_node->add_child(*pbr_node);
+    eastl::shared_ptr<fxaa<4>> fast_approximate_aa = eastl::make_shared<fxaa<4>>(app.device, app.swapchain,"final_render");
+    
+    atmos_node->add_child(*pbr_node);
+    mrt_node->add_child(*atmos_node);
     
     fast_approximate_aa->set_name("fxaa");
     
     eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "normals");
     //eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "model_albedo", vk::texture_2d::get_class_type());
     
-    eastl::shared_ptr<atmospheric<4>> atmos_node = eastl::make_shared<atmospheric<4>>(app.device, app.swapchain);
-    
-    atmos_node->add_child(*mrt_node);
-    fast_approximate_aa->add_child(*atmos_node);
+    fast_approximate_aa->add_child(*mrt_node);
     fast_approximate_aa->set_active(true);
     
     pbr_debug->add_child(*fast_approximate_aa);

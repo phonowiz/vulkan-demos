@@ -67,7 +67,7 @@ namespace vk
             return _channels;
         }
         
-        void set_dimensions(uint32_t width, uint32_t height, uint32_t depth = 1)
+        virtual void set_dimensions(uint32_t width, uint32_t height, uint32_t depth = 1)
         {
             _width = width;
             _height = height;

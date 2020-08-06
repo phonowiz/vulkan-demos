@@ -67,6 +67,8 @@ layout(binding = 17) uniform sampler3D voxel_normals5;
 //variance shadow map
 layout(binding = 18) uniform sampler2D vsm;
 
+layout(binding = 19) uniform samplerCube environment;
+
 
 
 //note: these are tied to enum class in deferred_renderer class, if these change, make sure

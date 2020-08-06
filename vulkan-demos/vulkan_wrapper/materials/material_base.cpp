@@ -62,7 +62,7 @@ void material_base::create_descriptor_sets()
         {
           for( eastl::pair<const char*, shader_parameter>& pair2 : pair.second)
           {
-              assert( pair2.second.get_image()->get_image_view() != VK_NULL_HANDLE && "this image has not been initialized");
+              EA_ASSERT_FORMATTED( pair2.second.get_image()->get_image_view() != VK_NULL_HANDLE, ("Image parameter '%s' has not been initialized", pair2.first));
               descriptor_image_infos[count].sampler = pair2.second.get_image()->get_sampler();
               descriptor_image_infos[count].imageView = pair2.second.get_image()->get_image_view();
               
@@ -86,14 +86,14 @@ void material_base::create_descriptor_sets()
               
               ++count;
               
-              assert( count < BINDING_MAX);
+              EA_ASSERT( count < BINDING_MAX);
           }
         }
 
         for (eastl::pair<parameter_stage , resource::buffer_info >& pair : _uniform_buffers)
         {
-          assert(usage_type::INVALID != pair.second.usage_type);
-          assert(usage_type::UNIFORM_BUFFER == pair.second.usage_type);
+          EA_ASSERT(usage_type::INVALID != pair.second.usage_type);
+          EA_ASSERT(usage_type::UNIFORM_BUFFER == pair.second.usage_type);
           
           descriptor_buffer_infos[count].buffer = pair.second.uniform_buffer;
           descriptor_buffer_infos[count].offset = 0;
@@ -112,13 +112,13 @@ void material_base::create_descriptor_sets()
           write_descriptor_sets[count].pTexelBufferView = nullptr;
           
           ++count;
-          assert( count < BINDING_MAX);
+          EA_ASSERT( count < BINDING_MAX);
         }
 
         for (eastl::pair<parameter_stage , material_base::dynamic_buffer_info >& pair : _uniform_dynamic_buffers)
         {
-          assert(usage_type::INVALID != pair.second.usage_type);
-          assert(usage_type::DYNAMIC_UNIFORM_BUFFER == pair.second.usage_type);
+          EA_ASSERT(usage_type::INVALID != pair.second.usage_type);
+          EA_ASSERT(usage_type::DYNAMIC_UNIFORM_BUFFER == pair.second.usage_type);
           
           descriptor_buffer_infos[count].buffer = pair.second.uniform_buffer;
           descriptor_buffer_infos[count].offset = 0;
@@ -137,7 +137,7 @@ void material_base::create_descriptor_sets()
           write_descriptor_sets[count].pTexelBufferView = nullptr;
           
           ++count;
-          assert( count < BINDING_MAX);
+          EA_ASSERT( count < BINDING_MAX);
         }
 
         vkUpdateDescriptorSets(_device->_logical_device, count, write_descriptor_sets.data(), 0, nullptr);
@@ -159,7 +159,7 @@ void material_base::create_descriptor_pool()
             descriptor_pool_sizes[count].descriptorCount = 1;
             _samplers_added_on_init++;
             ++count;
-            assert(count < BINDING_MAX);
+            EA_ASSERT(count < BINDING_MAX);
         }
     }
     
@@ -169,7 +169,7 @@ void material_base::create_descriptor_pool()
         descriptor_pool_sizes[count].descriptorCount = 1;
         
         ++count;
-        assert(count < BINDING_MAX);
+        EA_ASSERT(count < BINDING_MAX);
     }
     
     for( eastl::pair<parameter_stage, dynamic_buffer_info >& pair : _uniform_dynamic_buffers)
@@ -214,7 +214,7 @@ void material_base::create_descriptor_set_layout()
             _descriptor_set_layout_bindings[count].pImmutableSamplers = nullptr;
             
             ++count;
-            assert(BINDING_MAX > count);
+            EA_ASSERT(BINDING_MAX > count);
         }
     }
     
@@ -226,7 +226,7 @@ void material_base::create_descriptor_set_layout()
         _descriptor_set_layout_bindings[count].stageFlags = static_cast<VkShaderStageFlagBits>(pair.first);
         _descriptor_set_layout_bindings[count].pImmutableSamplers = nullptr;
         ++count;
-        assert(BINDING_MAX > count);
+        EA_ASSERT(BINDING_MAX > count);
     }
     
     for( eastl::pair<parameter_stage, dynamic_buffer_info > &pair : _uniform_dynamic_buffers )
@@ -237,7 +237,7 @@ void material_base::create_descriptor_set_layout()
         _descriptor_set_layout_bindings[count].stageFlags = static_cast<VkShaderStageFlagBits>(pair.first);
         _descriptor_set_layout_bindings[count].pImmutableSamplers = nullptr;
         ++count;
-        assert(BINDING_MAX > count);
+        EA_ASSERT(BINDING_MAX > count);
     }
     
     VkDescriptorSetLayoutCreateInfo descriptor_set_layout_create_info = {};
@@ -310,7 +310,7 @@ void material_base::init_shader_parameters()
         
         if(total_size != 0)
         {
-            assert(mem.device_memory == VK_NULL_HANDLE && mem.uniform_buffer == VK_NULL_HANDLE && "this material has already been initialized");
+            EA_ASSERT(mem.device_memory == VK_NULL_HANDLE && mem.uniform_buffer == VK_NULL_HANDLE && "this material has already been initialized");
             create_buffer(_device->_logical_device, _device->_physical_device, total_size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, mem.uniform_buffer,
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, mem.device_memory);
         }
@@ -331,7 +331,7 @@ void material_base::init_shader_parameters()
             shader_parameter setting = pair.second;
             total_size += setting.get_max_std140_aligned_size_in_bytes();
         }
-        assert(total_size != 0);
+        EA_ASSERT(total_size != 0);
         total_size = get_ubo_alignment(total_size);
         mem.parameters_size = total_size;
         total_size *= obj_group.size() ;
@@ -341,7 +341,7 @@ void material_base::init_shader_parameters()
         
         if(total_size != 0)
         {
-            assert(mem.device_memory == VK_NULL_HANDLE && mem.uniform_buffer == VK_NULL_HANDLE);
+            EA_ASSERT(mem.device_memory == VK_NULL_HANDLE && mem.uniform_buffer == VK_NULL_HANDLE);
             create_buffer(_device->_logical_device, _device->_physical_device, total_size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, mem.uniform_buffer,
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT, mem.device_memory);
         }
@@ -391,14 +391,14 @@ void material_base::commit_dynamic_parameters_to_gpu()
 {
     //todo: we should implement this so that only those objects that have updated get updated, not the whole list of them
     
-    assert(_uniform_dynamic_parameters.size() == 0 || _uniform_dynamic_parameters.size() == 1 && "only support 1 dynamic uniform buffer");
+    EA_ASSERT(_uniform_dynamic_parameters.size() == 0 || _uniform_dynamic_parameters.size() == 1 && "only support 1 dynamic uniform buffer");
     for(eastl::pair<parameter_stage, object_shader_params_group>& pair : _uniform_dynamic_parameters)
     {
         uint32_t uniform_parameters_count = 0;
         uint32_t prev_obj_parameters_count = 0;
         dynamic_buffer_info& mem = _uniform_dynamic_buffers[pair.first];
         
-        assert(mem.device_memory != VK_NULL_HANDLE);
+        EA_ASSERT(mem.device_memory != VK_NULL_HANDLE);
         
         void* data = nullptr;
         //todo: avoid mapping every time this function gets called
@@ -417,10 +417,10 @@ void material_base::commit_dynamic_parameters_to_gpu()
             {
                 data = pair.second.write_to_buffer(data, mem_size);
                 uniform_parameters_count++;
-                assert(mem_size >= 0);
+                EA_ASSERT(mem_size >= 0);
             }
             
-            assert(prev_obj_parameters_count == 0 || prev_obj_parameters_count == uniform_parameters_count && "not all objects have the same amount of dynamic parameters...");
+            EA_ASSERT(prev_obj_parameters_count == 0 || prev_obj_parameters_count == uniform_parameters_count && "not all objects have the same amount of dynamic parameters...");
             prev_obj_parameters_count = uniform_parameters_count;
             uniform_parameters_count = 0;
             start += get_dynamic_ubo_stride();
@@ -478,7 +478,7 @@ void material_base::commit_parameters_to_gpu( )
     
     commit_dynamic_parameters_to_gpu();
 
-    assert(uniform_parameters_count == _uniform_parameters_added_on_init &&
+    EA_ASSERT(uniform_parameters_count == _uniform_parameters_added_on_init &&
            " you've added more uniform parameters after initialization of material, please check code");
 }
 

@@ -105,6 +105,12 @@ namespace vk
         {
             _material[0]->add_input_attachment(texture, parameter_name, attachment_id, parameter_stage, binding);
         }
+
+        inline void set_image_sampler(texture_cube& texture, const char* parameter_name,
+                                      parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
+        {
+            _material[0]->set_image_sampler(&texture, parameter_name, parameter_stage, binding, usage);
+        }
         
         inline void set_image_sampler(texture_3d& texture, const char* parameter_name,
                                       parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)

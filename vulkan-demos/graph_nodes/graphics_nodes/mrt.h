@@ -91,6 +91,7 @@ public:
         vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_read_depth_texture_set("depth", this, vk::usage_type::INPUT_ATTACHMENT);
         
         vk::resource_set<vk::render_texture>& final_render =  _tex_registry->get_write_render_texture_set("final_render",this);
+        vk::resource_set<vk::texture_cube>& environment = _tex_registry->get_read_texture_cube_set("atmospheric", this);
         
         final_render.set_filter(vk::image::filter::LINEAR);
         final_render.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
@@ -166,6 +167,7 @@ public:
         }
         
         composite.set_image_sampler(vsm_set, "vsm", vk::parameter_stage::FRAGMENT, binding_index + offset, vk::usage_type::COMBINED_IMAGE_SAMPLER );
+        composite.set_image_sampler(environment, "environment", vk::parameter_stage::FRAGMENT, binding_index + offset + 1, vk::usage_type::COMBINED_IMAGE_SAMPLER );
     }
     
     virtual void update_node(vk::camera& camera, uint32_t image_id) override

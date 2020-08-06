@@ -94,7 +94,6 @@ namespace vk
             _enable_mipmapping = b;
         }
         
-        
         static const eastl::fixed_string<char, 250> texture_resource_path;
         
     protected:

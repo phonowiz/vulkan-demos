@@ -16,6 +16,7 @@
 #include "ordered_map.h"
 #include "texture_2d.h"
 #include "texture_3d.h"
+#include "texture_cube.h"
 #include "depth_texture.h"
 #include "glfw_present_texture.h"
 #include "command_recorder.h"
@@ -83,6 +84,7 @@ namespace vk
             return _node_dependees_map[static_cast<vk::object*>(dependant_node)];
         }
         
+        //TODO: TEMPLATES??
         inline resource_set<depth_texture>& get_read_depth_texture_set( const char* name, node_type* node, vk::usage_type usage_type)
         {
             eastl::shared_ptr< resource_set<depth_texture>> tex =  get_read_texture<resource_set<depth_texture>>(name, node, usage_type);
@@ -116,12 +118,30 @@ namespace vk
             return *tex;
         }
         
+        inline resource_set<texture_cube>& get_read_texture_cube_set( const char* name, node_type* node)
+        {
+            eastl::shared_ptr< resource_set<texture_cube>> tex =  get_read_texture<resource_set<texture_cube>>(name, node, vk::usage_type::STORAGE_IMAGE);
+            EA_ASSERT_FORMATTED(tex != nullptr, (" Invalid graph, texture %s which this node depends on has not been found", name));
+            
+            return *tex;
+        }
+        
+
+        inline resource_set<texture_cube>& get_write_texture_cube_set( const char* name, node_type* node )
+        {
+            resource_set<texture_cube>& result = get_write_texture<resource_set<texture_cube>>(name, node, vk::usage_type::STORAGE_IMAGE);
+            result.set_name(name);
+            
+            return result;
+        }
+        
+        
         inline resource_set<texture_2d>& get_write_texture_2d_set( const char* name, node_type* node, vk::usage_type usage_type )
         {
             resource_set<texture_2d>& result = get_write_texture<resource_set<texture_2d>>(name, node, usage_type);
             result.set_name(name);
             
-            return get_write_texture<resource_set<texture_2d>>(name, node, usage_type);
+            return result;
         }
         
         inline resource_set<depth_texture>& get_write_depth_texture_set( const char* name, node_type* node, vk::usage_type usage_type)

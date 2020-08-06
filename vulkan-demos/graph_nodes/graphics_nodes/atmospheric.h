@@ -12,7 +12,7 @@
 #include "texture_cube.h"
 
 
-static const uint32_t ATMOSPHERIC_ATTACHMENTS = 6;
+static const uint32_t ATMOSPHERIC_ATTACHMENTS = 4;
 
 template< uint32_t NUM_CHILDREN>
 class atmospheric : public vk::graphics_node<ATMOSPHERIC_ATTACHMENTS, NUM_CHILDREN>
@@ -21,6 +21,7 @@ private:
     vk::screen_plane _screen_plane;
     vk::glfw_swapchain* _swapchain = nullptr;
     
+    static constexpr  uint32_t ENVIRONMENT_DIMENSIONS = 256;
     float _planet_radius = 6371e3f;
     glm::vec4 _sun_position = glm::vec4(0.0f, _planet_radius, 0.0f, 0.0f);
 public:
@@ -45,7 +46,8 @@ public:
     atmospheric(vk::device* dev, vk::glfw_swapchain* swapchain):
     parent_type(dev,swapchain->get_vk_swap_extent().width ,swapchain->get_vk_swap_extent().height),
     _screen_plane(dev), _swapchain(swapchain)
-    {}
+    {
+    }
     
     virtual void init_node() override
     {
@@ -59,55 +61,53 @@ public:
         
         subpass_type& atmospheric_subpass = pass.add_subpass(_mat_store, "atmospheric");
         
-        vk::resource_set<vk::render_texture>& final_render =  _tex_registry->get_read_render_texture_set("final_render", this, vk::usage_type::INPUT_ATTACHMENT);
         vk::resource_set<vk::depth_texture>& depth =  _tex_registry->get_read_depth_texture_set("depth", this, vk::usage_type::INPUT_ATTACHMENT);
         vk::resource_set<vk::render_texture>& normals  = _tex_registry->get_read_render_texture_set("normals", this, vk::usage_type::INPUT_ATTACHMENT);
         vk::resource_set<vk::render_texture>& positions  = _tex_registry->get_read_render_texture_set("positions", this, vk::usage_type::INPUT_ATTACHMENT);
         vk::resource_set<vk::render_texture>& albedos  = _tex_registry->get_read_render_texture_set("albedos", this, vk::usage_type::INPUT_ATTACHMENT);
         
-        //TODO: there are textures that already fit the properties of "atmospheric_render", we shoudn't have to create a new one.
-        //TODO: internally there should be a way to capture this the way EA does it ( they analyze the graph and then create resources, we skip the analysing part).
-        vk::resource_set<vk::render_texture>& atmospheric = _tex_registry->get_write_render_texture_set("atmospheric", this);
+        vk::resource_set<vk::texture_cube>& atmospheric = _tex_registry->get_write_texture_cube_set("atmospheric", this);
 
         atmospheric.set_filter(vk::image::filter::NEAREST);
         atmospheric.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
+        atmospheric.set_dimensions(ENVIRONMENT_DIMENSIONS, ENVIRONMENT_DIMENSIONS);
+        
+        atmospheric.init();
         
         vk::attachment_group<ATMOSPHERIC_ATTACHMENTS>& atmospheric_grp = pass.get_attachment_group();
        
-        atmospheric_grp.add_attachment( atmospheric, glm::vec4(0.0f));
-        atmospheric_grp.add_attachment( final_render, glm::vec4(0.0f), false, true);
         atmospheric_grp.add_attachment( normals, glm::vec4(0), false, true);
         atmospheric_grp.add_attachment( depth, glm::vec4(0), false, true);
         atmospheric_grp.add_attachment( positions, glm::vec4(0), false, true);
         atmospheric_grp.add_attachment( albedos, glm::vec4(0), false, true);
         
-        atmospheric_subpass.add_input_attachment("final_render", "final_render", vk::parameter_stage::FRAGMENT, 0);
-        atmospheric_subpass.add_input_attachment("nomrals", "normals",vk::parameter_stage::FRAGMENT, 2);
-        atmospheric_subpass.add_input_attachment("depth", "depth",vk::parameter_stage::FRAGMENT, 3);
-        atmospheric_subpass.add_input_attachment("positions", "positions",vk::parameter_stage::FRAGMENT, 4);
-        atmospheric_subpass.add_input_attachment("albedos", "albedos",vk::parameter_stage::FRAGMENT, 5);
+        atmospheric_subpass.add_input_attachment("nomrals", "normals",vk::parameter_stage::FRAGMENT, 0);
+        atmospheric_subpass.add_input_attachment("depth", "depth",vk::parameter_stage::FRAGMENT, 1);
+        atmospheric_subpass.add_input_attachment("positions", "positions",vk::parameter_stage::FRAGMENT, 2);
+        atmospheric_subpass.add_input_attachment("albedos", "albedos",vk::parameter_stage::FRAGMENT, 3);
         
-        atmospheric_subpass.add_output_attachment("atmospheric");
+        atmospheric_subpass.set_image_sampler(atmospheric, "cubemap_texture", vk::parameter_stage::FRAGMENT, 4,
+                                              vk::usage_type::STORAGE_IMAGE);
         
-        atmospheric_subpass.init_parameter("inverse_proj", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 1);
-        atmospheric_subpass.init_parameter("inverse_view", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 1);
-        atmospheric_subpass.init_parameter("ray_beta", vk::parameter_stage::FRAGMENT, glm::vec4(5.5e-6f, 13.0e-6f, 22.4e-6f, 0.0f), 1);
-        atmospheric_subpass.init_parameter("mie_beta", vk::parameter_stage::FRAGMENT, glm::vec4(21e-6f), 1);
-        atmospheric_subpass.init_parameter("ambient_beta", vk::parameter_stage::FRAGMENT, glm::vec3(0.0f), 1);
-        atmospheric_subpass.init_parameter("absorption_beta", vk::parameter_stage::FRAGMENT, glm::vec4(2.04e-5f, 4.97e-5f, 1.95e-6f, 0.0f), 1);
+        atmospheric_subpass.init_parameter("inverse_proj", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
+        atmospheric_subpass.init_parameter("inverse_view", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
+        atmospheric_subpass.init_parameter("ray_beta", vk::parameter_stage::FRAGMENT, glm::vec4(5.5e-6f, 13.0e-6f, 22.4e-6f, 0.0f), 5);
+        atmospheric_subpass.init_parameter("mie_beta", vk::parameter_stage::FRAGMENT, glm::vec4(21e-6f), 5);
+        atmospheric_subpass.init_parameter("ambient_beta", vk::parameter_stage::FRAGMENT, glm::vec3(0.0f), 5);
+        atmospheric_subpass.init_parameter("absorption_beta", vk::parameter_stage::FRAGMENT, glm::vec4(2.04e-5f, 4.97e-5f, 1.95e-6f, 0.0f), 5);
         
         glm::vec4 planet_pos = glm::vec4(0.0f, -_planet_radius, 0.0f, 0.0f);
-        atmospheric_subpass.init_parameter("planet_position", vk::parameter_stage::FRAGMENT, planet_pos, 1);
+        atmospheric_subpass.init_parameter("planet_position", vk::parameter_stage::FRAGMENT, planet_pos, 5);
         
-        atmospheric_subpass.init_parameter("light_direction", vk::parameter_stage::FRAGMENT, glm::vec4(0.0f), 1);
-        atmospheric_subpass.init_parameter("look_at_dir", vk::parameter_stage::FRAGMENT, glm::vec4(0.0f), 1);
-        atmospheric_subpass.init_parameter("cam_position", vk::parameter_stage::FRAGMENT, glm::vec4(0.0f), 1);
+        atmospheric_subpass.init_parameter("light_direction", vk::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+        atmospheric_subpass.init_parameter("look_at_dir", vk::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+        atmospheric_subpass.init_parameter("cam_position", vk::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
         atmospheric_subpass.init_parameter("screen_size", vk::parameter_stage::FRAGMENT, glm::vec2(_swapchain->get_vk_swap_extent().width,
-                                                                                                   _swapchain->get_vk_swap_extent().height), 1);
-        atmospheric_subpass.init_parameter("planet_radius", vk::parameter_stage::FRAGMENT, _planet_radius, 1);
-        atmospheric_subpass.init_parameter("g", vk::parameter_stage::FRAGMENT, .7f, 1);
-        atmospheric_subpass.init_parameter("view_steps", vk::parameter_stage::FRAGMENT, 64.0f, 1);
-        atmospheric_subpass.init_parameter("light_steps", vk::parameter_stage::FRAGMENT, 4.f, 1);
+                                                                                                   _swapchain->get_vk_swap_extent().height), 5);
+        atmospheric_subpass.init_parameter("planet_radius", vk::parameter_stage::FRAGMENT, _planet_radius, 5);
+        atmospheric_subpass.init_parameter("g", vk::parameter_stage::FRAGMENT, .7f, 5);
+        atmospheric_subpass.init_parameter("view_steps", vk::parameter_stage::FRAGMENT, 64.0f, 5);
+        atmospheric_subpass.init_parameter("light_steps", vk::parameter_stage::FRAGMENT, 4.f, 5);
         
         atmospheric.init();
         pass.add_object(static_cast<vk::obj_shape*>(&_screen_plane));

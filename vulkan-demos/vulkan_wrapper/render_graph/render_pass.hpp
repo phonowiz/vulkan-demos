@@ -189,7 +189,7 @@ template<uint32_t NUM_ATTACHMENTS>
  {
      eastl::array<VkImageView, MAX_NUMBER_OF_ATTACHMENTS> attachment_views {};
      
-     assert(_attachment_group.size() < MAX_NUMBER_OF_ATTACHMENTS);
+     EA_ASSERT(_attachment_group.size() < MAX_NUMBER_OF_ATTACHMENTS);
      uint32_t num_views = 0;
      
      //add all num views for this swapchain id
@@ -198,14 +198,14 @@ template<uint32_t NUM_ATTACHMENTS>
          if(_attachment_group[i][0]->get_instance_type() == depth_texture::get_class_type() && is_depth_enabled())
          {
              resource_set<image*>& depths =  get_depth_textures();
-             assert(depths[swapchain_id]->_image_view != VK_NULL_HANDLE);
+             EA_ASSERT(depths[swapchain_id]->_image_view != VK_NULL_HANDLE);
              attachment_views[num_views++]  = depths[swapchain_id]->_image_view;
          }
          else
          {
-             assert(_attachment_group[i][swapchain_id]->is_initialized());
-             assert(_attachment_group[i][swapchain_id] != nullptr);
-             assert(_attachment_group[i][swapchain_id]->_image_view != VK_NULL_HANDLE && "did you initialize this image?");
+             EA_ASSERT(_attachment_group[i][swapchain_id]->is_initialized());
+             EA_ASSERT(_attachment_group[i][swapchain_id] != nullptr);
+             EA_ASSERT(_attachment_group[i][swapchain_id]->_image_view != VK_NULL_HANDLE && "did you initialize this image?");
              attachment_views[num_views++] = _attachment_group[i][swapchain_id]->_image_view;
          }
      }
@@ -213,7 +213,7 @@ template<uint32_t NUM_ATTACHMENTS>
      VkFramebufferCreateInfo framebuffer_create_info {};
      framebuffer_create_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
      framebuffer_create_info.pNext = nullptr;
-     framebuffer_create_info.flags = 0;
+     framebuffer_create_info.flags = num_views == 0 ? VK_FRAMEBUFFER_CREATE_IMAGELESS_BIT : 0;
      framebuffer_create_info.renderPass = _vk_render_passes[swapchain_id];
      framebuffer_create_info.attachmentCount = num_views;
      framebuffer_create_info.pAttachments = attachment_views.data();

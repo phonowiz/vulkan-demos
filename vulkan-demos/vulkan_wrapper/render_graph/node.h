@@ -323,7 +323,7 @@ namespace  vk
                 else
                 {
                     //this is a resource set...
-                    
+                    //TODO: maybe we can use templates here...
                     if(res->get_instance_type()  == resource_set<vk::texture_2d>::get_class_type())
                     {
                         eastl::shared_ptr< resource_set<vk::texture_2d> > set = eastl::static_pointer_cast< resource_set<vk::texture_2d>>(res);
@@ -347,6 +347,13 @@ namespace  vk
                     else if(res->get_instance_type()  == resource_set<vk::render_texture>::get_class_type())
                     {
                         eastl::shared_ptr< resource_set<vk::render_texture> > set = eastl::static_pointer_cast< resource_set<vk::render_texture>>(res);
+                        vk::image* tex = &((*set)[image_id]);
+                        
+                        create_barrier(buffer, tex, b, image_id );
+                    }
+                    else if(res->get_instance_type()  == resource_set<vk::texture_cube>::get_class_type())
+                    {
+                        eastl::shared_ptr< resource_set<vk::texture_cube> > set = eastl::static_pointer_cast< resource_set<vk::texture_cube>>(res);
                         vk::image* tex = &((*set)[image_id]);
                         
                         create_barrier(buffer, tex, b, image_id );

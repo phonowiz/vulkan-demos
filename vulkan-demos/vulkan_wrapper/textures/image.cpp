@@ -39,7 +39,7 @@ void image::create_image(  VkFormat format, VkImageTiling tiling,
     VkImageCreateInfo image_create_info = get_image_create_info(format, tiling, usage_flags);
     
     //the following assignment depends on this assumption:
-    assert(_device->_present_queue == _device->_graphics_queue);
+    EA_ASSERT_MSG(_device->_present_queue == _device->_graphics_queue, "We don't support multiple queues at the moment");
     image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     
     uint32_t graphics_fam_index = _device->_queue_family_indices.graphics_family.value();

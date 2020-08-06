@@ -14,6 +14,7 @@
 #include "texture_2d.h"
 #include "texture_3d.h"
 #include "texture_2d_array.h"
+#include "texture_cube.h"
 #include "glfw_present_texture.h"
 #include "render_texture.h"
 #include "depth_texture.h"
@@ -35,7 +36,7 @@ namespace vk
         static constexpr size_t MAX_UNIFORM_BUFFER_SIZE = 512;
         struct values_array
         {
-            char* memory[MAX_UNIFORM_BUFFER_SIZE];
+            char* memory[MAX_UNIFORM_BUFFER_SIZE] {};
             size_t num_elements = 0;
         };
         
@@ -53,6 +54,7 @@ namespace vk
             SAMPLER_2D,
             SAMPLER_3D,
             SAMPLER_2D_ARRAY,
+            SAMPLER_CUBE,
             SAMPLER_PRESENT_TEXTURE,
             VEC4_ARRAY,
             NONE
@@ -63,16 +65,17 @@ namespace vk
         
         union setting_value
         {
-            glm::vec4 vector4;
-            glm::vec3 vector3;
-            glm::vec2 vector2;
-            float   float_value;
-            int32_t     intValue;
-            uint32_t    uintValue;
-            texture_2d*   sampler2D;
-            texture_3d*   sampler3D;
-            texture_2d_array* sampler_2d_array;
-            glfw_present_texture* sampler_present_tex;
+            glm::vec4       vector4;
+            glm::vec3       vector3;
+            glm::vec2       vector2;
+            float           float_value;
+            int32_t         intValue;
+            uint32_t        uintValue;
+            texture_2d*     sampler2D;
+            texture_3d*     sampler3D;
+            texture_2d_array*       sampler_2d_array;
+            glfw_present_texture*   sampler_present_tex;
+            texture_cube*           sampler_cube;
             
             glm::mat4 mat4;
             bool     boolean;
@@ -104,7 +107,7 @@ namespace vk
         //the size returned here should be big enough ( safe enough) to store whatever bytes we pass it.
         static size_t aligned_size(size_t alignment, size_t bytes)
         {
-            assert((alignment > 0) && (alignment & ~(alignment -1)) && "alignment must be greater than 0 && power of 2");
+            EA_ASSERT_MSG((alignment > 0) && (alignment & ~(alignment -1)), "alignment must be greater than 0 && power of 2");
             return (alignment -1 ) + bytes;
         }
         
@@ -265,30 +268,36 @@ namespace vk
         
         inline glfw_present_texture* get_present_texture()
         {
-            assert(type == Type::SAMPLER_PRESENT_TEXTURE);
+            EA_ASSERT(type == Type::SAMPLER_PRESENT_TEXTURE);
             return value.sampler_present_tex;
         }
         inline texture_2d* get_texture_2d()
         {
-            assert(type == Type::SAMPLER_2D);
+            EA_ASSERT(type == Type::SAMPLER_2D);
             return value.sampler2D;
         }
         
         inline texture_3d* get_texture_3d()
         {
-            assert(type == Type::SAMPLER_3D);
+            EA_ASSERT(type == Type::SAMPLER_3D);
             return value.sampler3D;
         }
         inline texture_2d_array* get_texture_2d_array()
         {
-            assert(type == Type::SAMPLER_2D_ARRAY);
+            EA_ASSERT(type == Type::SAMPLER_2D_ARRAY);
             return value.sampler_2d_array;
+        }
+        
+        inline texture_cube* get_texture_cube()
+        {
+            EA_ASSERT(type == Type::SAMPLER_CUBE);
+            return value.sampler_cube;
         }
         
         inline image* get_image()
         {
-            assert(type == Type::SAMPLER_2D || type == Type::SAMPLER_3D || type == Type::SAMPLER_2D_ARRAY
-                   || type == Type::SAMPLER_PRESENT_TEXTURE);
+            EA_ASSERT(type == Type::SAMPLER_2D || type == Type::SAMPLER_3D || type == Type::SAMPLER_2D_ARRAY
+                   || type == Type::SAMPLER_PRESENT_TEXTURE || type == Type::SAMPLER_CUBE);
             
             if(type == Type::SAMPLER_2D)
             {
@@ -303,17 +312,20 @@ namespace vk
             {
                 return static_cast<image*>(value.sampler_present_tex);
             }
-            
+            if(type == Type::SAMPLER_CUBE)
+            {
+                return static_cast<image*>(value.sampler_cube);
+            }
             return static_cast<image*>(value.sampler3D);
         }
         
         inline void set_vectors_array(const glm::vec4* vecs, size_t num_vectors)
         {
-            assert( type == Type::NONE || type == Type::VEC4_ARRAY);
+            EA_ASSERT( type == Type::NONE || type == Type::VEC4_ARRAY);
             type = Type::VEC4_ARRAY;
             value.buffer.num_elements = num_vectors;
             void* data = reinterpret_cast<void*>(value.buffer.memory);
-            assert((value.buffer.num_elements * sizeof(glm::vec4)) < MAX_UNIFORM_BUFFER_SIZE);
+            EA_ASSERT((value.buffer.num_elements * sizeof(glm::vec4)) < MAX_UNIFORM_BUFFER_SIZE);
             std::memcpy(data, &vecs[0], num_vectors * sizeof(glm::vec4));
         }
         
@@ -322,11 +334,11 @@ namespace vk
         {
             //note: as  you can see here int arrays are actually vec4 arrays due to the layout we've chosen for parameters to shaders (std140).
             //If you can avoid int arrays as arguments to shaders, due so.  There is lots of memory that doesn't get used
-            assert( type == Type::NONE || type == Type::VEC4_ARRAY);
+            EA_ASSERT( type == Type::NONE || type == Type::VEC4_ARRAY);
             type = Type::VEC4_ARRAY;
             value.buffer.num_elements = arr.size();
             void* data = reinterpret_cast<void*>(value.buffer.memory);
-            assert((value.buffer.num_elements * sizeof(glm::vec4)) < MAX_UNIFORM_BUFFER_SIZE);
+            EA_ASSERT((value.buffer.num_elements * sizeof(glm::vec4)) < MAX_UNIFORM_BUFFER_SIZE);
             
             char* ptr = reinterpret_cast<char*>(data);
             for(int i = 0; i < MAX_SIZE; ++i)
@@ -408,6 +420,15 @@ namespace vk
             return *this;
         }
         
+        inline shader_parameter& operator=(texture_cube* sampler)
+        {
+            EA_ASSERT_MSG( type == Type::NONE || type == Type::SAMPLER_CUBE, "shader argument type mismatch");
+            type = Type::SAMPLER_CUBE;
+            this->value.sampler_cube = sampler;
+            
+            return *this;
+        }
+        
         inline shader_parameter& operator=(texture_2d_array* sampler)
         {
             EA_ASSERT_MSG( type == Type::NONE || type == Type::SAMPLER_2D_ARRAY, "shader argument type mismatch");
@@ -460,6 +481,11 @@ namespace vk
             {
                 type = Type::SAMPLER_2D;
                 value.sampler2D = static_cast<texture_2d*>( sampler );
+            }
+            else if( sampler->get_instance_type() == texture_cube::get_class_type())
+            {
+                type = Type::SAMPLER_CUBE;
+                value.sampler_cube = static_cast<texture_cube*>(sampler);
             }
             else
             {
@@ -533,6 +559,12 @@ namespace vk
         {
             value.sampler_2d_array = _value;
             type = Type::SAMPLER_2D_ARRAY;
+        }
+
+        shader_parameter(texture_cube* _value)
+        {
+            value.sampler_cube = _value;
+            type = Type::SAMPLER_CUBE;
         }
         
         shader_parameter(glfw_present_texture* _value)
