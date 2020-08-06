@@ -142,7 +142,9 @@ public:
         composite.init_parameter("light_cam_proj_matrix", vk::parameter_stage::FRAGMENT, _light_cam.get_projection_matrix() * _light_cam.view_matrix, 5);
         composite.template init_parameter<MAX_LIGHTS>("light_types", vk::parameter_stage::FRAGMENT, _light_types, 5);
         composite.init_parameter("light_count", vk::parameter_stage::FRAGMENT, ACTIVE_LIGHTS, 5);
-
+        composite.init_parameter("inverse_view_proj", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
+        composite.init_parameter("screen_size", vk::parameter_stage::FRAGMENT,
+                                 glm::vec2(_swapchain->get_vk_swap_extent().width, _swapchain->get_vk_swap_extent().height), 5);
         
         composite.set_image_sampler(voxel_normal_set, "voxel_normals", vk::parameter_stage::FRAGMENT, 6, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         composite.set_image_sampler(voxel_albedo_set, "voxel_albedos", vk::parameter_stage::FRAGMENT, 7, vk::usage_type::COMBINED_IMAGE_SAMPLER);
@@ -188,11 +190,12 @@ public:
         _ortho_camera.up = camera.up;
         _ortho_camera.update_view_matrix();
         
-        display_fragment_params["eye_inverse_view_matrix"] = glm::inverse(camera.view_matrix);
+        display_fragment_params["eye_inverse_view_matrix"] = glm::transpose(camera.view_matrix);
         display_fragment_params["vox_view_projection"] = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
         display_fragment_params["eye_in_world_space"] = camera.position;
 
         display_fragment_params["world_cam_position"] = glm::vec4(camera.position, 1.0f);
+        display_fragment_params["inverse_view_proj"] = glm::transpose(camera.view_matrix) * glm::inverse(camera.get_projection_matrix());
         
         //the first light is the key light, and is also the only contributor to ambient light and shadows
         _world_light_positions[0].x = _light_cam.position.x;

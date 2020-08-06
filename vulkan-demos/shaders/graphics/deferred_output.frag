@@ -43,6 +43,8 @@ layout(binding = 5, std140) uniform _rendering_state
     mat4 light_cam_proj_matrix;
     int  light_types[MAX_LIGHTS];
     int  light_count;
+    mat4 inverse_view_proj;
+    vec2 screen_size;
 
 }rendering_state;
 
@@ -542,9 +544,18 @@ float shadow_factor(vec3 world_position)
     return max(vsm_filter(moments, texture_space.z).x, .15f);
     
 }
+
+vec3 get_camera_vector() {
+
+    vec2 uv = (2.0f * gl_FragCoord.xy / rendering_state.screen_size.xy) -1.0f;
+    vec4 proj = vec4(uv,1.0f,1.0f);
+    
+    vec4 ans = rendering_state.inverse_view_proj * proj;
+    return normalize(vec3(ans.x, ans.y, ans.z));
+}
+
+
 ///////////////////////////////////////////////////
-
-
 void main()
 {
     //note: in a real scenario, you don't want all these branches around, this is purely for
@@ -638,6 +649,13 @@ void main()
                 out_color.xyz = direct.xyz;
                 out_color.w = out_color.x * 0.2126f +  out_color.y * 0.7152f + out_color.z * 0.0722f;
             }
+        }
+        else
+        {
+            vec3 ray = get_camera_vector();
+            
+            out_color = texture(environment, ray);
+            out_color.w = 1.0f;
         }
     }
 }

@@ -556,8 +556,30 @@ void main() {
 //    out_color.xyz = scene.xyz + atmos_color;
 //    out_color.w = 1.0f;
     
-    ivec3 voxel = ivec3(gl_FragCoord.x, gl_FragCoord.y, 0);
+#define TEXTURE_CUBE_MAP_POSITIVE_X    0
+#define TEXTURE_CUBE_MAP_NEGATIVE_X    1
+#define TEXTURE_CUBE_MAP_POSITIVE_Y    2
+#define TEXTURE_CUBE_MAP_NEGATIVE_Y    3
+#define TEXTURE_CUBE_MAP_POSITIVE_Z    4
+#define TEXTURE_CUBE_MAP_NEGATIVE_Z    5
+    
+    ivec3 voxel = ivec3(gl_FragCoord.x, gl_FragCoord.y, TEXTURE_CUBE_MAP_POSITIVE_X);
     imageStore(cubemap_texture, voxel, vec4(1.0f, 0.0f, 0.0f, 1.0f));
+    
+    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_X;
+    imageStore(cubemap_texture, voxel, vec4(0.0f, 1.0f, 0.0f, 1.0f));
+    
+    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Y;
+    imageStore(cubemap_texture, voxel, vec4(0.0f, 0.0f, 1.0f, 1.0f));
+    
+    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Y;
+    imageStore(cubemap_texture, voxel, vec4(0.0f, 1.0f, 1.0f, 1.0f));
+    
+    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Z;
+    imageStore(cubemap_texture, voxel, vec4(1.0f, .0f, 1.0f, 1.0f));
+    
+    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Z;
+    imageStore(cubemap_texture, voxel, vec4(1.0f, 1.0f, 1.0f, 1.0f));
     
     //out_color = vec4(1.0f, .0f, .0f, 1.0f);
 }
