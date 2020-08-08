@@ -36,6 +36,7 @@ namespace vk {
         
         virtual void set_dimensions(uint32_t width, uint32_t height, uint32_t ) override
         {
+            EA_ASSERT_MSG(width == height, "width and height must be equal for cubemaps");
             _width = width;
             _height = height;
             //note: for cube maps, depth must be 6.  Always.

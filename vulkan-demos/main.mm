@@ -541,7 +541,7 @@ void create_graph()
     
     pbr_node->set_name("pbr node");
     //pbr_node->set_active(false);
-    eastl::shared_ptr<atmospheric<4>> atmos_node = eastl::make_shared<atmospheric<4>>(app.device, app.swapchain);
+    eastl::shared_ptr<atmospheric<4>> atmos_node = eastl::make_shared<atmospheric<4>>(app.device);
     atmos_node->set_name("atmospheric");
     
     eastl::shared_ptr<fxaa<4>> fast_approximate_aa = eastl::make_shared<fxaa<4>>(app.device, app.swapchain,"final_render");

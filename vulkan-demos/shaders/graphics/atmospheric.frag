@@ -99,7 +99,13 @@ layout(binding = 4) writeonly restrict uniform imageCube cubemap_texture;
 
 layout(binding =5, std140) uniform _atmospheric_state
 {
-    mat4    inverse_proj;
+    mat4    positive_x;
+    mat4    negative_x;
+    mat4    positive_y;
+    //mat4    negative_y;
+    mat4    positive_z;
+    mat4    negative_z;
+    
     mat4    inverse_view;
     vec4    ray_beta;
     vec4    mie_beta;
@@ -494,13 +500,44 @@ next, we need a way to do something with the scattering function
 to do something with it we need the camera vector (which is the ray direction) of the current pixel
 this function calculates it
 */
-vec3 get_camera_vector() {
+vec3 get_camera_vector(mat4 inverse_proj) {
 
     vec2 uv = (2.0f * gl_FragCoord.xy / atmosphere_state.screen_size.xy) -1;
     vec4 proj = vec4(uv,1.0f,1.0f);
     
-    vec4 ans = atmosphere_state.inverse_proj * proj;
+    vec4 ans = inverse_proj * proj;
     return normalize(vec3(ans.x, ans.y, ans.z));
+}
+
+
+vec3 compute_atmos_color(vec3 camera_vector )
+{
+    vec4 scene = vec4(0.0, 0.0, 0.0, 1e12);
+    
+    scene.xyz = calculate_scattering(
+        atmosphere_state.cam_position.xyz,                // the position of the camera
+        camera_vector.xyz,                     // the camera vector (ray direction of this pixel)
+        scene.w,                         // max dist, essentially the scene depth
+        scene.xyz,                        // scene color, the color of the current pixel being rendered
+        atmosphere_state.light_direction.xyz,                        // light direction
+        vec3(40.0f),                        // light intensity, 40 looks nice
+        atmosphere_state.planet_position.xyz,                        // position of the planet
+        atmosphere_state.planet_radius,                  // radius of the planet in meters
+        ATMOS_RADIUS,                   // radius of the atmosphere in meters
+        atmosphere_state.ray_beta.xyz,                        // Rayleigh scattering coefficient
+        atmosphere_state.mie_beta.xyz,                       // Mie scattering coefficient
+        atmosphere_state.absorption_beta.xyz,                // Absorbtion coefficient
+        atmosphere_state.ambient_beta.xyz,                    // ambient scattering, turned off for now. This causes the air to glow a bit when no light reaches it
+        atmosphere_state.g,                              // Mie preferred scattering direction
+        HEIGHT_RAY,                     // Rayleigh scale height
+        HEIGHT_MIE,                     // Mie scale height
+        HEIGHT_ABSORPTION,                // the height at which the most absorption happens
+        ABSORPTION_FALLOFF,                // how fast the absorption falls off from the absorption height
+        PRIMARY_STEPS,                     // steps in the ray direction
+        LIGHT_STEPS                     // steps in the light direction
+    );
+    
+    return scene.xyz;
 }
 
 /*
@@ -563,23 +600,65 @@ void main() {
 #define TEXTURE_CUBE_MAP_POSITIVE_Z    4
 #define TEXTURE_CUBE_MAP_NEGATIVE_Z    5
     
-    ivec3 voxel = ivec3(gl_FragCoord.x, gl_FragCoord.y, TEXTURE_CUBE_MAP_POSITIVE_X);
-    imageStore(cubemap_texture, voxel, vec4(1.0f, 0.0f, 0.0f, 1.0f));
+    ivec3 voxel = ivec3(gl_FragCoord.x, gl_FragCoord.y, 0);
+    vec4 color = vec4(0);
+    color.w = 1.0f;
     
-    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_X;
-    imageStore(cubemap_texture, voxel, vec4(0.0f, 1.0f, 0.0f, 1.0f));
+    vec3 cam_vector = get_camera_vector(atmosphere_state.positive_x);
+    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_X;
+    //cam_vector.y = cam_vector.y;
+    //color.xyz = compute_atmos_color(cam_vector);
+    vec2 uv = (2.0f * gl_FragCoord.xy / atmosphere_state.screen_size.xy) -1;
+    vec4 proj = vec4(uv.xy,1.0f, 1.0f);
     
-    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Y;
-    imageStore(cubemap_texture, voxel, vec4(0.0f, 0.0f, 1.0f, 1.0f));
+    proj = atmosphere_state.positive_x * proj;
+    //color.xyz = vec3(proj.z, 0.0f, 0.0f);//vec3(proj.xyz, 0.0f);
+    color.xyz = compute_atmos_color(normalize(proj).xyz);
+    imageStore(cubemap_texture, voxel, color);
     
-    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Y;
-    imageStore(cubemap_texture, voxel, vec4(0.0f, 1.0f, 1.0f, 1.0f));
     
-    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Z;
-    imageStore(cubemap_texture, voxel, vec4(1.0f, .0f, 1.0f, 1.0f));
+    out_color = color;
+//    //voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_X;
+//    //imageStore(cubemap_texture, voxel, vec4(0.0f, 1.0f, 0.0f, 1.0f));
+//    cam_vector.xyz = get_camera_vector(atmosphere_state.negative_x);
+//    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_X;
+//    color.xyz = compute_atmos_color(cam_vector);
+//    imageStore(cubemap_texture, voxel, color);
+//
+//
+//    //voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Y;
+//    //imageStore(cubemap_texture, voxel, vec4(0.0f, 0.0f, 1.0f, 1.0f));
+//    cam_vector.xyz = get_camera_vector(atmosphere_state.positive_y);
+//    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Y;
+//    color.xyz = compute_atmos_color(cam_vector);
+//    imageStore(cubemap_texture, voxel, color);
+//
+//
+////    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Y;
+////    imageStore(cubemap_texture, voxel, vec4(0.0f, 1.0f, 1.0f, 1.0f));
+//    cam_vector.xyz = get_camera_vector(atmosphere_state.negative_y);
+//    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Y;
+//    color.xyz = compute_atmos_color(cam_vector);
+//    imageStore(cubemap_texture, voxel, color);
+//
+//
+//
+////    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Z;
+////    imageStore(cubemap_texture, voxel, vec4(1.0f, .0f, 1.0f, 1.0f));
+//    cam_vector.xyz = get_camera_vector(atmosphere_state.positive_z);
+//    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Z;
+//    color.xyz = compute_atmos_color(cam_vector);
+//    imageStore(cubemap_texture, voxel, color);
+
     
-    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Z;
-    imageStore(cubemap_texture, voxel, vec4(1.0f, 1.0f, 1.0f, 1.0f));
+//    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Z;
+//    imageStore(cubemap_texture, voxel, vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+//    NEGATIVE Z won't contribute anythig...
+//    cam_vector.xyz = get_camera_vector(atmosphere_state.negative_z);
+//    color.xyz = compute_atmos_color(cam_vector);
+//    imageStore(cubemap_texture, voxel, color);
+
     
     //out_color = vec4(1.0f, .0f, .0f, 1.0f);
 }
