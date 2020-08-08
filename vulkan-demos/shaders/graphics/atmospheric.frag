@@ -101,14 +101,14 @@ layout(binding =5, std140) uniform _atmospheric_state
     mat4    positive_z;
     mat4    negative_z;
     
-    mat4    inverse_view;
+    //mat4    inverse_view;
     vec4    ray_beta;
     vec4    mie_beta;
     vec4    ambient_beta;
     vec4    absorption_beta;
     vec4    planet_position;
     vec4    light_direction;
-    vec4    look_at_dir;
+    //vec4    look_at_dir;
     vec4    cam_position;
     vec2    screen_size;
     float   planet_radius;

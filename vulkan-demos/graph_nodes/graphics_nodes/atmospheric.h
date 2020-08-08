@@ -103,7 +103,6 @@ public:
             atmospheric_subpass.init_parameter(_directions[i], vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
         }
         
-        atmospheric_subpass.init_parameter("inverse_view", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
         atmospheric_subpass.init_parameter("ray_beta", vk::parameter_stage::FRAGMENT, glm::vec4(5.5e-6f, 13.0e-6f, 22.4e-6f, 0.0f), 5);
         atmospheric_subpass.init_parameter("mie_beta", vk::parameter_stage::FRAGMENT, glm::vec4(21e-6f), 5);
         atmospheric_subpass.init_parameter("ambient_beta", vk::parameter_stage::FRAGMENT, glm::vec3(0.0f), 5);
@@ -113,7 +112,7 @@ public:
         atmospheric_subpass.init_parameter("planet_position", vk::parameter_stage::FRAGMENT, planet_pos, 5);
         
         atmospheric_subpass.init_parameter("light_direction", vk::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
-        atmospheric_subpass.init_parameter("look_at_dir", vk::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
+
         atmospheric_subpass.init_parameter("cam_position", vk::parameter_stage::FRAGMENT, glm::vec4(0.0f), 5);
         atmospheric_subpass.init_parameter("screen_size", vk::parameter_stage::FRAGMENT, glm::vec2(ENVIRONMENT_DIMENSIONS, ENVIRONMENT_DIMENSIONS), 5);
         atmospheric_subpass.init_parameter("planet_radius", vk::parameter_stage::FRAGMENT, _planet_radius, 5);
@@ -165,9 +164,7 @@ public:
             atmos_params[ _directions[i] ] =  glm::transpose(atmos_cam.view_matrix);
         }
         
-        atmos_params["inverse_view"] = glm::transpose(camera.view_matrix);
         atmos_params["cam_position"] = glm::vec4(camera.position.x, camera.position.y, camera.position.z, 1.0f);
-        atmos_params["look_at_dir"] = glm::normalize(glm::vec4(camera.forward.x, camera.forward.y, camera.forward.z, 1.0f));
         glm::vec4 dir( _sun_position.x - camera.position.x, _sun_position.y - camera.position.y, _sun_position.z - camera.position.z, 0.0f);
         atmos_params["light_direction"] = glm::normalize(dir);
         
