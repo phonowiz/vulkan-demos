@@ -162,14 +162,13 @@ public:
             atmos_cam.update_view_matrix();
             
             
-            atmos_params[ _directions[i] ] =  glm::inverse(atmos_cam.get_projection_matrix() *  atmos_cam.view_matrix);
+            atmos_params[ _directions[i] ] =  glm::transpose(atmos_cam.view_matrix);
         }
         
         atmos_params["inverse_view"] = glm::transpose(camera.view_matrix);
         atmos_params["cam_position"] = glm::vec4(camera.position.x, camera.position.y, camera.position.z, 1.0f);
         atmos_params["look_at_dir"] = glm::normalize(glm::vec4(camera.forward.x, camera.forward.y, camera.forward.z, 1.0f));
         glm::vec4 dir( _sun_position.x - camera.position.x, _sun_position.y - camera.position.y, _sun_position.z - camera.position.z, 0.0f);
-        //glm::vec4 dir( camera.forward.x, camera.forward.y, camera.forward.z, 0.0f);
         atmos_params["light_direction"] = glm::normalize(dir);
         
     }
