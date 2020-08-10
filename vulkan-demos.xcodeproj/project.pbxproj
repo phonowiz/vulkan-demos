@@ -124,6 +124,7 @@
 		B92627E1219B47CA00D1358A /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		B92627E4219B481700D1358A /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		B92627E7219B48D700D1358A /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		B92CAE4A24DF4EFB00ECB561 /* radiance_map.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = radiance_map.h; sourceTree = "<group>"; };
 		B9337F07246D11050008E857 /* gaussian_blur.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = gaussian_blur.h; sourceTree = "<group>"; };
 		B9384E74220171E400565024 /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		B938D043219534B7004F759E /* vulkan-demos.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "vulkan-demos.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -1349,6 +1350,7 @@
 				B95E851A24C6D8D100EAB351 /* fxaa.h */,
 				B9504B5A24C95D71006525FB /* luminance.h */,
 				B9DFCE6724D5079D00151C7D /* atmospheric.h */,
+				B92CAE4A24DF4EFB00ECB561 /* radiance_map.h */,
 			);
 			path = graphics_nodes;
 			sourceTree = "<group>";

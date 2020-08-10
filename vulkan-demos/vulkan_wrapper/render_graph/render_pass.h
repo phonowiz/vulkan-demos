@@ -143,7 +143,6 @@ namespace vk
             }
             inline void init()
             {
-                EA_ASSERT_MSG((_num_input_references != 0 ||  _num_color_references != 0 ),"subpassses must have at least one input or out attachment");
                 _subpass_description.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
                 _subpass_description.pColorAttachments = _color_references.data();
                 _subpass_description.colorAttachmentCount = _num_color_references;

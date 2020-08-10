@@ -57,6 +57,11 @@ namespace vk
             return _name;
         }
         
+        glm::vec3 get_dimensions()
+        {
+            return elements[0].get_dimensions();
+        }
+        
         void set_multisampling(bool b)
         {
             for( int i = 0; i < elements.size(); ++i)
@@ -298,6 +303,12 @@ namespace vk
                 elements[i]->set_dimensions(width, height, depth);
             }
         }
+        
+        glm::vec3 get_dimensions()
+        {
+            return elements[0]->get_dimensions();
+        }
+        
         
         inline void set_format(image::formats format)
         {

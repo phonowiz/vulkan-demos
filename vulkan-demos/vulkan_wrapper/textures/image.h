@@ -11,6 +11,7 @@
 #include "image.h"
 #include "resource.h"
 #include "device.h"
+#include <glm/glm.hpp>
 
 namespace vk
 {
@@ -72,6 +73,10 @@ namespace vk
             _width = width;
             _height = height;
             _depth = depth;
+        }
+        glm::vec3 get_dimensions()
+        {
+            return glm::vec3(_width, _height, _depth);
         }
         
         inline void change_layout( image::image_layouts new_layout)

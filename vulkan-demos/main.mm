@@ -44,6 +44,7 @@
 #include "graph_nodes/graphics_nodes/pbr.h"
 #include "graph_nodes/graphics_nodes/fxaa.h"
 #include "graph_nodes/graphics_nodes/luminance.h"
+#include "graph_nodes/graphics_nodes/radiance_map.h"
 
 #include "graph_nodes/compute_nodes/mip_map_3d_texture.hpp"
 #include "graph_nodes/graphics_nodes/voxelize.h"
@@ -544,10 +545,16 @@ void create_graph()
     eastl::shared_ptr<atmospheric<4>> atmos_node = eastl::make_shared<atmospheric<4>>(app.device);
     atmos_node->set_name("atmospheric");
     
+    
+    eastl::shared_ptr<radiance_map<4>> rad_map = eastl::make_shared<radiance_map<4>>(app.device, "atmospheric",
+                                                                                     atmospheric<4>::ENVIRONMENT_DIMENSIONS, atmospheric<4>::ENVIRONMENT_DIMENSIONS );
+    
     eastl::shared_ptr<fxaa<4>> fast_approximate_aa = eastl::make_shared<fxaa<4>>(app.device, app.swapchain,"final_render");
     
     atmos_node->add_child(*pbr_node);
-    mrt_node->add_child(*atmos_node);
+    rad_map->add_child(*atmos_node);
+    rad_map->set_name("radiance");
+    mrt_node->add_child(*rad_map);
     
     fast_approximate_aa->set_name("fxaa");
     

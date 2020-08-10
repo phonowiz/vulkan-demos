@@ -17,11 +17,12 @@ static const uint32_t ATMOSPHERIC_ATTACHMENTS = 4;
 template< uint32_t NUM_CHILDREN>
 class atmospheric : public vk::graphics_node<ATMOSPHERIC_ATTACHMENTS, NUM_CHILDREN>
 {
+public:
+    static constexpr  uint32_t ENVIRONMENT_DIMENSIONS = 128;
 private:
     vk::screen_plane _screen_plane;
-    //vk::glfw_swapchain* _swapchain = nullptr;
     
-    static constexpr  uint32_t ENVIRONMENT_DIMENSIONS = 512;
+
     float _planet_radius = 6371e3f;
     glm::vec4 _sun_position = glm::vec4(0.0f, _planet_radius, 0.0f, 0.0f);
     
@@ -70,6 +71,8 @@ public:
         
         subpass_type& atmospheric_subpass = pass.add_subpass(_mat_store, "atmospheric");
         
+        //these input attachments are not really needed by the shader, but I need to have them otherwise the validation layers throw an error saying
+        //device feature "imageless frame buffer" needs to be enabled, but in this version of vulkan this is not available.
         vk::resource_set<vk::depth_texture>& depth =  _tex_registry->get_read_depth_texture_set("depth", this, vk::usage_type::INPUT_ATTACHMENT);
         vk::resource_set<vk::render_texture>& normals  = _tex_registry->get_read_render_texture_set("normals", this, vk::usage_type::INPUT_ATTACHMENT);
         vk::resource_set<vk::render_texture>& positions  = _tex_registry->get_read_render_texture_set("positions", this, vk::usage_type::INPUT_ATTACHMENT);
@@ -77,7 +80,7 @@ public:
         
         vk::resource_set<vk::texture_cube>& atmospheric = _tex_registry->get_write_texture_cube_set("atmospheric", this);
 
-        atmospheric.set_filter(vk::image::filter::NEAREST);
+        atmospheric.set_filter(vk::image::filter::LINEAR);
         atmospheric.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
         atmospheric.set_dimensions(ENVIRONMENT_DIMENSIONS, ENVIRONMENT_DIMENSIONS);
         atmospheric.init();
@@ -159,8 +162,6 @@ public:
             atmos_cam.up = up[i];
             atmos_cam.position = camera.position;
             atmos_cam.update_view_matrix();
-            
-            
             atmos_params[ _directions[i] ] =  glm::transpose(atmos_cam.view_matrix);
         }
         

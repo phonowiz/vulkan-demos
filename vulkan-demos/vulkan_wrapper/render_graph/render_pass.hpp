@@ -61,7 +61,7 @@ template<uint32_t NUM_ATTACHMENTS>
  void render_pass< NUM_ATTACHMENTS>::init(uint32_t swapchain_id)
  {
      EA_ASSERT_MSG(_attachment_group.size() <= MAX_NUMBER_OF_ATTACHMENTS, "maximum number of attachments has been exceeded");
-     EA_ASSERT_MSG(_attachment_group.size() != 0, "attachment group size cannot be 0.  You need to add resource_sets to attachment groups");
+     //EA_ASSERT_MSG(_attachment_group.size() != 0, "attachment group size cannot be 0.  You need to add resource_sets to attachment groups");
      EA_ASSERT_MSG(_dimensions.x != 0 && _dimensions.y !=0, "attachment dimensions cannot be zero" );
      EA_ASSERT_MSG(_device != nullptr, "vk::device has not been assigned to this render pass");
      
@@ -74,7 +74,7 @@ template<uint32_t NUM_ATTACHMENTS>
      //here is article about subpasses and input attachments and how they are all tied togethere
      //https://www.saschawillems.de/blog/2018/07/19/vulkan-input-attachments-and-sub-passes/
      uint32_t attachment_id = 0;
-     EA_ASSERT(_attachment_group[attachment_id].size() == glfw_swapchain::NUM_SWAPCHAIN_IMAGES);
+     //EA_ASSERT(_attachment_group[attachment_id].size() == glfw_swapchain::NUM_SWAPCHAIN_IMAGES);
      VkAttachmentReference depth_reference {};
      
      bool multisampling = false;
@@ -83,7 +83,7 @@ template<uint32_t NUM_ATTACHMENTS>
      {
          //note: resolve attachments always have a sample count of one in this code
          multisampling = !multisampling ?  _attachment_group.is_multisample_attachment(i) : multisampling;
-         EA_ASSERT_MSG(_attachment_group.size() != 0, "you need at least one attachment in render pass");
+       //  EA_ASSERT_MSG(_attachment_group.size() != 0, "you need at least one attachment in render pass");
          EA_ASSERT_MSG(_attachment_group[i][swapchain_id]->is_initialized(), "call init on all your attachment group textures");
          _attachment_group[i][swapchain_id]->set_device(_device);
          EA_ASSERT_MSG(_dimensions.x == _attachment_group[i][swapchain_id]->get_width(), "attachments must have the same width ");
@@ -120,7 +120,7 @@ template<uint32_t NUM_ATTACHMENTS>
          attachment_descriptions[depth_attachment_id].samples = multisampling ? _device->get_max_usable_sample_count() : VK_SAMPLE_COUNT_1_BIT;
      }
 
-     EA_ASSERT(attachment_id != 0);
+     //EA_ASSERT(attachment_id != 0);
      
      eastl::array<VkSubpassDescription, MAX_SUBPASSES> subpass {};
      

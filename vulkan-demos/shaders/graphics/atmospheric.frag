@@ -97,18 +97,16 @@ layout(binding =5, std140) uniform _atmospheric_state
     mat4    positive_x;
     mat4    negative_x;
     mat4    positive_y;
-    //mat4    negative_y;
     mat4    positive_z;
     mat4    negative_z;
-    
-    //mat4    inverse_view;
+
     vec4    ray_beta;
     vec4    mie_beta;
     vec4    ambient_beta;
     vec4    absorption_beta;
     vec4    planet_position;
     vec4    light_direction;
-    //vec4    look_at_dir;
+    
     vec4    cam_position;
     vec2    screen_size;
     float   planet_radius;
@@ -335,6 +333,7 @@ vec3 compute_atmos_color(vec3 camera_vector )
         LIGHT_STEPS                     // steps in the light direction
     );
     
+    //return vec3(1.0f, 0.0f, 0.0f);
     return scene.xyz;
 }
 
@@ -357,18 +356,19 @@ void main()
     voxel.z = TEXTURE_CUBE_MAP_POSITIVE_X;
     color.xyz = compute_atmos_color(cam_vector);
     imageStore(cubemap_texture, voxel, color);
-    
+    //imageStore(cubemap_texture, voxel, vec4(.20f, 0.0f, 0.0f, 1.0f));
 
     cam_vector = get_camera_vector(atmosphere_state.negative_x);
     voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_X;
     color.xyz = compute_atmos_color(cam_vector);
     imageStore(cubemap_texture, voxel, color);
-
+    //imageStore(cubemap_texture, voxel, vec4(.0f, .20f, 0.0f, 1.0f));
 
     cam_vector.xyz = get_camera_vector(atmosphere_state.positive_y);
     voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Y;
     color.xyz = compute_atmos_color(cam_vector);
     imageStore(cubemap_texture, voxel, color);
+    //imageStore(cubemap_texture, voxel, vec4(.0f, 0.0f, .20f, 1.0f));
 //
 //
 //    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Y;
@@ -384,10 +384,11 @@ void main()
     voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Z;
     color.xyz = compute_atmos_color(cam_vector);
     imageStore(cubemap_texture, voxel, color);
-
+    //imageStore(cubemap_texture, voxel, vec4(.20f, 0.0f, .20f, 1.0f));
     
     cam_vector.xyz = get_camera_vector(atmosphere_state.negative_z);
     voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Z;
     color.xyz = compute_atmos_color(cam_vector);
     imageStore(cubemap_texture, voxel, color);
+    //imageStore(cubemap_texture, voxel, vec4(.20f, .20f, 0.0f, 1.0f));
 }
