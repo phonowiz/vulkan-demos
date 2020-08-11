@@ -11,6 +11,7 @@
 #include "image.h"
 #include "resource.h"
 #include "device.h"
+#include <glm/glm.hpp>
 
 namespace vk
 {
@@ -67,11 +68,15 @@ namespace vk
             return _channels;
         }
         
-        void set_dimensions(uint32_t width, uint32_t height, uint32_t depth = 1)
+        virtual void set_dimensions(uint32_t width, uint32_t height, uint32_t depth = 1)
         {
             _width = width;
             _height = height;
             _depth = depth;
+        }
+        glm::vec3 get_dimensions()
+        {
+            return glm::vec3(_width, _height, _depth);
         }
         
         inline void change_layout( image::image_layouts new_layout)

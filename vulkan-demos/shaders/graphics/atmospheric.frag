@@ -1,4 +1,8 @@
 
+
+#version 450
+#extension GL_ARB_separate_shader_objects: enable
+
 /*
 MIT License
 
@@ -54,15 +58,10 @@ Note:     Because rayleigh is a long word to type, I use ray instead on most var
 */
 
 // first, lets define some constants to use (planet radius, position, and scattering coefficients)
-#define PLANET_POS vec3(0.0) /* the position of the planet */
-#define PLANET_RADIUS 6371e3 /* radius of the planet */
+//#define PLANET_POS vec3(0.0) /* the position of the planet */
+//#define PLANET_RADIUS 6371e3 /* radius of the planet */
 #define ATMOS_RADIUS 6471e3 /* radius of the atmosphere */
-// scattering coeffs
-#define RAY_BETA vec3(5.5e-6, 13.0e-6, 22.4e-6) /* rayleigh, affects the color of the sky */
-#define MIE_BETA vec3(21e-6) /* mie, affects the color of the blob around the sun */
-#define AMBIENT_BETA vec3(0.0) /* ambient, affects the scattering color when there is no lighting from the sun */
-#define ABSORPTION_BETA vec3(2.04e-5, 4.97e-5, 1.95e-6) /* what color gets absorbed by the atmosphere (Due to things like ozone) */
-#define G 0.7 /* mie scattering direction, or how big the blob around the sun is */
+
 // and the heights (how far to go up before the scattering has no effect)
 #define HEIGHT_RAY 8e3 /* rayleigh height */
 #define HEIGHT_MIE 1.2e3 /* and mie */
@@ -81,7 +80,41 @@ Note:     Because rayleigh is a long word to type, I use ray instead on most var
 #endif
 
 // camera mode, 0 is on the ground, 1 is in space, 2 is moving, 3 is moving from ground to space
-#define CAMERA_MODE 2
+//#define CAMERA_MODE 2
+
+
+layout(location = 0) out vec4 out_color;
+
+layout(input_attachment_index = 0, binding = 0 ) uniform subpassInput normals;
+layout(input_attachment_index = 1, binding = 1 ) uniform subpassInput depth;
+layout(input_attachment_index = 2, binding = 2 ) uniform subpassInput positions;
+layout(input_attachment_index = 3, binding = 3 ) uniform subpassInput albedos;
+
+layout(binding = 4) writeonly restrict uniform imageCube cubemap_texture;
+
+layout(binding =5, std140) uniform _atmospheric_state
+{
+    mat4    positive_x;
+    mat4    negative_x;
+    mat4    positive_y;
+    mat4    positive_z;
+    mat4    negative_z;
+
+    vec4    ray_beta;
+    vec4    mie_beta;
+    vec4    ambient_beta;
+    vec4    absorption_beta;
+    vec4    planet_position;
+    vec4    light_direction;
+    
+    vec4    cam_position;
+    vec2    screen_size;
+    float   planet_radius;
+    float   g;
+    float   view_steps;
+    float   light_steps;
+
+}atmosphere_state;
 
 /*
 Next we'll define the main scattering function.
@@ -160,7 +193,7 @@ vec3 calculate_scattering(
     // mu, mumu and gg are used quite a lot in the calculation, so to speed it up, precalculate them
     float mu = dot(dir, light_dir);
     float mumu = mu * mu;
-    float gg = g * g;
+    float gg = atmosphere_state.g * atmosphere_state.g;
     float phase_ray = 3.0 / (50.2654824574 /* (16 * pi) */) * (1.0 + mumu);
     float phase_mie = allow_mie ? 3.0 / (25.1327412287 /* (8 * pi) */) * ((1.0 - gg) * (mumu + 1.0)) / (pow(1.0 + gg - 2.0 * mu * g, 1.5) * (2.0 + gg)) : 0.0;
     
@@ -171,7 +204,7 @@ vec3 calculate_scattering(
         vec3 pos_i = start + dir * (ray_pos_i + step_size_i * 0.5);
         
         // and how high we are above the surface
-        float height_i = length(pos_i) - planet_radius;
+        float height_i = length(pos_i) - atmosphere_state.planet_radius;
         
         // now calculate the density of the particles (both for rayleigh and mie)
         vec3 density = vec3(exp(-height_i / scale_height), 0.0);
@@ -206,13 +239,14 @@ vec3 calculate_scattering(
         
         // now sample the light ray
         // this is similar to what we did before
-        for (int l = 0; l < steps_l; ++l) {
+        for (int l = 0; l < steps_l; ++l)
+        {
 
             // calculate where we are along this ray
             vec3 pos_l = pos_i + light_dir * (ray_pos_l + step_size_l * 0.5);
 
             // the heigth of the position
-            float height_l = length(pos_l) - planet_radius;
+            float height_l = length(pos_l) - atmosphere_state.planet_radius;
 
             // calculate the particle avg density, and add it.  One for rayleigh, and for mie.
             vec3 density_l = vec3(exp(-height_l / scale_height), 0.0);
@@ -258,184 +292,39 @@ vec3 calculate_scattering(
     ) * light_intensity + scene_color * opacity; // now make sure the background is rendered correctly
 }
 
-/*
-A ray-sphere intersect
-This was previously used in the atmosphere as well, but it's only used for the planet intersect now, since the atmosphere has this
-ray sphere intersect built in
-*/
+vec3 get_camera_vector(mat4 inverse_proj) {
 
-vec2 ray_sphere_intersect(
-    vec3 start, // starting position of the ray
-    vec3 dir, // the direction of the ray
-    float radius // and the sphere radius
-) {
-    // ray-sphere intersection that assumes
-    // the sphere is centered at the origin.
-    // No intersection when result.x > result.y
-    float a = dot(dir, dir);
-    float b = 2.0 * dot(dir, start);
-    float c = dot(start, start) - (radius * radius);
-    float d = (b*b) - 4.0*a*c;
-    if (d < 0.0) return vec2(1e5,-1e5);
-    return vec2(
-        (-b - sqrt(d))/(2.0*a),
-        (-b + sqrt(d))/(2.0*a)
-    );
+    vec2 uv = (2.0f * gl_FragCoord.xy / atmosphere_state.screen_size.xy) -1;
+    vec4 proj = vec4(uv,1.0f,0.0f);
+    proj.xyz = normalize(proj.xyz);
+    
+    vec4 ans = inverse_proj * proj;
+    return normalize(vec3(ans.x, -ans.y, ans.z));
 }
 
-/*
-To make the planet we're rendering look nicer, we implemented a skylight function here
 
-Essentially it just takes a sample of the atmosphere in the direction of the surface normal
-*/
-vec3 skylight(vec3 sample_pos, vec3 surface_normal, vec3 light_dir, vec3 background_col) {
-
-    // slightly bend the surface normal towards the light direction
-    surface_normal = normalize(mix(surface_normal, light_dir, 0.6));
-    
-    // and sample the atmosphere
-    return calculate_scattering(
-        sample_pos,                        // the position of the camera
-        surface_normal,                 // the camera vector (ray direction of this pixel)
-        3.0 * ATMOS_RADIUS,             // max dist, since nothing will stop the ray here, just use some arbitrary value
-        background_col,                    // scene color, just the background color here
-        light_dir,                        // light direction
-        vec3(40.0),                        // light intensity, 40 looks nice
-        PLANET_POS,                        // position of the planet
-        PLANET_RADIUS,                  // radius of the planet in meters
-        ATMOS_RADIUS,                   // radius of the atmosphere in meters
-        RAY_BETA,                        // Rayleigh scattering coefficient
-        MIE_BETA,                       // Mie scattering coefficient
-        ABSORPTION_BETA,                // Absorbtion coefficient
-        AMBIENT_BETA,                    // ambient scattering, turned off for now. This causes the air to glow a bit when no light reaches it
-        G,                              // Mie preferred scattering direction
-        HEIGHT_RAY,                     // Rayleigh scale height
-        HEIGHT_MIE,                     // Mie scale height
-        HEIGHT_ABSORPTION,                // the height at which the most absorption happens
-        ABSORPTION_FALLOFF,                // how fast the absorption falls off from the absorption height
-        LIGHT_STEPS,                     // steps in the ray direction
-        LIGHT_STEPS                     // steps in the light direction
-    );
-}
-
-/*
-The following function returns the scene color and depth
-(the color of the pixel without the atmosphere, and the distance to the surface that is visible on that pixel)
-
-in this case, the function renders a green sphere on the place where the planet should be
-color is in .xyz, distance in .w
-
-I won't explain too much about how this works, since that's not the aim of this shader
-*/
-vec4 render_scene(vec3 pos, vec3 dir, vec3 light_dir) {
-    
-    // the color to use, w is the scene depth
-    vec4 color = vec4(0.0, 0.0, 0.0, 1e12);
+vec3 compute_atmos_color(vec3 camera_vector )
+{
+    vec4 scene = vec4(0.0, 0.0, 0.0, 1e12);
     
     // add a sun, if the angle between the ray direction and the light direction is small enough, color the pixels white
-    color.xyz = vec3(dot(dir, light_dir) > 0.9998 ? 3.0 : 0.0);
+    //scene.xyz = vec3(dot(camera_vector, atmosphere_state.light_direction.xyz) > 0.9998 ? 3.0 : 0.0);
     
-    // get where the ray intersects the planet
-    vec2 planet_intersect = ray_sphere_intersect(pos - PLANET_POS, dir, PLANET_RADIUS);
-    
-    // if the ray hit the planet, set the max distance to that ray
-    if (0.0 < planet_intersect.y)
-    {
-        color.w = max(planet_intersect.x, 0.0);
-        
-        // sample position, where the pixel is
-        vec3 sample_pos = pos + (dir * planet_intersect.x) - PLANET_POS;
-        
-        // and the surface normal
-        vec3 surface_normal = normalize(sample_pos);
-        
-        // get the color of the sphere
-        color.xyz = vec3(0.0, 0.25, 0.05);
-        
-        // get wether this point is shadowed, + how much light scatters towards the camera according to the lommel-seelinger law
-        vec3 N = surface_normal;
-        vec3 V = -dir;
-        vec3 L = light_dir;
-        float dotNV = max(1e-6, dot(N, V));
-        float dotNL = max(1e-6, dot(N, L));
-        float shadow = dotNL / (dotNL + dotNV);
-        
-        // apply the shadow
-        color.xyz *= shadow;
-        
-        // apply skylight
-        color.xyz += clamp(skylight(sample_pos, surface_normal, light_dir, vec3(0.0)) * vec3(0.0, 0.25, 0.05), 0.0, 1.0);
-    }
-    
-    return color;
-}
-
-/*
-next, we need a way to do something with the scattering function
-
-to do something with it we need the camera vector (which is the ray direction) of the current pixel
-this function calculates it
-*/
-vec3 get_camera_vector(vec3 resolution, vec2 coord) {
-    vec2 uv    = coord.xy / resolution.xy - vec2(0.5);
-         uv.x *= resolution.x / resolution.y;
-
-    return normalize(vec3(uv.x, uv.y, -1.0));
-}
-
-/*
-Finally, draw the atmosphere to screen
-
-we first get the camera vector and position, as well as the light dir
-*/
-void mainImage(out vec4 fragColor, in vec2 fragCoord) {
-    
-    // get the camera vector
-    vec3 camera_vector = get_camera_vector(iResolution, fragCoord);
-    
-    // get the camera position, switch based on the defines
-#if CAMERA_MODE==0
-    vec3 camera_position = vec3(0.0, PLANET_RADIUS + 100.0, 0.0);
-#endif
-#if CAMERA_MODE==1
-    vec3 camera_position = vec3(0.0, ATMOS_RADIUS , ATMOS_RADIUS);
-#endif
-#if CAMERA_MODE==2
-    vec3 camera_position = vec3(0.0, ATMOS_RADIUS + (-cos(iTime / 2.0) * (ATMOS_RADIUS - PLANET_RADIUS - 1.0)), 0.0);
-#endif
-#if CAMERA_MODE==3
-    float offset = (1.0 - cos(iTime / 2.0)) * ATMOS_RADIUS;
-    vec3 camera_position = vec3(0.0, PLANET_RADIUS + 1.0, offset);
-#endif
-    // get the light direction
-    // also base this on the mouse position, that way the time of day can be changed with the mouse
-    vec3 light_dir = iMouse.y == 0.0 ?
-        normalize(vec3(0.0, cos(-iTime/8.0), sin(-iTime/8.0))) :
-        normalize(vec3(0.0, cos(iMouse.y * -5.0 / iResolution.y), sin(iMouse.y * -5.0 / iResolution.y)));
-    
-    // get the scene color and depth, color is in xyz, depth in w
-    // replace this with something better if you are using this shader for something else
-    vec4 scene = render_scene(camera_position, camera_vector, light_dir);
-    
-    // the color of this pixel
-    vec3 col = vec3(0.0);//scene.xyz;
-    
-    // get the atmosphere color
-    col += calculate_scattering(
-        camera_position,                // the position of the camera
-        camera_vector,                     // the camera vector (ray direction of this pixel)
+    scene.xyz = calculate_scattering(
+        atmosphere_state.cam_position.xyz,                // the position of the camera
+        camera_vector.xyz,                     // the camera vector (ray direction of this pixel)
         scene.w,                         // max dist, essentially the scene depth
         scene.xyz,                        // scene color, the color of the current pixel being rendered
-        light_dir,                        // light direction
-        vec3(40.0),                        // light intensity, 40 looks nice
-        PLANET_POS,                        // position of the planet
-        PLANET_RADIUS,                  // radius of the planet in meters
+        atmosphere_state.light_direction.xyz,                        // light direction
+        vec3(40.0f),                        // light intensity, 40 looks nice
+        atmosphere_state.planet_position.xyz,                        // position of the planet
+        atmosphere_state.planet_radius,                  // radius of the planet in meters
         ATMOS_RADIUS,                   // radius of the atmosphere in meters
-        RAY_BETA,                        // Rayleigh scattering coefficient
-        MIE_BETA,                       // Mie scattering coefficient
-        ABSORPTION_BETA,                // Absorbtion coefficient
-        AMBIENT_BETA,                    // ambient scattering, turned off for now. This causes the air to glow a bit when no light reaches it
-        G,                              // Mie preferred scattering direction
+        atmosphere_state.ray_beta.xyz,                        // Rayleigh scattering coefficient
+        atmosphere_state.mie_beta.xyz,                       // Mie scattering coefficient
+        atmosphere_state.absorption_beta.xyz,                // Absorbtion coefficient
+        atmosphere_state.ambient_beta.xyz,                    // ambient scattering, turned off for now. This causes the air to glow a bit when no light reaches it
+        atmosphere_state.g,                              // Mie preferred scattering direction
         HEIGHT_RAY,                     // Rayleigh scale height
         HEIGHT_MIE,                     // Mie scale height
         HEIGHT_ABSORPTION,                // the height at which the most absorption happens
@@ -443,12 +332,63 @@ void mainImage(out vec4 fragColor, in vec2 fragCoord) {
         PRIMARY_STEPS,                     // steps in the ray direction
         LIGHT_STEPS                     // steps in the light direction
     );
-        
-    // apply exposure, removing this makes the brighter colors look ugly
-    // you can play around with removing this
-    col = 1.0 - exp(-col);
     
+    //return vec3(1.0f, 0.0f, 0.0f);
+    return scene.xyz;
+}
 
-    // Output to screen
-    fragColor = vec4(col, 1.0);
+
+void main()
+{
+    
+#define TEXTURE_CUBE_MAP_POSITIVE_X    0
+#define TEXTURE_CUBE_MAP_NEGATIVE_X    1
+#define TEXTURE_CUBE_MAP_POSITIVE_Y    2
+#define TEXTURE_CUBE_MAP_NEGATIVE_Y    3
+#define TEXTURE_CUBE_MAP_POSITIVE_Z    4
+#define TEXTURE_CUBE_MAP_NEGATIVE_Z    5
+    
+    ivec3 voxel = ivec3(gl_FragCoord.x, gl_FragCoord.y, 0);
+    vec4 color = vec4(0);
+    color.w = 1.0f;
+    
+    vec3 cam_vector = get_camera_vector(atmosphere_state.positive_x);
+    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_X;
+    color.xyz = compute_atmos_color(cam_vector);
+    imageStore(cubemap_texture, voxel, color);
+    //imageStore(cubemap_texture, voxel, vec4(.20f, 0.0f, 0.0f, 1.0f));
+
+    cam_vector = get_camera_vector(atmosphere_state.negative_x);
+    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_X;
+    color.xyz = compute_atmos_color(cam_vector);
+    imageStore(cubemap_texture, voxel, color);
+    //imageStore(cubemap_texture, voxel, vec4(.0f, .20f, 0.0f, 1.0f));
+
+    cam_vector.xyz = get_camera_vector(atmosphere_state.positive_y);
+    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Y;
+    color.xyz = compute_atmos_color(cam_vector);
+    imageStore(cubemap_texture, voxel, color);
+    //imageStore(cubemap_texture, voxel, vec4(.0f, 0.0f, .20f, 1.0f));
+//
+//
+//    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Y;
+//    imageStore(cubemap_texture, voxel, vec4(0.0f, 1.0f, 1.0f, 1.0f));
+//    cam_vector.xyz = get_camera_vector(atmosphere_state.negative_y);
+//    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Y;
+//    color.xyz = compute_atmos_color(cam_vector);
+//    imageStore(cubemap_texture, voxel, color);
+////
+//
+//
+    cam_vector.xyz = get_camera_vector(atmosphere_state.positive_z);
+    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Z;
+    color.xyz = compute_atmos_color(cam_vector);
+    imageStore(cubemap_texture, voxel, color);
+    //imageStore(cubemap_texture, voxel, vec4(.20f, 0.0f, .20f, 1.0f));
+    
+    cam_vector.xyz = get_camera_vector(atmosphere_state.negative_z);
+    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Z;
+    color.xyz = compute_atmos_color(cam_vector);
+    imageStore(cubemap_texture, voxel, color);
+    //imageStore(cubemap_texture, voxel, vec4(.20f, .20f, 0.0f, 1.0f));
 }

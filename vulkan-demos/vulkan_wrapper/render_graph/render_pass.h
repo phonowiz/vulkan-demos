@@ -143,7 +143,6 @@ namespace vk
             }
             inline void init()
             {
-                EA_ASSERT_MSG((_num_input_references != 0 ||  _num_color_references != 0 ),"subpassses must have at least one input or out attachment");
                 _subpass_description.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
                 _subpass_description.pColorAttachments = _color_references.data();
                 _subpass_description.colorAttachmentCount = _num_color_references;
@@ -283,7 +282,15 @@ namespace vk
                     _pipeline[chain_id].add_input_attachment((*_attachment_group)[id][chain_id], parameter_name, id, parameter_stage, binding);
                 }
             }
-            
+            //TODO: TEMPLATES???
+            inline void set_image_sampler(texture_cube& texture, const char* parameter_name,
+                                          parameter_stage parameter_stage, uint32_t binding,  vk::usage_type usage)
+            {
+                for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
+                {
+                    _pipeline[chain_id].set_image_sampler(&texture, parameter_name, parameter_stage, binding, usage);
+                }
+            }
             inline void set_image_sampler(texture_3d& texture, const char* parameter_name,
                                           parameter_stage parameter_stage, uint32_t binding,  vk::usage_type usage)
             {
@@ -422,6 +429,15 @@ namespace vk
                 }
             }
             
+            
+            inline void set_image_sampler(resource_set<texture_cube>& textures, const char* parameter_name,
+                                          parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
+            {
+                for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
+                {
+                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, usage) ;
+                }
+            }
             
             inline void set_image_sampler(resource_set<depth_texture>& textures, const char* parameter_name,
                                           parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)

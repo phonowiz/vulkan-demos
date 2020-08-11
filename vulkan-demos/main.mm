@@ -44,11 +44,13 @@
 #include "graph_nodes/graphics_nodes/pbr.h"
 #include "graph_nodes/graphics_nodes/fxaa.h"
 #include "graph_nodes/graphics_nodes/luminance.h"
+#include "graph_nodes/graphics_nodes/radiance_map.h"
 
 #include "graph_nodes/compute_nodes/mip_map_3d_texture.hpp"
 #include "graph_nodes/graphics_nodes/voxelize.h"
 #include "graph_nodes/compute_nodes/clear_3d_texture.hpp"
 #include "graph_nodes/graphics_nodes/mrt.h"
+#include "graph_nodes/graphics_nodes/atmospheric.h"
 
 
 #include "new_operators.h"
@@ -276,6 +278,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
         app.aa->set_active(!aa_on);
         app.debug->set_active(aa_on);
         aa_on = !aa_on;
+        app.debug_node_3d->set_active(false);
     }
     
     if( key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
@@ -539,16 +542,29 @@ void create_graph()
     
     pbr_node->set_name("pbr node");
     //pbr_node->set_active(false);
+    eastl::shared_ptr<atmospheric<4>> atmos_node = eastl::make_shared<atmospheric<4>>(app.device);
+    atmos_node->set_name("atmospheric");
     
-    eastl::shared_ptr<fxaa<4>> fast_approximate_aa = eastl::make_shared<fxaa<4>>(app.device, app.swapchain);
-    mrt_node->add_child(*pbr_node);
+    
+    eastl::shared_ptr<radiance_map<4>> rad_map = eastl::make_shared<radiance_map<4>>(app.device, "atmospheric",
+                                                                                     atmospheric<4>::ENVIRONMENT_DIMENSIONS, atmospheric<4>::ENVIRONMENT_DIMENSIONS );
+    
+    atmos_node->set_sun_position(point_light_cam.position);
+    eastl::shared_ptr<fxaa<4>> fast_approximate_aa = eastl::make_shared<fxaa<4>>(app.device, app.swapchain,"final_render");
+    
+    atmos_node->add_child(*pbr_node);
+    rad_map->add_child(*atmos_node);
+    rad_map->set_name("radiance");
+    mrt_node->add_child(*rad_map);
+    
     fast_approximate_aa->set_name("fxaa");
+    
+    eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "normals");
+    //eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "model_albedo", vk::texture_2d::get_class_type());
     
     fast_approximate_aa->add_child(*mrt_node);
     fast_approximate_aa->set_active(true);
-
-    eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "normals");
-    //eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "model_albedo", vk::texture_2d::get_class_type());
+    
     pbr_debug->add_child(*fast_approximate_aa);
     pbr_debug->set_name("pbr debug");
     pbr_debug->set_active(false);

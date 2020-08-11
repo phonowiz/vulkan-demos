@@ -23,7 +23,7 @@ namespace vk
         
         texture_2d(){};
         texture_2d(device* device);
-        texture_2d(device* device, uint32_t width, uint32_t height);
+        texture_2d(device* device, uint32_t width, uint32_t height, uint32_t depth = 1);
         texture_2d(device* device,const char* path);
         virtual void destroy() override;
         
@@ -93,7 +93,6 @@ namespace vk
         {
             _enable_mipmapping = b;
         }
-        
         
         static const eastl::fixed_string<char, 250> texture_resource_path;
         

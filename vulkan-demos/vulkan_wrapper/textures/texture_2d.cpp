@@ -22,11 +22,12 @@ texture_2d::texture_2d(device* device):image(device)
 {
 }
 
-texture_2d::texture_2d(device* device, uint32_t width, uint32_t height):
+texture_2d::texture_2d(device* device, uint32_t width, uint32_t height, uint32_t depth):
 image(device)
 {
     _width = width;
     _height = height;
+    _depth = depth;
 }
 
 void texture_2d::init()
@@ -109,10 +110,10 @@ void texture_2d::create_sampler()
 void texture_2d::create(uint32_t width, uint32_t height)
 {
     
-    assert(width != 0 && height != 0);
+    EA_ASSERT(width != 0 && height != 0);
     _width = width;
     _height = height;
-    _depth = 1u;
+    _depth = _depth;
     
     VkDeviceSize image_size = get_size_in_bytes();
     

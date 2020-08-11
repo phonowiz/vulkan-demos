@@ -25,7 +25,7 @@ material_store::material_store()
 void material_store::create(device* device)
 {
     _device = device;
-    assert(_device != nullptr && "call setDevice() on the store object");
+    EA_ASSERT_MSG(_device != nullptr, "call setDevice() on the store object");
     
     shader_shared_ptr standard_vert = add_shader( "graphics/triangle.vert", shader::shader_type::VERTEX );
     shader_shared_ptr standard_frag = add_shader( "graphics/triangle.frag", shader::shader_type::FRAGMENT);
@@ -62,12 +62,17 @@ void material_store::create(device* device)
     mat_shared_ptr color_mat = CREATE_MAT<visual_material>("color", color_vert, color_frag, device);
     add_material(color_mat);
 
+    shader_shared_ptr atmospheric_vert = add_shader("graphics/atmospheric.vert", shader::shader_type::VERTEX);
+    shader_shared_ptr atmospheric_frag = add_shader("graphics/atmospheric.frag", shader::shader_type::FRAGMENT);
+    
+    mat_shared_ptr atmosheric_mat = CREATE_MAT<visual_material>("atmospheric", atmospheric_vert, atmospheric_frag, device);
+    add_material(atmosheric_mat);
+
     shader_shared_ptr fxaa_vert = add_shader("graphics/fxaa.vert", shader::shader_type::VERTEX);
     shader_shared_ptr fxaa_frag = add_shader("graphics/fxaa.frag", shader::shader_type::FRAGMENT);
     
     mat_shared_ptr fxaa_mat = CREATE_MAT<visual_material>("fxaa", fxaa_vert, fxaa_frag, device);
     add_material(fxaa_mat);
-    
 
     shader_shared_ptr luminance_vert = add_shader("graphics/luminance.vert", shader::shader_type::VERTEX);
     shader_shared_ptr luminance_frag = add_shader("graphics/luminance.frag", shader::shader_type::FRAGMENT);
@@ -75,6 +80,11 @@ void material_store::create(device* device)
     mat_shared_ptr luminance_mat = CREATE_MAT<visual_material>("luminance", luminance_vert, luminance_frag, device);
     add_material(luminance_mat);
     
+    shader_shared_ptr radiance_map_vert = add_shader("graphics/radiance_map.vert", shader::shader_type::VERTEX);
+    shader_shared_ptr radiance_map_frag = add_shader("graphics/radiance_map.frag", shader::shader_type::FRAGMENT);
+    
+    mat_shared_ptr radiance_map_mat = CREATE_MAT<visual_material>("radiance_map", radiance_map_vert, radiance_map_frag, device);
+    add_material(radiance_map_mat);
     
     shader_shared_ptr pbr_vert = add_shader("graphics/pbr.vert", shader::shader_type::VERTEX);
     shader_shared_ptr pbr_frag = add_shader("graphics/pbr.frag", shader::shader_type::FRAGMENT);

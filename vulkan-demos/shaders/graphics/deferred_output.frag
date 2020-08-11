@@ -2,6 +2,8 @@
 #version 450
 #extension GL_ARB_separate_shader_objects: enable
 
+//TODO: temporal antialiasing might be a better choice than FXAA, start here:
+//https://gist.github.com/Erkaman/f24ef6bd7499be363e6c99d116d8734d
 
 //if you change this define, you must also change the equivalent variable in deferred_renderer.h
 //also, make sure that you have as many rays as defined by this define.
@@ -24,7 +26,7 @@ layout(input_attachment_index = 4, binding = 4 ) uniform subpassInput depth;
 
 #define DIRECTIONAL_LIGHT  0
 #define POINT_LIGHT  1
-#define MAX_LIGHTS 10
+#define MAX_LIGHTS 1
 
 layout(binding = 5, std140) uniform _rendering_state
 {
@@ -41,6 +43,8 @@ layout(binding = 5, std140) uniform _rendering_state
     mat4 light_cam_proj_matrix;
     int  light_types[MAX_LIGHTS];
     int  light_count;
+    mat4 inverse_view_proj;
+    vec2 screen_size;
 
 }rendering_state;
 
@@ -64,6 +68,8 @@ layout(binding = 17) uniform sampler3D voxel_normals5;
 
 //variance shadow map
 layout(binding = 18) uniform sampler2D vsm;
+
+layout(binding = 19) uniform samplerCube environment;
 
 
 
@@ -91,7 +97,7 @@ vec3 one_over_distance_limit = 1.0f/rendering_state.voxel_size_in_world_space.xy
 vec4  albedo_lod_colors[NUM_MIP_MAPS];
 vec4  normal_lod_colors[NUM_MIP_MAPS];
 
-#define ALBEDO_SAMPLE pow(materialcolor().xyzw, vec4(2.2))
+#define ALBEDO_SAMPLE pow(materialcolor().xyzw, vec4(1.0))
 
 //note: moltenvk doesn't support lod's for sampler3D textures, it only supports lods for texture2d arrays
 //this is the reason I have this function here
@@ -467,13 +473,18 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position, float metalnes
         {
             //for directional lights, the position is the light direction
             vec3 l = rendering_state.world_light_position[i].xyz;
-            
+
             if(rendering_state.light_types[i] == POINT_LIGHT)
                 l = rendering_state.world_light_position[i].xyz - world_position;
-            
+
             final += BRDF( l, v, world_normal, F0, metalness, roughness, rendering_state.light_color[i].xyz );
         }
     }
+    
+    //ambient term based off of Willem's example: https://github.com/SaschaWillems/Vulkan/blob/master/data/shaders/glsl/pbribl/pbribl.frag
+    vec3 F = F_SchlickR(max(dot(world_normal, v), 0.0), F0, roughness);
+    vec3 kD = 1.0f - F;
+    final += texture(environment, world_normal).rgb * ALBEDO_SAMPLE.xyz * kD;
 
     return vec4(final, 1.0f);
 }
@@ -538,9 +549,18 @@ float shadow_factor(vec3 world_position)
     return max(vsm_filter(moments, texture_space.z).x, .15f);
     
 }
+
+vec3 get_camera_vector() {
+
+    vec2 uv = (2.0f * gl_FragCoord.xy / rendering_state.screen_size.xy) -1.0f;
+    vec4 proj = vec4(uv,1.0f,1.0f);
+    
+    vec4 ans = rendering_state.inverse_view_proj * proj;
+    return normalize(vec3(ans.x, ans.y, ans.z));
+}
+
+
 ///////////////////////////////////////////////////
-
-
 void main()
 {
     //note: in a real scenario, you don't want all these branches around, this is purely for
@@ -634,6 +654,13 @@ void main()
                 out_color.xyz = direct.xyz;
                 out_color.w = out_color.x * 0.2126f +  out_color.y * 0.7152f + out_color.z * 0.0722f;
             }
+        }
+        else
+        {
+            vec3 ray = get_camera_vector();
+            
+            out_color = texture(environment, ray);
+            out_color.w = 1.0f;
         }
     }
 }

@@ -12,6 +12,7 @@
 #include "depth_texture.h"
 #include "texture_3d.h"
 #include "texture_2d.h"
+#include "texture_cube.h"
 #include "render_texture.h"
 
 #include "EASTL/array.h"
@@ -56,6 +57,11 @@ namespace vk
             return _name;
         }
         
+        glm::vec3 get_dimensions()
+        {
+            return elements[0].get_dimensions();
+        }
+        
         void set_multisampling(bool b)
         {
             for( int i = 0; i < elements.size(); ++i)
@@ -89,9 +95,13 @@ namespace vk
             {
                 return resource_set<render_texture>::get_class_type();
             }
+            else if( elements[0].get_instance_type() == texture_cube::get_class_type())
+            {
+                return resource_set<texture_cube>::get_class_type();
+            }
             else
             {
-                assert(0 && "unrecognized asset");
+                EA_FAIL_MSG("unrecognized asset");
             }
             
             
@@ -236,9 +246,13 @@ namespace vk
             {
                 return resource_set<render_texture*>::get_class_type();
             }
+            else if( elements[0]->get_instance_type() == texture_cube::get_class_type())
+            {
+                return resource_set<texture_cube>::get_class_type();
+            }
             else
             {
-                assert(0 && "unrecognized asset");
+                EA_FAIL_MSG("unrecognized asset");
             }
             
             
@@ -289,6 +303,12 @@ namespace vk
                 elements[i]->set_dimensions(width, height, depth);
             }
         }
+        
+        glm::vec3 get_dimensions()
+        {
+            return elements[0]->get_dimensions();
+        }
+        
         
         inline void set_format(image::formats format)
         {

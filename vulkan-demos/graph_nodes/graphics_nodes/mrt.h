@@ -61,6 +61,7 @@ public:
         _screen_plane.create();
         
         _light_cam = key_light_cam;
+        _light_color[0] = glm::vec4(1.0f, 1.0f, 1.f, 1.0f);
         
         for( int i = 0; i < _light_types.size(); ++i)
         {
@@ -68,6 +69,13 @@ public:
         }
     }
 
+    void set_key_light_color( glm::vec3 color, uint32_t  i = 0 )
+    {
+        _light_color[i].x = color.x;
+        _light_color[i].y = color.y;
+        _light_color[i].z = color.z;
+        _light_color[i].w = 1.0f;
+    }
     virtual void init_node() override
     {
         render_pass_type &pass = parent_type::_node_render_pass; 
@@ -91,7 +99,8 @@ public:
         vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_read_depth_texture_set("depth", this, vk::usage_type::INPUT_ATTACHMENT);
         
         vk::resource_set<vk::render_texture>& final_render =  _tex_registry->get_write_render_texture_set("final_render",this);
-        
+        //vk::resource_set<vk::texture_cube>& environment = _tex_registry->get_read_texture_cube_set("radiance_map", this);
+        vk::resource_set<vk::texture_cube>& environment = _tex_registry->get_read_texture_cube_set("atmospheric", this);
         final_render.set_filter(vk::image::filter::LINEAR);
         final_render.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
         
@@ -106,7 +115,7 @@ public:
         final_render.init();
 
         //COMPOSITE SUBPASS
-        composite.add_input_attachment( "normals", "normals", vk::parameter_stage::FRAGMENT, 1 );
+        composite.add_input_attachment("normals", "normals", vk::parameter_stage::FRAGMENT, 1 );
         composite.add_input_attachment("albedos", "albedos", vk::parameter_stage::FRAGMENT, 2);
         composite.add_input_attachment("positions", "positions", vk::parameter_stage::FRAGMENT, 3);
 
@@ -141,7 +150,9 @@ public:
         composite.init_parameter("light_cam_proj_matrix", vk::parameter_stage::FRAGMENT, _light_cam.get_projection_matrix() * _light_cam.view_matrix, 5);
         composite.template init_parameter<MAX_LIGHTS>("light_types", vk::parameter_stage::FRAGMENT, _light_types, 5);
         composite.init_parameter("light_count", vk::parameter_stage::FRAGMENT, ACTIVE_LIGHTS, 5);
-
+        composite.init_parameter("inverse_view_proj", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 5);
+        composite.init_parameter("screen_size", vk::parameter_stage::FRAGMENT,
+                                 glm::vec2(_swapchain->get_vk_swap_extent().width, _swapchain->get_vk_swap_extent().height), 5);
         
         composite.set_image_sampler(voxel_normal_set, "voxel_normals", vk::parameter_stage::FRAGMENT, 6, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         composite.set_image_sampler(voxel_albedo_set, "voxel_albedos", vk::parameter_stage::FRAGMENT, 7, vk::usage_type::COMBINED_IMAGE_SAMPLER);
@@ -166,6 +177,7 @@ public:
         }
         
         composite.set_image_sampler(vsm_set, "vsm", vk::parameter_stage::FRAGMENT, binding_index + offset, vk::usage_type::COMBINED_IMAGE_SAMPLER );
+        composite.set_image_sampler(environment, "environment", vk::parameter_stage::FRAGMENT, binding_index + offset + 1, vk::usage_type::COMBINED_IMAGE_SAMPLER );
     }
     
     virtual void update_node(vk::camera& camera, uint32_t image_id) override
@@ -186,36 +198,22 @@ public:
         _ortho_camera.up = camera.up;
         _ortho_camera.update_view_matrix();
         
-        display_fragment_params["eye_inverse_view_matrix"] = glm::inverse(camera.view_matrix);
+        display_fragment_params["eye_inverse_view_matrix"] = glm::transpose(camera.view_matrix);
         display_fragment_params["vox_view_projection"] = _ortho_camera.get_projection_matrix() * _ortho_camera.view_matrix;
         display_fragment_params["eye_in_world_space"] = camera.position;
 
         display_fragment_params["world_cam_position"] = glm::vec4(camera.position, 1.0f);
+        display_fragment_params["inverse_view_proj"] = glm::transpose(camera.view_matrix) * glm::inverse(camera.get_projection_matrix());
         
         //the first light is the key light, and is also the only contributor to ambient light and shadows
         _world_light_positions[0].x = _light_cam.position.x;
         _world_light_positions[0].y = _light_cam.position.y;
         _world_light_positions[0].z = _light_cam.position.z;
         _world_light_positions[0].w = 1.0f;
-        
-        //TODO: these values could be fed to this node from the client
-        _world_light_positions[1].x = _light_cam.position.x;
-        _world_light_positions[1].y = _light_cam.position.y;
-        _world_light_positions[1].z = -_light_cam.position.z;
-        _world_light_positions[1].w = 1.0f;
-        
-        _world_light_positions[2].x = 5.0f;
-        _world_light_positions[2].y = .50f;
-        _world_light_positions[2].z = 0.0f;
-        _world_light_positions[2].w = 1.0f;
+    
 
-        //the light value is based off of moon light:
-        //https://encycolorpedia.com/0055a5#:~:text=Color%20Directory-,Humbrol%20222%20Moonlight%20Blue%20%2F%20%230055a5%20Hex%20Color%20Code,%25%20saturation%20and%2032%25%20lightness.
-        
-        //TODO: To avoid these magic numbers like the one below, let's go for HDR
-        _light_color[0] = glm::vec4(0.0f, .33, .64f, 1.0f) * 5.0f;
-        _light_color[1] = glm::vec4(0.0f, .33, .64f, 1.0f) * 5.0f;
-        _light_color[2] = glm::vec4(0.0f, .33, .64f, 1.0f) * 5.f;
+//        _light_color[1] = glm::vec4(0.0f, .33, .64f, 1.0f) * 5.0f;
+//        _light_color[2] = glm::vec4(0.0f, .33, .64f, 1.0f) * 5.f;
         
         display_fragment_params["world_light_position"].set_vectors_array(_world_light_positions.data(),
                                                                             _world_light_positions.size());
@@ -264,13 +262,14 @@ private:
     static constexpr size_t   NUM_SAMPLING_RAYS = 5;
     
     //search for MAX_LIGHTS in shaders, if this variable changes here, you'll have to change it shaders too
-    static constexpr int32_t   MAX_LIGHTS = 10;
-    static constexpr int32_t   ACTIVE_LIGHTS = 3;
+    static constexpr int32_t   MAX_LIGHTS = 1;
+    static constexpr int32_t   ACTIVE_LIGHTS = 1;
     
     eastl::array<glm::vec4, NUM_SAMPLING_RAYS>  _sampling_rays = {};
     eastl::array<glm::vec4, MAX_LIGHTS>         _world_light_positions = {};
     eastl::array<int, MAX_LIGHTS>               _light_types = {};
     
+    //sunlight color by default
     eastl::array<glm::vec4 , MAX_LIGHTS> _light_color = {};
 };
 

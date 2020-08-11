@@ -15,6 +15,7 @@
 #include "texture_registry.h"
 #include "material_store.h"
 #include "EASTL/fixed_string.h"
+#include "texture_cube.h"
 #include <iostream>
 
 namespace  vk
@@ -237,8 +238,6 @@ namespace  vk
                    _device->_queue_family_indices.compute_family.value(), "If this assert fails, we will need to transfer dependent "
                                                                             "resources from compute to graphics queues and vice versa");
             
-            
-            if( p_image->get_native_layout() != ((*b).layout))
             {
                 VkPipelineStageFlagBits producer = dependee_node->get_producer_stage();
                 VkPipelineStageFlagBits consumer = this->get_consumer_stage();
@@ -255,13 +254,7 @@ namespace  vk
                 barrier.newLayout = static_cast<VkImageLayout>((*b).layout);
                 
                 barrier.image = p_image->get_image();
-                
-                barrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 };
-                
-                if(p_image->get_instance_type() == vk::depth_texture::get_class_type())
-                {
-                    barrier.subresourceRange = { p_image->get_aspect_flag() , 0, 1, 0, 1 };
-                }
+                barrier.subresourceRange = { p_image->get_aspect_flag() , 0, VK_REMAINING_MIP_LEVELS, 0, VK_REMAINING_ARRAY_LAYERS };
                 
                 //we are not transferring ownership
                 barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
@@ -272,7 +265,6 @@ namespace  vk
                 
 //                msg.sprintf("creating dependency between %s and %s", this->get_name(), dependee_node->get_name());
 //                this->debug_print(msg.c_str());
-                
                 
                 vkCmdPipelineBarrier(
                                      buffer.get_raw_graphics_command(image_id),
@@ -289,8 +281,8 @@ namespace  vk
         }
         void record_barriers(command_recorder& buffer,  uint32_t image_id)
         {
-            assert( _device->_queue_family_indices.graphics_family.value() ==
-                   _device->_queue_family_indices.compute_family.value() && "If this assert fails, we will need to transfer dependent "
+            EA_ASSERT_MSG( _device->_queue_family_indices.graphics_family.value() ==
+                   _device->_queue_family_indices.compute_family.value(), "If this assert fails, we will need to transfer dependent "
                                                                             "resources from compute to graphics queues and vice versa");
             
             using tex_registry_type = texture_registry<NUM_CHILDREN>;
@@ -318,7 +310,7 @@ namespace  vk
                 else
                 {
                     //this is a resource set...
-                    
+                    //TODO: maybe we can use templates here...
                     if(res->get_instance_type()  == resource_set<vk::texture_2d>::get_class_type())
                     {
                         eastl::shared_ptr< resource_set<vk::texture_2d> > set = eastl::static_pointer_cast< resource_set<vk::texture_2d>>(res);
@@ -342,6 +334,13 @@ namespace  vk
                     else if(res->get_instance_type()  == resource_set<vk::render_texture>::get_class_type())
                     {
                         eastl::shared_ptr< resource_set<vk::render_texture> > set = eastl::static_pointer_cast< resource_set<vk::render_texture>>(res);
+                        vk::image* tex = &((*set)[image_id]);
+                        
+                        create_barrier(buffer, tex, b, image_id );
+                    }
+                    else if(res->get_instance_type()  == resource_set<vk::texture_cube>::get_class_type())
+                    {
+                        eastl::shared_ptr< resource_set<vk::texture_cube> > set = eastl::static_pointer_cast< resource_set<vk::texture_cube>>(res);
                         vk::image* tex = &((*set)[image_id]);
                         
                         create_barrier(buffer, tex, b, image_id );

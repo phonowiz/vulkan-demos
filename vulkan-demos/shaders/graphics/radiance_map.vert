@@ -1,6 +1,5 @@
 
-
-#version 450
+#version 450 core
 #extension GL_ARB_separate_shader_objects: enable
 
 out gl_PerVertex
@@ -18,5 +17,6 @@ void main()
 {
     gl_Position = vec4(in_pos,1.0f);
 }
+
 
 

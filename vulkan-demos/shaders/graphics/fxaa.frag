@@ -297,6 +297,7 @@ void main()
         }
         out_color = vec4(sample_color(uv), 1.0f);
     }
+    //gamma correct:
     out_color.xyzw = pow(out_color.xyzw, vec4(0.4545));
 }
 
