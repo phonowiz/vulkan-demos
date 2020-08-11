@@ -549,6 +549,7 @@ void create_graph()
     eastl::shared_ptr<radiance_map<4>> rad_map = eastl::make_shared<radiance_map<4>>(app.device, "atmospheric",
                                                                                      atmospheric<4>::ENVIRONMENT_DIMENSIONS, atmospheric<4>::ENVIRONMENT_DIMENSIONS );
     
+    atmos_node->set_sun_position(point_light_cam.position);
     eastl::shared_ptr<fxaa<4>> fast_approximate_aa = eastl::make_shared<fxaa<4>>(app.device, app.swapchain,"final_render");
     
     atmos_node->add_child(*pbr_node);

@@ -61,6 +61,7 @@ public:
         _screen_plane.create();
         
         _light_cam = key_light_cam;
+        _light_color[0] = glm::vec4(1.0f, 1.0f, 1.f, 1.0f);
         
         for( int i = 0; i < _light_types.size(); ++i)
         {
@@ -68,6 +69,13 @@ public:
         }
     }
 
+    void set_key_light_color( glm::vec3 color, uint32_t  i = 0 )
+    {
+        _light_color[i].x = color.x;
+        _light_color[i].y = color.y;
+        _light_color[i].z = color.z;
+        _light_color[i].w = 1.0f;
+    }
     virtual void init_node() override
     {
         render_pass_type &pass = parent_type::_node_render_pass; 
@@ -202,25 +210,10 @@ public:
         _world_light_positions[0].y = _light_cam.position.y;
         _world_light_positions[0].z = _light_cam.position.z;
         _world_light_positions[0].w = 1.0f;
-        
-        //TODO: these values could be fed to this node from the client
-        _world_light_positions[1].x = _light_cam.position.x;
-        _world_light_positions[1].y = _light_cam.position.y;
-        _world_light_positions[1].z = -_light_cam.position.z;
-        _world_light_positions[1].w = 1.0f;
-        
-        _world_light_positions[2].x = 5.0f;
-        _world_light_positions[2].y = .50f;
-        _world_light_positions[2].z = 0.0f;
-        _world_light_positions[2].w = 1.0f;
+    
 
-        //the light value is based off of moon light:
-        //https://encycolorpedia.com/0055a5#:~:text=Color%20Directory-,Humbrol%20222%20Moonlight%20Blue%20%2F%20%230055a5%20Hex%20Color%20Code,%25%20saturation%20and%2032%25%20lightness.
-        
-        //TODO: To avoid these magic numbers like the one below, let's go for HDR
-        _light_color[0] = glm::vec4(0.0f, .33, .64f, 1.0f) * 5.0f;
-        _light_color[1] = glm::vec4(0.0f, .33, .64f, 1.0f) * 5.0f;
-        _light_color[2] = glm::vec4(0.0f, .33, .64f, 1.0f) * 5.f;
+//        _light_color[1] = glm::vec4(0.0f, .33, .64f, 1.0f) * 5.0f;
+//        _light_color[2] = glm::vec4(0.0f, .33, .64f, 1.0f) * 5.f;
         
         display_fragment_params["world_light_position"].set_vectors_array(_world_light_positions.data(),
                                                                             _world_light_positions.size());
@@ -269,13 +262,14 @@ private:
     static constexpr size_t   NUM_SAMPLING_RAYS = 5;
     
     //search for MAX_LIGHTS in shaders, if this variable changes here, you'll have to change it shaders too
-    static constexpr int32_t   MAX_LIGHTS = 10;
+    static constexpr int32_t   MAX_LIGHTS = 1;
     static constexpr int32_t   ACTIVE_LIGHTS = 1;
     
     eastl::array<glm::vec4, NUM_SAMPLING_RAYS>  _sampling_rays = {};
     eastl::array<glm::vec4, MAX_LIGHTS>         _world_light_positions = {};
     eastl::array<int, MAX_LIGHTS>               _light_types = {};
     
+    //sunlight color by default
     eastl::array<glm::vec4 , MAX_LIGHTS> _light_color = {};
 };
 

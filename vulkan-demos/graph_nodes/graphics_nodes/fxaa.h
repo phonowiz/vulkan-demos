@@ -66,9 +66,9 @@ public:
         texel_size.y = 1.0f/_swapchain->get_vk_swap_extent().height;
         
         fxaa_subpass.init_parameter("maintex_texel_size", vk::parameter_stage::FRAGMENT, texel_size, 1);
-        fxaa_subpass.init_parameter("contrast_threshold", vk::parameter_stage::FRAGMENT, 0.0625f, 1);
-        fxaa_subpass.init_parameter("relative_threshold", vk::parameter_stage::FRAGMENT, 0.166f, 1);
-        fxaa_subpass.init_parameter("subpixel_blending", vk::parameter_stage::FRAGMENT, .75f, 1);
+        fxaa_subpass.init_parameter("contrast_threshold", vk::parameter_stage::FRAGMENT, .0833f, 1);
+        fxaa_subpass.init_parameter("relative_threshold", vk::parameter_stage::FRAGMENT, 0.125f, 1);
+        fxaa_subpass.init_parameter("subpixel_blending", vk::parameter_stage::FRAGMENT, 1.00f, 1);
         
         pass.add_object(static_cast<vk::obj_shape*>(&_screen_plane));
 

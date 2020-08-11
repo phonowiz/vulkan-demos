@@ -26,7 +26,7 @@ layout(input_attachment_index = 4, binding = 4 ) uniform subpassInput depth;
 
 #define DIRECTIONAL_LIGHT  0
 #define POINT_LIGHT  1
-#define MAX_LIGHTS 10
+#define MAX_LIGHTS 1
 
 layout(binding = 5, std140) uniform _rendering_state
 {
@@ -97,7 +97,7 @@ vec3 one_over_distance_limit = 1.0f/rendering_state.voxel_size_in_world_space.xy
 vec4  albedo_lod_colors[NUM_MIP_MAPS];
 vec4  normal_lod_colors[NUM_MIP_MAPS];
 
-#define ALBEDO_SAMPLE pow(materialcolor().xyzw, vec4(2.2))
+#define ALBEDO_SAMPLE pow(materialcolor().xyzw, vec4(1.0))
 
 //note: moltenvk doesn't support lod's for sampler3D textures, it only supports lods for texture2d arrays
 //this is the reason I have this function here
@@ -473,13 +473,18 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position, float metalnes
         {
             //for directional lights, the position is the light direction
             vec3 l = rendering_state.world_light_position[i].xyz;
-            
+
             if(rendering_state.light_types[i] == POINT_LIGHT)
                 l = rendering_state.world_light_position[i].xyz - world_position;
-            
+
             final += BRDF( l, v, world_normal, F0, metalness, roughness, rendering_state.light_color[i].xyz );
         }
     }
+    
+    //ambient term based off of Willem's example: https://github.com/SaschaWillems/Vulkan/blob/master/data/shaders/glsl/pbribl/pbribl.frag
+    vec3 F = F_SchlickR(max(dot(world_normal, v), 0.0), F0, roughness);
+    vec3 kD = 1.0f - F;
+    final += texture(environment, world_normal).rgb * ALBEDO_SAMPLE.xyz * kD;
 
     return vec4(final, 1.0f);
 }

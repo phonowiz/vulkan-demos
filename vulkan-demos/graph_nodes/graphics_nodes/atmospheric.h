@@ -48,6 +48,7 @@ public:
 
     void set_sun_position(glm::vec3 position)
     {
+        position = glm::normalize(position) * _planet_radius;
         _sun_position.x = position.x;
         _sun_position.y = position.y;
         _sun_position.z = position.z;

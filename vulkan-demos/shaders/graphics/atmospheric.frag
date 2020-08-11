@@ -308,7 +308,7 @@ vec3 compute_atmos_color(vec3 camera_vector )
     vec4 scene = vec4(0.0, 0.0, 0.0, 1e12);
     
     // add a sun, if the angle between the ray direction and the light direction is small enough, color the pixels white
-    scene.xyz = vec3(dot(camera_vector, atmosphere_state.light_direction.xyz) > 0.9998 ? 3.0 : 0.0);
+    //scene.xyz = vec3(dot(camera_vector, atmosphere_state.light_direction.xyz) > 0.9998 ? 3.0 : 0.0);
     
     scene.xyz = calculate_scattering(
         atmosphere_state.cam_position.xyz,                // the position of the camera
