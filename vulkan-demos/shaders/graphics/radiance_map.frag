@@ -12,7 +12,7 @@
 layout (location = 0) out vec4 out_color;
 
 layout(binding = 0) uniform samplerCube cubemap;
-layout(binding = 1, rgba32f) writeonly restrict uniform imageCube radiance_map;
+layout(binding = 1, rgba32f) writeonly restrict coherent uniform imageCube radiance_map;
 
 layout(binding = 2, std140) uniform UBO
 {
@@ -21,11 +21,11 @@ layout(binding = 2, std140) uniform UBO
     vec2  screen_size;
     
     mat4  positive_x;
-    mat4  negative_x;
-    mat4  positive_y;
-    //mat4  negative_y; //NO CONTRIBUTION FROM THE BOTTOM
-    mat4  positive_z;
-    mat4  negative_z;
+//    mat4  negative_x;
+//    mat4  positive_y;
+//    //mat4  negative_y; //NO CONTRIBUTION FROM THE BOTTOM
+//    mat4  positive_z;
+//    mat4  negative_z;
     
 }consts;
 
@@ -83,24 +83,24 @@ vec4 integrate(vec3 N)
     //a barrier issue, but those are accounted for (look in node.h" file). It is unclear to me why this limit is happening.
     //This might be as a result of the weak 2014 mac book pro am using.
     
-    //    for (float phi = 0.0f; phi < TWO_PI; phi += consts.delta_phi)
-    //    {
-    //
-    //        vec3 tempVec = cos(phi) * right + sin(phi) * up;
-    //        //theta goes around from down to up 90 degrees
-    //        for (float theta = 0.0f; theta < HALF_PI; theta += consts.delta_theta)
-    //        {
-    //            vec3 sampleVector = cos(theta) * N + sin(theta) * tempVec;
-    //            //color += sampleVector;//texture(cubemap, sampleVector).rgb;// * cos(theta) * sin(theta) * 100.0f;
-    //            color += texture(cubemap, sampleVector).rgb * cos(theta) * sin(theta);
-    //            sampleCount++;
-    //        }
-    //    }
+    for (float phi = 0.0f; phi < TWO_PI; phi += consts.delta_phi)
+    {
+
+        vec3 tempVec = cos(phi) * right + sin(phi) * up;
+        //theta goes around from down to up 90 degrees
+        for (float theta = 0.0f; theta < HALF_PI; theta += consts.delta_theta)
+        {
+            vec3 sampleVector = cos(theta) * N + sin(theta) * tempVec;
+            //color += sampleVector;//texture(cubemap, sampleVector).rgb;// * cos(theta) * sin(theta) * 100.0f;
+            color += texture(cubemap, sampleVector).rgb * cos(theta) * sin(theta);
+            sampleCount++;
+        }
+    }
     
-    //note: few iterations here works fine because the cube map is a low frequency texture (not too many harsh color transitions in it).
-    INTEGRATE(0,3)
-    INTEGRATE(1,3)
-    INTEGRATE(2,3)
+//    //note: few iterations here works fine because the cube map is a low frequency texture (not too many harsh color transitions in it).
+//    INTEGRATE(0,3)
+//    INTEGRATE(1,3)
+//    INTEGRATE(2,3)
 
     return vec4(PI * color / float(sampleCount), 1.0);
 }
@@ -112,55 +112,63 @@ void main()
     
     vec4 N = vec4(uv, 1.0f, .0f);
     //N.zw = vec2(1.0f, 0.0f);
-    
-    //X+
+    //NEW
     vec3 n = normalize(N.xyz);
     vec4 world_normal = consts.positive_x * vec4(n, 0.0f);
     world_normal.y *= -1.0f;
     
     out_color = integrate(world_normal.xyz);
-    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_X;
-    imageStore(radiance_map, voxel, out_color);
-
-    //X-
-    world_normal = consts.negative_x * vec4(n, 0.0f);
-    world_normal.y *= -1.0f;
-
-    out_color = integrate(world_normal.xyz);
-    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_X;
-    imageStore(radiance_map, voxel, out_color);
-
-    //Y+
-    world_normal = consts.positive_y * vec4(n,0.0f);
-    world_normal.y *= -1.0f;
-
-    out_color = integrate(world_normal.xyz);
-    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Y;
-    imageStore(radiance_map, voxel, out_color);
-
-//    NO CONTRIBUTION FROM THE BOTTOM, LIKELY THERE IS A FLOOR THERE
-//    //Y-
-//    world_normal = consts.negative_y * n;
+    //
+    
+//    //X+
+//    vec3 n = normalize(N.xyz);
+//    vec4 world_normal = consts.positive_x * vec4(n, 0.0f);
 //    world_normal.y *= -1.0f;
 //
-//    out_color = integrate(world_normal);
-//    voxel = ivec3( uv, TEXTURE_CUBE_MAP_NEGATIVE_Y);
+//    out_color = integrate(world_normal.xyz);
+//    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_X;
 //    imageStore(radiance_map, voxel, out_color);
-
-    //Z+
-    world_normal = consts.positive_z * vec4(n, 1.0f);
-    world_normal.y *= -1.0f;
-    
-    out_color = integrate(world_normal.xyz);
-    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Z;
-    imageStore(radiance_map, voxel, out_color);
-    
-    //Z-
-    world_normal = consts.negative_z * vec4(n, 1.0f);
-    world_normal.y *= -1.0f;
-
-    out_color = integrate(world_normal.xyz);
-    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Z;
-    imageStore(radiance_map, voxel, out_color);
-
+//
+//    //X-
+//    world_normal = consts.negative_x * vec4(n, 0.0f);
+//    world_normal.y *= -1.0f;
+//
+//    out_color = integrate(world_normal.xyz);
+//    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_X;
+//    imageStore(radiance_map, voxel, out_color);
+//
+//    //Y+
+//    world_normal = consts.positive_y * vec4(n,0.0f);
+//    world_normal.y *= -1.0f;
+//
+//    out_color = integrate(world_normal.xyz);
+//    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Y;
+//    imageStore(radiance_map, voxel, out_color);
+//
+////    NO CONTRIBUTION FROM THE BOTTOM, LIKELY THERE IS A FLOOR THERE
+////    //Y-
+////    world_normal = consts.negative_y * n;
+////    world_normal.y *= -1.0f;
+////
+////    out_color = integrate(world_normal);
+////    voxel = ivec3( uv, TEXTURE_CUBE_MAP_NEGATIVE_Y);
+////    imageStore(radiance_map, voxel, out_color);
+//
+//    //Z+
+//    world_normal = consts.positive_z * vec4(n, 1.0f);
+//    world_normal.y *= -1.0f;
+//
+//    out_color = integrate(world_normal.xyz);
+//    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Z;
+//    imageStore(radiance_map, voxel, out_color);
+//
+//    //Z-
+//    world_normal = consts.negative_z * vec4(n, 1.0f);
+//    world_normal.y *= -1.0f;
+//
+//    out_color = integrate(world_normal.xyz);
+//    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Z;
+//    imageStore(radiance_map, voxel, out_color);
+//
+//    out_color = vec4(0);
 }

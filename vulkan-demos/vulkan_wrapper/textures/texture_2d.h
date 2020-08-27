@@ -76,7 +76,7 @@ namespace vk
                               int32_t width, int32_t height, int32_t depth = 1);
         
         
-        void generate_mipmaps( VkImage image, VkCommandBuffer& command_buffer,
+        virtual void generate_mipmaps( VkImage image, VkCommandBuffer& command_buffer,
                                     uint32_t width,  uint32_t height, uint32_t depth);
         
         inline void refresh_mipmaps(VkCommandBuffer& command_buffer)

@@ -79,7 +79,7 @@ public:
         vk::resource_set<vk::render_texture>& positions  = _tex_registry->get_read_render_texture_set("positions", this, vk::usage_type::INPUT_ATTACHMENT);
         vk::resource_set<vk::render_texture>& albedos  = _tex_registry->get_read_render_texture_set("albedos", this, vk::usage_type::INPUT_ATTACHMENT);
         
-        vk::resource_set<vk::texture_cube>& atmospheric = _tex_registry->get_write_texture_cube_set("atmospheric", this);
+        vk::resource_set<vk::texture_cube>& atmospheric = _tex_registry->get_write_texture_cube_set("atmospheric", this, vk::usage_type::STORAGE_IMAGE);
 
         atmospheric.set_filter(vk::image::filter::LINEAR);
         atmospheric.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
@@ -98,8 +98,7 @@ public:
         atmospheric_subpass.add_input_attachment("positions", "positions",vk::parameter_stage::FRAGMENT, 2);
         atmospheric_subpass.add_input_attachment("albedos", "albedos",vk::parameter_stage::FRAGMENT, 3);
         
-        atmospheric_subpass.set_image_sampler(atmospheric, "cubemap_texture", vk::parameter_stage::FRAGMENT, 4,
-                                              vk::usage_type::STORAGE_IMAGE);
+        atmospheric_subpass.set_image_sampler(atmospheric, "cubemap_texture", vk::parameter_stage::FRAGMENT, 4);
         
 
         for( int i = 0; i < 5; ++i)

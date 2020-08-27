@@ -19,7 +19,6 @@ namespace vk
         
         render_texture()
         {
-            _original_layout = image::image_layouts::SHADER_READ_ONLY_OPTIMAL;
         };
         render_texture(device* device, uint32_t width, uint32_t height);
         
@@ -56,6 +55,5 @@ namespace vk
     private:
         
         static constexpr char const * _image_type = nullptr;
-        //render_texture::usage _usage = usage::COLOR_TARGET;
     };
 }

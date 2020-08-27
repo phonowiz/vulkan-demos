@@ -26,9 +26,9 @@ VkPresentModeKHR glfw_present_texture::get_vk_present_mode()
 
 void glfw_present_texture::init()
 {
-    assert(_swapchain_image_index != INVALID);
-    assert(_device != nullptr);
-    assert(_swapchain->get_vk_surface() != VK_NULL_HANDLE);
+    EA_ASSERT(_swapchain_image_index != INVALID);
+    EA_ASSERT(_device != nullptr);
+    EA_ASSERT(_swapchain->get_vk_surface() != VK_NULL_HANDLE);
     
     device::swapchain_support_details swapchain_support {};
     _device->query_swapchain_support( _device->_physical_device, _swapchain->get_vk_surface(), swapchain_support);
@@ -39,7 +39,6 @@ void glfw_present_texture::init()
     _height = extent.height;
     _depth = 1;
     _filter = filter::NEAREST;
-    _image_layout = image_layouts::PRESENT_KHR;
     _channels = 4;
     _mip_levels = 1;
     _format = formats::R8G8B8A8_UNSIGNED_NORMALIZED;
@@ -53,6 +52,11 @@ void glfw_present_texture::init()
     _format = static_cast<formats>(get_vk_surface_format().format);
     _image = images[_swapchain_image_index];
     create_image_view(_image, static_cast<VkFormat>(_format), _image_view);
+    
+    _image_layout = image_layouts::UNDEFINED;
+    _original_layout = image_layouts::PRESENT_KHR;
+    
+    change_layout(image_layouts::PRESENT_KHR);
     
     _initialized = true;
 }

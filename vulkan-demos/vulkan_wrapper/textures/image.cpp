@@ -11,6 +11,39 @@
 using namespace vk;
 
 
+void image::change_layout(image_layouts l)
+{
+    VkCommandBuffer command_buffer =
+        _device->start_single_time_command_buffer(_device->_graphics_command_pool);
+
+    VkImageMemoryBarrier barrier = {};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.image = _image;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    barrier.subresourceRange.baseArrayLayer = 0;
+    barrier.subresourceRange.baseMipLevel = 0;
+    barrier.oldLayout = static_cast<VkImageLayout>(_image_layout);
+    barrier.newLayout = static_cast<VkImageLayout>(l);
+    barrier.srcAccessMask = VK_ACCESS_MEMORY_WRITE_BIT;
+    barrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+
+    barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS ;
+    barrier.subresourceRange.levelCount = VK_REMAINING_MIP_LEVELS;
+
+    //TODO: optimize stages
+    vkCmdPipelineBarrier(command_buffer,
+                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0,
+                         0, nullptr,
+                         0, nullptr,
+                         1, &barrier);
+
+    _image_layout = l;
+    
+    _device->
+        end_single_time_command_buffer(_device->_graphics_queue, _device->_graphics_command_pool, command_buffer);
+}
 VkImageCreateInfo image::get_image_create_info(VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage_flags)
 {
     VkImageCreateInfo image_create_info = {};
@@ -33,7 +66,7 @@ VkImageCreateInfo image::get_image_create_info(VkFormat format, VkImageTiling ti
 }
 
 void image::create_image(  VkFormat format, VkImageTiling tiling,
-                         VkImageUsageFlags usage_flags, VkMemoryPropertyFlags property_flags)
+                         VkImageUsageFlags usage_flags, VkMemoryPropertyFlags property_flags, bool pre_initted)
 {
     
     VkImageCreateInfo image_create_info = get_image_create_info(format, tiling, usage_flags);
@@ -45,7 +78,7 @@ void image::create_image(  VkFormat format, VkImageTiling tiling,
     uint32_t graphics_fam_index = _device->_queue_family_indices.graphics_family.value();
     image_create_info.queueFamilyIndexCount = 1;
     image_create_info.pQueueFamilyIndices = &graphics_fam_index;
-    image_create_info.initialLayout = static_cast<VkImageLayout>(_image_layout);
+    image_create_info.initialLayout =  pre_initted ? VK_IMAGE_LAYOUT_PREINITIALIZED : VK_IMAGE_LAYOUT_UNDEFINED;
     
     VkResult result = vkCreateImage(_device->_logical_device, &image_create_info, nullptr, &_image);
     ASSERT_VULKAN(result);

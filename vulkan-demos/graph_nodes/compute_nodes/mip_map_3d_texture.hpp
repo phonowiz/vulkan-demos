@@ -56,10 +56,8 @@ public:
         parent_type::_compute_pipelines.set_material("downsize", *_mat_store);
         
         
-        vk::resource_set<vk::texture_3d>& input_tex1 = _tex_registry->get_read_texture_3d_set(_input_textures[0].c_str(), this,
-                                                                               vk::usage_type::STORAGE_IMAGE);
-        vk::resource_set<vk::texture_3d>& input_tex2 = _tex_registry->get_read_texture_3d_set(_input_textures[1].c_str(), this,
-                                                                               vk::usage_type::STORAGE_IMAGE);
+        vk::resource_set<vk::texture_3d>& input_tex1 = _tex_registry->get_read_texture_3d_set(_input_textures[0].c_str(), this);
+        vk::resource_set<vk::texture_3d>& input_tex2 = _tex_registry->get_read_texture_3d_set(_input_textures[1].c_str(), this);
         
         EA_ASSERT_MSG(_tex_registry->is_resource_created(_output_textures[0].c_str()), "output resource hasn't been created");
         

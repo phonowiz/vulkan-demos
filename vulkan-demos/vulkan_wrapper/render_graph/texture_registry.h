@@ -24,6 +24,7 @@
 #include "EASTL/fixed_map.h"
 #include "EASTL/fixed_string.h"
 #include "resource_set.h"
+#include "command_recorder.h"
 
 
 namespace vk
@@ -61,14 +62,23 @@ namespace vk
             dependee_data data = {};
         };
         
-        using node_dependees  = eastl::fixed_vector<dependant_data, DEPENDENCIES_SIZE,true>;
-        
-        using node_dependees_map = eastl::map<vk::object*,node_dependees>;
-        
-        using dependee_data_map = eastl::map< string_key_type, dependee_data> ;
+        using node_dependees     =  eastl::fixed_vector<dependant_data, DEPENDENCIES_SIZE,true>;
+        using node_dependees_map =  eastl::map<vk::object*,node_dependees>;
+        using dependee_data_map  =  eastl::map< string_key_type, dependee_data> ;
         
         
         texture_registry(vk::device* dev ){ _device = dev; }
+        
+        typename dependee_data_map::iterator get_dependees()
+        {
+            return _dependee_data_map.begin();
+        }
+        
+        typename dependee_data_map::iterator get_dependees_end()
+        {
+            return _dependee_data_map.end();
+        }
+        
         
         inline node_dependees& get_dependees( node_type* dependant_node)
         {
@@ -89,7 +99,7 @@ namespace vk
         {
             eastl::shared_ptr< resource_set<depth_texture>> tex =  get_read_texture<resource_set<depth_texture>>(name, node, usage_type);
             EA_ASSERT_FORMATTED(tex != nullptr, (" Invalid graph, texture %s which this node depends on has not been found", name));
-            
+            (*tex).log_transition(usage_type);
             return *tex;
         }
         
@@ -98,40 +108,40 @@ namespace vk
         {
             eastl::shared_ptr< resource_set<render_texture>> tex =  get_read_texture<resource_set<render_texture>>(name, node, usage_type);
             EA_ASSERT_FORMATTED(tex != nullptr, (" Invalid graph, texture %s, which this node depends on, has not been found.  Did you mean to call \"get_write_render_texture_set\"?", name));
-            
+            (*tex).log_transition(usage_type);
             return *tex;
         }
         
-        inline resource_set<texture_3d>& get_read_texture_3d_set( const char* name, node_type* node, vk::usage_type usage_type)
+        inline resource_set<texture_3d>& get_read_texture_3d_set( const char* name, node_type* node)
         {
-            eastl::shared_ptr< resource_set<texture_3d>> tex =  get_read_texture<resource_set<texture_3d>>(name, node, usage_type);
-            EA_ASSERT_FORMATTED(tex != nullptr, (" Invalid graph, texture %s which this node depends on has not been found", name));
-            
+            eastl::shared_ptr< resource_set<texture_3d>> tex =  get_read_texture<resource_set<texture_3d>>(name, node, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            EA_ASSERT_FORMATTED(tex != nullptr, (" Invalid graph, texture %s which this node depends was not found", name));
+            (*tex).log_transition(vk::usage_type::COMBINED_IMAGE_SAMPLER);
             return *tex;
         }
         
-        inline resource_set<texture_2d>& get_read_texture_2d_set( const char* name, node_type* node, vk::image::image_layouts expected_layout)
+        inline resource_set<texture_2d>& get_read_texture_2d_set( const char* name, node_type* node)
         {
-            eastl::shared_ptr< resource_set<texture_2d>> tex =  get_read_texture<resource_set<texture_2d>>(name, node, expected_layout);
+            eastl::shared_ptr< resource_set<texture_2d>> tex =  get_read_texture<resource_set<texture_2d>>(name, node, vk::usage_type::COMBINED_IMAGE_SAMPLER);
             EA_ASSERT_FORMATTED(tex != nullptr, (" Invalid graph, texture %s which this node depends on has not been found", name));
-            
+            (*tex).log_transition(vk::usage_type::COMBINED_IMAGE_SAMPLER);
             return *tex;
         }
         
         inline resource_set<texture_cube>& get_read_texture_cube_set( const char* name, node_type* node)
         {
-            eastl::shared_ptr< resource_set<texture_cube>> tex =  get_read_texture<resource_set<texture_cube>>(name, node, vk::usage_type::STORAGE_IMAGE);
+            eastl::shared_ptr< resource_set<texture_cube>> tex =  get_read_texture<resource_set<texture_cube>>(name, node, vk::usage_type::COMBINED_IMAGE_SAMPLER);
             EA_ASSERT_FORMATTED(tex != nullptr, (" Invalid graph, texture %s which this node depends on has not been found", name));
-            
+            (*tex).log_transition(vk::usage_type::COMBINED_IMAGE_SAMPLER);
             return *tex;
         }
         
 
-        inline resource_set<texture_cube>& get_write_texture_cube_set( const char* name, node_type* node )
+        inline resource_set<texture_cube>& get_write_texture_cube_set( const char* name, node_type* node, vk::usage_type usage_type )
         {
-            resource_set<texture_cube>& result = get_write_texture<resource_set<texture_cube>>(name, node, vk::usage_type::STORAGE_IMAGE);
+            resource_set<texture_cube>& result = get_write_texture<resource_set<texture_cube>>(name, node, usage_type);
             result.set_name(name);
-            
+            result.log_transition(usage_type);
             return result;
         }
         
@@ -140,15 +150,15 @@ namespace vk
         {
             resource_set<texture_2d>& result = get_write_texture<resource_set<texture_2d>>(name, node, usage_type);
             result.set_name(name);
-            
+            result.log_transition(usage_type);
             return result;
         }
         
-        inline resource_set<depth_texture>& get_write_depth_texture_set( const char* name, node_type* node, vk::usage_type usage_type)
+        inline resource_set<depth_texture>& get_write_depth_texture_set( const char* name, node_type* node)
         {
-            resource_set<depth_texture>& result = get_write_texture<resource_set<depth_texture>>(name, node, usage_type);
+            resource_set<depth_texture>& result = get_write_texture<resource_set<depth_texture>>(name, node, vk::usage_type::STORAGE_IMAGE);
             result.set_name(name);
-            
+            result.log_transition(vk::usage_type::STORAGE_IMAGE);
             return result;
         }
         
@@ -156,6 +166,7 @@ namespace vk
         {
             resource_set<render_texture>& result = get_write_texture<resource_set<render_texture>>(name, node, vk::usage_type::INPUT_ATTACHMENT);
             result.set_name(name);
+            result.log_transition(vk::usage_type::INPUT_ATTACHMENT);
             return result;
         }
         
@@ -165,6 +176,7 @@ namespace vk
         {
             resource_set<texture_3d>& result = get_write_texture<resource_set<texture_3d>>(name, node, vk::usage_type::STORAGE_IMAGE);
             result.set_name(name);
+            result.log_transition(vk::usage_type::STORAGE_IMAGE);
             return result;
         }
 
@@ -208,7 +220,7 @@ namespace vk
         }
         
         
-        void reset_render_textures()
+        void reset_render_textures(uint32_t i)
         {
             typename dependee_data_map::iterator iter = _dependee_data_map.begin();
 
@@ -218,28 +230,34 @@ namespace vk
 
                 eastl::shared_ptr<vk::object> res = eastl::static_pointer_cast<vk::object>(d.resource);
 
-//              note: right now I don't see a need to reset textures other thanr render_textures, which are special in that they are rendered to
-//              and as a result the render passes put them in a layout which might be different than the one they ended up with at the end of the last
-//              execution of commands in the render graph.  In this code base, render pass attachments always put attachments in the render texture's
-//              original image_layout stored in vk::image::_original_layout variable.
-
-//              We need to reset these textures here again because next time render passes run,they will put them in their orginal layout
-
+                
+                //these textures net to be  prepared for the next rendering loop
+                if(res->get_instance_type()  == resource_set<vk::texture_cube>::get_class_type() ||
+                   res->get_instance_type() == resource_set<vk::texture_cube*>::get_class_type())
+                {
+                    eastl::shared_ptr< resource_set<vk::texture_cube> > set = eastl::static_pointer_cast< resource_set<vk::texture_cube>>(res);
+                    set->reset_image_layout(i);
+                }
 
                 if(res->get_instance_type()  == resource_set<vk::render_texture>::get_class_type() ||
                    res->get_instance_type() == resource_set<vk::render_texture*>::get_class_type())
                 {
                     eastl::shared_ptr< resource_set<vk::render_texture> > set = eastl::static_pointer_cast< resource_set<vk::render_texture>>(res);
-
-                    set->reset_image_layout();
+                    set->reset_image_layout(i);
                 }
                 
                 if(res->get_instance_type()  == resource_set<vk::depth_texture>::get_class_type() ||
                    res->get_instance_type() == resource_set<vk::depth_texture*>::get_class_type())
                 {
                     eastl::shared_ptr< resource_set<vk::depth_texture> > set = eastl::static_pointer_cast< resource_set<vk::depth_texture>>(res);
-
-                    set->reset_image_layout();
+                    set->reset_image_layout(i);
+                }
+                
+                if(res->get_instance_type()  == resource_set<vk::texture_3d>::get_class_type() ||
+                   res->get_instance_type() == resource_set<vk::texture_3d*>::get_class_type())
+                {
+                    eastl::shared_ptr< resource_set<vk::texture_3d> > set = eastl::static_pointer_cast< resource_set<vk::texture_3d>>(res);
+                    set->reset_image_layout(i);
                 }
 
                 ++iter;
@@ -255,7 +273,10 @@ namespace vk
             dependant_data dependant = {};
             dependant.data = d;
             dependant.layout = type.get_usage_layout(usage_type);
-            _node_dependees_map[node].push_back(dependant);
+            
+            //pre-initialized images do not to be transitioned to this state, they are already in it
+            if(dependant.layout != image::image_layouts::PREINITIALIZED)
+                _node_dependees_map[node].push_back(dependant);
         }
         
         template<typename T>
@@ -264,7 +285,8 @@ namespace vk
             dependant_data dependant = {};
             dependant.data = d;
             dependant.layout = type[0].get_usage_layout(usage_type);
-            _node_dependees_map[node].push_back(dependant);
+            if(dependant.layout != image::image_layouts::PREINITIALIZED)
+                _node_dependees_map[node].push_back(dependant);
         }
         
         template <typename T>
@@ -289,9 +311,7 @@ namespace vk
                 
                 d.consumed = true;
                 make_dependency(*result, d, node, usage_type);
-                
             }
-            
             return result;
         }
 
@@ -317,6 +337,8 @@ namespace vk
                 info.consumed = false;
 
                 _dependee_data_map[name] = info;
+                
+                make_dependency(*ptr, info, node, usage_type);
             }
             else
             {
@@ -324,7 +346,7 @@ namespace vk
                 dependee_data& d = iter->second;
                 make_dependency(*ptr, d, node, usage_type);
                 
-                iter->second.consumed = false;
+                iter->second.consumed = true;
             }
             
             return *ptr;

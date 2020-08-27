@@ -15,7 +15,6 @@
 
 using namespace vk;
 
-
 static eastl::unordered_map<eastl::string,  shader_shared_ptr> shader_database;
 static eastl::unordered_map<eastl::string,  mat_shared_ptr > material_database;
 
@@ -79,6 +78,12 @@ void material_store::create(device* device)
     
     mat_shared_ptr luminance_mat = CREATE_MAT<visual_material>("luminance", luminance_vert, luminance_frag, device);
     add_material(luminance_mat);
+    
+    shader_shared_ptr ibl_vert = add_shader("graphics/ibl.vert", shader::shader_type::VERTEX);
+    shader_shared_ptr ibl_frag = add_shader("graphics/ibl.frag", shader::shader_type::FRAGMENT);
+    
+    mat_shared_ptr ibl_mat = CREATE_MAT<visual_material>("ibl", ibl_vert, ibl_frag, device);
+    add_material(ibl_mat);
     
     shader_shared_ptr radiance_map_vert = add_shader("graphics/radiance_map.vert", shader::shader_type::VERTEX);
     shader_shared_ptr radiance_map_frag = add_shader("graphics/radiance_map.frag", shader::shader_type::FRAGMENT);

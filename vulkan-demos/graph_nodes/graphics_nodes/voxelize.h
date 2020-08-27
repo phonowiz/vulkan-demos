@@ -155,13 +155,13 @@ public:
                 vk::texture_2d& rsrc = _tex_registry->get_loaded_texture(diffuse.c_str(), this, parent_type::_device, diffuse.c_str());
                 rsrc.init();
                 voxelize_subpass.set_image_sampler( rsrc, "albedos",
-                                      vk::parameter_stage::VERTEX, 5, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+                                      vk::parameter_stage::VERTEX, 5);
             }
             else
             {
                 use_texture = 0;
                 voxelize_subpass.set_image_sampler( black, "albedos",
-                                      vk::parameter_stage::VERTEX, 5, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+                                      vk::parameter_stage::VERTEX, 5);
             }
             
             set_vertex_args(voxelize_subpass, use_texture);
@@ -172,11 +172,8 @@ public:
             vk::resource_set<vk::texture_3d>& albedo_textures = _tex_registry->get_write_texture_3d_set("voxel_albedos", this);
             vk::resource_set<vk::texture_3d>& normal_textures = _tex_registry->get_write_texture_3d_set("voxel_normals", this);
             
-            voxelize_subpass.set_image_sampler(albedo_textures, "voxel_albedo_texture",
-                                               vk::parameter_stage::FRAGMENT, 1, vk::usage_type::STORAGE_IMAGE );
-            
-            voxelize_subpass.set_image_sampler(normal_textures, "voxel_normal_texture",
-                                               vk::parameter_stage::FRAGMENT, 4, vk::usage_type::STORAGE_IMAGE );
+            voxelize_subpass.set_image_sampler(albedo_textures, "voxel_albedo_texture", vk::parameter_stage::FRAGMENT, 1 );
+            voxelize_subpass.set_image_sampler(normal_textures, "voxel_normal_texture", vk::parameter_stage::FRAGMENT, 4 );
             
             voxelize_subpass.init_parameter("inverse_view_projection", vk::parameter_stage::FRAGMENT, glm::mat4(1.0f), 2);
             voxelize_subpass.init_parameter("project_to_voxel_screen", vk::parameter_stage::FRAGMENT, _proj_to_voxel_screen, 2);

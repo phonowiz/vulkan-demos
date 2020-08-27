@@ -17,10 +17,21 @@
 
 #include "EASTL/array.h"
 #include "EASTL/fixed_string.h"
+#include "EASTL/queue.h"
+#include "EASTL/stack.h"
+
+#include <iostream>
 
 namespace vk
 {
     static constexpr int NUM_SWAPCHAIN_IMAGES = 3;
+
+    struct usage_transition
+    {
+        image::image_layouts previous;
+        image::image_layouts current;
+        vk::usage_type current_usage_type;
+    };
 
 
     //note: resource_set class was placed here to break up a cyclic dependency, ideally I'd like this
@@ -44,6 +55,45 @@ namespace vk
             {
                 elements[i].set_enable_mipmapping(b);
             }
+        }
+        
+        inline void log_transition(vk::usage_type l)
+        {
+            usage_transition trans {};
+            trans.previous = elements[0].get_original_layout();
+            trans.current_usage_type = l;
+            if(!_layout_queue.empty())
+            {
+                trans.previous = _layout_queue.back().current;
+            }
+            trans.current = elements[0].get_usage_layout(l);
+            EA_ASSERT_FORMATTED(!(trans.current == image::image_layouts::UNDEFINED || trans.current == image::image_layouts::PREINITIALIZED), ("invalid transition for texture %s\n", _name.c_str()));
+            
+            _layout_queue.push(trans);
+            //std::cout << _name.c_str() << ": history count:" << _layout_queue.size() << std::endl;
+            EA_ASSERT( !_layout_queue.empty());
+        }
+        
+        inline usage_transition get_last_transition()
+        {
+            EA_ASSERT( !_layout_queue.empty() );
+            usage_transition r = _layout_queue.back();
+            return r;
+        }
+        
+        inline usage_transition get_current_transition()
+        {
+            EA_ASSERT_FORMATTED( !_layout_queue.empty(), ("there are no transitions available"));
+            usage_transition r = _layout_queue.front();
+            return r;
+        }
+        inline void pop_transition()
+        {
+            usage_transition r = _layout_queue.front();
+            _layout_queue.pop();
+            
+            //std::cout << "popping: " <<  _name.c_str() << " count: " << _layout_queue.size() << std::endl;
+            _used_transitions.push(r);
         }
         
         void set_name(const char* name)
@@ -112,7 +162,6 @@ namespace vk
         
         inline T& operator[](int i) { return elements[i]; }
         
-        
         void set_dimensions( uint32_t width, uint32_t height, uint32_t depth = 1)
         {
             for( int i = 0; i < elements.size(); ++i)
@@ -129,12 +178,40 @@ namespace vk
             }
         }
         
+        
+        inline void set_original_layout( image::image_layouts l)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i].set_original_layout(l);
+            }
+        }
+        
         inline void set_native_layout( image::image_layouts l)
         {
             for( int i = 0; i < elements.size(); ++i)
             {
                 elements[i].set_native_layout(l);
             }
+        }
+        
+        inline void change_layout(image::image_layouts l)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i].change_layout(l);
+            }
+        }
+        
+        inline void init_layout( vk::usage_type usage)
+        {
+            image::image_layouts l = get_usage_layout(usage);
+            set_native_layout(l);
+        }
+        
+        inline image::image_layouts get_usage_layout( vk::usage_type usage)
+        {
+            return elements[0].get_usage_layout(usage);
         }
         
         void set_device( vk::device* dev)
@@ -165,13 +242,15 @@ namespace vk
                 return elements[0].is_multisampling();
         }
         
-        inline void reset_image_layout()
+        inline void reset_image_layout(uint32_t i)
         {
-            for( int i = 0; i < elements.size(); ++i)
+            EA_ASSERT(_layout_queue.empty());
+            while(!_used_transitions.empty())
             {
-                if(elements[i].is_initialized())
-                    elements[i].reset_image_layout();
+                _layout_queue.push( _used_transitions.front() );
+                _used_transitions.pop();
             }
+            std::cout << _name.c_str() << "reset count: " << _layout_queue.size() << std::endl;
         }
         
         
@@ -182,10 +261,15 @@ namespace vk
             private_destroy();
         }
         
+        //this is to allow assignment operator to this type
+        friend resource_set<image*>;
     private:
         
         eastl::fixed_string<char, 50> _name = {};
         eastl::array<T, NUM_SWAPCHAIN_IMAGES> elements {};
+        eastl::queue<usage_transition> _layout_queue;
+        eastl::queue<usage_transition> _used_transitions;
+        
         void private_destroy()
         {
             for( int i = 0; i < NUM_SWAPCHAIN_IMAGES; ++i)
@@ -205,6 +289,42 @@ namespace vk
         
     public:
         
+        inline void log_transition(vk::usage_type l)
+        {
+            usage_transition trans {};
+            trans.current_usage_type = l;
+            
+            trans.previous = elements[0].get_original_layout();
+            if(!_layout_queue.empty())
+            {
+                trans.previous = _layout_queue.front().current;
+            }
+            trans.current = elements[0].get_usage_layout(l);
+            _layout_queue.push(trans);
+        }
+        
+        inline bool has_transitions()
+        {
+            return !_layout_queue.empty();
+        }
+        inline usage_transition get_last_transition_added()
+        {
+            return _layout_queue.back();
+        }
+        
+        inline usage_transition get_current_transition()
+        {
+            EA_ASSERT( !_layout_queue.empty() );
+            usage_transition r = _layout_queue.front();
+            return r;
+        }
+        inline void pop_transition()
+        {
+            usage_transition r = _layout_queue.front();
+            _layout_queue.pop();
+            //std::cout << "count %i :" << _name.c_str() << std::endl;
+            _used_transitions.push(r);
+        }
         void set_name(const char* name)
         {
             _name.clear();
@@ -219,6 +339,19 @@ namespace vk
         inline T*& operator[](int i) { return elements[i]; }
         
         eastl_size_t size(){ return elements.size(); }
+        
+        template < typename NEW_T >
+        resource_set<image*>& operator=(  resource_set< NEW_T > &rhs )
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i] = static_cast<image*>(&rhs[i]);
+            }
+            
+            _layout_queue = rhs._layout_queue;
+            _used_transitions = rhs._used_transitions;
+            return *this;
+        }
         
         static char const * const *  get_class_type(){ return (&_resource_type); }
         
@@ -266,6 +399,26 @@ namespace vk
             {
                 elements[i]->set_native_layout(l);
             }
+        }
+        
+        inline void change_layout(image::image_layouts l)
+        {
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i]->change_layout(l);
+            }
+        }
+        
+        inline void init_layout( vk::usage_type usage)
+        {
+            image::image_layouts l = get_usage_layout(usage);
+            set_native_layout(l);
+        }
+        
+        
+        image::image_layouts get_usage_layout( vk::usage_type usage)
+        {
+            return elements[0]->get_usage_layout(usage);
         }
         
         void init()
@@ -334,11 +487,13 @@ namespace vk
             }
         }
         
-        inline void reset_image_layout()
+        inline void reset_image_layout(uint32_t i)
         {
-            for( int i = 0; i < elements.size(); ++i)
+            EA_ASSERT(_layout_queue.empty());
+            while(!_used_transitions.empty())
             {
-                elements[i]->reset_image_layout();
+                _layout_queue.push( _used_transitions.front() );
+                _used_transitions.pop();
             }
         }
         
@@ -351,7 +506,8 @@ namespace vk
         
         static constexpr char const * _resource_type = nullptr;
         eastl::array<T*, NUM_SWAPCHAIN_IMAGES> elements {};
-        
+        eastl::queue<usage_transition> _layout_queue;
+        eastl::queue<usage_transition> _used_transitions;
         eastl::fixed_string<char, 50> _name = {};
         
         void private_destroy()

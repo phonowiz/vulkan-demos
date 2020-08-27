@@ -24,6 +24,7 @@ namespace vk
     {
     public:
         
+        using tex_registry_type = texture_registry<NUM_CHILDREN>;
         using node_type = vk::node<NUM_CHILDREN>;
         
         graph(device* dev, material_store& mat_store, glfw_swapchain& swapchain):
@@ -65,11 +66,11 @@ namespace vk
         {
             node_type::reset_node(node_type::_level, node_type::_device);
             
-            _texture_registry.reset_render_textures();
-            
             _commands.reset(image_id);
             _commands.begin_command_recording(image_id);
             record(_commands, image_id);
+            _texture_registry.reset_render_textures(image_id);
+            //reset_textures(_commands, image_id);
             _commands.end_command_recording(image_id);
         }
         
@@ -96,6 +97,71 @@ namespace vk
         }
         
     protected:
+        
+        void reset_textures(command_recorder& buffer,  uint32_t image_id)
+        {
+            //typename tex_registry_type::node_dependees& dependees = _texture_registry->get_dependees(this);
+            typename tex_registry_type::dependee_data_map::iterator iter = _texture_registry.get_dependees();
+            typename tex_registry_type::dependee_data_map::iterator end = _texture_registry.get_dependees_end();
+            //typename tex_registry_type::node_dependees::iterator begin = dependees.begin();
+            //typename tex_registry_type::node_dependees::iterator end = dependees.end();
+          
+            //TODO: In theory we could collect all the barriers and have one vkCmdPipelineBarrier
+            while( iter != end)
+            {
+                typename tex_registry_type::dependee_data& d = iter->second;
+                eastl::shared_ptr<vk::object> res = eastl::static_pointer_cast<vk::object>(d.resource);
+                
+                vk::usage_transition current_trans = {};
+                vk::usage_transition last_trans {};
+                if(res->get_instance_type()  == resource_set<vk::texture_2d>::get_class_type())
+                {
+                    eastl::shared_ptr< resource_set<vk::texture_2d> > set = eastl::static_pointer_cast< resource_set<vk::texture_2d>>(res);
+                    last_trans = (*set).get_last_transition();
+                    current_trans =  (*set).get_current_transition();
+                }
+                else if(res->get_instance_type()  == resource_set<vk::texture_3d>::get_class_type())
+                {
+                    eastl::shared_ptr< resource_set<vk::texture_2d> > set = eastl::static_pointer_cast< resource_set<vk::texture_2d>>(res);
+                    last_trans = (*set).get_last_transition();
+                    current_trans =  (*set).get_current_transition();
+                }
+                else if(res->get_instance_type()  == resource_set<vk::depth_texture>::get_class_type())
+                {
+                    eastl::shared_ptr< resource_set<vk::texture_2d> > set = eastl::static_pointer_cast< resource_set<vk::texture_2d>>(res);
+                    last_trans = (*set).get_last_transition();
+                    current_trans =  (*set).get_current_transition();
+                }
+                else if(res->get_instance_type()  == resource_set<vk::render_texture>::get_class_type())
+                {
+                    eastl::shared_ptr< resource_set<vk::texture_2d> > set = eastl::static_pointer_cast< resource_set<vk::texture_2d>>(res);
+                    last_trans = (*set).get_last_transition();
+                    current_trans =  (*set).get_current_transition();
+                }
+                else if(res->get_instance_type()  == resource_set<vk::texture_cube>::get_class_type())
+                {
+                    eastl::shared_ptr< resource_set<vk::texture_2d> > set = eastl::static_pointer_cast< resource_set<vk::texture_2d>>(res);
+                    last_trans = (*set).get_last_transition();
+                    current_trans =  (*set).get_current_transition();
+                }
+                else
+                {
+                    
+                    ++iter;
+                    continue;
+                }
+                
+                vk::usage_transition reset_trans = {};
+                reset_trans.previous = current_trans.current;
+                reset_trans.current = last_trans.current;
+                
+                EA_ASSERT(reset_trans.current != vk::image::image_layouts::UNDEFINED);
+                
+                eastl::shared_ptr<vk::image> p_image = eastl::static_pointer_cast<vk::image>(res);
+                node_type::create_barrier(buffer, p_image.get(), d.node, image_id,reset_trans);
+                ++iter;
+            }
+        }
         
         virtual void create_gpu_resources() override
         {}

@@ -99,8 +99,9 @@ public:
         vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_read_depth_texture_set("depth", this, vk::usage_type::INPUT_ATTACHMENT);
         
         vk::resource_set<vk::render_texture>& final_render =  _tex_registry->get_write_render_texture_set("final_render",this);
-        //vk::resource_set<vk::texture_cube>& environment = _tex_registry->get_read_texture_cube_set("radiance_map", this);
-        vk::resource_set<vk::texture_cube>& environment = _tex_registry->get_read_texture_cube_set("atmospheric", this);
+        //vk::resource_set<vk::texture_cube>& environment = _tex_registry->get_read_texture_cube_set("spec_cubemap_high", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        //vk::resource_set<vk::texture_cube>& environment = _tex_registry->get_read_texture_cube_set("atmospheric", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        vk::resource_set<vk::texture_cube>& environment = _tex_registry->get_read_texture_cube_set("radiance_map", this);
         final_render.set_filter(vk::image::filter::LINEAR);
         final_render.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
         
@@ -126,8 +127,8 @@ public:
         composite.init_parameter("width", vk::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().width), 0);
         composite.init_parameter("height", vk::parameter_stage::VERTEX, static_cast<float>(_swapchain->get_vk_swap_extent().height), 0);
         
-        vk::resource_set<vk::texture_3d>& voxel_normal_set = _tex_registry->get_read_texture_3d_set("voxel_normals", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-        vk::resource_set<vk::texture_3d>& voxel_albedo_set = _tex_registry->get_read_texture_3d_set("voxel_albedos", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        vk::resource_set<vk::texture_3d>& voxel_normal_set = _tex_registry->get_read_texture_3d_set("voxel_normals", this);
+        vk::resource_set<vk::texture_3d>& voxel_albedo_set = _tex_registry->get_read_texture_3d_set("voxel_albedos", this);
         
         
         vk::resource_set<vk::render_texture>& vsm_set = _tex_registry->get_read_render_texture_set("blur_final", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
@@ -154,8 +155,8 @@ public:
         composite.init_parameter("screen_size", vk::parameter_stage::FRAGMENT,
                                  glm::vec2(_swapchain->get_vk_swap_extent().width, _swapchain->get_vk_swap_extent().height), 5);
         
-        composite.set_image_sampler(voxel_normal_set, "voxel_normals", vk::parameter_stage::FRAGMENT, 6, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-        composite.set_image_sampler(voxel_albedo_set, "voxel_albedos", vk::parameter_stage::FRAGMENT, 7, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        composite.set_image_sampler(voxel_normal_set, "voxel_normals", vk::parameter_stage::FRAGMENT, 6);
+        composite.set_image_sampler(voxel_albedo_set, "voxel_albedos", vk::parameter_stage::FRAGMENT, 7);
         
         static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS> albedo_lods;
         static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS> normal_lods;
@@ -168,16 +169,16 @@ public:
             normal_lods[i].sprintf("voxel_normals%i", i);
             albedo_lods[i].sprintf("voxel_albedos%i", i);
             
-            vk::resource_set<vk::texture_3d>& normal3d = _tex_registry->get_read_texture_3d_set(normal_lods[i].c_str(), this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-            vk::resource_set<vk::texture_3d>& albedo3d = _tex_registry->get_read_texture_3d_set(albedo_lods[i].c_str(), this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            vk::resource_set<vk::texture_3d>& normal3d = _tex_registry->get_read_texture_3d_set(normal_lods[i].c_str(), this);
+            vk::resource_set<vk::texture_3d>& albedo3d = _tex_registry->get_read_texture_3d_set(albedo_lods[i].c_str(), this);
             
-            composite.set_image_sampler(albedo3d, albedo_lods[i].c_str(), vk::parameter_stage::FRAGMENT, binding_index, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-            composite.set_image_sampler(normal3d, normal_lods[i].c_str(), vk::parameter_stage::FRAGMENT, binding_index + offset, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            composite.set_image_sampler(albedo3d, albedo_lods[i].c_str(), vk::parameter_stage::FRAGMENT, binding_index);
+            composite.set_image_sampler(normal3d, normal_lods[i].c_str(), vk::parameter_stage::FRAGMENT, binding_index + offset);
             binding_index++;
         }
         
-        composite.set_image_sampler(vsm_set, "vsm", vk::parameter_stage::FRAGMENT, binding_index + offset, vk::usage_type::COMBINED_IMAGE_SAMPLER );
-        composite.set_image_sampler(environment, "environment", vk::parameter_stage::FRAGMENT, binding_index + offset + 1, vk::usage_type::COMBINED_IMAGE_SAMPLER );
+        composite.set_image_sampler(vsm_set, "vsm", vk::parameter_stage::FRAGMENT, binding_index + offset);
+        composite.set_image_sampler(environment, "environment", vk::parameter_stage::FRAGMENT, binding_index + offset + 1 );
     }
     
     virtual void update_node(vk::camera& camera, uint32_t image_id) override

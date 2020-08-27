@@ -39,7 +39,7 @@ namespace vk
         attachment_group & operator=(attachment_group&) = delete;
         attachment_group(attachment_group&) = delete;
         
-        static constexpr uint32_t MAX_NUMBER_OF_ATTACHMENTS = 10u;
+        static constexpr uint32_t MAX_NUMBER_OF_ATTACHMENTS = 50;
         
         static_assert(MAX_NUMBER_OF_ATTACHMENTS > (NUM_ATTACHMENTS ));
         
@@ -154,9 +154,21 @@ namespace vk
         {
             EA_ASSERT_MSG(num_attachments < NUM_ATTACHMENTS, "too many attachments have been added.");
             
-            _clear_values[num_attachments] = { clear_color.x, clear_color.y, clear_color.z, clear_color.w};
-            _clear[num_attachments] = clear;
-            _store[num_attachments] = store;
+            if(textures_set.get_instance_type() == resource_set<texture_cube>::get_class_type())
+            {
+                for( int i = 0; i < 6; ++i)
+                {
+                    _clear_values[num_attachments + i] = { clear_color.x, clear_color.y, clear_color.z, clear_color.w};
+                    _clear[num_attachments + i] = clear;
+                    _store[num_attachments + i] = store;
+                }
+            }
+            else
+            {
+                _clear_values[num_attachments] = { clear_color.x, clear_color.y, clear_color.z, clear_color.w};
+                _clear[num_attachments] = clear;
+                _store[num_attachments] = store;
+            }
             add_attachment(textures_set);
         }
         
@@ -197,16 +209,32 @@ namespace vk
         {
             EA_ASSERT_MSG(textures_set.get_instance_type() != resource_set<texture_2d>::get_class_type(), "texture 2d's are pre initialized since they are loaded from hard drive, "
                    "did you mean to use a render_texture instead?");
-            EA_ASSERT_MSG(num_attachments < NUM_ATTACHMENTS, "Not all attachments have been added" );
-            
-            _attachments[num_attachments].set_name( textures_set.get_name().c_str());
-            for( int i = 0; i < textures_set.size(); ++i)
+
+            EA_ASSERT_MSG(num_attachments < NUM_ATTACHMENTS, "there is no more space left for attachments" );
+
+            if(textures_set.get_instance_type() == resource_set<texture_cube>::get_class_type())
             {
-                _attachments[num_attachments][i] = static_cast<image*>( &textures_set[i] );
-                _attachments[num_attachments][i]->set_device(_device);
-                _attachments[num_attachments][i]->set_dimensions(_dimensions.x, _dimensions.y);
+                for( int k = 0; k < 6; ++k)
+                {
+                    eastl::fixed_string<char, 100> name {};
+                    name.sprintf("%s_%i", textures_set.get_name().c_str(), k);
+                    _attachments[num_attachments].set_name( name.c_str());
+                    textures_set.set_dimensions(_dimensions.x, _dimensions.y);
+                    _attachments[num_attachments] = textures_set;
+                    _attachments[num_attachments].set_dimensions(_dimensions.x, _dimensions.y);
+
+                    ++num_attachments;
+                }
             }
-            ++num_attachments;
+            else
+            {
+                _attachments[num_attachments].set_name( textures_set.get_name().c_str());
+                _attachments[num_attachments] = textures_set;
+                _attachments[num_attachments].set_dimensions(_dimensions.x, _dimensions.y);
+
+                ++num_attachments;
+            }
+
         }
         
         eastl::array<VkClearValue,NUM_ATTACHMENTS> _clear_values {};

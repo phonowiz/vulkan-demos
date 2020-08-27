@@ -484,7 +484,7 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position, float metalnes
     //ambient term based off of Willem's example: https://github.com/SaschaWillems/Vulkan/blob/master/data/shaders/glsl/pbribl/pbribl.frag
     vec3 F = F_SchlickR(max(dot(world_normal, v), 0.0), F0, roughness);
     vec3 kD = 1.0f - F;
-    final += texture(environment, world_normal).rgb * ALBEDO_SAMPLE.xyz * kD;
+    final += texture(environment, world_normal).rgb * ALBEDO_SAMPLE.xyz * kD ;
 
     return vec4(final, 1.0f);
 }
@@ -605,20 +605,24 @@ void main()
     }
     else
     {
-        mat3 rotation;
-        vec4 normal_sample = subpassLoad(normals);
+        vec4 dpth = subpassLoad(depth);
         
-        vec3 world_normal = decode(normal_sample.xy);
-        float metalness = normal_sample.z;
-        float roughness = normal_sample.w ;
-        
-        world_normal = (rendering_state.eye_inverse_view_matrix * vec4(world_normal.xyz,0.0f)).xyz;
-
-        vec3 world_position = subpassLoad(world_positions).xyz;
-        branchless_onb(world_normal, rotation);
-
-        if(world_position != vec3(0))
+        if(dpth.r != 1.0f)
         {
+            mat3 rotation;
+            vec4 normal_sample = subpassLoad(normals);
+            
+            vec3 world_normal = decode(normal_sample.xy);
+            float metalness = normal_sample.z;
+            float roughness = normal_sample.w ;
+            vec4 depth = subpassLoad(world_positions);
+            
+            world_normal = (rendering_state.eye_inverse_view_matrix * vec4(world_normal.xyz,0.0f)).xyz;
+
+            vec3 world_position = subpassLoad(world_positions).xyz;
+            branchless_onb(world_normal, rotation);
+
+
             vec4 ambience = voxel_cone_tracing(rotation, world_normal, world_position);
 
             if( rendering_state.mode == AMBIENT_OCCLUSION)

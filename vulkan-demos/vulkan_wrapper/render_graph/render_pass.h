@@ -22,6 +22,7 @@
 
 #include <glm/glm.hpp>
 #include "depth_texture.h"
+#include "texture_cube.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/mat4x4.hpp>
 #include "../core/glfw_swapchain.h"
@@ -46,7 +47,7 @@ namespace vk
         using graphics_pipeline_type = graphics_pipeline< NUM_ATTACHMENTS>;
         using write_channels = typename graphics_pipeline_type::write_channels;
         
-        static constexpr uint32_t MAX_NUMBER_OF_ATTACHMENTS = 10u;
+        static constexpr uint32_t MAX_NUMBER_OF_ATTACHMENTS = 50;
         static constexpr uint32_t MAX_SUBPASSES = 20u;
         static constexpr uint32_t MAX_OBJECTS = 50u;
         
@@ -70,13 +71,6 @@ namespace vk
             
             //TODO: We don't need this function, let's get rid of it. 
             inline bool is_active(){ return _active; }
-            
-            enum class layout
-            {
-                COLOR_ATTACHMENT = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
-                SHADER_READ_ONLY = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
-                PRESENT_LAYOUT = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
-            };
             
             subpass_s()
             {
@@ -284,28 +278,28 @@ namespace vk
             }
             //TODO: TEMPLATES???
             inline void set_image_sampler(texture_cube& texture, const char* parameter_name,
-                                          parameter_stage parameter_stage, uint32_t binding,  vk::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
-                    _pipeline[chain_id].set_image_sampler(&texture, parameter_name, parameter_stage, binding, usage);
+                    _pipeline[chain_id].set_image_sampler(&texture, parameter_name, parameter_stage, binding, vk::usage_type::COMBINED_IMAGE_SAMPLER);
                 }
             }
             inline void set_image_sampler(texture_3d& texture, const char* parameter_name,
-                                          parameter_stage parameter_stage, uint32_t binding,  vk::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
-                    _pipeline[chain_id].set_image_sampler(&texture, parameter_name, parameter_stage, binding, usage);
+                    _pipeline[chain_id].set_image_sampler(&texture, parameter_name, parameter_stage, binding, vk::usage_type::COMBINED_IMAGE_SAMPLER);
                 }
             }
             
             inline void set_image_sampler(texture_2d& texture, const char* parameter_name,
-                                          parameter_stage parameter_stage,  uint32_t binding, vk::usage_type usage)
+                                          parameter_stage parameter_stage,  uint32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
-                    _pipeline[chain_id].set_image_sampler(texture, parameter_name, parameter_stage, binding, usage);
+                    _pipeline[chain_id].set_image_sampler(texture, parameter_name, parameter_stage, binding, vk::usage_type::COMBINED_IMAGE_SAMPLER);
                 }
             }
             
@@ -403,48 +397,48 @@ namespace vk
             }
             
             inline void set_image_sampler(resource_set<texture_3d>& textures, const char* parameter_name,
-                                          parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
-                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, usage) ;
+                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, textures.get_last_transition().current_usage_type);
                 }
             }
             
             inline void set_image_sampler(resource_set<texture_2d>& textures, const char* parameter_name,
-                                          parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
-                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, usage) ;
+                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, textures.get_last_transition().current_usage_type) ;
                 }
             }
             
             inline void set_image_sampler(resource_set<render_texture>& textures, const char* parameter_name,
-                                          parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
-                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, usage) ;
+                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, textures.get_last_transition().current_usage_type) ;
                 }
             }
             
             
             inline void set_image_sampler(resource_set<texture_cube>& textures, const char* parameter_name,
-                                          parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
-                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, usage) ;
+                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, textures.get_last_transition().current_usage_type) ;
                 }
             }
             
             inline void set_image_sampler(resource_set<depth_texture>& textures, const char* parameter_name,
-                                          parameter_stage parameter_stage, uint32_t binding, vk::usage_type usage)
+                                          parameter_stage parameter_stage, uint32_t binding)
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
-                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, usage) ;
+                    _pipeline[chain_id].set_image_sampler(textures[chain_id], parameter_name, parameter_stage, binding, textures.get_last_transition().current_usage_type) ;
                 }
             }
             

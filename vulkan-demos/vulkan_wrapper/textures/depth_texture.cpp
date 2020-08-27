@@ -28,12 +28,11 @@ void depth_texture::create(uint32_t width, uint32_t height)
         
         create_image( depth_format,
                     VK_IMAGE_TILING_OPTIMAL, usage_flags,
-                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                    VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, false);
         
         create_image_view( _image, depth_format, _image_view);
         
         _image_layout = image_layouts::UNDEFINED;
-        _original_layout = image_layouts::DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
         
         _created = true;
         _initialized = true;
@@ -62,9 +61,9 @@ void depth_texture::create_sampler()
 
 void depth_texture::init()
 {
-    assert(_device != nullptr);
+    EA_ASSERT(_device != nullptr);
     create_sampler();
-    assert(_width !=0 && "spec says this can't be zero");
+    EA_ASSERT_MSG(_width !=0, "spec says this can't be zero");
     create(_width, _height);
     _initialized = true;
 }
@@ -107,7 +106,7 @@ VkAttachmentDescription depth_texture::get_depth_attachment()
     depth_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     depth_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     depth_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    depth_attachment.finalLayout = static_cast<VkImageLayout>(_original_layout);
+    depth_attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
     
     return depth_attachment;
 }

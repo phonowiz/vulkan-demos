@@ -11,6 +11,7 @@
 #include "image.h"
 #include "resource.h"
 #include "device.h"
+#include "EASTL/queue.h"
 #include <glm/glm.hpp>
 
 namespace vk
@@ -24,7 +25,7 @@ namespace vk
         image(){}
         image( device* device){ _device = device; }
         void create_image( VkFormat format, VkImageTiling tiling,
-                          VkImageUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags);
+                          VkImageUsageFlags usageFlags, VkMemoryPropertyFlags propertyFlags, bool pre_initted);
         
         void change_image_layout(VkCommandPool commandPool, VkQueue queue, VkImage image,
                                  VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
@@ -74,16 +75,10 @@ namespace vk
             _height = height;
             _depth = depth;
         }
+        
         glm::vec3 get_dimensions()
         {
             return glm::vec3(_width, _height, _depth);
-        }
-        
-        inline void change_layout( image::image_layouts new_layout)
-        {
-            change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
-                                      static_cast<VkImageLayout>(_image_layout),
-                                      static_cast<VkImageLayout>(new_layout));
         }
         
         inline uint32_t get_width()
@@ -100,6 +95,8 @@ namespace vk
         {
             return _depth;
         }
+        
+        void change_layout(image_layouts l);
         
         inline bool is_initialized(){ return _image != VK_NULL_HANDLE; }
     
@@ -120,6 +117,7 @@ namespace vk
             R32_SIGNED_FLOAT = VK_FORMAT_R32_SFLOAT,
             R32G32B32_SIGNED_FLOAT = VK_FORMAT_R32G32B32_SFLOAT,
             R32G32B32A32_SIGNED_FLOAT = VK_FORMAT_R32G32B32A32_SFLOAT,
+            R16G16B16A16_SIGNED_FLOAT = VK_FORMAT_R16G16B16A16_SFLOAT,
             R16G16B16A16_UNSIGNED_NORMALIZED = VK_FORMAT_R16G16B16A16_UNORM,
             R8G8B8A8_SIGNED_NORMALIZED = VK_FORMAT_R8G8B8A8_SNORM,
             R8_UNSIGNED_NORMALIZED = VK_FORMAT_R8_UNORM,
@@ -147,7 +145,8 @@ namespace vk
         enum class filter
         {
             LINEAR = VkFilter::VK_FILTER_LINEAR,
-            NEAREST = VkFilter::VK_FILTER_NEAREST
+            NEAREST = VkFilter::VK_FILTER_NEAREST,
+            CUBIC = VkFilter::VK_FILTER_CUBIC_IMG
         };
         
         
@@ -178,16 +177,14 @@ namespace vk
             _image_layout = l;
         }
         
-        inline void set_image_layout( image_layouts layout)
+        inline void set_original_layout( image_layouts layout)
         {
-            _image_layout = layout;
+            _original_layout = layout;
         }
         
         virtual void reset_image_layout()
         {
-            if(_original_layout != _image_layout)
-                change_layout( _original_layout);
-            
+            change_layout(_original_layout);
         }
         
         inline image_layouts get_original_layout()
@@ -210,12 +207,12 @@ namespace vk
             
             return layout;
         }
+        
         void set_filter( image::filter filter){ _filter = filter; }
         
         inline void set_multisampling(bool b){ _multisampling = b; }
         inline bool is_multisampling(){ return _multisampling; }
         
-        //inline bool is_initialized(){ return _initialized; }
         virtual void init() = 0;
     
     protected:

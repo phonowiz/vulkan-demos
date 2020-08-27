@@ -49,7 +49,7 @@ public:
         
         //TODO: you can derive positon from depth and sampling fragment position
         vk::resource_set<vk::render_texture>& positions = _tex_registry->get_write_render_texture_set("positions", this);
-        vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_write_depth_texture_set("depth", this, vk::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_write_depth_texture_set("depth", this);
 
         vk::attachment_group<ATTACHMENTS>& pbr_attachment_group = pass.get_attachment_group();
         
@@ -110,16 +110,11 @@ public:
             pbr.init_parameter("view", vk::parameter_stage::VERTEX, glm::mat4(0), 0);
             pbr.init_parameter("projection", vk::parameter_stage::VERTEX, glm::mat4(0), 0);
             
-            pbr.set_image_sampler( diffuse, "albedos",
-                                  vk::parameter_stage::FRAGMENT, 2, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-            pbr.set_image_sampler( norms, "normals",
-                                  vk::parameter_stage::FRAGMENT, 3, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-            pbr.set_image_sampler( metals, "metalness",
-                                  vk::parameter_stage::FRAGMENT, 4, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-            pbr.set_image_sampler( roughness, "roughness",
-                                  vk::parameter_stage::FRAGMENT, 5, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-            pbr.set_image_sampler( occlusion, "occlusion",
-                                  vk::parameter_stage::FRAGMENT, 6, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            pbr.set_image_sampler( diffuse, "albedos", vk::parameter_stage::FRAGMENT, 2);
+            pbr.set_image_sampler( norms, "normals", vk::parameter_stage::FRAGMENT, 3);
+            pbr.set_image_sampler( metals, "metalness", vk::parameter_stage::FRAGMENT, 4);
+            pbr.set_image_sampler( roughness, "roughness", vk::parameter_stage::FRAGMENT, 5);
+            pbr.set_image_sampler( occlusion, "occlusion", vk::parameter_stage::FRAGMENT, 6);
             
             pbr.ignore_all_objs(true);
             pbr.ignore_object(i, false);

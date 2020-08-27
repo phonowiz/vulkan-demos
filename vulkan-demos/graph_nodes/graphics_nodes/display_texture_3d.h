@@ -58,11 +58,9 @@ public:
         _cube.create();
         subpass_type& sub_p = pass.add_subpass(parent_type::_material_store, "display_3d_texture");
         
-        vk::resource_set<vk::texture_3d>& tex = _tex_registry->get_read_texture_3d_set(_texture, this,
-                                                                vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        vk::resource_set<vk::texture_3d>& tex = _tex_registry->get_read_texture_3d_set(_texture, this);
         
-        sub_p.set_image_sampler(tex, "texture_3d", vk::parameter_stage::FRAGMENT, 2,
-                                       vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        sub_p.set_image_sampler(tex, "texture_3d", vk::parameter_stage::FRAGMENT, 2);
         
         int binding = 0;
         sub_p.init_parameter("mvp", vk::parameter_stage::VERTEX,
@@ -106,7 +104,7 @@ public:
         vk::shader_parameter::shader_params_group& fragment_params = sub_p.get_pipeline(image_id).
                                                 get_uniform_parameters(vk::parameter_stage::FRAGMENT, 1) ;
         
-        fragment_params["box_eye_position"] =   glm::vec4(_three_d_cam->position, 1.0f);
+        fragment_params["box_eye_position"] = glm::vec4(_three_d_cam->position, 1.0f);
         
     }
     

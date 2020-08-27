@@ -7,6 +7,8 @@
 //
 
 
+//note: this file is #included render_pass.h
+
 template<uint32_t NUM_ATTACHMENTS>
  void render_pass< NUM_ATTACHMENTS>::record_draw_commands(VkCommandBuffer& buffer, uint32_t swapchain_id, uint32_t instance_count)
  {
@@ -107,9 +109,16 @@ template<uint32_t NUM_ATTACHMENTS>
              attachment_descriptions[attachment_id].storeOp = _attachment_group.should_store(i) ? VK_ATTACHMENT_STORE_OP_STORE : VK_ATTACHMENT_STORE_OP_DONT_CARE;
              attachment_descriptions[attachment_id].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
              attachment_descriptions[attachment_id].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+             attachment_descriptions[attachment_id].initialLayout = static_cast<VkImageLayout>(_attachment_group[i][swapchain_id]->get_original_layout());
+             attachment_descriptions[attachment_id].finalLayout = static_cast<VkImageLayout>(static_cast<VkImageLayout>(_attachment_group[i][swapchain_id]->get_original_layout()));
              
-             attachment_descriptions[attachment_id].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-             attachment_descriptions[attachment_id].finalLayout = static_cast<VkImageLayout>(_attachment_group[i][swapchain_id]->get_original_layout());
+             if(_attachment_group[i].has_transitions())
+             {
+                 //note: the last transition added (in the back of the queu) is the one that belongs to this render pass.
+                 attachment_descriptions[attachment_id].initialLayout = static_cast<VkImageLayout>(_attachment_group[i].get_last_transition_added().current);//VK_IMAGE_LAYOUT_UNDEFINED;
+                 attachment_descriptions[attachment_id].finalLayout = static_cast<VkImageLayout>(_attachment_group[i].get_last_transition_added().current);//static_cast<VkImageLayout>(_attachment_group[i][swapchain_id]->get_original_layout());
+             }
              attachment_descriptions[attachment_id].format = static_cast<VkFormat>(_attachment_group[i][swapchain_id]->get_format());
              attachment_id++;
          }
@@ -119,8 +128,6 @@ template<uint32_t NUM_ATTACHMENTS>
      {
          attachment_descriptions[depth_attachment_id].samples = multisampling ? _device->get_max_usable_sample_count() : VK_SAMPLE_COUNT_1_BIT;
      }
-
-     //EA_ASSERT(attachment_id != 0);
      
      eastl::array<VkSubpassDescription, MAX_SUBPASSES> subpass {};
      
@@ -136,8 +143,6 @@ template<uint32_t NUM_ATTACHMENTS>
      dependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
      dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
      dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-     
-
      
      while(_subpasses[subpass_id].is_active())
      {
@@ -191,7 +196,7 @@ template<uint32_t NUM_ATTACHMENTS>
      
      EA_ASSERT(_attachment_group.size() < MAX_NUMBER_OF_ATTACHMENTS);
      uint32_t num_views = 0;
-     
+     uint32_t cube_face = 0;
      //add all num views for this swapchain id
      for( int i = 0; i < _attachment_group.size(); ++i)
      {
@@ -200,6 +205,16 @@ template<uint32_t NUM_ATTACHMENTS>
              resource_set<image*>& depths =  get_depth_textures();
              EA_ASSERT(depths[swapchain_id]->_image_view != VK_NULL_HANDLE);
              attachment_views[num_views++]  = depths[swapchain_id]->_image_view;
+         }
+         else if( _attachment_group[i][0]->get_instance_type() == texture_cube::get_class_type() )
+         {
+             //resource_set<image*>& depths =  get_depth_textures();
+             EA_ASSERT(_attachment_group[i][swapchain_id]->is_initialized());
+             EA_ASSERT(_attachment_group[i][swapchain_id] != nullptr);
+             EA_ASSERT(cube_face < 6);
+             attachment_views[num_views++] = static_cast<vk::texture_cube*>(_attachment_group[i][swapchain_id])->get_face_image_view(cube_face);
+             ++cube_face;
+             cube_face = cube_face % 6;
          }
          else
          {

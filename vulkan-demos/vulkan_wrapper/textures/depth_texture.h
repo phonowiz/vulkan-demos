@@ -40,7 +40,7 @@ namespace vk {
         virtual void reset_image_layout() override
         {
             //this texture relies on render passes to reset the layout...
-            //unlike other textures that do it themselves
+            //unlike other textures that do it themselves.
             _image_layout = _original_layout;
             
         }

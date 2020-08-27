@@ -60,7 +60,7 @@ void texture_2d::load()
     
 
     _format = formats::R8G8B8A8_UNSIGNED_NORMALIZED;
-    _image_layout = image_layouts::PREINITIALIZED;
+    _original_layout = _image_layout = image_layouts::PREINITIALIZED;
     EA_ASSERT_MSG(_path.empty() == false, "texture path is empty");
     _ppixels = stbi_load(_path.c_str(), &w,
                          &h, &c, STBI_default);
@@ -134,12 +134,11 @@ void texture_2d::create(uint32_t width, uint32_t height)
         memcpy(data, get_raw(), image_size);
         vkUnmapMemory(_device->_logical_device, staging_buffer_memory);
     }
-    
     create_image(
                  static_cast<VkFormat>(_format),
                  VK_IMAGE_TILING_OPTIMAL,
                  VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, !_path.empty());
     
     
     change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),

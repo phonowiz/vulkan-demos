@@ -47,7 +47,7 @@ public:
         
         subpass_type& luminance_subpass = pass.add_subpass(_mat_store, "luminance");
         
-        vk::resource_set<vk::render_texture>& final_render =  _tex_registry->get_read_render_texture_set("final_render", this, vk::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::render_texture>& final_render =  _tex_registry->get_read_render_texture_set("final_render", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         vk::resource_set<vk::render_texture>& luminance = _tex_registry->get_write_render_texture_set("luminance", this);
 
         vk::attachment_group<LUMINANCE_ATTACHMENTS>& luminance_attachment_grp = pass.get_attachment_group();
@@ -59,7 +59,7 @@ public:
         luminance.set_format(vk::image::formats::R32_SIGNED_FLOAT);
         luminance.init();
         
-        luminance_subpass.set_image_sampler(final_render, "color", vk::parameter_stage::FRAGMENT, 0, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        luminance_subpass.set_image_sampler(final_render, "color", vk::parameter_stage::FRAGMENT, 0);
         luminance_subpass.add_output_attachment("luminance");
         
         pass.add_object(static_cast<vk::obj_shape*>(&_screen_plane));

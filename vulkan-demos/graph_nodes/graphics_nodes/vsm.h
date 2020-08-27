@@ -66,7 +66,7 @@ public:
         subpass_type& cam_depth_subpass = pass.add_subpass(_mat_store, "vsm");
          
         vk::resource_set<vk::render_texture>& vsm =  _tex_registry->get_write_render_texture_set("vsm", this);
-        vk::resource_set<vk::depth_texture>& vsm_depth = _tex_registry->get_write_depth_texture_set("vsm_depth", this, vk::usage_type::INPUT_ATTACHMENT);
+        vk::resource_set<vk::depth_texture>& vsm_depth = _tex_registry->get_write_depth_texture_set("vsm_depth", this);
         
         
         for( int i = 0; i < vsm_depth.size(); ++i)

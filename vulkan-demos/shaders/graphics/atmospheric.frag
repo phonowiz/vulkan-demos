@@ -90,7 +90,7 @@ layout(input_attachment_index = 1, binding = 1 ) uniform subpassInput depth;
 layout(input_attachment_index = 2, binding = 2 ) uniform subpassInput positions;
 layout(input_attachment_index = 3, binding = 3 ) uniform subpassInput albedos;
 
-layout(binding = 4) writeonly restrict uniform imageCube cubemap_texture;
+layout(binding = 4) writeonly restrict coherent uniform imageCube cubemap_texture;
 
 layout(binding =5, std140) uniform _atmospheric_state
 {

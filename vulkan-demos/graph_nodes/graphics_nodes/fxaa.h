@@ -58,7 +58,7 @@ public:
         fxaa_attachment_grp.add_attachment( _swapchain->present_textures, glm::vec4(0.0f));
        
 
-        fxaa_subpass.set_image_sampler(aliased_tex, "final_render", vk::parameter_stage::FRAGMENT, 0, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        fxaa_subpass.set_image_sampler(aliased_tex, "final_render", vk::parameter_stage::FRAGMENT, 0);
         fxaa_subpass.add_output_attachment("present");
         
         glm::vec4 texel_size = glm::vec4(0.0f);
