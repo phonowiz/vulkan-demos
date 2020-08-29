@@ -149,16 +149,13 @@ namespace  vk
                 for( int i = 0; i < _children.size(); ++i)
                 {
                     result = result && node_type::_children[i]->record(buffer, image_id);
-                    
-                    if(!result)
-                        node_type::_children[i]->remove_transitions();
                 }
                 
                 //note: always record transitions.  typically all nodes in a graph would be executed, but in debug mode this may not happen.
                 record_transitions(buffer, image_id);
                 if( result && _active)
                 {
-                    //debug_print("recording...");
+                    debug_print("recording...");
                     result = record_node_commands(buffer, image_id);
                 }
             }
@@ -300,64 +297,19 @@ namespace  vk
                 barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
                 eastl::fixed_string<char, 100> msg {};
-                constexpr uint32_t VK_FLAGS_NONE = 0;
+                msg.sprintf("between %s and %s, transitioning %s => %s", this->get_name(), dependee_node->get_name(),
+                            layout_string(transition.previous), layout_string(transition.current));
                 
-//                msg.sprintf("between %s and %s, transitioning %s => %s", this->get_name(), dependee_node->get_name(),
-//                            layout_string(transition.previous), layout_string(transition.current));
+                debug_print(msg.c_str());
                 
-//                debug_print(msg.c_str());
                 vkCmdPipelineBarrier(
                                      buffer.get_raw_graphics_command(image_id),
                                      producer,
                                      consumer,
-                                     VK_FLAGS_NONE,
+                                     0,
                                      0, nullptr,
                                      0, nullptr,
                                      1, &barrier);
-            }
-        }
-        
-        void remove_transitions()
-        {
-            typename tex_registry_type::node_dependees& dependees = _texture_registry->get_dependees(this);
-
-            typename tex_registry_type::node_dependees::iterator begin = dependees.begin();
-            typename tex_registry_type::node_dependees::iterator end = dependees.end();
-            
-            //TODO: In theory we could collect all the barriers and have one vkCmdPipelineBarrier
-            for(typename tex_registry_type::node_dependees::iterator b = begin ; b != end ; ++b)
-            {
-                eastl::shared_ptr<vk::object> res = eastl::static_pointer_cast<vk::object>((*b).data.resource);
-                
-                if(res->get_instance_type()  == resource_set<vk::texture_2d>::get_class_type())
-                {
-                    eastl::shared_ptr< resource_set<vk::texture_2d> > set = eastl::static_pointer_cast< resource_set<vk::texture_2d>>(res);
-                    (*set).pop_transition();
-                }
-                else if(res->get_instance_type()  == resource_set<vk::texture_3d>::get_class_type())
-                {
-                    eastl::shared_ptr< resource_set<vk::texture_3d> > set = eastl::static_pointer_cast< resource_set<vk::texture_3d>>(res);
-                    (*set).pop_transition();
-                }
-                else if(res->get_instance_type()  == resource_set<vk::depth_texture>::get_class_type())
-                {
-                    eastl::shared_ptr< resource_set<vk::depth_texture> > set = eastl::static_pointer_cast< resource_set<vk::depth_texture>>(res);
-                    (*set).pop_transition();
-                }
-                else if(res->get_instance_type()  == resource_set<vk::render_texture>::get_class_type())
-                {
-                    eastl::shared_ptr< resource_set<vk::render_texture> > set = eastl::static_pointer_cast< resource_set<vk::render_texture>>(res);
-                    (*set).pop_transition();
-                }
-                else if(res->get_instance_type()  == resource_set<vk::texture_cube>::get_class_type())
-                {
-                    eastl::shared_ptr< resource_set<vk::texture_cube> > set = eastl::static_pointer_cast< resource_set<vk::texture_cube>>(res);
-                    (*set).pop_transition();
-                }
-                else
-                {
-                    EA_FAIL_MSG("unrecognized resource_set");
-                }
             }
         }
         
