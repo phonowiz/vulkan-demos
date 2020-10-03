@@ -96,6 +96,15 @@ namespace vk
             return _depth;
         }
         
+        inline const eastl::fixed_string<char, 100>& get_name()
+        {
+            return _name;
+        }
+        
+        inline void set_name(const char* n)
+        {
+            _name = n;
+        }
         void change_layout(image_layouts l);
         
         inline bool is_initialized(){ return _image != VK_NULL_HANDLE; }
@@ -224,12 +233,13 @@ namespace vk
         
         virtual void create_sampler() = 0;
         virtual void create_image_view( VkImage image, VkFormat format, VkImageView& image_view) = 0;
-        void write_buffer_to_image(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer);
+        virtual void write_buffer_to_image(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer) ;
         
     protected:
         VkSampler _sampler = VK_NULL_HANDLE;
         VkImageAspectFlags _aspect_flag = VK_IMAGE_ASPECT_COLOR_BIT;
         uint32_t _channels = 4;
+        eastl::fixed_string<char, 100> _name;
         
         uint32_t _width = 0;
         uint32_t _height = 0;

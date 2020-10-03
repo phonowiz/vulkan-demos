@@ -49,28 +49,32 @@ layout(binding = 5, std140) uniform _rendering_state
 }rendering_state;
 
 //zeroth levels
-layout(binding = 6) uniform sampler3D voxel_normals;
-layout(binding = 7) uniform sampler3D voxel_albedos;
+//layout(binding = 6) uniform sampler3D voxel_normals;
+//layout(binding = 7) uniform sampler3D voxel_albedos;
 
 //mipmap levels.  moltenvk doesn't support mip maps for sampler3D, only texture2d_array
-layout(binding = 8) uniform sampler3D voxel_albedos1;
-layout(binding = 9) uniform sampler3D voxel_albedos2;
-layout(binding = 10) uniform sampler3D voxel_albedos3;
-layout(binding = 11) uniform sampler3D voxel_albedos4;
-layout(binding = 12) uniform sampler3D voxel_albedos5;
+//layout(binding = 8) uniform sampler3D voxel_albedos1;
+layout(binding = 6) uniform sampler3D voxel_albedos2;
+layout(binding = 7) uniform sampler3D voxel_albedos3;
+layout(binding = 8) uniform sampler3D voxel_albedos4;
+layout(binding = 9) uniform sampler3D voxel_albedos5;
 
 
-layout(binding = 13) uniform sampler3D voxel_normals1;
-layout(binding = 14) uniform sampler3D voxel_normals2;
-layout(binding = 15) uniform sampler3D voxel_normals3;
-layout(binding = 16) uniform sampler3D voxel_normals4;
-layout(binding = 17) uniform sampler3D voxel_normals5;
+//layout(binding = 13) uniform sampler3D voxel_normals1;
+layout(binding = 10) uniform sampler3D voxel_normals2;
+layout(binding = 11) uniform sampler3D voxel_normals3;
+layout(binding = 12) uniform sampler3D voxel_normals4;
+layout(binding = 13) uniform sampler3D voxel_normals5;
 
 //variance shadow map
-layout(binding = 18) uniform sampler2D vsm;
+layout(binding = 14) uniform sampler2D vsm;
 
-layout(binding = 19) uniform samplerCube environment;
-
+layout(binding = 15) uniform samplerCube    environment;
+layout(binding = 16) uniform samplerCube    radiance_map;
+layout(binding = 17) uniform samplerCube    spec_cubemap_high;
+layout(binding = 18) uniform samplerCube    spec_cubemap_low;
+//layout(binding = 22) uniform samplerCube    radiance_map;
+layout(binding = 19) uniform sampler2D      brdfLUT;
 
 
 //note: these are tied to enum class in deferred_renderer class, if these change, make sure
@@ -107,11 +111,13 @@ vec4 sample_lod_texture(int texture_type, vec3 coord, uint level)
     {
         if( level == 0)
         {
-            return texture(voxel_albedos, coord);
+            //return texture(voxel_albedos, coord);
+            return vec4(0);
         }
         else if( level == 1)
         {
-            return texture(voxel_albedos1, coord);
+            //return texture(voxel_albedos1, coord);
+            return vec4(0);
         }
         else if( level == 2)
         {
@@ -134,11 +140,13 @@ vec4 sample_lod_texture(int texture_type, vec3 coord, uint level)
     {
         if( level == 0)
         {
-            return texture(voxel_normals, coord);
+            //return texture(voxel_normals, coord);
+            return vec4(0);
         }
         else if( level == 1)
         {
-            return texture(voxel_normals1, coord);
+            //return texture(voxel_normals1, coord);
+            return vec4(0);
         }
         else if( level == 2)
         {
@@ -484,9 +492,18 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position, float metalnes
     //ambient term based off of Willem's example: https://github.com/SaschaWillems/Vulkan/blob/master/data/shaders/glsl/pbribl/pbribl.frag
     vec3 F = F_SchlickR(max(dot(world_normal, v), 0.0), F0, roughness);
     vec3 kD = 1.0f - F;
-    final += texture(environment, world_normal).rgb * ALBEDO_SAMPLE.xyz * kD ;
+    final += texture(radiance_map, world_normal).rgb * ALBEDO_SAMPLE.xyz * kD ;
 
-    return vec4(final, 1.0f);
+    //IBL
+    vec3 r = reflect(-v, world_normal);
+    vec3 rough_reflect = texture(spec_cubemap_high,r).xyz;
+    vec3 smooth_reflect = texture(spec_cubemap_low, r).xyz;
+    
+    vec3 ibl_reflect = mix(smooth_reflect, rough_reflect, roughness);
+    vec2 envBRDF = texture(brdfLUT, vec2(max(dot(n, v), 0.0), roughness)).rg;
+    vec3 specular = ibl_reflect * (F0 * envBRDF.x + envBRDF.y);
+    
+    return vec4(final + specular, 1.0f);
 }
 
 // based off of https://aras-p.info/texts/CompactNormalStorage.html

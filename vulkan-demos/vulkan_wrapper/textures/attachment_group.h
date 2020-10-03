@@ -126,6 +126,18 @@ namespace vk
             _store[num_attachments] = store;
             add_attachment(depth_set);
         }
+
+        template<typename T>
+        inline void add_attachment(T& texture_type,
+                                   glm::vec2 defaults, bool clear = true, bool store = true)
+        {
+            EA_ASSERT_MSG(num_attachments < NUM_ATTACHMENTS, "too many attachments have been added");
+            _clear_values[num_attachments] = { defaults.x, defaults.y};
+            _clear[num_attachments] = clear;
+            _store[num_attachments] = store;
+            add_attachment(texture_type);
+        }
+        
         
         bool is_multisample_attachment(int32_t i)
         {
@@ -205,6 +217,41 @@ namespace vk
         
         
         template< typename R>
+        inline void add_attachment(R& textures_set)
+        {
+            EA_ASSERT_MSG(textures_set.get_instance_type() != resource_set<texture_2d>::get_class_type(), "texture 2d's are pre initialized since they are loaded from hard drive, "
+                   "did you mean to use a render_texture instead?");
+
+            EA_ASSERT_MSG(num_attachments < NUM_ATTACHMENTS, "there is no more space left for attachments" );
+
+            if(textures_set.get_instance_type() == texture_cube::get_class_type())
+            {
+                for( int k = 0; k < 6; ++k)
+                {
+                    eastl::fixed_string<char, 100> name {};
+                    EA_ASSERT_MSG(!textures_set.get_name().empty(), "texture cubes need a name for the faces to be referenced as render targets");
+                    name.sprintf("%s_%i", textures_set.get_name().c_str(), k);
+                    _attachments[num_attachments].set_name( name.c_str());
+                    textures_set.set_dimensions(_dimensions.x, _dimensions.y);
+                    _attachments[num_attachments] = textures_set;
+                    _attachments[num_attachments].set_dimensions(_dimensions.x, _dimensions.y);
+
+                    ++num_attachments;
+                    EA_ASSERT_FORMATTED(num_attachments <= NUM_ATTACHMENTS, ("there is no more space left for attachments. We can have up to %i, but %i have been added",NUM_ATTACHMENTS,num_attachments));
+                }
+            }
+            else
+            {
+                _attachments[num_attachments].set_name( textures_set.get_name().c_str());
+                _attachments[num_attachments] = textures_set;
+                _attachments[num_attachments].set_dimensions(_dimensions.x, _dimensions.y);
+
+                ++num_attachments;
+                EA_ASSERT_MSG(num_attachments <= NUM_ATTACHMENTS, "there is no more space left for attachments" );
+            }
+        }
+        
+        template< typename R>
         inline void add_attachment(resource_set<R>& textures_set)
         {
             EA_ASSERT_MSG(textures_set.get_instance_type() != resource_set<texture_2d>::get_class_type(), "texture 2d's are pre initialized since they are loaded from hard drive, "
@@ -233,8 +280,8 @@ namespace vk
                 _attachments[num_attachments].set_dimensions(_dimensions.x, _dimensions.y);
 
                 ++num_attachments;
+                EA_ASSERT_MSG(num_attachments <= NUM_ATTACHMENTS, "you've added too many attachments" );
             }
-
         }
         
         eastl::array<VkClearValue,NUM_ATTACHMENTS> _clear_values {};

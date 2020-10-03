@@ -112,13 +112,15 @@ template<uint32_t NUM_ATTACHMENTS>
 
              attachment_descriptions[attachment_id].initialLayout = static_cast<VkImageLayout>(_attachment_group[i][swapchain_id]->get_original_layout());
              attachment_descriptions[attachment_id].finalLayout = static_cast<VkImageLayout>(static_cast<VkImageLayout>(_attachment_group[i][swapchain_id]->get_original_layout()));
-             
              if(_attachment_group[i].has_transitions())
              {
                  //note: the last transition added (in the back of the queu) is the one that belongs to this render pass.
-                 attachment_descriptions[attachment_id].initialLayout = static_cast<VkImageLayout>(_attachment_group[i].get_last_transition_added().current);//VK_IMAGE_LAYOUT_UNDEFINED;
-                 attachment_descriptions[attachment_id].finalLayout = static_cast<VkImageLayout>(_attachment_group[i].get_last_transition_added().current);//static_cast<VkImageLayout>(_attachment_group[i][swapchain_id]->get_original_layout());
+                 attachment_descriptions[attachment_id].initialLayout = static_cast<VkImageLayout>(_attachment_group[i].get_last_transition_added().current);
+                 attachment_descriptions[attachment_id].finalLayout = static_cast<VkImageLayout>(_attachment_group[i].get_last_transition_added().current);
              }
+             
+             EA_ASSERT_FORMATTED(VK_IMAGE_LAYOUT_UNDEFINED != attachment_descriptions[attachment_id].finalLayout, ("cannot transition %s to undefined layout", _attachment_group[i].get_name().c_str()));
+             EA_ASSERT_FORMATTED(VK_IMAGE_LAYOUT_PREINITIALIZED != attachment_descriptions[attachment_id].finalLayout, ("cannot transition %s to preinitialized layout", _attachment_group[i].get_name().c_str()));
              attachment_descriptions[attachment_id].format = static_cast<VkFormat>(_attachment_group[i][swapchain_id]->get_format());
              attachment_id++;
          }

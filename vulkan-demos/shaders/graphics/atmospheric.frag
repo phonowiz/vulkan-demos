@@ -57,6 +57,8 @@ Note:     Because rayleigh is a long word to type, I use ray instead on most var
         the same goes for position (which becomes pos), direction (which becomes dir) and optical (becomes opt)
 */
 
+//check out https://www.shadertoy.com/view/wlBXWK where I grabbed most of this code
+
 // first, lets define some constants to use (planet radius, position, and scattering coefficients)
 //#define PLANET_POS vec3(0.0) /* the position of the planet */
 //#define PLANET_RADIUS 6371e3 /* radius of the planet */
@@ -71,7 +73,7 @@ Note:     Because rayleigh is a long word to type, I use ray instead on most var
 // the primary step has the most effect on looks
 #if HW_PERFORMANCE==0
 // edit these if you are on mobile
-#define PRIMARY_STEPS 12
+#define PRIMARY_STEPS 4
 #define LIGHT_STEPS 4
 # else
 // and these on desktop
@@ -85,20 +87,20 @@ Note:     Because rayleigh is a long word to type, I use ray instead on most var
 
 layout(location = 0) out vec4 out_color;
 
-layout(input_attachment_index = 0, binding = 0 ) uniform subpassInput normals;
-layout(input_attachment_index = 1, binding = 1 ) uniform subpassInput depth;
-layout(input_attachment_index = 2, binding = 2 ) uniform subpassInput positions;
-layout(input_attachment_index = 3, binding = 3 ) uniform subpassInput albedos;
+//layout(input_attachment_index = 0, binding = 0 ) uniform subpassInput normals;
+//layout(input_attachment_index = 1, binding = 1 ) uniform subpassInput depth;
+//layout(input_attachment_index = 2, binding = 2 ) uniform subpassInput positions;
+//layout(input_attachment_index = 3, binding = 3 ) uniform subpassInput albedos;
 
-layout(binding = 4) writeonly restrict coherent uniform imageCube cubemap_texture;
+layout(binding = 0) writeonly restrict coherent uniform imageCube cubemap_texture;
 
-layout(binding =5, std140) uniform _atmospheric_state
+layout(binding =1, std140) uniform _atmospheric_state
 {
     mat4    positive_x;
-    mat4    negative_x;
-    mat4    positive_y;
-    mat4    positive_z;
-    mat4    negative_z;
+//    mat4    negative_x;
+//    mat4    positive_y;
+//    mat4    positive_z;
+//    mat4    negative_z;
 
     vec4    ray_beta;
     vec4    mie_beta;
@@ -355,40 +357,42 @@ void main()
     vec3 cam_vector = get_camera_vector(atmosphere_state.positive_x);
     voxel.z = TEXTURE_CUBE_MAP_POSITIVE_X;
     color.xyz = compute_atmos_color(cam_vector);
-    imageStore(cubemap_texture, voxel, color);
-    //imageStore(cubemap_texture, voxel, vec4(.20f, 0.0f, 0.0f, 1.0f));
-
-    cam_vector = get_camera_vector(atmosphere_state.negative_x);
-    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_X;
-    color.xyz = compute_atmos_color(cam_vector);
-    imageStore(cubemap_texture, voxel, color);
-    //imageStore(cubemap_texture, voxel, vec4(.0f, .20f, 0.0f, 1.0f));
-
-    cam_vector.xyz = get_camera_vector(atmosphere_state.positive_y);
-    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Y;
-    color.xyz = compute_atmos_color(cam_vector);
-    imageStore(cubemap_texture, voxel, color);
-    //imageStore(cubemap_texture, voxel, vec4(.0f, 0.0f, .20f, 1.0f));
+    
+    out_color = vec4(color.xyz, 1.0f);
+    //imageStore(cubemap_texture, voxel, color);
+//    //imageStore(cubemap_texture, voxel, vec4(.20f, 0.0f, 0.0f, 1.0f));
 //
-//
-//    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Y;
-//    imageStore(cubemap_texture, voxel, vec4(0.0f, 1.0f, 1.0f, 1.0f));
-//    cam_vector.xyz = get_camera_vector(atmosphere_state.negative_y);
-//    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Y;
+//    cam_vector = get_camera_vector(atmosphere_state.negative_x);
+//    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_X;
 //    color.xyz = compute_atmos_color(cam_vector);
 //    imageStore(cubemap_texture, voxel, color);
+//    //imageStore(cubemap_texture, voxel, vec4(.0f, .20f, 0.0f, 1.0f));
+//
+//    cam_vector.xyz = get_camera_vector(atmosphere_state.positive_y);
+//    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Y;
+//    color.xyz = compute_atmos_color(cam_vector);
+//    imageStore(cubemap_texture, voxel, color);
+//    //imageStore(cubemap_texture, voxel, vec4(.0f, 0.0f, .20f, 1.0f));
 ////
+////
+////    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Y;
+////    imageStore(cubemap_texture, voxel, vec4(0.0f, 1.0f, 1.0f, 1.0f));
+////    cam_vector.xyz = get_camera_vector(atmosphere_state.negative_y);
+////    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Y;
+////    color.xyz = compute_atmos_color(cam_vector);
+////    imageStore(cubemap_texture, voxel, color);
+//////
+////
+////
+//    cam_vector.xyz = get_camera_vector(atmosphere_state.positive_z);
+//    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Z;
+//    color.xyz = compute_atmos_color(cam_vector);
+//    imageStore(cubemap_texture, voxel, color);
+//    //imageStore(cubemap_texture, voxel, vec4(.20f, 0.0f, .20f, 1.0f));
 //
-//
-    cam_vector.xyz = get_camera_vector(atmosphere_state.positive_z);
-    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Z;
-    color.xyz = compute_atmos_color(cam_vector);
-    imageStore(cubemap_texture, voxel, color);
-    //imageStore(cubemap_texture, voxel, vec4(.20f, 0.0f, .20f, 1.0f));
-    
-    cam_vector.xyz = get_camera_vector(atmosphere_state.negative_z);
-    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Z;
-    color.xyz = compute_atmos_color(cam_vector);
-    imageStore(cubemap_texture, voxel, color);
+//    cam_vector.xyz = get_camera_vector(atmosphere_state.negative_z);
+//    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Z;
+//    color.xyz = compute_atmos_color(cam_vector);
+//    imageStore(cubemap_texture, voxel, color);
     //imageStore(cubemap_texture, voxel, vec4(.20f, .20f, 0.0f, 1.0f));
 }

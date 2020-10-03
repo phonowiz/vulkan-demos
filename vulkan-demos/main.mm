@@ -366,7 +366,7 @@ void create_graph()
                                                   aspect, .01f, 10.0f);
 
     point_light_cam.up = glm::vec3(0.0,  1.0f, 0.001f);
-    point_light_cam.position = glm::vec3(0.f, 2.f, -0.8f);
+    point_light_cam.position = glm::vec3(0.f, 2.f, -0.0f);
     point_light_cam.forward = -point_light_cam.position;
     point_light_cam.update_view_matrix();
 
@@ -546,20 +546,22 @@ void create_graph()
     atmos_node->set_name("atmospheric");
     
     
-    eastl::shared_ptr<radiance_map<4>> rad_map = eastl::make_shared<radiance_map<4>>(app.device, "atmospheric",
-                                                                                     atmospheric<4>::ENVIRONMENT_DIMENSIONS, atmospheric<4>::ENVIRONMENT_DIMENSIONS );
+    eastl::shared_ptr<radiance_map<4>> rad_map = eastl::make_shared<radiance_map<4>>(app.device, "GoldenGateBridge/gg_bridge512.png",
+                                                                                     512, 512 );
     
-    atmos_node->set_sun_position(point_light_cam.position);
+    //atmos_node->set_sun_position(point_light_cam.position);
     eastl::shared_ptr<fxaa<4>> fast_approximate_aa = eastl::make_shared<fxaa<4>>(app.device, app.swapchain,"final_render");
     
-    atmos_node->add_child(*pbr_node);
-    rad_map->add_child(*atmos_node);
+    //atmos_node->add_child(*pbr_node);
+    //rad_map->add_child(*atmos_node);
+    rad_map->add_child(*pbr_node);
     rad_map->set_name("radiance");
     mrt_node->add_child(*rad_map);
     
     fast_approximate_aa->set_name("fxaa");
     
-    eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "normals");
+    eastl::shared_ptr<display_texture_2d<4>> pbr_debug =
+        eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "spec_map_lut");
     //eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "model_albedo", vk::texture_2d::get_class_type());
     
     fast_approximate_aa->add_child(*mrt_node);
@@ -570,13 +572,14 @@ void create_graph()
     pbr_debug->set_active(false);
     
     voxel_cone_tracing.add_child(*pbr_debug);
+//    voxel_cone_tracing.add_child(*fast_approximate_aa);
     app.voxel_graph = &voxel_cone_tracing;
     app.debug_node_3d = debug_node_3d;
 
     app.voxel_graph->init();
     
     app.aa = fast_approximate_aa.get();
-    app.debug = pbr_debug.get();
+    //app.debug = pbr_debug.get();
 
     game_loop();
 

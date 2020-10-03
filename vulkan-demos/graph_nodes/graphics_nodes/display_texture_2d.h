@@ -59,7 +59,6 @@ public:
         object_vector_type &obj_vec = parent_type::_obj_vector;
         tex_registry_type* _tex_registry = parent_type::_texture_registry;
         
-        
         pass.get_attachment_group().add_attachment( _swapchain->present_textures, glm::vec4(0.0f));
         
         _screen_plane.create();
@@ -67,6 +66,7 @@ public:
         
         if(_texture_type == vk::render_texture::get_class_type())
         {
+            //TODO: this shader only works with 4 channel textures
             vk::resource_set<vk::render_texture>& rsrc = _tex_registry->get_read_render_texture_set(_texture, this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
             sub_p.set_image_sampler(rsrc, "tex", vk::parameter_stage::FRAGMENT, 1);
         }
@@ -77,7 +77,7 @@ public:
         }
         else if(vk::texture_2d::get_class_type() == _texture_type)
         {
-            vk::texture_2d& rsrc = _tex_registry->get_loaded_texture(_texture, this, parent_type::_device, _texture);
+            vk::texture_2d& rsrc = _tex_registry->get_loaded_texture_2d(_texture, this, parent_type::_device, _texture);
             
             rsrc.init();
             sub_p.set_image_sampler(rsrc, "tex", vk::parameter_stage::FRAGMENT, 1);

@@ -210,7 +210,8 @@ namespace vk
             inline void add_output_attachment( const char* name)
             {
                 bool found = false;
-                for( int i = 0; i < _attachment_group->size(); ++i)
+                size_t s = _attachment_group->size();
+                for( int i = 0; i < s; ++i)
                 {
                     eastl::fixed_string<char, 50> n = name;
                     if( (*_attachment_group)[i].get_name() == n)
@@ -282,7 +283,7 @@ namespace vk
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
-                    _pipeline[chain_id].set_image_sampler(&texture, parameter_name, parameter_stage, binding, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+                    _pipeline[chain_id].set_image_sampler(texture, parameter_name, parameter_stage, binding, vk::usage_type::COMBINED_IMAGE_SAMPLER);
                 }
             }
             inline void set_image_sampler(texture_3d& texture, const char* parameter_name,
@@ -290,7 +291,7 @@ namespace vk
             {
                 for( int chain_id = 0; chain_id < glfw_swapchain::NUM_SWAPCHAIN_IMAGES; ++chain_id)
                 {
-                    _pipeline[chain_id].set_image_sampler(&texture, parameter_name, parameter_stage, binding, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+                    _pipeline[chain_id].set_image_sampler(texture, parameter_name, parameter_stage, binding, vk::usage_type::COMBINED_IMAGE_SAMPLER);
                 }
             }
             

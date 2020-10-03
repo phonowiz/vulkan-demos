@@ -83,12 +83,13 @@ namespace vk
         
         inline usage_transition get_current_transition()
         {
-            EA_ASSERT_FORMATTED( !_layout_queue.empty(), ("there are no transitions available"));
+            EA_ASSERT_FORMATTED( !_layout_queue.empty(), ("there are no transitions available for %s", _name.c_str()));
             usage_transition r = _layout_queue.front();
             return r;
         }
         inline void pop_transition()
         {
+            EA_ASSERT_MSG((_layout_queue.size() != 0 ), "popping layout queue that is empty" );
             usage_transition r = _layout_queue.front();
             _layout_queue.pop();
             
@@ -250,7 +251,6 @@ namespace vk
                 _layout_queue.push( _used_transitions.front() );
                 _used_transitions.pop();
             }
-            std::cout << _name.c_str() << "reset count: " << _layout_queue.size() << std::endl;
         }
         
         
@@ -281,7 +281,7 @@ namespace vk
         static constexpr char const * _resource_type = nullptr;
     };
 
-    
+    //TODO: let's see if we can get rid of this class, we basically duplicates the template class above
     //specialize the resource_set class for pointers
     template< typename T>
     class resource_set<T*> : public object
@@ -350,6 +350,21 @@ namespace vk
             
             _layout_queue = rhs._layout_queue;
             _used_transitions = rhs._used_transitions;
+            return *this;
+        }
+
+        template < typename NEW_T >
+        resource_set<image*>& operator=(   NEW_T &rhs )
+        {
+            //note: here we are assigning a single texture to
+            //a resource_set, which means that for every frame in flight we are going
+            //to be using the same texture, this could cause issues if we start transitioning
+            //a texture while is being read in different threat in the GPU.
+            
+            for( int i = 0; i < elements.size(); ++i)
+            {
+                elements[i] = static_cast<image*>(&rhs);
+            }
             return *this;
         }
         

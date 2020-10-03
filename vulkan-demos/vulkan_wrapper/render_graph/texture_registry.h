@@ -136,12 +136,37 @@ namespace vk
             return *tex;
         }
         
+        inline texture_cube& get_read_texture_cube(const char* name, node_type* node)
+        {
+            texture_cube& tex =  get_read_texture<texture_cube>(name, node, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            //EA_ASSERT_FORMATTED(tex != nullptr, (" Invalid graph, texture %s which this node depends on has not been found", name));
+            //(*tex).log_transition(vk::usage_type::COMBINED_IMAGE_SAMPLER);
+            return tex;
+        }
 
         inline resource_set<texture_cube>& get_write_texture_cube_set( const char* name, node_type* node, vk::usage_type usage_type )
         {
             resource_set<texture_cube>& result = get_write_texture<resource_set<texture_cube>>(name, node, usage_type);
             result.set_name(name);
             result.log_transition(usage_type);
+            return result;
+        }
+        
+        inline render_texture& get_write_render_texture( const char* name, node_type* node)
+        {
+            render_texture& result = get_write_texture<render_texture>(name, node, vk::usage_type::INPUT_ATTACHMENT);
+            result.set_name(name);
+            //result.log_transition(usage_type);
+            result.set_original_layout(result.get_usage_layout(vk::usage_type::INPUT_ATTACHMENT));
+            return result;
+        }
+        
+        inline texture_cube& get_write_texture_cube( const char* name, node_type* node, vk::usage_type usage_type )
+        {
+            texture_cube& result = get_write_texture<texture_cube>(name, node, usage_type);
+            result.set_original_layout(result.get_usage_layout(usage_type));
+            result.set_name(name);
+            //result.log_transition(usage_type);
             return result;
         }
         
@@ -180,21 +205,33 @@ namespace vk
             return result;
         }
 
+        inline vk::texture_2d& get_loaded_texture_2d( const char* name, node_type* node, device* dev, const char* path)
+        {
+            return get_loaded_texture<vk::texture_2d>( name, node, dev,path);
+        }
         
-        inline vk::texture_2d& get_loaded_texture( const char* name, node_type* node, device* dev, const char* path )
+        
+        inline vk::texture_cube& get_loaded_texture_cube( const char* name, node_type* node, device* dev, const char* path)
+        {
+            return get_loaded_texture<vk::texture_cube>(name, node, dev, path);
+        }
+        
+        
+        template<typename T>
+        inline T& get_loaded_texture( const char* name, node_type* node, device* dev, const char* path )
         {
             typename dependee_data_map::iterator iter = _dependee_data_map.find(name);
             
-            vk::texture_2d* result = nullptr;
+            T* result = nullptr;
             if( iter == _dependee_data_map.end())
             {
-                result = &(get_write_texture<texture_2d>(name, node, vk::usage_type::COMBINED_IMAGE_SAMPLER, dev, path));
+                result = &(get_write_texture<T>(name, node, vk::usage_type::COMBINED_IMAGE_SAMPLER, dev, path));
             }
             else
             {
-                EA_ASSERT_FORMATTED(iter->second.resource->get_instance_type() == texture_2d::get_class_type(),
+                EA_ASSERT_FORMATTED(iter->second.resource->get_instance_type() == T::get_class_type(),
                                     ("resource %s is not of type texture 2D, did you mean to call one of the functions in the get_read_texture* family", name));
-                result = &(*(eastl::static_pointer_cast<texture_2d>(iter->second.resource)));
+                result = &(*(eastl::static_pointer_cast<T>(iter->second.resource)));
             }
             
             return *result;
@@ -330,6 +367,7 @@ namespace vk
                 
                 ptr = GREATE_TEXTUE<T>(args...);
                 ptr->set_device(_device);
+                ptr->set_name(name);
                 
                 dependee_data info {};
                 info.resource = eastl::static_pointer_cast<vk::object>(ptr);

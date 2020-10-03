@@ -98,13 +98,17 @@ public:
         vk::resource_set<vk::render_texture>& positions = _tex_registry->get_read_render_texture_set("positions", this, vk::usage_type::INPUT_ATTACHMENT);
         vk::resource_set<vk::depth_texture>& depth = _tex_registry->get_read_depth_texture_set("depth", this, vk::usage_type::INPUT_ATTACHMENT);
         
+        
         vk::resource_set<vk::render_texture>& final_render =  _tex_registry->get_write_render_texture_set("final_render",this);
-        //vk::resource_set<vk::texture_cube>& environment = _tex_registry->get_read_texture_cube_set("spec_cubemap_high", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-        //vk::resource_set<vk::texture_cube>& environment = _tex_registry->get_read_texture_cube_set("atmospheric", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-        vk::resource_set<vk::texture_cube>& environment = _tex_registry->get_read_texture_cube_set("radiance_map", this);
+        
+        vk::texture_cube& environment = _tex_registry->get_loaded_texture_cube("atmospheric", this, parent_type::_device, nullptr);
+        vk::resource_set<vk::texture_cube>& spec_cubemap_high  = _tex_registry->get_read_texture_cube_set("spec_cubemap_high", this);
+        vk::resource_set<vk::texture_cube>& spec_cubemap_low = _tex_registry->get_read_texture_cube_set("spec_cubemap_low", this);
+        vk::resource_set<vk::texture_cube>& radiance_map = _tex_registry->get_read_texture_cube_set("radiance_map", this);
+        vk::resource_set<vk::render_texture>& brdf_lut = _tex_registry->get_read_render_texture_set("spec_map_lut", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        
         final_render.set_filter(vk::image::filter::LINEAR);
         final_render.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
-        
         
         //GBUFFER SUBPASS
         mrt_attachment_group.add_attachment(normals, glm::vec4(0.0f), false, false);
@@ -155,16 +159,13 @@ public:
         composite.init_parameter("screen_size", vk::parameter_stage::FRAGMENT,
                                  glm::vec2(_swapchain->get_vk_swap_extent().width, _swapchain->get_vk_swap_extent().height), 5);
         
-        composite.set_image_sampler(voxel_normal_set, "voxel_normals", vk::parameter_stage::FRAGMENT, 6);
-        composite.set_image_sampler(voxel_albedo_set, "voxel_albedos", vk::parameter_stage::FRAGMENT, 7);
-        
         static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS> albedo_lods;
         static eastl::array<eastl::fixed_string<char, 100>, mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS> normal_lods;
         
-        int binding_index = 8;
-        int offset = 5;
+        int binding_index = 6;
+        int offset = 4;
         
-        for( int i = 1; i < mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS; ++i)
+        for( int i = 2; i < mip_map_3d_texture<NUM_CHILDREN>::TOTAL_LODS; ++i)
         {
             normal_lods[i].sprintf("voxel_normals%i", i);
             albedo_lods[i].sprintf("voxel_albedos%i", i);
@@ -177,8 +178,19 @@ public:
             binding_index++;
         }
         
-        composite.set_image_sampler(vsm_set, "vsm", vk::parameter_stage::FRAGMENT, binding_index + offset);
-        composite.set_image_sampler(environment, "environment", vk::parameter_stage::FRAGMENT, binding_index + offset + 1 );
+        eastl::array<char*, 3> ibl_samplers = { "radiance_map", "spec_cubemap_high", "spec_cubemap_low"};
+        eastl::array<vk::resource_set<vk::texture_cube>*, 3> ibl_textures = { &radiance_map, &spec_cubemap_high, &spec_cubemap_low};
+        
+        composite.set_image_sampler(vsm_set, "vsm", vk::parameter_stage::FRAGMENT, binding_index + offset++);
+        composite.set_image_sampler(environment, "environment", vk::parameter_stage::FRAGMENT, binding_index + offset++);
+        
+        int i = 0;
+        for( ; i < ibl_samplers.size(); ++i)
+        {
+            composite.set_image_sampler(*ibl_textures[i], ibl_samplers[i], vk::parameter_stage::FRAGMENT, binding_index + offset++);
+        }
+        
+        composite.set_image_sampler(brdf_lut, "brdfLUT", vk::parameter_stage::FRAGMENT, binding_index + offset++);
     }
     
     virtual void update_node(vk::camera& camera, uint32_t image_id) override
@@ -212,10 +224,6 @@ public:
         _world_light_positions[0].z = _light_cam.position.z;
         _world_light_positions[0].w = 1.0f;
     
-
-//        _light_color[1] = glm::vec4(0.0f, .33, .64f, 1.0f) * 5.0f;
-//        _light_color[2] = glm::vec4(0.0f, .33, .64f, 1.0f) * 5.f;
-        
         display_fragment_params["world_light_position"].set_vectors_array(_world_light_positions.data(),
                                                                             _world_light_positions.size());
         

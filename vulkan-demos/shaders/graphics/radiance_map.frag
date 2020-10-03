@@ -12,7 +12,7 @@
 layout (location = 0) out vec4 out_color;
 
 layout(binding = 0) uniform samplerCube cubemap;
-layout(binding = 1, rgba32f) writeonly restrict coherent uniform imageCube radiance_map;
+//layout(binding = 1, rgba32f) writeonly restrict coherent uniform imageCube radiance_map;
 
 layout(binding = 2, std140) uniform UBO
 {

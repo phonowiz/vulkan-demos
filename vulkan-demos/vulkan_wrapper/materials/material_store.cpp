@@ -73,6 +73,13 @@ void material_store::create(device* device)
     mat_shared_ptr fxaa_mat = CREATE_MAT<visual_material>("fxaa", fxaa_vert, fxaa_frag, device);
     add_material(fxaa_mat);
 
+    
+    shader_shared_ptr env_brdf_vert = add_shader("graphics/environment_brdf.vert", shader::shader_type::VERTEX);
+    shader_shared_ptr env_brdf_frag = add_shader("graphics/environment_brdf.frag", shader::shader_type::FRAGMENT);
+    
+    mat_shared_ptr env_brdf_mat = CREATE_MAT<visual_material>("environment_brdf", env_brdf_vert, env_brdf_frag, device);
+    add_material(env_brdf_mat);
+    
     shader_shared_ptr luminance_vert = add_shader("graphics/luminance.vert", shader::shader_type::VERTEX);
     shader_shared_ptr luminance_frag = add_shader("graphics/luminance.frag", shader::shader_type::FRAGMENT);
     

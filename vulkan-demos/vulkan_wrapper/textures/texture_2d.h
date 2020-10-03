@@ -32,6 +32,11 @@ namespace vk
             return _ppixels;
         }
         
+        inline void set_path(const char* path)
+        {
+            _path = path;
+        }
+        
         int get_bytes_per_channel()
         {
             switch(_format)
@@ -65,7 +70,8 @@ namespace vk
             return get_width() * get_height() * get_channels() * get_bytes_per_channel();
         }
         
-        void load();
+        void load(stbi_uc ** pixels, const char* path);
+        
         virtual void create_image_view(VkImage image, VkFormat format, VkImageView& image_view) override;
         virtual void init() override;
         
@@ -101,14 +107,12 @@ namespace vk
         virtual void create( uint32_t width, uint32_t height);
         virtual void create_sampler() override;
         bool _enable_mipmapping = false;
+        eastl::fixed_string<char, 250> _path;
+        bool _loaded = false;
     private:
         
         static constexpr char const * const _image_type = nullptr;
-        
-        bool _loaded = false;
-        
         stbi_uc *_ppixels = nullptr;
-        eastl::fixed_string<char, 250> _path;
     };
 }
 

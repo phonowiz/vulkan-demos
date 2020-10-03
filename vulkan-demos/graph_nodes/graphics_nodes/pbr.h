@@ -92,11 +92,11 @@ public:
             pbr.add_output_attachment("depth");
                 
             
-            vk::texture_2d& diffuse = _tex_registry->get_loaded_texture(diffuse_texture.c_str(), this, parent_type::_device, diffuse_texture.c_str());
-            vk::texture_2d& norms = _tex_registry->get_loaded_texture(normals_texture.c_str(), this, parent_type::_device, normals_texture.c_str());
-            vk::texture_2d& metals = _tex_registry->get_loaded_texture(specular_texture.c_str(), this, parent_type::_device, specular_texture.c_str());
-            vk::texture_2d& roughness = _tex_registry->get_loaded_texture(roughness_texture.c_str(), this, parent_type::_device, roughness_texture.c_str());
-            vk::texture_2d& occlusion = _tex_registry->get_loaded_texture(ao_texture.c_str(), this, parent_type::_device, ao_texture.c_str());
+            vk::texture_2d& diffuse = _tex_registry->get_loaded_texture_2d(diffuse_texture.c_str(), this, parent_type::_device, diffuse_texture.c_str());
+            vk::texture_2d& norms = _tex_registry->get_loaded_texture_2d(normals_texture.c_str(), this, parent_type::_device, normals_texture.c_str());
+            vk::texture_2d& metals = _tex_registry->get_loaded_texture_2d(specular_texture.c_str(), this, parent_type::_device, specular_texture.c_str());
+            vk::texture_2d& roughness = _tex_registry->get_loaded_texture_2d(roughness_texture.c_str(), this, parent_type::_device, roughness_texture.c_str());
+            vk::texture_2d& occlusion = _tex_registry->get_loaded_texture_2d(ao_texture.c_str(), this, parent_type::_device, ao_texture.c_str());
             pass.add_object(_obj_vector[i]->get_lod(0));
             
             roughness.set_filter(vk::image::filter::LINEAR);

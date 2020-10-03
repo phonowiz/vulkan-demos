@@ -218,11 +218,9 @@ bool image::is_stencil_format(VkFormat format)
 
 void image::write_buffer_to_image(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer)
 {
-    
+    EA_ASSERT(_image != VK_NULL_HANDLE);
     VkCommandBuffer command_buffer = _device->start_single_time_command_buffer( commandPool);
-    
-    
-    VkBufferImageCopy buffer_image_copy;
+    VkBufferImageCopy buffer_image_copy {};
     
     buffer_image_copy.bufferOffset = 0;
     buffer_image_copy.bufferRowLength = 0;

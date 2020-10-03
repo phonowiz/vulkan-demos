@@ -27,12 +27,18 @@ namespace vk {
         {
         };
         
+        texture_cube(device* device, const char* path): texture_2d(device)
+        {
+            _path = resource::resource_root + texture_2d::texture_resource_path + path;
+            load();
+        };
+        
         texture_cube(device* device, uint32_t width, uint32_t height):
         texture_2d(device, width, height, 6)
         {
         }
         
-        virtual void set_dimensions(uint32_t width, uint32_t height, uint32_t ) override
+        virtual void set_dimensions(uint32_t width, uint32_t height, uint32_t depth = 6 ) override
         {
             EA_ASSERT_MSG(width == height, "width and height must be equal for cubemaps");
             _width = width;
@@ -97,6 +103,7 @@ namespace vk {
                 barrier.subresourceRange.levelCount = 1;
                 barrier.subresourceRange.baseArrayLayer = (prev_layer * _depth);
 
+                //TODO: optimize these stages
                 vkCmdPipelineBarrier(command_buffer,
                                   VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, 0,
                                   0, nullptr,
@@ -181,6 +188,59 @@ namespace vk {
             return layout;
         }
         
+        virtual void load()
+        {
+            for( int i = 0; i < 6; ++i)
+            {
+                eastl::fixed_string<char, 250> name {};
+                
+                size_t last_dot = _path.find_last_of(".");
+                EA_ASSERT_FORMATTED(last_dot != eastl::string::npos, ("%s doesn't have an extension", _path.c_str()));
+                
+                eastl::fixed_string<char, 250> sub_name = _path.substr(0, last_dot);
+                name.sprintf("%s_%i%s",  sub_name.c_str(), i,_path.substr(last_dot, _path.length()-1).c_str());
+                
+                texture_2d::load(&_face_ppixels[i], name.c_str());
+            }
+            texture_2d::_loaded = true;
+        }
+        
+        virtual void write_buffer_to_image(VkCommandPool commandPool, VkQueue queue, VkBuffer buffer) override
+        {
+            change_layout(image_layouts::TRANSFER_DESTINATION_OPTIMAL);
+            
+            VkDeviceSize face_size = get_size_in_bytes();
+            
+            EA_ASSERT(_image != VK_NULL_HANDLE);
+            VkCommandBuffer command_buffer = _device->start_single_time_command_buffer( commandPool);
+            VkBufferImageCopy buffer_image_copy {};
+            
+            eastl::fixed_vector<VkBufferImageCopy, 6> buffer_image_copies;
+            for( int i = 0; i < 6; ++i)
+            {
+                buffer_image_copy.bufferOffset = face_size * i;
+                buffer_image_copy.bufferRowLength = 0;
+                buffer_image_copy.bufferImageHeight = 0;
+                buffer_image_copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                buffer_image_copy.imageSubresource.mipLevel = 0;
+                buffer_image_copy.imageSubresource.baseArrayLayer = i;
+                buffer_image_copy.imageSubresource.layerCount = 1;//_depth;
+                buffer_image_copy.imageOffset = { 0, 0, 0};
+                buffer_image_copy.imageExtent = { static_cast<uint32_t>(get_width()), static_cast<uint32_t>(get_height()), 1 };
+                
+                buffer_image_copies.push_back(buffer_image_copy);
+                
+            }
+            
+            vkCmdCopyBufferToImage(command_buffer, buffer, _image,
+                                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (uint32_t)buffer_image_copies.size(), buffer_image_copies.data());
+            
+            
+            _device->end_single_time_command_buffer(queue, commandPool, command_buffer);
+            
+            _image_layout = image_layouts::TRANSFER_DESTINATION_OPTIMAL;
+        }
+        
         virtual void create( uint32_t width, uint32_t height) override
         {
             EA_ASSERT(width != 0 && height != 0 );
@@ -193,11 +253,49 @@ namespace vk {
             create_image(
                          static_cast<VkFormat>(_format),
                          VK_IMAGE_TILING_OPTIMAL,
-                         VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT  | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+                         VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT  | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT |
                          VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, false);
+                         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, !_path.empty());
 
             create_image_view(_image, static_cast<VkFormat>(_format), _image_view);
+            
+            if(!_path.empty())
+            {
+                VkDeviceSize face_size = get_size_in_bytes();
+                VkBuffer staging_buffer {};
+                VkDeviceMemory staging_buffer_memory {};
+                
+                VkMemoryPropertyFlagBits flags = _path.empty() ? VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT :
+                            static_cast<VkMemoryPropertyFlagBits>(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) ;
+                create_buffer(_device->_logical_device, _device->_physical_device, face_size * _depth, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                              staging_buffer, flags, staging_buffer_memory);
+                
+                char *data = nullptr;
+                VkResult res = vkMapMemory(_device->_logical_device, staging_buffer_memory, 0, VK_WHOLE_SIZE, 0, (void**)&data);
+                ASSERT_VULKAN(res);
+                
+                for( int i = 0; i < 6; ++i)
+                {
+                    memcpy((data) + (i * face_size), _face_ppixels[i], face_size);
+                }
+                
+                vkUnmapMemory(_device->_logical_device, staging_buffer_memory);
+                write_buffer_to_image(_device->_graphics_command_pool, _device->_graphics_queue, staging_buffer);
+                vkFreeMemory(_device->_logical_device, staging_buffer_memory, nullptr);
+                vkDestroyBuffer(_device->_logical_device, staging_buffer, nullptr);
+                
+                if( _mip_levels == 1)
+                {
+                    change_image_layout(_device->_graphics_command_pool, _device->_graphics_queue, _image, static_cast<VkFormat>(_format),
+                                        VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+                    _original_layout = image::image_layouts::SHADER_READ_ONLY_OPTIMAL;
+                }
+                else
+                {
+                    refresh_mimaps();
+                }
+            }
+
             _initialized = true;
         }
         
@@ -278,13 +376,15 @@ namespace vk {
             VkResult result = vkCreateImageView(_device->_logical_device, &image_view_create_info, nullptr, &image_view);
             ASSERT_VULKAN(result);
         }
-        
         virtual void destroy() override
         {
             for( int i = 0; i < _depth; ++i)
             {
+                EA_ASSERT(_depth == _face_ppixels.size());
                 if(_face_views[i] != VK_NULL_HANDLE)
                     vkDestroyImageView(_device->_logical_device, _face_views[i], nullptr);
+                
+                stbi_image_free(_face_ppixels[i]);
             }
             texture_2d::destroy();
         }
@@ -295,6 +395,6 @@ namespace vk {
     private:
         eastl::array<VkImageView, 6> _face_views = {};
         static constexpr const char * _image_type = nullptr;
-    
+        eastl::array<stbi_uc*, 6> _face_ppixels = {};
     };
 }

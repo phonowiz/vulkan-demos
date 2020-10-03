@@ -48,22 +48,20 @@ texture_2d::texture_2d(device* device,const char* path)
 :image(device)
 {
     _path = resource::resource_root + texture_2d::texture_resource_path + path;
-    load();
+    load(&_ppixels, _path.c_str());
 }
 
-void texture_2d::load()
+void texture_2d::load( stbi_uc ** pixels, const char* path)
 {
-    EA_ASSERT(_loaded !=true);
     int w = 0;
     int h = 0;
     int c = 0;
     
-
     _format = formats::R8G8B8A8_UNSIGNED_NORMALIZED;
     _original_layout = _image_layout = image_layouts::PREINITIALIZED;
     EA_ASSERT_MSG(_path.empty() == false, "texture path is empty");
-    _ppixels = stbi_load(_path.c_str(), &w,
-                         &h, &c, STBI_default);
+    *pixels = stbi_load(path, &w, &h, &c, STBI_default);
+    
     _width = static_cast<uint32_t>(w);
     _height = static_cast<uint32_t>(h);
     _channels = static_cast<uint32_t>(c);
@@ -76,8 +74,8 @@ void texture_2d::load()
     {
         _format = formats::R8_UNSIGNED_NORMALIZED;
     }
-    EA_ASSERT_FORMATTED(_channels != 2, ("2 channels in a texture are not supported in macs. %s", _path.c_str()));
-    EA_ASSERT_FORMATTED(_ppixels != nullptr, ("Texture did not load: %s", _path.c_str()));
+    EA_ASSERT_FORMATTED(_channels != 2, ("2 channels in a texture are not supported in macs. %s", path));
+    EA_ASSERT_FORMATTED(*pixels != nullptr, ("Texture did not load:%s\n\n %s", path, stbi_failure_reason()));
     _loaded = true;
 }
 
@@ -116,8 +114,6 @@ void texture_2d::create(uint32_t width, uint32_t height)
     _depth = _depth;
     
     VkDeviceSize image_size = get_size_in_bytes();
-    
-    
     VkBuffer staging_buffer {};
     VkDeviceMemory staging_buffer_memory {};
     

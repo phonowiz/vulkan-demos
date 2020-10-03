@@ -63,7 +63,7 @@ namespace  vk
 
         virtual void init()
         {
-            assert( _device != nullptr);
+            EA_ASSERT( _device != nullptr);
             
             if(!_visited)
             {
@@ -151,11 +151,11 @@ namespace  vk
                     result = result && node_type::_children[i]->record(buffer, image_id);
                 }
                 
-                //note: always record transitions.  typically all nodes in a graph would be executed, but in debug mode this may not happen.
+                //TODO: always record transitions.  typically all nodes in a graph would be executed, but in debug mode this may not happen.
                 record_transitions(buffer, image_id);
                 if( result && _active)
                 {
-                    debug_print("recording...");
+                    //debug_print("recording...");
                     result = record_node_commands(buffer, image_id);
                 }
             }
@@ -296,11 +296,11 @@ namespace  vk
                 barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
                 barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 
-                eastl::fixed_string<char, 100> msg {};
-                msg.sprintf("between %s and %s, transitioning %s => %s", this->get_name(), dependee_node->get_name(),
-                            layout_string(transition.previous), layout_string(transition.current));
-                
-                debug_print(msg.c_str());
+//                eastl::fixed_string<char, 100> msg {};
+//                msg.sprintf("between %s and %s, transitioning %s => %s", this->get_name(), dependee_node->get_name(),
+//                            layout_string(transition.previous), layout_string(transition.current));
+//                
+//                debug_print(msg.c_str());
                 
                 vkCmdPipelineBarrier(
                                      buffer.get_raw_graphics_command(image_id),
@@ -335,12 +335,14 @@ namespace  vk
                 eastl::shared_ptr<vk::object> res = eastl::static_pointer_cast<vk::object>((*b).data.resource);
                 
                 if(res->get_instance_type() == texture_2d::get_class_type() ||
-                   res->get_instance_type() == texture_3d::get_class_type())
+                   res->get_instance_type() == texture_3d::get_class_type() ||
+                   res->get_instance_type() == texture_cube::get_class_type() ||
+                   res->get_instance_type() == render_texture::get_class_type())
                 {
                     eastl::shared_ptr<vk::image> p_image = eastl::static_pointer_cast<vk::image>(res);
                     vk::usage_transition trans {};
                     trans.previous = p_image->get_original_layout();
-                    trans.current = p_image->get_original_layout();
+                    trans.current = (*b).layout;
                     create_barrier(buffer, p_image.get(),  (*b).data.node, image_id,trans);
                 }
                 else
