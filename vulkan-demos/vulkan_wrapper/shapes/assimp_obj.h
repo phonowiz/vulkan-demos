@@ -208,6 +208,19 @@ namespace vk
         
     private:
         
+        aiNode* findNode(aiNode* rootNode, const char *name) {
+            if (!strcmp(name, rootNode->mName.data)) {
+                return rootNode;
+            }
+            for (int i = 0; i < rootNode->mNumChildren; i++) {
+                aiNode *found = findNode(rootNode->mChildren[i], name);
+                if (found) {
+                    return found;
+                }
+            }
+            return NULL;
+        }
+        
         void create( const aiScene* pScene, model_create_info *createInfo, vertex_layout& layout)
         {
             EA_ASSERT(pScene);
@@ -218,6 +231,30 @@ namespace vk
             glm::vec3 scale(1.0f);
             glm::vec2 uvscale(1.0f);
             glm::vec3 center(0.0f);
+            
+            int32_t upAxis = 0;
+            pScene->mMetaData->Get<int>("UpAxis", upAxis);
+            int32_t upAxisSign = 1;
+            pScene->mMetaData->Get<int>("UpAxisSign", upAxisSign);
+            int32_t frontAxis = 1;
+            int32_t frontAxisSign = 1;
+            int32_t coordAxisSign = 1;
+            int32_t coordAxis = 1;
+            pScene->mMetaData->Get<int>("frontAxis", frontAxis);
+            pScene->mMetaData->Get<int>("frontAxisSign", frontAxisSign);
+            pScene->mMetaData->Get<int>("coordAxisSign", coordAxisSign);
+            pScene->mMetaData->Get<int>("coordAxis", coordAxis);
+                        
+            aiVector3D upVec = upAxis == 0 ? aiVector3D(upAxisSign,0,0) : upAxis == 1 ? aiVector3D(0, upAxisSign,0) : aiVector3D(0, 0, upAxisSign);
+            aiVector3D forwardVec = frontAxis == 0 ? aiVector3D(frontAxisSign, 0, 0) : frontAxis == 1 ? aiVector3D(0, frontAxisSign, 0) : aiVector3D(0, 0, frontAxisSign);
+            aiVector3D rightVec = coordAxis == 0 ? aiVector3D(coordAxisSign, 0, 0) : coordAxis == 1 ? aiVector3D(0, coordAxisSign, 0) : aiVector3D(0, 0, coordAxisSign);
+            
+            aiMatrix4x4 mat(rightVec.x, rightVec.y, rightVec.z, 0.0f,
+               upVec.x, upVec.y, upVec.z, 0.0f,
+               forwardVec.x, forwardVec.y, forwardVec.z, 0.0f,
+               0.0f, 0.0f, 0.0f, 1.0f);
+            
+            pScene->mRootNode->mTransformation *= mat;
             if (createInfo)
             {
                 scale = createInfo->scale;
@@ -249,7 +286,7 @@ namespace vk
                 const aiMaterial* material = pScene->mMaterials[paiMesh->mMaterialIndex];
                 aiString path;
                 
-                for( int t = 0; t < (int)aiTextureType_UNKNOWN; ++t)
+                for( int t = 0; t < (int32_t)aiTextureType_UNKNOWN; ++t)
                 {
                     for( int c  = 0; c < material->GetTextureCount((aiTextureType)t); ++c)
                     {
@@ -276,19 +313,40 @@ namespace vk
                     const aiVector3D* pTangent = (paiMesh->HasTangentsAndBitangents()) ? &(paiMesh->mTangents[j]) : &Zero3D;
                     const aiVector3D* pBiTangent = (paiMesh->HasTangentsAndBitangents()) ? &(paiMesh->mBitangents[j]) : &Zero3D;
 
+                    
                     for (auto& component : layout.components)
                     {
                         switch (component) {
                         case vertex_componets::VERTEX_COMPONENT_POSITION:
-                            vertexBuffer.push_back(pPos->x * scale.x + center.x);
-                            vertexBuffer.push_back(pPos->y * scale.y + center.y);
-                            vertexBuffer.push_back(pPos->z * scale.z + center.z);
-                            break;
+                            {
+                                aiVector3D pos = *pPos;
+                                aiNode* pNode = findNode(pScene->mRootNode, paiMesh->mName.data);
+                                EA_ASSERT_MSG(pNode != nullptr, "The root node must match the name of the mesh");
+                                aiTransformVecByMatrix4(&pos, &(pNode->mTransformation));
+                                
+                                vertexBuffer.push_back(pos.x * scale.x + center.x);
+                                vertexBuffer.push_back(pos.y * scale.y + center.y);
+                                vertexBuffer.push_back(pos.z * scale.z + center.z);
+                                break;
+                            }
                         case vertex_componets::VERTEX_COMPONENT_NORMAL:
-                            vertexBuffer.push_back(pNormal->x);
-                            vertexBuffer.push_back(pNormal->y);
-                            vertexBuffer.push_back(pNormal->z);
-                            break;
+                            {
+                                aiNode* pNode = findNode(pScene->mRootNode, paiMesh->mName.data);
+                                EA_ASSERT_MSG(pNode != nullptr, "The root node must match the name of the mesh");
+                                aiVector3D normal = *pNormal;
+ 
+                                aiMatrix4x4 transform = pNode->mTransformation;
+                                aiMatrix4Inverse(&transform);
+                                aiTransposeMatrix4(&transform);
+                                
+                                aiTransformVecByMatrix4(&normal, &transform);
+                                aiVector3Normalize(&normal);
+                                
+                                vertexBuffer.push_back(normal.x);
+                                vertexBuffer.push_back(normal.y);
+                                vertexBuffer.push_back(normal.z);
+                                break;
+                            }
                         case vertex_componets::VERTEX_COMPONENT_UV:
                             vertexBuffer.push_back(pTexCoord->x * uvscale.s);
                             vertexBuffer.push_back(pTexCoord->y * uvscale.t);

@@ -84,7 +84,7 @@ namespace vk
                                           eastl::vector<T> &data, VkBufferUsageFlags usage, VkBuffer &buffer, VkDeviceMemory &device_memory)
         {
             VkDeviceSize buffer_size = sizeof(T) * data.size();
-            assert(data.size() != 0);
+            EA_ASSERT(data.size() != 0);
             VkBuffer staging_buffer {};
             VkDeviceMemory staging_buffer_memory {};
             

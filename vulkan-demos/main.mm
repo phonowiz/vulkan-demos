@@ -301,8 +301,10 @@ void create_graph()
     floor->set_texture_relative_path("../../textures/white.png", aiTextureType_DIFFUSE_ROUGHNESS);
     floor->set_texture_relative_path("Ground037_2K_AmbientOcclusion.png", aiTextureType_AMBIENT_OCCLUSION);
     
+    
     eastl::shared_ptr<vk::assimp_node<4>> model_node =
             eastl::make_shared<vk::assimp_node<4>>( app.device, "1977-plymouth-volaire-sedan/source/549152622d66472dae9489efa29991c4.rar/plymouthfix-modified.fbx" );
+    
     
     model_node->set_texture_relative_path("Material_65_Base_Color.png", aiTextureType_BASE_COLOR);
     model_node->set_texture_relative_path("Material_65_Metallic.png", aiTextureType_METALNESS);
@@ -312,22 +314,19 @@ void create_graph()
     
     
     vk::transform trans ={};
-
-    trans.position = glm::vec3(-0.4f, -0.00f, -.6f);
-    //these things are necessary because assimp won't pick up on scaling/rotation attributes specified in the Blender exporter
-    //I don't know how to fix these things from the blender or assimp side.
-    trans.scale = glm::vec3(.0004f,.0004f, .0004f);
-    trans.rotation.x = glm::half_pi<float>();
+    
+    trans.reset();
+    trans.position = glm::vec3(-0.4f, -0.00f, .6f);
+    //trans.rotation.x = glm::half_pi<float>();
     trans.rotation.y = .9f;
     trans.update_transform_matrix();
 
 
     model_node->init_transforms(trans);
-    trans = {};
-    trans.rotation.x =  1.5708f;
-    trans.position = glm::vec3(0.0f, -.00f, 0.0f);
-    trans.scale = glm::vec3(2.5f, 2.5f, 2.5f);
-
+    trans.reset();
+    //trans.rotation.x =  glm<float>::pi();
+    //trans.position = glm::vec3(0.0f, .00f, -0.0f);
+    trans.scale = glm::vec3(2.0f, 2.0f, 2.0f);
     trans.update_transform_matrix();
 
     floor->init_transforms(trans);

@@ -33,6 +33,8 @@ namespace vk {
         /// <summary> Recalculates the transform matrix according to the position, scale and rotation vectors. </summary>
         void update_transform_matrix();
         
+        void reset() { position = { 0,0,0 }; scale = { 1,1,1 }; rotation = { 0,0,0 }; }
+        
         /// <summary> Returns a reference to the transform matrix </summary>
         const glm::mat4 & get_transform_matrix();
         
