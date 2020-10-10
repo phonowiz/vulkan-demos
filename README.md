@@ -284,8 +284,10 @@ Go to https://github.com/glfw/glfw/tree/a2674a903434b7dfc0b0bcc5d0b479da417367ff
 
 Follow the instructions on GLFW GitHub page.  I created an Xcode project using cmake, opened up Xcode and built it through there.  The scheme used was “glfw”, make sure you are building release by checking “edit scheme”.
 
+Once you build all these dependencies you'll see the the xcode project for vulkan-demos under the root directory of this repository. 
+
 ## How to Import Assets using Blender
-I am no artist, I download stuff from the interent and scale it to make it fit  in my demo world.  There are plenty of youtube videos that will show you how to rotate and scale a mesh, so I won't go over this, instead, I will write some tips not easily found on the internet on things you need to do on the Blender side so that the C++ side can pick them up.
+I am no artist, I download stuff from the internet and scale it to make it fit  in my demo world.  There are plenty of youtube videos that will show you how to rotate and scale a mesh, so I won't go over this, instead, I will write some tips not easily found on the internet on things you need to do on the Blender side so that the C++ side can pick them up.
 
 Once you have imported your asset and modified it, make sure to press ctrl + A, you'll get a context menu, choose to save all "All Transforms".  If you don't do this the scaling/rotations/etc that you do will not make it to the .fbx file when they are created, see below:
 
@@ -304,7 +306,6 @@ As far as materials goes, on blender I use the standard material, highlighted be
 
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/blender-materials.png">
 
-Once you build all these dependencies you'll see the the xcode project for vulkan-demos under the root directory of this repository. 
 
 ## YouTube
 
