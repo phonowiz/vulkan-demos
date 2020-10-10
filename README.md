@@ -284,6 +284,25 @@ Go to https://github.com/glfw/glfw/tree/a2674a903434b7dfc0b0bcc5d0b479da417367ff
 
 Follow the instructions on GLFW GitHub page.  I created an Xcode project using cmake, opened up Xcode and built it through there.  The scheme used was “glfw”, make sure you are building release by checking “edit scheme”.
 
+## How to Import Assets using Blender
+I am no artist, I download stuff from the interent and scale it to make it fit  in my demo world.  There are plenty of youtube videos that will show you how to rotate and scale a mesh, so I won't go over this, instead, I will write some tips not easily found on the internet on things you need to do on the Blender side so that the C++ side can pick them up.
+
+Once you have imported your asset and modified it, make sure to press ctrl + A, you'll get a context menu, choose to save all "All Transforms".  If you don't do this the scaling/rotations/etc that you do will not make it to the .fbx file when they are created, see below:
+
+<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/blender-scale-save.png">
+
+To export go to File => Export => FBX, make sure you have the following settings before you export:
+
+<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/blender-fbx-settings.png">
+
+Path mode "Relative" makes it so that the textures in the file are relative to the FBX file.
+"Apply Scalings" makes it so that the transformations matrices and scaling factors get exported, the C++ code will catch this and apply them to the vertices.  The exporter will not do this for us, we need to do it in the code. I feel like the other settings are self explanatory.  
+
+You can always import an fbx file, or any other file for that matter, change it to your liking, and then export it as an .obj or .fbx.  I like .fbx because of animations, .obj files do not do a good job and encoding these.
+
+As far as materials goes, on blender I use the standard material, highlighted below are the slots that the C++ is looking for. If for some reason the C++ doesn't pick up on the materials, you can manually set them in the code.  Look for `set_texture_relative_path` in the code to see examples.
+
+<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/blender-materials.png">
 
 ## YouTube
 
@@ -305,5 +324,6 @@ I feel good that the architecture is solid for me to to experiment with differen
 - HDR! My mac does not support any of the more advanced color spaces out there, for now I will have to live with good old sRGB.
 - Clouds
 - Implement animations by importing them wtih ASSIMP
+- Voxel Cone tracing implementation only covers a very small area of the world, it would be cool to see it cover a bigger area.  An attempt on how to do this can be found here: https://www.gamasutra.com/view/news/286023/Graphics_Deep_Dive_Cascaded_voxel_cone_tracing_in_The_Tomorrow_Children.php.  Voxel cone tracing in the end is a really expensive algorithm, and although the effects are cool, it has its drawbacks that probably hasn't allowed it to be come more popular in the game industry.  I wouldn't choose it unless I had very simple scenes to illuminate ( like my demos). 
 - And the list goes on...
 
