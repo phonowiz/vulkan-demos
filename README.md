@@ -261,7 +261,7 @@ This is a screenshot of my addition of physically Based Rendering along with vox
 
 ## Build The Code
 
-### ASSIMP
+#### ASSIMP
 Go to vulkan-demos/utils/assimp, run:
 
 cmake -DCMAKE_CXX_COMPILER=$(xcrun -find c++) -DCMAKE_C_COMPILER=$(xcrun -find cc) -G Xcode
@@ -273,13 +273,13 @@ click on the assimp project (should be the blue square at the top of project nav
 command + B to build
 rename output in asssimp/bin/Release to libassimp.5.dylib.  You might have to delete a symbolic link that appears there, that is fine. 
 
-### Molten VK
+#### Molten VK
 
 Go to https://github.com/KhronosGroup/MoltenVK/tree/8f6edef8ba54503f70064ea94b0fb0020dcca819
 
 Follow the instructions of the moltenvk GitHub page.  The platform of choice will be —macos.  You’ll need to build both dynamic and static versions of moltenvk.  This project is already looking for release builds of moltenVK and I don’t think you’ll have to modify anything on this side, but if you get link errors, is likely due to binary files not being found. 
 
-### GLFW
+#### GLFW
 Go to https://github.com/glfw/glfw/tree/a2674a903434b7dfc0b0bcc5d0b479da417367ff
 
 Follow the instructions on GLFW GitHub page.  I created an Xcode project using cmake, opened up Xcode and built it through there.  The scheme used was “glfw”, make sure you are building release by checking “edit scheme”.
@@ -292,3 +292,18 @@ Here is my youtube channel if you'd like to see videos of the different demos I 
 https://www.youtube.com/channel/UCrowOeZPG9TtjzvS-bh1KAg?view_as=subscriber
 
 The quality of the videos on YouTube is terrible, go to https://github.com/phonowiz/vulkan-demos/tree/master/vulkan-demos/videos for original captured videos. 
+
+## Ideas 
+
+For every one idea I implement 10 more are born, and for every todo I fix in the code 3 more will come up.  I've come to the conclusion that this project will be never ending.  I have learned so much from it though, and I'd encourage you to to start something similar for yourself, or start from this codebase and make it your own some way.  
+
+I feel good that the architecture is solid for me to to experiment with different graphics techniques on my Mac, and Vulkan/Metal won't go away any time soon, that gives me plenty of time to keep implementing more things.  Here are some thoughts:
+
+- At the moment, every node texture dependency creates a barrier, I should instead make an array of barriers and submit them all at once, instead of one at a time
+- I'd love to implement one of the many subssurface scattering algorithms out there
+- Adopt more of the camera imperfection effects that makes images more realistic (i.g: color aberration)
+- HDR! My mac does not support any of the more advanced color spaces out there, for now I will have to live with good old sRGB.
+- Clouds
+- Implement animations by importing them wtih ASSIMP
+- And the list goes on...
+
