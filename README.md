@@ -248,29 +248,6 @@ Also, how resources are handled is pretty genious.  If you analyze the graph you
 
 There are 100 more ideas in the presentation, some of which I wish I had more info on; it is quite obvious they've thrown a lot of time and energy in coming up with all these features.  I do believe frame graphs will become more common over time in the years to come; it is a very natural way to approach modern graphics APIs,  and I would encourage you to look at the presentation and search around on the internet for more information about them.   
 
-## Voxel Cone Tracing Example
-Here are screenshots of my deferred renderings, these are used for voxel cone tracing, my most complex graph I've built so far, with over 15 nodes.  Some of these are are debug nodes and therefore not active. 
-
-#### Albedo
-<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/albedo.png">
-
-#### Depth
-<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/depth.png">
-
-#### Direct Lighting
-<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/direct-lighting.png">
-
-#### Normals (Only 2 channels are needed to store normals)
-<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/normals.png">
-
-#### 3D Texture Visualization
-<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/3d-texture visualization.png">
-
-#### Ambient Occlusion
-<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/ambient_occlusion.png">
-
-#### Variance Shadow Mapping
-<img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/vsm.png">
 
 #### Direct+Ambient Lighting with Ambient Occlusion
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/ambient+direct.png">
@@ -284,9 +261,34 @@ This is a screenshot of my addition of physically Based Rendering along with vox
 
 ## Build The Code
 
-TODO...
+### ASSIMP
+Go to vulkan-demos/utils/assimp, run:
+
+cmake -DCMAKE_CXX_COMPILER=$(xcrun -find c++) -DCMAKE_C_COMPILER=$(xcrun -find cc) -G Xcode
+
+open Assume.xcodeproj under assimp/ folder, make sure you pick the unit scheme to build
+for the unit scheme, edit the build configuration for “Release”
+click on the assimp project (should be the blue square at the top of project navigator) and for C++ language dialect, pick C++ 17 in the build settings options.  I suggest you do this for all the targets in Build Settings, if you don’t you might get funky syntax errors.  These are likely due to the wrong flavor of C++ to compile the code. 
+
+command + B to build
+rename output in asssimp/bin/Release to libassimp.5.dylib.  You might have to delete a symbolic link that appears there, that is fine. 
+
+### Molten VK
+
+Go to https://github.com/KhronosGroup/MoltenVK/tree/8f6edef8ba54503f70064ea94b0fb0020dcca819
+
+Follow the instructions of the moltenvk GitHub page.  The platform of choice will be —macos.  You’ll need to build both dynamic and static versions of moltenvk.  This project is already looking for release builds of moltenVK and I don’t think you’ll have to modify anything on this side, but if you get link errors, is likely due to binary files not being found. 
+
+### GLFW
+Go to https://github.com/glfw/glfw/tree/a2674a903434b7dfc0b0bcc5d0b479da417367ff
+
+Follow the instructions on GLFW GitHub page.  I created an Xcode project using cmake, opened up Xcode and built it through there.  The scheme used was “glfw”, make sure you are building release by checking “edit scheme”.
+
+
 ## YouTube
 
 Here is my youtube channel if you'd like to see videos of the different demos I create:
 
 https://www.youtube.com/channel/UCrowOeZPG9TtjzvS-bh1KAg?view_as=subscriber
+
+The quality of the videos on YouTube is terrible, go to https://github.com/phonowiz/vulkan-demos/tree/master/vulkan-demos/videos for original captured videos. 
