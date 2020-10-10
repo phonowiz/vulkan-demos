@@ -304,6 +304,8 @@ As far as materials goes, on blender I use the standard material, highlighted be
 
 <img src="https://github.com/phonowiz/vulkan-gui-test/blob/master/vulkan-demos/screenshots/blender-materials.png">
 
+Once you build all these dependencies you'll see the the xcode project for vulkan-demos under the root directory of this repository. 
+
 ## YouTube
 
 Here is my youtube channel if you'd like to see videos of the different demos I create:
