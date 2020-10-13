@@ -274,11 +274,214 @@ float determine_edge_blend_factor (luminance_data l, edge_data e, vec2 uv)
     return 0.5 - shortestDistance / (pDistance + nDistance);
 }
 
+
+const mat3 ACESInputMat =
+{
+    {0.59719, 0.35458, 0.04823},
+    {0.07600, 0.90834, 0.01566},
+    {0.02840, 0.13383, 0.83777}
+};
+
+// ODT_SAT => XYZ => D60_2_D65 => sRGB
+const mat3 ACESOutputMat =
+{
+    { 1.60475, -0.53108, -0.07367},
+    {-0.10208,  1.10813, -0.00605},
+    {-0.00327, -0.07276,  1.07602}
+};
+
+vec3 RRTAndODTFit(vec3 v)
+{
+    vec3 a = v * (v + 0.0245786f) - 0.000090537f;
+    vec3 b = v * (0.983729f * v + 0.4329510f) + 0.238081f;
+    return a / b;
+}
+
+vec3 ACESFitted(vec3 color)
+{
+    color = transpose(ACESInputMat) * color;
+
+    // Apply RRT and ODT
+    color = RRTAndODTFit(color);
+
+    color = transpose(ACESOutputMat) * color;
+
+    // Clamp to [0, 1]
+    color = clamp(color, 0.0f, 1.0f);
+
+    return color;
+}
+
+vec3 ACESFilm(vec3 x)
+{
+    float a = 2.51f;
+    float b = 0.03f;
+    float c = 2.43f;
+    float d = 0.59f;
+    float e = 0.14f;
+    return clamp((x*(a*x+b))/(x*(c*x+d)+e), 0.0f, 1.0f);
+}
+
+// Accurate for 4000K < Temp < 25000K
+// in: correlated color temperature
+// out: CIE 1931 chromaticity
+vec2 D_IlluminantChromaticity( float Temp )
+{
+    // Correct for revision of Plank's law
+    // This makes 6500 == D65
+    Temp *= 1.4388 / 1.438;
+
+    float x =    Temp <= 7000 ?
+                0.244063 + ( 0.09911e3 + ( 2.9678e6 - 4.6070e9 / Temp ) / Temp ) / Temp :
+                0.237040 + ( 0.24748e3 + ( 1.9018e6 - 2.0064e9 / Temp ) / Temp ) / Temp;
+    
+    float y = -3 * x*x + 2.87 * x - 0.275;
+
+    return vec2(x,y);
+}
+
+// Accurate for 1000K < Temp < 15000K
+// [Krystek 1985, "An algorithm to calculate correlated colour temperature"]
+vec2 PlanckianLocusChromaticity( float Temp )
+{
+    float u = ( 0.860117757f + 1.54118254e-4f * Temp + 1.28641212e-7f * Temp*Temp ) / ( 1.0f + 8.42420235e-4f * Temp + 7.08145163e-7f * Temp*Temp );
+    float v = ( 0.317398726f + 4.22806245e-5f * Temp + 4.20481691e-8f * Temp*Temp ) / ( 1.0f - 2.89741816e-5f * Temp + 1.61456053e-7f * Temp*Temp );
+
+    float x = 3*u / ( 2*u - 8*v + 4 );
+    float y = 2*v / ( 2*u - 8*v + 4 );
+
+    return vec2(x,y);
+}
+
+vec3 xyY_2_XYZ( vec3 xyY )
+{
+    vec3 XYZ;
+    XYZ[0] = xyY[0] * xyY[2] / max( xyY[1], 1e-10);
+    XYZ[1] = xyY[2];
+    XYZ[2] = (1.0 - xyY[0] - xyY[1]) * xyY[2] / max( xyY[1], 1e-10);
+
+    return XYZ;
+}
+
+
+mat3 ChromaticAdaptation( vec2 src_xy, vec2 dst_xy )
+{
+    // Von Kries chromatic adaptation
+
+    // Bradford
+    mat3 ConeResponse =
+    {
+        {0.8951,  0.2664, -0.1614},
+        {-0.7502,  1.7135,  0.0367},
+        {0.0389, -0.0685,  1.0296},
+    };
+    
+    ConeResponse = transpose(ConeResponse);
+    mat3 InvConeResponse =
+    {
+        {0.9869929, -0.1470543,  0.1599627},
+        {0.4323053,  0.5183603,  0.0492912},
+        {-0.0085287,  0.0400428,  0.9684867},
+    };
+    
+    InvConeResponse = transpose(InvConeResponse);
+    
+
+    vec3 src_XYZ = xyY_2_XYZ( vec3( src_xy, 1 ) );
+    vec3 dst_XYZ = xyY_2_XYZ( vec3( dst_xy, 1 ) );
+
+    vec3 src_coneResp = ConeResponse * src_XYZ ;
+    vec3 dst_coneResp = ConeResponse * dst_XYZ ;
+
+    mat3 VonKriesMat =
+    {
+        { dst_coneResp[0] / src_coneResp[0], 0.0, 0.0 },
+        { 0.0, dst_coneResp[1] / src_coneResp[1], 0.0 },
+        { 0.0, 0.0, dst_coneResp[2] / src_coneResp[2] }
+    };
+    
+    VonKriesMat = transpose(VonKriesMat);
+
+    return InvConeResponse * ( VonKriesMat * ConeResponse );
+}
+
+float Square( float x)
+{
+    return x * x;
+}
+
+vec2 PlanckianIsothermal( float Temp, float Tint )
+{
+    float u = ( 0.860117757f + 1.54118254e-4f * Temp + 1.28641212e-7f * Temp*Temp ) / ( 1.0f + 8.42420235e-4f * Temp + 7.08145163e-7f * Temp*Temp );
+    float v = ( 0.317398726f + 4.22806245e-5f * Temp + 4.20481691e-8f * Temp*Temp ) / ( 1.0f - 2.89741816e-5f * Temp + 1.61456053e-7f * Temp*Temp );
+
+    float ud = ( -1.13758118e9f - 1.91615621e6f * Temp - 1.53177f * Temp*Temp ) / Square( 1.41213984e6f + 1189.62f * Temp + Temp*Temp );
+    float vd = (  1.97471536e9f - 705674.0f * Temp - 308.607f * Temp*Temp ) / Square( 6.19363586e6f - 179.456f * Temp + Temp*Temp );
+
+    vec2 uvd = normalize( vec2( u, v ) );
+
+    // Correlated color temperature is meaningful within +/- 0.05
+    u += -uvd.y * Tint * 0.05f;
+    v +=  uvd.x * Tint * 0.05f;
+    
+    float x = 3*u / ( 2*u - 8*v + 4 );
+    float y = 2*v / ( 2*u - 8*v + 4 );
+
+    return vec2(x,y);
+}
+
+
+
+
+vec3 WhiteBalance( vec3 LinearColor )
+{
+    
+    // REC 709 primaries
+    mat3 XYZ_2_sRGB_MAT =
+    {
+        { 3.2409699419, -1.5373831776, -0.4986107603},
+        {-0.9692436363,  1.8759675015,  0.0415550574},
+        {0.0556300797, -0.2039769589,  1.0569715142},
+    };
+    
+    mat3 sRGB_2_XYZ_MAT =
+    {
+        {0.4124564, 0.3575761, 0.1804375},
+        {0.2126729, 0.7151522, 0.0721750},
+        {0.0193339, 0.1191920, 0.9503041},
+    };
+    float WhiteTint = 0.0f;
+    XYZ_2_sRGB_MAT = transpose(XYZ_2_sRGB_MAT);
+    sRGB_2_XYZ_MAT = transpose(sRGB_2_XYZ_MAT);
+    
+    //TODO: this could be set from outside shader
+    float WhiteTemp = 6500.0f;
+    vec2 SrcWhiteDaylight = D_IlluminantChromaticity( WhiteTemp );
+    vec2 SrcWhitePlankian = PlanckianLocusChromaticity( WhiteTemp );
+
+    vec2 SrcWhite = WhiteTemp < 4000 ? SrcWhitePlankian : SrcWhiteDaylight;
+    vec2 D65White = vec2( 0.31270,  0.32900 );
+
+    {
+        // Offset along isotherm
+        vec2 Isothermal = PlanckianIsothermal( WhiteTemp, WhiteTint ) - SrcWhitePlankian;
+        SrcWhite += Isothermal;
+    }
+
+    mat3 WhiteBalanceMat = ChromaticAdaptation( SrcWhite, D65White );
+    WhiteBalanceMat =  XYZ_2_sRGB_MAT *  (WhiteBalanceMat * sRGB_2_XYZ_MAT );
+
+    return WhiteBalanceMat * LinearColor ;
+}
+
+
+
 void main()
 {
     luminance_data l = sample_luminance_neighborhood(in_frag_coord);
     if (should_skip_pixel(l)) {
         out_color =  vec4(sample_color(in_frag_coord),1.0f);
+        out_color = max(vec4(0), out_color);
     }
     else
     {
@@ -296,7 +499,78 @@ void main()
             uv.x += e.pixel_step * final_blend;
         }
         out_color = vec4(sample_color(uv), 1.0f);
+        
+        out_color = max(vec4(0), out_color);
     }
+    
+    out_color.xyz *= 1.4f;
+    
+    mat3 XYZ_2_AP1_MAT =
+    {
+        {1.6410233797, -0.3248032942, -0.2364246952},
+        {-0.6636628587,  1.6153315917,  0.0167563477},
+        {0.0117218943, -0.0082844420,  0.9883948585},
+    };
+    
+    XYZ_2_AP1_MAT = transpose(XYZ_2_AP1_MAT);
+    
+    // Bradford chromatic adaptation transforms between ACES white point (D60) and sRGB white point (D65)
+    mat3 D65_2_D60_CAT =
+    {
+        {1.01303,    0.00610531, -0.014971},
+        {0.00769823, 0.998165,   -0.00503203},
+        {-0.00284131, 0.00468516,  0.924507},
+    };
+    
+    D65_2_D60_CAT = transpose(D65_2_D60_CAT);
+    
+    mat3 sRGB_2_XYZ_MAT =
+    {
+        {0.4124564, 0.3575761, 0.1804375},
+        {0.2126729, 0.7151522, 0.0721750},
+        {0.0193339, 0.1191920, 0.9503041},
+    };
+    sRGB_2_XYZ_MAT = transpose(sRGB_2_XYZ_MAT);
+    
+    // REC 709 primaries
+    mat3 XYZ_2_sRGB_MAT =
+    {
+        {3.2409699419, -1.5373831776, -0.4986107603},
+        {-0.9692436363,  1.8759675015,  0.0415550574},
+        {0.0556300797, -0.2039769589,  1.0569715142},
+    };
+    
+    XYZ_2_sRGB_MAT = transpose(XYZ_2_sRGB_MAT);
+    
+    
+    mat3 D60_2_D65_CAT =
+    {
+        {0.987224,   -0.00611327, 0.0159533},
+        {-0.00759836,  1.00186,    0.00533002},
+        {0.00307257, -0.00509595, 1.08168},
+    };
+    
+    D60_2_D65_CAT = transpose(D60_2_D65_CAT);
+    
+    
+    mat3 AP1_2_XYZ_MAT =
+    {
+        {0.6624541811, 0.1340042065, 0.1561876870},
+        {0.2722287168, 0.6740817658, 0.0536895174},
+        {-0.0055746495, 0.0040607335, 1.0103391003},
+    };
+    AP1_2_XYZ_MAT = transpose(AP1_2_XYZ_MAT);
+    
+    mat3 sRGB_2_AP1 = XYZ_2_AP1_MAT * (D65_2_D60_CAT * sRGB_2_XYZ_MAT);
+    mat3 AP1_2_sRGB = XYZ_2_sRGB_MAT * (D60_2_D65_CAT * AP1_2_XYZ_MAT);
+
+    
+    
+    out_color.xyz = sRGB_2_AP1 * out_color.xyz;
+    out_color.xyz = WhiteBalance(out_color.xyz);
+    out_color.xyz = ACESFitted(out_color.xyz);
+    out_color.xyz = AP1_2_sRGB * out_color.xyz;
+    
     //gamma correct:
     out_color.xyzw = pow(out_color.xyzw, vec4(0.4545));
 }

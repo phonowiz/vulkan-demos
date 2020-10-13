@@ -108,7 +108,7 @@ public:
         vk::resource_set<vk::render_texture>& brdf_lut = _tex_registry->get_read_render_texture_set("spec_map_lut", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         final_render.set_filter(vk::image::filter::LINEAR);
-        final_render.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
+        final_render.set_format(vk::image::formats::R16G16B16A16_SIGNED_FLOAT);
         
         //GBUFFER SUBPASS
         mrt_attachment_group.add_attachment(normals, glm::vec4(0.0f), false, false);
