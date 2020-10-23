@@ -48,10 +48,6 @@ layout(binding = 5, std140) uniform _rendering_state
 
 }rendering_state;
 
-//zeroth levels
-//layout(binding = 6) uniform sampler3D voxel_normals;
-//layout(binding = 7) uniform sampler3D voxel_albedos;
-
 //mipmap levels.  moltenvk doesn't support mip maps for sampler3D, only texture2d_array
 //layout(binding = 8) uniform sampler3D voxel_albedos1;
 layout(binding = 6) uniform sampler3D voxel_albedos2;
@@ -73,9 +69,8 @@ layout(binding = 15) uniform samplerCube    environment;
 layout(binding = 16) uniform samplerCube    radiance_map;
 layout(binding = 17) uniform samplerCube    spec_cubemap_high;
 layout(binding = 18) uniform samplerCube    spec_cubemap_low;
-//layout(binding = 22) uniform samplerCube    radiance_map;
-layout(binding = 19) uniform sampler2D      brdfLUT;
 
+layout(binding = 19) uniform sampler3D      color_lut;
 
 //note: these are tied to enum class in deferred_renderer class, if these change, make sure
 //make respective change accordingly
@@ -464,6 +459,35 @@ vec4 voxel_cone_tracing( mat3 rotation, vec3 incoming_normal, vec3 incoming_posi
     return sample_color;
 }
 
+//https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
+//this function estimates the brdf 2D lut created when performing imaged based lighting
+vec3 EnvDFGPolynomial( vec3 specularColor, float gloss, float ndotv )
+{
+    float x = gloss;
+    float y = ndotv;
+ 
+    float b1 = -0.1688;
+    float b2 = 1.895;
+    float b3 = 0.9903;
+    float b4 = -4.853;
+    float b5 = 8.404;
+    float b6 = -5.069;
+    float bias = clamp( min( b1 * x + b2 * x * x, b3 + b4 * y + b5 * y * y + b6 * y * y * y ), 0.0f, 1.0f );
+ 
+    float d0 = 0.6045;
+    float d1 = 1.699;
+    float d2 = -0.5228;
+    float d3 = -3.603;
+    float d4 = 1.404;
+    float d5 = 0.1939;
+    float d6 = 2.661;
+    float delta = clamp( d0 + d1 * x + d2 * y + d3 * x * x + d4 * x * y + d5 * y * y + d6 * x * x * x , 0.0f, 1.0f);
+    float scale = delta - bias;
+ 
+    bias *= clamp( 50.0 * specularColor.y, 0, 1 );
+    return specularColor * scale + bias;
+}
+
 vec4 direct_illumination( vec3 world_normal, vec3 world_position, float metalness, float roughness)
 {
     vec3 v = rendering_state.eye_in_world_space.xyz - world_position;
@@ -500,8 +524,9 @@ vec4 direct_illumination( vec3 world_normal, vec3 world_position, float metalnes
     vec3 smooth_reflect = texture(spec_cubemap_low, r).xyz;
     
     vec3 ibl_reflect = mix(smooth_reflect, rough_reflect, roughness);
-    vec2 envBRDF = texture(brdfLUT, vec2(max(dot(n, v), 0.0), roughness)).rg;
-    vec3 specular = ibl_reflect * (F0 * envBRDF.x + envBRDF.y);
+    //vec2 envBRDF = texture(brdfLUT, vec2(max(dot(n, v), 0.0), roughness)).rg;
+    //vec3 specular = ibl_reflect * (F0 * envBRDF.x + envBRDF.y);
+    vec3 specular = ibl_reflect * EnvDFGPolynomial(F0, pow(1-roughness, 4), max(dot(n, v), 0.0));
     
     return vec4(final + specular, 1.0f);
 }
@@ -674,6 +699,7 @@ void main()
 
                 out_color.xyz = direct.xyz;
                 out_color.w = out_color.x * 0.2126f +  out_color.y * 0.7152f + out_color.z * 0.0722f;
+                out_color.xyz = texture(color_lut, out_color.xyz).xyz;
             }
         }
         else
@@ -681,6 +707,7 @@ void main()
             vec3 ray = get_camera_vector();
             
             out_color = texture(environment, ray);
+            out_color.xyz = texture(color_lut, out_color.xyz).xyz;
             out_color.w = 1.0f;
         }
     }

@@ -76,13 +76,6 @@ vec4 integrate(vec3 N)
     float theta = 0.0f;
     
     
-    //note: this is the "for" loop I try to emulate using the #define INTEGRATE.
-    //For some odd reason if you try too many iterations, the for loops fail and don't return the right color (you get black).
-    //I figured that if I unrolled the loop I could get more out of it, that turned out to be true up to a point.
-    //there seems to be a limit on how many times you can use the texture sampling function.  I thought it was
-    //a barrier issue, but those are accounted for (look in node.h" file). It is unclear to me why this limit is happening.
-    //This might be as a result of the weak 2014 mac book pro am using.
-    
     for (float phi = 0.0f; phi < TWO_PI; phi += consts.delta_phi)
     {
 
@@ -96,12 +89,6 @@ vec4 integrate(vec3 N)
             sampleCount++;
         }
     }
-    
-//    //note: few iterations here works fine because the cube map is a low frequency texture (not too many harsh color transitions in it).
-//    INTEGRATE(0,3)
-//    INTEGRATE(1,3)
-//    INTEGRATE(2,3)
-
     return vec4(PI * color / float(sampleCount), 1.0);
 }
 
@@ -118,57 +105,5 @@ void main()
     world_normal.y *= -1.0f;
     
     out_color = integrate(world_normal.xyz);
-    //
-    
-//    //X+
-//    vec3 n = normalize(N.xyz);
-//    vec4 world_normal = consts.positive_x * vec4(n, 0.0f);
-//    world_normal.y *= -1.0f;
-//
-//    out_color = integrate(world_normal.xyz);
-//    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_X;
-//    imageStore(radiance_map, voxel, out_color);
-//
-//    //X-
-//    world_normal = consts.negative_x * vec4(n, 0.0f);
-//    world_normal.y *= -1.0f;
-//
-//    out_color = integrate(world_normal.xyz);
-//    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_X;
-//    imageStore(radiance_map, voxel, out_color);
-//
-//    //Y+
-//    world_normal = consts.positive_y * vec4(n,0.0f);
-//    world_normal.y *= -1.0f;
-//
-//    out_color = integrate(world_normal.xyz);
-//    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Y;
-//    imageStore(radiance_map, voxel, out_color);
-//
-////    NO CONTRIBUTION FROM THE BOTTOM, LIKELY THERE IS A FLOOR THERE
-////    //Y-
-////    world_normal = consts.negative_y * n;
-////    world_normal.y *= -1.0f;
-////
-////    out_color = integrate(world_normal);
-////    voxel = ivec3( uv, TEXTURE_CUBE_MAP_NEGATIVE_Y);
-////    imageStore(radiance_map, voxel, out_color);
-//
-//    //Z+
-//    world_normal = consts.positive_z * vec4(n, 1.0f);
-//    world_normal.y *= -1.0f;
-//
-//    out_color = integrate(world_normal.xyz);
-//    voxel.z = TEXTURE_CUBE_MAP_POSITIVE_Z;
-//    imageStore(radiance_map, voxel, out_color);
-//
-//    //Z-
-//    world_normal = consts.negative_z * vec4(n, 1.0f);
-//    world_normal.y *= -1.0f;
-//
-//    out_color = integrate(world_normal.xyz);
-//    voxel.z = TEXTURE_CUBE_MAP_NEGATIVE_Z;
-//    imageStore(radiance_map, voxel, out_color);
-//
-//    out_color = vec4(0);
+
 }

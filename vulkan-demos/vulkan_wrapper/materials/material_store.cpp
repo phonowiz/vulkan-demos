@@ -50,6 +50,8 @@ void material_store::create(device* device)
     
     shader_shared_ptr clear_3d_texture_comp =  add_shader("compute/clear_3d_texture.comp", shader::shader_type::COMPUTE);
     shader_shared_ptr avg_texture_comp = add_shader("compute/downsize.comp", shader::shader_type::COMPUTE);
+    shader_shared_ptr lut_comp =  add_shader("compute/lut.comp", shader::shader_type::COMPUTE);
+    
     
     shader_shared_ptr gauss_blur_vert = add_shader("graphics/gaussblur.vert", shader::shader_type::VERTEX);
     shader_shared_ptr gauss_blur_frag = add_shader("graphics/gaussblur.frag", shader::shader_type::FRAGMENT);
@@ -135,6 +137,9 @@ void material_store::create(device* device)
 
     mat_shared_ptr downsize = CREATE_MAT<compute_material>("downsize", avg_texture_comp, device);
     add_material(downsize);
+    
+    mat_shared_ptr lut_mat = CREATE_MAT<compute_material>("color_lut", lut_comp, device);
+    add_material(lut_mat);
 
 }
 

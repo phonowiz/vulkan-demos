@@ -11,7 +11,7 @@
 #include "graphics_node.h"
 #include "orthographic_camera.h"
 
-static const uint32_t RADIANCE_ATTACHMENTS = 19;
+static const uint32_t RADIANCE_ATTACHMENTS = 18;
 template< uint32_t NUM_CHILDREN>
 class radiance_map : public vk::graphics_node<RADIANCE_ATTACHMENTS, NUM_CHILDREN>
 {
@@ -85,14 +85,14 @@ public:
         
         //TODO: in my version of vulkan, we need atttachments otherwise validation layers will throw errors,
         //TODO: in future versions of vulkan there is a device feature which allows imageless frame buffers.
-        vk::resource_set<vk::render_texture>& spec_lut = _tex_registry->get_write_render_texture_set("spec_map_lut", this);
+        //vk::resource_set<vk::render_texture>& spec_lut = _tex_registry->get_write_render_texture_set("spec_map_lut", this);
 
         vk::attachment_group<RADIANCE_ATTACHMENTS>& map_attachments = pass.get_attachment_group();
-        
-        spec_lut.set_dimensions(dims.x, dims.y);
-        spec_lut.set_filter(vk::image::filter::LINEAR);
-        spec_lut.set_format(vk::image::formats::R16G16B16A16_SIGNED_FLOAT);
-        spec_lut.init();
+//
+//        spec_lut.set_dimensions(dims.x, dims.y);
+//        spec_lut.set_filter(vk::image::filter::LINEAR);
+//        spec_lut.set_format(vk::image::formats::R16G16B16A16_SIGNED_FLOAT);
+//        spec_lut.init();
 
         radiance_tex.set_filter(vk::image::filter::LINEAR);
         radiance_tex.set_format(vk::image::formats::R32G32B32A32_SIGNED_FLOAT);
@@ -103,7 +103,7 @@ public:
         cube_tex.init();
         
         map_attachments.add_attachment(radiance_tex, glm::vec4(0), true, true);
-        map_attachments.add_attachment(spec_lut,glm::vec4(0),true, true);
+        //map_attachments.add_attachment(spec_lut,glm::vec4(0),true, true);
         
         vk::perspective_camera radiance_cam(glm::radians(45.0f),
                                                   1, .01f, 100.0f);
@@ -143,7 +143,7 @@ public:
         //ibl maps
         setup_radiance_map("spec_cubemap_high", cube_tex,  .98f);
         setup_radiance_map("spec_cubemap_low", cube_tex,  .001f);
-        setup_environment_brdf("spec_map_lut", dims);
+        //setup_environment_brdf("spec_map_lut", dims);
         
         pass.add_object(static_cast<vk::obj_shape*>(&_screen_plane));
     }

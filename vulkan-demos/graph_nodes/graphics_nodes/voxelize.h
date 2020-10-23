@@ -114,7 +114,7 @@ public:
     virtual void init_node() override
     {
         render_pass_type &pass = parent_type::_node_render_pass;
-        object_vector_type &obj_vec = parent_type::_obj_vector;
+        //object_vector_type &obj_vec = parent_type::_obj_vector;
         tex_registry_type* _tex_registry = parent_type::_texture_registry;
         material_store_type* _mat_store = parent_type::_material_store;
         object_vector_type& _obj_vector = parent_type::_obj_vector;

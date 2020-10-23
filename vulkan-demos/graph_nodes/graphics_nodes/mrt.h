@@ -105,7 +105,7 @@ public:
         vk::resource_set<vk::texture_cube>& spec_cubemap_high  = _tex_registry->get_read_texture_cube_set("spec_cubemap_high", this);
         vk::resource_set<vk::texture_cube>& spec_cubemap_low = _tex_registry->get_read_texture_cube_set("spec_cubemap_low", this);
         vk::resource_set<vk::texture_cube>& radiance_map = _tex_registry->get_read_texture_cube_set("radiance_map", this);
-        vk::resource_set<vk::render_texture>& brdf_lut = _tex_registry->get_read_render_texture_set("spec_map_lut", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
+        //vk::resource_set<vk::render_texture>& brdf_lut = _tex_registry->get_read_render_texture_set("spec_map_lut", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
         
         final_render.set_filter(vk::image::filter::LINEAR);
         final_render.set_format(vk::image::formats::R16G16B16A16_SIGNED_FLOAT);
@@ -136,7 +136,7 @@ public:
         
         
         vk::resource_set<vk::render_texture>& vsm_set = _tex_registry->get_read_render_texture_set("blur_final", this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-        
+        vk::resource_set<vk::texture_3d>& color_lut = _tex_registry->get_read_texture_3d_set("color_lut", this);
         
         glm::vec4 world_scale_voxel = glm::vec4(float(_voxel_world_dimensions.x/voxelize<NUM_CHILDREN>::VOXEL_CUBE_WIDTH),
                                                 float(_voxel_world_dimensions.y/voxelize<NUM_CHILDREN>::VOXEL_CUBE_HEIGHT),
@@ -190,7 +190,8 @@ public:
             composite.set_image_sampler(*ibl_textures[i], ibl_samplers[i], vk::parameter_stage::FRAGMENT, binding_index + offset++);
         }
         
-        composite.set_image_sampler(brdf_lut, "brdfLUT", vk::parameter_stage::FRAGMENT, binding_index + offset++);
+        //composite.set_image_sampler(brdf_lut, "brdfLUT", vk::parameter_stage::FRAGMENT, binding_index + offset++);
+        composite.set_image_sampler(color_lut, "color_lut", vk::parameter_stage::FRAGMENT, binding_index + offset++);
     }
     
     virtual void update_node(vk::camera& camera, uint32_t image_id) override

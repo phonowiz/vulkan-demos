@@ -29,6 +29,7 @@ namespace vk {
         
         texture_cube(device* device, const char* path): texture_2d(device)
         {
+            EA_ASSERT_MSG(path != nullptr, "no texture path has been specified");
             _path = resource::resource_root + texture_2d::texture_resource_path + path;
             load();
         };

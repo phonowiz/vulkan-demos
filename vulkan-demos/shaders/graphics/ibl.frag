@@ -23,11 +23,6 @@ layout(binding = 2, std140) uniform UBO
     float roughness;
     vec2  screen_size;
     mat4  positive_x;
-//    mat4  negative_x;
-//    mat4  positive_y;
-//    //mat4  negative_y; //NO CONTRIBUTION FROM THE BOTTOM
-//    mat4  positive_z;
-//    mat4  negative_z;
     
 }consts;
 
@@ -111,16 +106,6 @@ vec4 PrefilterEnvMap(float roughness, vec3 N)
     const uint SAMPLE_COUNT = 1024;
     float totalWeight = 0.0;
     vec3 prefilteredColor = vec3(0.0);
-
-//    vec2 Xi = vec2(0);//Hammersley(i, SAMPLE_COUNT);
-//    vec3 H  = vec3(0);//ImportanceSampleGGX(Xi, N, consts.roughness);
-//    vec3 L  = vec3(0);//normalize(2.0 * dot(V, H) * H - V);
-//    float NdotL = 0.0f;
-
-//    INTEGRATE(0,2)
-//    INTEGRATE(1,2)
-    //INTEGRATE(2,4)
-    //INTEGRATE(3,4)
     
     for( int i = 0; i < SAMPLE_COUNT; ++i)
     {
@@ -137,17 +122,13 @@ vec4 PrefilterEnvMap(float roughness, vec3 N)
     }
 
     prefilteredColor = prefilteredColor / totalWeight;
-    //return vec4(1.0f);
     return vec4(prefilteredColor, 1.0f);
 }
 
 void main()
 {
     vec2 uv = (2.0f * gl_FragCoord.xy / consts.screen_size.xy) -1;
-    //ivec3 voxel = ivec3(gl_FragCoord.x, gl_FragCoord.y, 0);
-
     vec4 N = vec4(uv, 1.0f, .0f);
-    //N.zw = vec2(1.0f, 0.0f);
     
     //X+
     vec3 n = normalize(N.xyz);
@@ -155,6 +136,5 @@ void main()
     vec4 world_normal = consts.positive_x * vec4(n, 0.0f);
     world_normal.y *= -1.0f;
     
-    //TODO: you'll need to compute the reflection vector
     out_color = PrefilterEnvMap(consts.roughness, world_normal.xyz);
 }

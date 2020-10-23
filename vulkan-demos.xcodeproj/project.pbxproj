@@ -130,6 +130,7 @@
 		B938D043219534B7004F759E /* vulkan-demos.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "vulkan-demos.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B938D04C219534B7004F759E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B938D051219534B7004F759E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B93DEF47253A720B00000B86 /* color_lut.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = color_lut.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		B93FDCA223036C29000AECBE /* texture_3d.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = texture_3d.cpp; sourceTree = "<group>"; };
 		B93FDCA323036C29000AECBE /* texture_2d.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = texture_2d.cpp; sourceTree = "<group>"; };
 		B93FDCA423036C29000AECBE /* texture_3d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = texture_3d.h; sourceTree = "<group>"; };
@@ -142,7 +143,7 @@
 		B93FDCB223036DDE000AECBE /* depth_texture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = depth_texture.h; sourceTree = "<group>"; };
 		B93FDCB523036EB0000AECBE /* visual_material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = visual_material.h; sourceTree = "<group>"; };
 		B93FDCB623036EB0000AECBE /* compute_material.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = compute_material.h; sourceTree = "<group>"; };
-		B93FDCB723036EB0000AECBE /* material_store.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = material_store.cpp; sourceTree = "<group>"; };
+		B93FDCB723036EB0000AECBE /* material_store.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = material_store.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.glsl; };
 		B93FDCB823036EB0000AECBE /* compute_material.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = compute_material.cpp; sourceTree = "<group>"; };
 		B93FDCB923036EB0000AECBE /* material_base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = material_base.h; sourceTree = "<group>"; };
 		B93FDCBA23036EB0000AECBE /* material_base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = material_base.cpp; sourceTree = "<group>"; };
@@ -1333,6 +1334,7 @@
 			children = (
 				B9C2D0D12444472200D7621F /* mip_map_3d_texture.hpp */,
 				B9BB9AE0244A5956003564D3 /* clear_3d_texture.hpp */,
+				B93DEF47253A720B00000B86 /* color_lut.hpp */,
 			);
 			path = compute_nodes;
 			sourceTree = "<group>";

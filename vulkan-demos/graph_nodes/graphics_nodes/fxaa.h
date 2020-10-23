@@ -52,13 +52,14 @@ public:
         subpass_type& fxaa_subpass = pass.add_subpass(_mat_store, "fxaa");
         
         vk::resource_set<vk::render_texture>& aliased_tex =  _tex_registry->get_read_render_texture_set(_aliased_texture, this, vk::usage_type::COMBINED_IMAGE_SAMPLER);
-
+        
         vk::attachment_group<FXAA_ATTACHMENTS>& fxaa_attachment_grp = pass.get_attachment_group();
        
         fxaa_attachment_grp.add_attachment( _swapchain->present_textures, glm::vec4(0.0f));
        
 
         fxaa_subpass.set_image_sampler(aliased_tex, "final_render", vk::parameter_stage::FRAGMENT, 0);
+        
         fxaa_subpass.add_output_attachment("present");
         
         glm::vec4 texel_size = glm::vec4(0.0f);

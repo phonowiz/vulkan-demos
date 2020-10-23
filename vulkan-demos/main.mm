@@ -49,6 +49,7 @@
 #include "graph_nodes/compute_nodes/mip_map_3d_texture.hpp"
 #include "graph_nodes/graphics_nodes/voxelize.h"
 #include "graph_nodes/compute_nodes/clear_3d_texture.hpp"
+#include "graph_nodes/compute_nodes/color_lut.hpp"
 #include "graph_nodes/graphics_nodes/mrt.h"
 #include "graph_nodes/graphics_nodes/atmospheric.h"
 
@@ -545,6 +546,9 @@ void create_graph()
     atmos_node->set_name("atmospheric");
     
     
+    eastl::shared_ptr<color_lut<4>> lut_node = eastl::make_shared<color_lut<4>>(app.device, voxelize<4>::VOXEL_CUBE_WIDTH,
+                                                                                voxelize<4>::VOXEL_CUBE_HEIGHT, voxelize<4>::VOXEL_CUBE_DEPTH);
+    
     eastl::shared_ptr<radiance_map<4>> rad_map = eastl::make_shared<radiance_map<4>>(app.device, "GoldenGateBridge/gg_bridge512.png",
                                                                                      512, 512 );
     
@@ -555,23 +559,26 @@ void create_graph()
     //rad_map->add_child(*atmos_node);
     rad_map->add_child(*pbr_node);
     rad_map->set_name("radiance");
-    mrt_node->add_child(*rad_map);
+    
+    lut_node->set_name("lut node");
+    lut_node->add_child(*rad_map);
+    mrt_node->add_child(*lut_node);
     
     fast_approximate_aa->set_name("fxaa");
     
-    eastl::shared_ptr<display_texture_2d<4>> pbr_debug =
-        eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "spec_map_lut");
-    //eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "model_albedo", vk::texture_2d::get_class_type());
+//    eastl::shared_ptr<display_texture_2d<4>> pbr_debug =
+//        eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "spec_map_lut");
+//    eastl::shared_ptr<display_texture_2d<4>> pbr_debug = eastl::make_shared<display_texture_2d<4>>(app.device, app.swapchain, (uint32_t)dims.x, (uint32_t)dims.y, "model_albedo", vk::texture_2d::get_class_type());
     
     fast_approximate_aa->add_child(*mrt_node);
     fast_approximate_aa->set_active(true);
     
-    pbr_debug->add_child(*fast_approximate_aa);
-    pbr_debug->set_name("pbr debug");
-    pbr_debug->set_active(false);
+//    pbr_debug->add_child(*fast_approximate_aa);
+//    pbr_debug->set_name("pbr debug");
+//    pbr_debug->set_active(false);
     
-    voxel_cone_tracing.add_child(*pbr_debug);
-//    voxel_cone_tracing.add_child(*fast_approximate_aa);
+    voxel_cone_tracing.add_child(*fast_approximate_aa);
+
     app.voxel_graph = &voxel_cone_tracing;
     app.debug_node_3d = debug_node_3d;
 
