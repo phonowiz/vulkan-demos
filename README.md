@@ -2,12 +2,6 @@
 
 This is my test bed for all things vulkan.  It is project using MoltenVK on a mac and a setup using Xcode.  Vulkan projects are not very common on the mac and I would like to set up an example for others to learn from.
 
-## How to Git it
-```
-git clone https://github.com/phonowiz/vulkan-demos.git
-
-git submodule update --init
-```
 ## Purpose
 
 I want to create renderer that I could use to prototype ideas quickly, game engines are very good for this, but I'd rather implement everything from scratch because you learn more that way.  The need came about because Apple will deprecate OpenGL soon, and I need to port my other project to Vulkan, you can check it out here: https://github.com/phonowiz/voxel-cone-tracing
@@ -266,6 +260,12 @@ This is a screenshot of my addition of physically Based Rendering along with vox
 
 
 ## Build The Code
+#### How to Git it
+```
+git clone https://github.com/phonowiz/vulkan-demos.git
+
+git submodule update --init
+```
 
 #### ASSIMP
 Go to vulkan-demos/utils/assimp, run:
