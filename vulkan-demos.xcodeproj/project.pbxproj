@@ -1283,14 +1283,15 @@
 					"./vulkan-demos/utils/",
 					"./vulkan-demos/utils/MoltenVK/MoltenVK/include/",
 					"./vulkan-demos/",
-					"./vulkan-demos/utils/glm",
+					"./vulkan-demos/glm",
+					"./vulkan-demos/vulkan-loader-1.2.141.2/MoltenVK/include",
 					"./vulkan-demos/utils/MoltenVK/MoltenVKShaderConverter/include/",
 					"./vulkan-demos/utils/glfw/include",
 					"./vulkan-demos/utils/EASTL/include",
-					"./vulkan-demos/utils/EASTL/test/packages/EABase/include/Common",
-					"./vulkan-demos/utils/EASTL/test/packages/EAAssert/include",
-					"./vulkan-demos/utils/EASTL/test/packages/EAStdC/include",
-					"./vulkan-demos/utils/EASTL/test/packages/EAThread/include",
+					"./vulkan-demos/utils/EABase/include/Common",
+					"./vulkan-demos/utils/EAThread/include/",
+					"./vulkan-demos/utils/EAAssert/include",
+					"./vulkan-demos/utils/EAStdC/include",
 					"./vulkan-demos/utils/assimp/include",
 				);
 				INFOPLIST_FILE = "vulkan-demos/Info.plist";
@@ -1325,6 +1326,7 @@
 					"$(PROJECT_DIR)/vulkan-demos/utils/MoltenVK/Package/Release/MoltenVK/macOS/dynamic",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-lglfw3",
 					"-lvulkan.1",
