@@ -281,11 +281,16 @@ rename output in asssimp/bin/Release to libassimp.5.dylib.  You might have to de
 
 #### Molten VK
 
+vulkan-demos/utils/MoltenVK
+
 Go to https://github.com/KhronosGroup/MoltenVK/tree/8f6edef8ba54503f70064ea94b0fb0020dcca819
 
 Follow the instructions of the moltenvk GitHub page.  The platform of choice will be —macos.  You’ll need to build both dynamic and static versions of moltenvk.  This project is already looking for release builds of moltenVK and I don’t think you’ll have to modify anything on this side, but if you get link errors, is likely due to binary files not being found. 
 
 #### GLFW
+
+vulkan-demos/utils/glfw
+
 Go to https://github.com/glfw/glfw/tree/a2674a903434b7dfc0b0bcc5d0b479da417367ff
 
 Follow the instructions on GLFW GitHub page.  I created an Xcode project using cmake, opened up Xcode and built it through there.  The scheme used was “glfw”, make sure you are building release by checking “edit scheme”.
