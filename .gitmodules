@@ -1,15 +1,27 @@
 [submodule "eastl"]
 	path = vulkan-demos/utils/EASTL
 	url = https://github.com/electronicarts/EASTL.git
+[submodule "EABase"]
+	path = vulkan-demos/utils/EASTL/EABase
+	url = https://github.com/electronicarts/EABase.git
+[submodule "EAAssert"]
+	path = vulkan-demos/utils/EASTL/EAAssert
+	url = https://github.com/electronicarts/EAAssert.git
+[submodule "EAStdC"]
+	path = vulkan-demos/utils/EASTL/EAStdC
+	url = https://github.com/electronicarts/EAStdC.git
+[submodule "EAThread"]
+	path = vulkan-demos/utils/EASTL/EAThread
+	url = https://github.com/electronicarts/EAThread.git
+[submodule "EAStdC"]
+	path = EAStdC
+	url = https://github.com/electronicarts/EAStdC.git
 [submodule "vulkan-demos/utils/glfw"]
 	path = vulkan-demos/utils/glfw
 	url = https://github.com/glfw/glfw.git
 [submodule "vulkan-demos/utils/MoltenVK"]
 	path = vulkan-demos/utils/MoltenVK
 	url = https://github.com/KhronosGroup/MoltenVK.git
-[submodule "vulkan-demos/utils/-force"]
-	path = vulkan-demos/utils/-force
-	url = https://github.com/assimp/assimp.git
 [submodule "vulkan-demos/utils/assimp"]
 	path = vulkan-demos/utils/assimp
 	url = https://github.com/assimp/assimp.git
