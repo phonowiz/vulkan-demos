@@ -4,9 +4,12 @@
 [submodule "vulkan-demos/utils/glfw"]
 	path = vulkan-demos/utils/glfw
 	url = https://github.com/glfw/glfw.git
-[submodule "vulkan-demos/utils/assimp"]
-	path = vulkan-demos/utils/assimp
-	url = https://github.com/assimp/assimp.git
 [submodule "vulkan-demos/utils/MoltenVK"]
 	path = vulkan-demos/utils/MoltenVK
 	url = https://github.com/KhronosGroup/MoltenVK.git
+[submodule "vulkan-demos/utils/-force"]
+	path = vulkan-demos/utils/-force
+	url = https://github.com/assimp/assimp.git
+[submodule "vulkan-demos/utils/assimp"]
+	path = vulkan-demos/utils/assimp
+	url = https://github.com/assimp/assimp.git

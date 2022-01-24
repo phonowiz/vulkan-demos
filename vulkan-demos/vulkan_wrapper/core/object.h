@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "EAAssert/eaassert.h"
+#include <EAAssert/eaassert.h>
 
 namespace vk
 {
