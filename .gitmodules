@@ -25,3 +25,15 @@
 [submodule "vulkan-demos/utils/assimp"]
 	path = vulkan-demos/utils/assimp
 	url = https://github.com/assimp/assimp.git
+[submodule "vulkan-demos/utils/EAThread"]
+	path = vulkan-demos/utils/EAThread
+	url = https://github.com/electronicarts/EAThread.git
+[submodule "vulkan-demos/utils/EAStdC"]
+	path = vulkan-demos/utils/EAStdC
+	url = https://github.com/electronicarts/EAStdC.git
+[submodule "vulkan-demos/utils/EAAssert"]
+	path = vulkan-demos/utils/EAAssert
+	url = https://github.com/electronicarts/EAAssert.git
+[submodule "vulkan-demos/utils/EABase"]
+	path = vulkan-demos/utils/EABase
+	url = https://github.com/electronicarts/EABase.git
