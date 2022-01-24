@@ -1212,10 +1212,10 @@
 					"./vulkan-demos/utils/MoltenVK/MoltenVKShaderConverter/include/",
 					"./vulkan-demos/utils/glfw/include",
 					"./vulkan-demos/utils/EASTL/include",
-					"./vulkan-demos/utils/EASTL/EABase/include/Common",
-					"./vulkan-demos/utils/EASTL/EAThread/include/",
-					"./vulkan-demos/utils/EASTL/EAAssert/include",
-					"./vulkan-demos/utils/EASTL/EAStdC/include",
+					"./vulkan-demos/utils/EABase/include/Common",
+					"./vulkan-demos/utils/EAThread/include/",
+					"./vulkan-demos/utils/EAAssert/include",
+					"./vulkan-demos/utils/EAStdC/include",
 					"./vulkan-demos/utils/assimp/include",
 				);
 				INFOPLIST_FILE = "vulkan-demos/Info.plist";
