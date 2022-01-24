@@ -2,16 +2,16 @@
 	path = vulkan-demos/utils/EASTL
 	url = https://github.com/electronicarts/EASTL.git
 [submodule "EABase"]
-	path = vulkan-demos/utils/EASTL/EABase
+	path = vulkan-demos/utils/EABase
 	url = https://github.com/electronicarts/EABase.git
 [submodule "EAAssert"]
-	path = vulkan-demos/utils/EASTL/EAAssert
+	path = vulkan-demos/utils/EAAssert
 	url = https://github.com/electronicarts/EAAssert.git
 [submodule "EAStdC"]
-	path = vulkan-demos/utils/EASTL/EAStdC
+	path = vulkan-demos/utils/EAStdC
 	url = https://github.com/electronicarts/EAStdC.git
 [submodule "EAThread"]
-	path = vulkan-demos/utils/EASTL/EAThread
+	path = vulkan-demos/utils/EAThread
 	url = https://github.com/electronicarts/EAThread.git
 [submodule "EAStdC"]
 	path = EAStdC
